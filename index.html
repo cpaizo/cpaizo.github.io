@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polygon Area Calculator</title>
+    <link rel="stylesheet" href="polygon-area-calculator.css">
+</head>
+<body>
+    <h1>Polygon Area Calculator</h1>
+    <input type="file" id="imageLoader" name="imageLoader"/>
+    <canvas id="canvas" width="640" height="480"></canvas>
+    <div>
+        <label for="colorPicker">選擇顏色:</label>
+        <select id="colorPicker">
+            <option value="red">紅色</option>
+            <option value="blue">藍色</option>
+            <option value="green">綠色</option>
+        </select>
+    </div>
+    <div>
+        <p>紅色區域面積: <span id="redArea">0</span> cm²</p>
+        <!-- 添加一個輸入框和結果顯示 -->
+        <input type="number" id="redMultiplier" value="80" onchange="calculateArea('red')">
+        <span>結果: <span id="redResult">0</span> 根</span>
+    </div>
+    <div>
+        <p>藍色區域面積: <span id="blueArea">0</span> cm²</p>
+        <input type="number" id="blueMultiplier" value="40" onchange="calculateArea('blue')">
+        <span>結果: <span id="blueResult">0</span> 根</span>
+    </div>
+    <div>
+        <p>綠色區域面積: <span id="greenArea">0</span> cm²</p>
+        <input type="number" id="greenMultiplier" value="20" onchange="calculateArea('green')">
+        <span>結果: <span id="greenResult">0</span> 根</span>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
