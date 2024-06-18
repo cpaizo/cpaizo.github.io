@@ -1,0 +1,27 @@
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: Arial, sans-serif;
+}
+
+.canvas-container {
+    display: flex;
+    align-items: flex-start;
+}
+
+canvas {
+    border: 1px solid black;
+}
+
+.controls {
+    margin-left: 20px; /* 加入左側間距，使控制項目與畫布保持距離 */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.controls > * {
+    margin-top: 10px; /* 調整每個控制項目之間的上間距 */
+    margin-bottom: 10px; /* 調整每個控制項目之間的下間距 */
+}
