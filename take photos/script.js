@@ -4,8 +4,10 @@ const captureButton = document.getElementById('capture');
 const frame = document.getElementById('frame');
 const photo = document.getElementById('photo');
 
-// 請求使用攝像頭
-navigator.mediaDevices.getUserMedia({ video: true })
+// 請求使用平板的前鏡頭
+navigator.mediaDevices.getUserMedia({ 
+    video: { facingMode: 'user' } 
+})
     .then(stream => {
         video.srcObject = stream;
     })
