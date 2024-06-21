@@ -6,7 +6,7 @@ const photo = document.getElementById('photo');
 
 // 請求使用平板的前鏡頭
 navigator.mediaDevices.getUserMedia({ 
-    video: { facingMode: 'user' } 
+    video: { facingMode: 'environment' } 
 })
     .then(stream => {
         video.srcObject = stream;
