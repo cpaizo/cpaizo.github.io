@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimalist Console 簡約指令介面</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="background-scanline"></div>
+
+    <main class="console-container">
+        <header>
+            <h1>CPAIZO個人作品</h1>
+            <p>-- 請點擊節點開始作業 --</p>
+        </header>
+
+        <section id="link-buttons" class="button-grid">
+            </section>
+
+        <section id="edit-panel" class="edit-panel hidden">
+            <h2>// 編輯節點 //</h2>
+            <div class="input-group">
+                <label for="edit-url">新連結網址 (URL):</label>
+                <input type="url" id="edit-url" placeholder="https://your-project-link.com" required>
+            </div>
+            <div class="input-group">
+                <label for="edit-name">新按鈕名稱:</label>
+                <input type="text" id="edit-name" placeholder="例如: 專案 01" required>
+            </div>
+            <button id="save-button" class="action-button primary">💾 儲存變更</button>
+            <button id="cancel-button" class="action-button secondary">✖ 取消</button>
+        </section>
+        
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
