@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: '小小旅行家 AI 海報 ', url: 'https://reurl.cc/VmMLx5' },
         { name: 'AI 海報設計師', url: 'https://gemini.google.com/share/ba50716adb67' },
         { name: 'AI 海報發表生成器', url: 'https://gemini.google.com/share/de9022b5a007' },
+        { name: 'AI 海報提示詞與創作理念自動生成器', url: 'https://gemini.google.com/share/4cefd7f95e15' },
         { name: 'Node 08: 編輯此處', url: '#' }
     ];
     
