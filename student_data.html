@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>上傳資料到 Google Drive</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 400px; margin: auto; background-color: #f4f7f6; }
+        .card { border: 1px solid #ddd; padding: 20px; border-radius: 12px; background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        input, button { width: 100%; margin: 10px 0; padding: 12px; box-sizing: border-box; border-radius: 6px; border: 1px solid #ccc; }
+        button { background-color: #007bff; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:disabled { background-color: #ccc; }
+        h3 { color: #333; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h3>資料提交系統</h3>
+        <input type="text" id="userName" placeholder="請輸入您的姓名">
+        <input type="text" id="textInput" placeholder="請輸入文字描述">
+        <input type="file" id="imageInput" accept="image/*">
+        <button onclick="startUpload()" id="btn">開始上傳</button>
+        <p id="status" style="text-align: center; color: #666;"></p>
+    </div>
+
+    <script>
+        function startUpload() {
+            const nameInput = document.getElementById('userName');
+            const textInput = document.getElementById('textInput');
+            const fileInput = document.getElementById('imageInput');
+            const status = document.getElementById('status');
+            const btn = document.getElementById('btn');
+            const file = fileInput.files[0];
+
+            // 檢查必填欄位
+            if (!nameInput.value || !file || !textInput.value) { 
+                alert("姓名、描述與圖片皆為必填！"); 
+                return; 
+            }
+
+            status.innerText = "正在處理並上傳...";
+            btn.disabled = true;
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function() {
+                const base64Data = reader.result.split(',')[1];
+                const payload = {
+                    userName: nameInput.value,
+                    image: base64Data,
+                    mimeType: file.type,
+                    fileName: file.name,
+                    text: textInput.value
+                };
+
+                const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxuCFJ55szoU0UEBstKCI0NbSAmokIobMJCwzmC1iVWhJb8FJnYAKl8LihT53adHZj4/exec"; // <--- 記得放你的網址
+
+                fetch(SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify(payload)
+                })
+                .then(res => res.text())
+                .then(result => {
+                    status.innerText = result;
+                    btn.disabled = false;
+                    // 清空輸入欄位方便下次輸入
+                    nameInput.value = "";
+                    textInput.value = "";
+                    fileInput.value = "";
+                })
+                .catch(err => {
+                    status.innerText = "上傳失敗，請檢查網路。";
+                    btn.disabled = false;
+                });
+            };
+        }
+    </script>
+</body>
+</html>
