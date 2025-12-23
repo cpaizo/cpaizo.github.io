@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小小設計師：2050 永續生活海報產生器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f0f9ff; }
+        .card { @apply bg-white p-6 rounded-2xl shadow-md border-b-4 border-blue-200 mb-6; }
+        .label-title { @apply block text-lg font-bold text-blue-700 mb-2; }
+        .select-input { @apply w-full p-3 border-2 border-blue-100 rounded-xl focus:border-blue-500 focus:outline-none bg-blue-50 text-sm; }
+        .result-area { @apply bg-white p-6 rounded-2xl shadow-inner border-2 border-dashed border-blue-300 min-h-[100px] whitespace-pre-wrap text-gray-700; }
+    </style>
+</head>
+<body class="py-10 px-4">
+
+    <div class="max-w-4xl mx-auto">
+        <!-- 標題區 -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-extrabold text-blue-800 mb-3">🎨 2050 我的永續生活</h1>
+            <p class="text-blue-600 text-xl font-medium">小小設計師：AI 海報提示詞組合器 (含中文指令)</p>
+            <div class="inline-block mt-4 bg-yellow-100 text-yellow-800 px-4 py-1 rounded-full text-sm font-bold">
+                50種靈感 ‧ 隨機理念稿 ‧ 中英雙語指令
+            </div>
+        </header>
+
+        <!-- 第一步：選擇風格 -->
+        <div class="card">
+            <label class="label-title">第一步：藝術風格 (Style)</label>
+            <select id="style-select" class="select-input"></select>
+        </div>
+
+        <!-- 第二步：場景與角色 -->
+        <div class="card">
+            <label class="label-title">第二步：設定場景與主角 (Setting & Subject)</label>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <span class="text-sm text-gray-500 font-bold">選擇場景地點</span>
+                    <select id="setting-select" class="select-input"></select>
+                </div>
+                <div>
+                    <span class="text-sm text-gray-500 font-bold">選擇主要角色</span>
+                    <select id="subject-select" class="select-input"></select>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第三步：創新科技 -->
+        <div class="card">
+            <label class="label-title">第三步：加入未來科技發明 (Technology)</label>
+            <select id="tech-select" class="select-input"></select>
+        </div>
+
+        <!-- 第四步：氣氛 -->
+        <div class="card">
+            <label class="label-title">第四步：畫面的感覺 (Atmosphere)</label>
+            <select id="atmosphere-select" class="select-input"></select>
+        </div>
+
+        <!-- 生成按鈕 -->
+        <div class="text-center py-6">
+            <button id="generate-all" class="bg-blue-600 hover:bg-blue-700 text-white text-2xl font-bold py-4 px-10 rounded-full shadow-xl transition-all hover:scale-105 active:scale-95">
+                🚀 生成我的海報指令！
+            </button>
+        </div>
+
+        <!-- 結果顯示區 -->
+        <div id="results-container" class="hidden space-y-8 mt-10">
+            <!-- 英文指令 -->
+            <div>
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-xl font-bold text-blue-800">📋 1. 給 AI 的英文指令 (English Prompt)</h3>
+                    <button onclick="copyText('prompt-en')" class="bg-blue-100 text-blue-700 px-3 py-1 rounded text-sm font-bold hover:bg-blue-200">複製</button>
+                </div>
+                <div id="prompt-en" class="result-area"></div>
+            </div>
+
+            <!-- 中文指令 -->
+            <div>
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-xl font-bold text-blue-800">📋 2. 給 AI 的中文指令 (Chinese Prompt)</h3>
+                    <button onclick="copyText('prompt-zh')" class="bg-blue-100 text-blue-700 px-3 py-1 rounded text-sm font-bold hover:bg-blue-200">複製</button>
+                </div>
+                <div id="prompt-zh" class="result-area"></div>
+            </div>
+
+            <!-- 創作理念 -->
+            <div>
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-xl font-bold text-blue-800">🎤 3. 我的創作理念 (說明稿)</h3>
+                    <button onclick="copyText('concept-text')" class="bg-blue-100 text-blue-700 px-3 py-1 rounded text-sm font-bold hover:bg-blue-200">複製</button>
+                </div>
+                <div id="concept-text" class="result-area"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const data = {
+            styles: [
+                "Cartoon Style, thick black outlines (卡通風格，線條粗黑)", "LEGO Bricks style (樂高積木風格)", "Watercolor, soft colors (水彩手繪，顏色柔和)", "Paper-cutting Art (剪紙藝術)", "Pixel Art, 8-bit game style (像素畫風格)", 
+                "Claymation Style (黏土動畫風格)", "Studio Ghibli film aesthetic (吉卜力動畫電影感)", "Children's book illustration (童書插畫風格)", "Futuristic Sci-Fi Graffiti (未來科幻塗鴉)", "Mosaic Collage (馬賽克拼貼畫)",
+                "Oil painting texture (油畫筆觸)", "Pencil sketch with color accents (鉛筆素描加彩色)", "Transparent glass sculpture (透明玻璃雕塑感)", "Geometric shapes composition (幾何形狀構成)", "Neon light effect (霓虹燈光效果)",
+                "3D render, Pixar style (3D 渲染，皮克斯風格)", "Retro poster design (復古海報設計)", "Comic book style (漫畫書風格)", "Fluorescent color blocks (螢光色塊)", "Pointillism dots (點畫法)",
+                "Candy color palette (糖果色調)", "Dreamy bubble outlines (夢幻泡泡邊緣)", "Origami Art (摺紙藝術)", "Glow-in-the-dark effect (神秘夜光效果)", "Old treasure map style (古藏寶圖風格)",
+                "Robot parts assembly (機器人零件組裝感)", "Crayon drawing style (蠟筆塗鴉風格)", "Shiny metallic texture (金屬質感)", "Steampunk mechanical (蒸汽龐克風格)", "Abstract imagination (抽象藝術)",
+                "Crystal transparency (水晶透明感)", "Ukiyo-e ink wash (浮世繪水墨感)", "Blocky voxel style (方塊建模感)", "Old parchment scroll (古羊皮紙感)", "Smiley and heart symbols (微笑與愛心符號流)",
+                "Mirror reflection effect (鏡面反射效果)", "Carved wood texture (雕刻木頭質感)", "Kaleidoscope vision (萬花筒視覺)", "Electronic circuit boards (電路板組成)", "Pop-up book scene (立體書場景)",
+                "Cloud and marshmallow texture (雲朵棉花糖材質)", "Spotlight focus effect (探照燈集中光源)", "Virtual Reality VR view (VR 眼鏡視角)", "Recycled materials collage (回收物拼貼)", "Bright Day of the Dead style (色彩鮮豔節慶風)",
+                "Icy world transparency (冰雪透明感)", "Holographic projection (全息投影效果)", "Picture book spread (繪本跨頁感)", "Magnifying glass detail (放大鏡細節)", "Colored marker outlines (彩色筆邊緣風格)"
+            ],
+            settings: [
+                "Cloud City in the sky (漂浮天空雲朵城市)", "Deep-sea coral restoration area (深海珊瑚礁復育區)", "Moving Bicycle School (會移動的腳踏車學校)", "Balcony mini-farm (家裡陽台迷你農場)", "Forest Library (被森林包圍的圖書館)",
+                "Giant vertical spiral garden (巨大垂直螺旋菜園)", "Self-cleaning river bank (自動淨化河流邊)", "First base on Mars (火星永續基地)", "Driverless robot bus (機器人無人公車)", "Wind-powered kite sky (風力發電風箏天空)",
+                "Animal playground in city (城市動物遊樂場)", "Glowing streets at night (晚上會發光的街道)", "Transparent bubble sanctuary (透明泡泡保護區)", "Rooftop picnic garden (屋頂野餐花園)", "Firefly starry night (螢火蟲星空夜晚)",
+                "Talking trash can school (會說話垃圾桶學校)", "Solar powered bakery (太陽能甜點屋)", "Flower covered bike path (花朵腳踏車道)", "Floating recycling factory (海上回收工廠)", "Secret treehouse base (樹屋秘密基地)",
+                "Underground water station (地下水淨化站)", "Tire flower pot park (舊輪胎花盆公園)", "Giant mushroom forest (巨大香菇森林)", "Zero-waste LEGO city (零廢棄樂高城市)", "Space station farm (太空站農場)",
+                "Waterfall power station (瀑布發電站)", "Bubble tea garden (珍珠奶茶花園)", "Digital forest classroom (數位森林教室)", "Polar ice research base (極地冰層研究站)", "Bamboo skyscraper (竹子摩天大樓)",
+                "Floating island village (漂浮島小村莊)", "Automatic cleaning beach (自動清理的海灘)", "Robot pet park (機器寵物公園)", "Rainbow bridge city (彩虹橋城市)", "Submarine glass house (海底玻璃屋)",
+                "Giant fruit orchard (巨大水果果園)", "Solar panel desert (太陽能沙漠綠洲)", "Windmill farm hill (風車農場小山丘)", "Recycled airplane cafe (回收飛機咖啡館)", "Transparent plastic dome (透明塑膠圓頂)",
+                "Bio-luminescent forest (生物發光森林)", "Hoverboard skate park (懸浮滑板公園)", "Vertical forest building (垂直森林建築)", "Eco-friendly amusement park (環保遊樂園)", "Ocean cleanup hub (海洋清理中心)",
+                "Sky train station (天空火車站)", "Butterfly sanctuary (蝴蝶保護區)", "Organic cotton field (有機棉花田)", "Electric boat harbor (電動船港口)", "Giant solar umbrella park (太陽能巨傘公園)"
+            ],
+            subjects: [
+                "Boy talking to a tree (和樹說話的男孩)", "Dog in eco-uniform (穿環保制服的狗狗)", "Teacher and planting robot (教機器人種花的老師)", "Family in solar UFO (搭太陽能飛碟的一家人)", "Farmer with VR glasses (戴 VR 的農夫)",
+                "Fish in clean river (淨化河流中的魚群)", "Girl holding a globe (抱著地球儀的女孩)", "Harvesting robot in farm (農場採集機器人)", "Grandpa repairing bike (修理腳踏車的爺爺)", "Student with air purifier backpack (背淨化書包的學生)",
+                "Child and recycling bin (和垃圾桶玩的小孩)", "Little detective with magnifying glass (小偵探研究葉子)", "Astronaut growing food (太空種菜的宇航員)", "Sun and Moon holding hands (太陽月亮手牽手)", "Delivery man on unicycle (騎獨輪車的快遞員)",
+                "Green energy elf (綠色能量小精靈)", "Future uniform designer (設計未來制服的人)", "Robot dolphin swimming (水裡游的機器海豚)", "Bird directing traffic (指揮交通的鳥)", "Child at charging station (在充電站的小孩)",
+                "Mother and child picking fruit (採集水果的母女)", "Giant with recycling bag (拿回收袋的巨人)", "Cat wearing VR glasses (戴 VR 的貓咪)", "Trees hugging each other (互相擁抱的樹木)", "Chef with food replicator (有食物複製機的廚師)",
+                "Robot librarian (機器人圖書管理員)", "Polar bear on clean ice (在冰上的北極熊)", "Children planting seeds (正在播種的小朋友們)", "Flying whale in the clouds (雲中飛翔的鯨魚)", "Robot honeybee (機器人蜜蜂)",
+                "Scientist in lab (實驗室裡的科學家)", "Girl riding a giant butterfly (騎著大蝴蝶的女孩)", "Boy cleaning the beach (清理海灘的男孩)", "Robot street cleaner (機器人清潔員)", "Fairy of the forest (森林小仙子)",
+                "Grandma knitting with plastic yarn (用塑膠線織衣的奶奶)", "Group of students in solar car (坐太陽能車的學生)", "Robot teacher in classroom (教室裡的機器人老師)", "Baby playing with robot pet (跟機器寵物玩的寶寶)", "Superhero protecting Earth (保護地球的英雄)",
+                "Artist painting with eco-paint (用環保顏料畫畫的畫家)", "Diver helping turtles (救海龜的潛水員)", "Engineer building windmills (蓋風車的工程師)", "Musician playing bio-instrument (彈奏植物樂器的樂手)", "Child making compost (做堆肥的小孩)",
+                "Robot gardener (機器人園丁)", "Little girl saving raindrops (收集雨水的小女孩)", "Boy inventing a eco-gadget (發明環保裝置的男孩)", "Talking forest animals (會說話的森林動物)", "Future explorer with solar map (拿太陽能地圖的探險家)"
+            ],
+            techs: [
+                "AI Sky Vacuum cleaning the air (天空吸塵器)", "Sea Doctor nano-robots (海洋醫生機器人)", "Photosynthesis Wall (光合作用牆)", "Smart Trash Can sorting waste (智慧分類垃圾桶)", "Cloud Power Plant (雲朵發電廠)",
+                "Dream Water Tap (夢想水龍頭)", "Climate Controller box (氣候控制器)", "Food Replicator machine (食物複製機)", "Plant Language Translator (植物語言翻譯機)", "Wind Wing Bicycle (風力翅膀腳踏車)",
+                "Solar Energy Backpack (太陽能背包)", "Soil Health Checker (土壤健康檢查儀)", "Noiseless Electric Vehicle (無噪音電動車)", "Recycling 3D Printer (回收物 3D 列印機)", "Animal Language App (動物語言 App)",
+                "Eternal Seed Ball (永續種子球)", "Self-healing Road (自動修復路面)", "Emotion Power Station (情緒發電站)", "Tsunami Shield dome (海嘯防護罩)", "Bio-luminescent Lighting (夜間植物照明)",
+                "Rain Collection Cloud (雨水收集雲)", "Air Purifying Skin-clothing (空氣淨化衣服)", "Plant Nanny Robot (植物保母機器人)", "Ocean Plastic Vacuum Ship (海洋塑膠吸塵船)", "Eternal Battery (永恆電池)",
+                "Smart Temperature Window (智慧變色窗戶)", "Trash-to-Art Machine (廢物變藝術機)", "Sound Purifier (聲音淨化器)", "Dream Charging Station (夢想充電站)", "Water Cycle Game (水循環遊戲機)",
+                "Earthquake Warning Butterfly (地震預警蝴蝶)", "AI Insect Hotel (AI 昆蟲旅館)", "Edible Packaging (可食用包裝紙)", "Underground Sorting Tubes (地下垃圾傳輸管)", "Plant Growth Potion (植物長高藥水)",
+                "Mini Sun light ball (迷你太陽光球)", "AI Pet Care System (AI 寵物照顧機)", "Ocean Life GPS (海洋生物 GPS)", "Air Fresh Candy (空氣清新糖果)", "Self-sufficient Mobile House (移動房屋)",
+                "Cloud Weather Controller (雲端天氣控制員)", "Old-to-New Clothes Weaver (舊衣變新衣機)", "Deep-sea Cable Repair Fish (深海修復魚)", "Light Beam Transport (光束傳輸通道)", "Eco-ink Painting Robot (環保顏料機器人)",
+                "Volcano Heat Converter (火山熱能轉化器)", "Sun-shield Plant Film (植物防曬膜)", "Battery Rebirth Machine (電池重生器)", "AI Eco-habit Coach (AI 環保教練)", "Smart River Sensor (智慧河流感應器)"
+            ],
+            atmospheres: [
+                "Hopeful golden sunlight (充滿希望的金色陽光)", "Quiet and peaceful dream (安靜祥和的夢境)", "Bubbles and rainbows (充滿泡泡和彩虹)", "Grand birthday party (盛大派對感)", "Exciting treasure hunt (刺激尋寶遊戲)",
+                "Refreshing wind (清爽的微風感)", "Warm and cozy sweater (溫暖舒服感)", "Light space walk (輕盈太空漫步)", "Heart and star sparkles (愛心與星星閃爍)", "Focused research lab (專注研究感)",
+                "Dancing on clouds (雲端跳舞感)", "Natural plant scent (自然花草香氣)", "Mutual help and kindness (互相幫助的溫暖)", "Giant toy factory (巨大玩具工廠)", "Futuristic movie scene (未來感電影場景)",
+                "Blue and green tranquility (藍綠色寧靜感)", "Sunlight through leaves (陽光灑落感)", "Magical ritual ceremony (魔法儀式感)", "Curiosity and exploration (好奇探索感)", "Sweet strawberry cake (甜美草莓蛋糕感)",
+                "Giant fish tank (巨大魚缸感)", "Bird's-eye view (從上往下俯瞰)", "Extreme close-up (驚人特寫感)", "Stage play spotlight (舞台劇主角感)", "Four square grid (四格漫畫感)",
+                "Long diagonal line (長對角線構圖)", "Flag fluttering in wind (旗幟飄揚感)", "Circle and bubble world (圓形泡泡世界)", "Sparkling button focus (閃亮按鈕焦點)", "Giant globe vision (圓形地球儀視角)",
+                "Jumping out of frame (從框架跳出)", "Symmetrical balance (對稱平衡感)", "Peeking through hole (從小洞偷看)", "Maze searching (迷宮尋找感)", "River guiding line (河流引導視線)",
+                "Floating in the air (漂浮在半空中)", "Open book page (打開書本感)", "Spiral line motion (螺旋線條動感)", "Tiny plant perspective (小植物看世界)", "Soft cloud-like objects (物體雲朵般柔軟)",
+                "Mirror room reflection (鏡子房間反射)", "Day and night split (白天夜晚分割)", "Giant hand holding Earth (大手托地球)", "Old photo memory (舊照片回憶感)", "All lines pointing center (線條指向中心)",
+                "Submarine window view (潛艇窗戶視角)", "Neon cyberpunk glow (霓虹賽博龐克)", "Vibrant festival energy (鮮豔節慶活力)", "Minimalist clean design (極簡乾淨設計)", "Action packed movement (充滿動感的效果)"
+            ]
+        };
+
+        const speechParts = {
+            intro: ["哈囉大家！我是今天的小小設計師。", "各位評審老師、親愛的同學，大家好！", "想知道 2050 年的世界長什麼樣子嗎？讓我帶你看看！", "我畫了一張關於未來的海報，主題是「2050 我的永續生活」。", "歡迎來到未來的世界！這是我設計的海報。", "今天我要分享一個超級酷的未來願景！", "大家看！這就是我心中最棒的 2050 年。", "如果我們可以改變未來，你想怎麼做？這張海報就是我的答案。"],
+            scene: ["我的海報背景設定在「{setting}」，那是一個很特別的地方。", "這張畫的主角是「{subject}」，他正生活在「{setting}」。", "在 2050 年，「{setting}」變成了我們最美的家園。", "這幅畫展現了「{subject}」在「{setting}」忙碌的一天。", "我看見「{subject}」站在「{setting}」中間，守護著環境。"],
+            tech: ["大家有注意到嗎？這裡有一個發明叫「{tech}」。", "為了讓地球更好，我設計了「{tech}」這項高科技。", "「{tech}」正在努力工作，幫我們解決環境問題呢！", "這裡最棒的設計就是「{tech}」，它可以讓生活更永續。", "透過「{tech}」，我們可以不用擔心污染，真的太神奇了！"],
+            style: ["我使用了「{style}」來畫這張海報，讓畫面看起來很有趣。", "為了營造出「{atmosphere}」的感覺，我特別挑選了這個風格。", "整體畫面的氣氛是「{atmosphere}」，希望能讓大家感受到希望。", "這種「{style}」的設計，是想表達我對未來的想像。", "當你看到這張海報，你會感覺到「{atmosphere}」，就像真的進入未來一樣。"],
+            closing: ["這就是我的創作，希望你們會喜歡這個 2050 年！", "讓我們一起努力，把這張海報裡的夢想成真吧！", "謝謝大家聽我的介紹，讓我們為永續生活加油！", "保護地球，從現在開始，謝謝大家！", "未來掌握在我們手中，謝謝收看我的海報分享！"]
+        };
+
+        function initSelects() {
+            const populate = (id, list) => {
+                const el = document.getElementById(id);
+                el.innerHTML = list.map(item => `<option value="${item}">${item}</option>`).join('');
+            };
+            populate('style-select', data.styles);
+            populate('setting-select', data.settings);
+            populate('subject-select', data.subjects);
+            populate('tech-select', data.techs);
+            populate('atmosphere-select', data.atmospheres);
+        }
+
+        function getRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+        // 解析括號中的中英文
+        function splitLang(text) {
+            const match = text.match(/^(.*)\s\((.*)\)$/);
+            return match ? { en: match[1], zh: match[2] } : { en: text, zh: text };
+        }
+
+        const generateBtn = document.getElementById('generate-all');
+        const resultsContainer = document.getElementById('results-container');
+
+        generateBtn.addEventListener('click', () => {
+            const s = splitLang(document.getElementById('style-select').value);
+            const st = splitLang(document.getElementById('setting-select').value);
+            const sb = splitLang(document.getElementById('subject-select').value);
+            const t = splitLang(document.getElementById('tech-select').value);
+            const a = splitLang(document.getElementById('atmosphere-select').value);
+
+            // 1. 英文指令
+            const fixedEn = "A3 poster ratio, 8K, 300 DPI, ultra-detailed, 30% space for text.";
+            document.getElementById('prompt-en').textContent = `${fixedEn} Style: ${s.en}. Scene: ${sb.en} in ${st.en}. Tech: ${t.en}. Vibe: ${a.en}.`;
+
+            // 2. 中文指令 (更流暢的描述)
+            const fixedZh = "A3海報比例，8K超高畫質，預留30%文字空間。";
+            document.getElementById('prompt-zh').textContent = `${fixedZh} 繪圖風格：${s.zh}。畫面描繪：在${st.zh}中，主角是${sb.zh}。核心科技展現：${t.zh}。整體氛圍：${a.zh}。`;
+
+            // 3. 創作理念
+            const intro = getRandom(speechParts.intro);
+            const scene = getRandom(speechParts.scene).replace('{setting}', st.zh).replace('{subject}', sb.zh);
+            const techTxt = getRandom(speechParts.tech).replace('{tech}', t.zh);
+            const styleTxt = getRandom(speechParts.style).replace('{style}', s.zh).replace('{atmosphere}', a.zh);
+            const closing = getRandom(speechParts.closing);
+            document.getElementById('concept-text').textContent = `${intro}\n\n${scene}\n${techTxt}\n\n${styleTxt}\n\n${closing}`;
+
+            resultsContainer.classList.remove('hidden');
+            window.scrollTo({ top: resultsContainer.offsetTop - 50, behavior: 'smooth' });
+        });
+
+        function copyText(id) {
+            const text = document.getElementById(id).textContent;
+            const temp = document.createElement('textarea');
+            temp.value = text;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+            alert('複製成功！可以去 AI 工具貼上囉！');
+        }
+
+        initSelects();
+    </script>
+</body>
+</html>
