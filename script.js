@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: 'AI 海報發表生成器', url: 'https://gemini.google.com/share/de9022b5a007' },
         { name: 'AI 海報提示詞與創作理念自動生成器', url: 'https://gemini.google.com/share/4cefd7f95e15' },
         { name: '永續生活海報靈感範例庫', url: 'https://gemini.google.com/share/6c26e594a2be' },
+        { name: '學生專用AI海報設計器', url: 'https://cpaizo.github.io/english_interactive_app00.html' },
         { name: 'Node 08: 編輯此處', url: '#' }
     ];
     
@@ -97,4 +98,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 初始化頁面
     renderButtons();
+
 });
