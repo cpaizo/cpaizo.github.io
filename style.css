@@ -1,166 +1,150 @@
+/* --- 基礎背景與容器設定 --- */
 :root {
-    --bg-color: #121212; /* 深黑 */
-    --primary-color: #00ffaa; /* 駭客綠 */
-    --secondary-color: #333333; /* 灰邊框 */
-    --text-color: #f0f0f0;
+    --primary-glow: #00ffcc; /* 螢光綠 */
+    --bg-dark: #0a0a0a;
+    --text-white: #ffffff;
 }
 
 body {
-    font-family: 'Consolas', monospace;
-    background-color: var(--bg-color);
-    color: var(--text-color);
+    background-color: var(--bg-dark);
+    color: var(--text-white);
+    font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
     margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    overflow: hidden;
-}
-
-/* 掃描線背景效果 */
-.background-scanline {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: repeating-linear-gradient(
-        0deg,
-        rgba(0, 0, 0, 0.2),
-        rgba(0, 0, 0, 0.2) 1px,
-        transparent 1px,
-        transparent 3px
-    );
-    opacity: 0.15;
-    pointer-events: none;
-    z-index: -1;
+    overflow-x: hidden;
 }
 
 .console-container {
-    width: 90%;
-    max-width: 600px;
-    padding: 40px;
-    border: 2px solid var(--primary-color);
-    box-shadow: 0 0 30px rgba(0, 255, 170, 0.5); /* 霓虹光暈 */
-    background-color: rgba(18, 18, 18, 0.9);
-    border-radius: 8px;
-    text-align: center;
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 20px;
+    border: 1px solid var(--primary-glow);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.2);
+    min-height: 80vh;
+    background: rgba(0, 0, 0, 0.8);
 }
 
 header h1 {
-    font-size: 1.8em;
-    color: var(--primary-color);
-    margin-bottom: 5px;
+    color: var(--primary-glow);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
 
-header p {
-    font-size: 0.9em;
-    color: var(--text-color);
-    margin-top: 0;
-    border-bottom: 1px dashed var(--secondary-color);
-    padding-bottom: 20px;
+/* --- 分頁標籤導覽列 (Tabs) --- */
+.tab-navigation {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 30px 0;
+    border-bottom: 1px solid rgba(0, 255, 204, 0.3);
+    padding-bottom: 15px;
 }
 
-/* 按鈕網格 */
-.button-grid {
+.tab-btn {
+    background: transparent;
+    color: var(--primary-glow);
+    border: 1px solid var(--primary-glow);
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%); /* 切角設計 */
+}
+
+.tab-btn:hover {
+    background: rgba(0, 255, 204, 0.1);
+    box-shadow: 0 0 10px var(--primary-glow);
+}
+
+.tab-btn.active {
+    background: var(--primary-glow);
+    color: #000;
+    font-weight: bold;
+    box-shadow: 0 0 15px var(--primary-glow);
+}
+
+/* --- 按鈕網格佈局 (解決重疊的關鍵) --- */
+.buttons-sub-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-    margin-top: 30px;
+    /* 自動填滿：每行最少 280px，不夠就換行 */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+    gap: 20px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .link-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 25px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(0, 255, 204, 0.5);
+    color: var(--text-white);
     text-decoration: none;
-    padding: 15px 10px;
-    background-color: var(--secondary-color);
-    color: var(--text-color);
-    border: 1px solid var(--primary-color);
+    text-align: center;
     border-radius: 4px;
     transition: all 0.3s ease;
-    font-weight: bold;
-    font-size: 1.1em;
-    cursor: pointer;
-    box-shadow: 0 0 5px rgba(0, 255, 170, 0.3);
+    line-height: 1.4;
+    word-break: break-all; /* 防止長文字撐破按鈕 */
 }
 
 .link-button:hover {
-    background-color: rgba(0, 255, 170, 0.2);
-    box-shadow: 0 0 15px var(--primary-color);
-    transform: translateY(-2px);
+    background: rgba(0, 255, 204, 0.2);
+    border-color: var(--primary-glow);
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 255, 204, 0.3);
 }
 
-/* 編輯面板 */
+/* --- 編輯面板樣式 --- */
 .edit-panel {
-    margin-top: 30px;
-    padding: 20px;
-    border: 1px solid var(--secondary-color);
-    background-color: rgba(0, 0, 0, 0.5);
-    border-radius: 4px;
-    text-align: left;
+    background: rgba(20, 20, 20, 0.95);
+    padding: 30px;
+    border: 2px solid var(--primary-glow);
+    border-radius: 8px;
+    margin-top: 20px;
 }
 
-.edit-panel h2 {
-    color: var(--primary-color);
-    font-size: 1.2em;
-    border-bottom: 1px solid var(--primary-color);
-    padding-bottom: 5px;
-    margin-top: 0;
+.hidden {
+    display: none;
 }
 
 .input-group {
     margin-bottom: 15px;
 }
 
-label {
+.input-group label {
     display: block;
     margin-bottom: 5px;
-    color: var(--primary-color);
-    font-size: 0.9em;
+    color: var(--primary-glow);
 }
 
-input[type="url"], input[type="text"] {
-    width: calc(100% - 22px);
+.input-group input {
+    width: 100%;
     padding: 10px;
-    background-color: var(--bg-color);
-    border: 1px solid var(--primary-color);
-    color: var(--text-color);
-    border-radius: 4px;
-    outline: none;
-}
-
-input[type="url"]:focus, input[type="text"]:focus {
-    border-color: white;
-    box-shadow: 0 0 8px var(--primary-color);
+    background: #222;
+    border: 1px solid #444;
+    color: white;
+    box-sizing: border-box;
 }
 
 .action-button {
-    padding: 10px 15px;
-    margin-right: 10px;
-    border: none;
-    border-radius: 4px;
+    padding: 10px 20px;
     cursor: pointer;
+    border: none;
+    margin-right: 10px;
     font-weight: bold;
-    transition: background-color 0.2s;
 }
 
-.primary {
-    background-color: var(--primary-color);
-    color: var(--bg-color);
+.action-button.primary { background: var(--primary-glow); color: #000; }
+.action-button.secondary { background: #555; color: #fff; }
+
+/* 進場動畫 */
+.animate-in {
+    animation: scanlineFade 0.5s ease-out forwards;
 }
 
-.secondary {
-    background-color: var(--secondary-color);
-    color: var(--text-color);
-}
-
-.primary:hover {
-    background-color: #99ffcc;
-}
-
-.secondary:hover {
-    background-color: #666666;
-}
-
-.hidden {
-    display: none;
+@keyframes scanlineFade {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
 }
