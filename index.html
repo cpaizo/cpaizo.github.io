@@ -16,20 +16,34 @@
         </header>
 
         <section id="link-buttons" class="button-grid">
-            </section>
+        </section>
 
         <section id="edit-panel" class="edit-panel hidden">
             <h2>// 編輯節點 //</h2>
+            
+            <div class="input-group">
+                <label for="edit-category">所屬分類 (例如: AI 工具, 作品集):</label>
+                <input type="text" id="edit-category" placeholder="輸入分類名稱..." required>
+            </div>
+
             <div class="input-group">
                 <label for="edit-url">新連結網址 (URL):</label>
                 <input type="url" id="edit-url" placeholder="https://your-project-link.com" required>
             </div>
+            
             <div class="input-group">
                 <label for="edit-name">新按鈕名稱:</label>
                 <input type="text" id="edit-name" placeholder="例如: 專案 01" required>
             </div>
-            <button id="save-button" class="action-button primary">💾 儲存變更</button>
-            <button id="cancel-button" class="action-button secondary">✖ 取消</button>
+
+            <div class="button-actions">
+                <button id="save-button" class="action-button primary">💾 儲存變更</button>
+                <button id="cancel-button" class="action-button secondary">✖ 取消</button>
+            </div>
+            
+            <div style="margin-top: 20px; text-align: right;">
+                <button id="reset-storage" style="background:none; border:none; color:#666; cursor:pointer; font-size: 12px;">重置所有資料</button>
+            </div>
         </section>
         
     </main>
