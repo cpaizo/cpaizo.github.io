@@ -6,9 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const editCategoryInput = document.getElementById('edit-category');
     const saveButton = document.getElementById('save-button');
     const cancelButton = document.getElementById('cancel-button');
-    const resetButton = document.getElementById('reset-storage');
 
-    // 1. 預設資料（確保每個項目都有 category）
     const DEFAULT_LINKS = [
         { category: 'AI 互動學習', name: '圖像情境學習：魔法教室詞彙', url: 'https://cpaizo.github.io/english_interactive_app00.html' },
         { category: 'AI 互動學習', name: '浪漫情侶旅遊景點生成器', url: 'https://gemini.google.com/share/447a6f33103b' },
@@ -24,118 +22,74 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     let links = JSON.parse(localStorage.getItem('minimalistLinks')) || DEFAULT_LINKS;
+    let currentCategory = 'AI 互動學習';
     let currentlyEditingIndex = -1;
-    let currentCategory = links[0].category; // 預設顯示第一個分類
 
-    // 2. 渲染函數（分頁標籤 + 該分頁的按鈕）
     function renderButtons() {
         linkButtonsContainer.innerHTML = '';
 
-        // 取得目前所有不重複的分類
-        const allCategories = [...new Set(links.map(link => link.category || '未分類'))];
+        // 1. 分類選單
+        const allCategories = [...new Set(links.map(l => l.category || '管理'))];
+        const nav = document.createElement('div');
+        nav.className = 'tab-navigation';
         
-        // 如果目前的分類被刪除或改名了，自動跳轉回第一個
-        if (!allCategories.includes(currentCategory)) {
-            currentCategory = allCategories[0] || '未分類';
-        }
-
-        // --- 建立分頁標籤 (Tabs) ---
-        const tabNav = document.createElement('div');
-        tabNav.className = 'tab-navigation';
         allCategories.forEach(cat => {
-            const tab = document.createElement('button');
-            tab.className = `tab-btn ${currentCategory === cat ? 'active' : ''}`;
-            tab.textContent = cat;
-            tab.onclick = () => {
-                currentCategory = cat;
-                renderButtons();
-            };
-            tabNav.appendChild(tab);
+            const btn = document.createElement('button');
+            btn.className = `tab-btn ${currentCategory === cat ? 'active' : ''}`;
+            btn.textContent = cat;
+            btn.onclick = () => { currentCategory = cat; renderButtons(); };
+            nav.appendChild(btn);
         });
-        linkButtonsContainer.appendChild(tabNav);
+        linkButtonsContainer.appendChild(nav);
 
-        // --- 建立對應分類的按鈕網格 ---
-        const grid = document.createElement('div');
-        grid.className = 'buttons-sub-grid';
+        // 2. 連結清單 (表格化排列)
+        const listContainer = document.createElement('div');
+        listContainer.className = 'buttons-sub-grid';
 
         links.forEach((link, index) => {
-            if ((link.category || '未分類') === currentCategory) {
-                const button = document.createElement('a');
-                button.className = 'link-button animate-in';
-                button.textContent = link.name;
-                button.href = link.url;
+            if (link.category === currentCategory) {
+                const a = document.createElement('a');
+                a.className = 'link-button';
+                a.href = link.url;
+                a.textContent = `> ${link.name}`; // 加入提示符號增加質感
                 
                 if (link.url === '#') {
-                    button.target = '_self';
-                    button.onclick = (e) => {
-                        e.preventDefault();
-                        showEditPanel(index);
-                    };
+                    a.onclick = (e) => { e.preventDefault(); showEditPanel(index); };
                 } else {
-                    button.target = '_blank';
+                    a.target = '_blank';
                 }
-                grid.appendChild(button);
+                listContainer.appendChild(a);
             }
         });
-        linkButtonsContainer.appendChild(grid);
+        linkButtonsContainer.appendChild(listContainer);
     }
 
-    // 3. 編輯面板邏輯
     function showEditPanel(index) {
         currentlyEditingIndex = index;
         const link = links[index];
         editUrlInput.value = link.url === '#' ? '' : link.url;
         editNameInput.value = link.name;
-        editCategoryInput.value = link.category || '';
-        
+        editCategoryInput.value = link.category;
         editPanel.classList.remove('hidden');
-        linkButtonsContainer.classList.add('hidden'); // 編輯時隱藏按鈕區
-        editNameInput.focus();
+        linkButtonsContainer.classList.add('hidden');
     }
 
-    function hideEditPanel() {
+    saveButton.onclick = () => {
+        links[currentlyEditingIndex] = {
+            url: editUrlInput.value || '#',
+            name: editNameInput.value,
+            category: editCategoryInput.value
+        };
+        localStorage.setItem('minimalistLinks', JSON.stringify(links));
         editPanel.classList.add('hidden');
         linkButtonsContainer.classList.remove('hidden');
-        currentlyEditingIndex = -1;
-    }
+        renderButtons();
+    };
 
-    // 4. 事件監聽 (儲存、取消、重置)
-    saveButton.addEventListener('click', () => {
-        if (currentlyEditingIndex !== -1) {
-            const newUrl = editUrlInput.value.trim();
-            const newName = editNameInput.value.trim();
-            const newCategory = editCategoryInput.value.trim() || '未分類';
+    cancelButton.onclick = () => {
+        editPanel.classList.add('hidden');
+        linkButtonsContainer.classList.remove('hidden');
+    };
 
-            if (!newName) {
-                alert('名稱不能為空！');
-                return;
-            }
-
-            links[currentlyEditingIndex] = {
-                name: newName,
-                url: newUrl || '#',
-                category: newCategory
-            };
-
-            localStorage.setItem('minimalistLinks', JSON.stringify(links));
-            currentCategory = newCategory; // 儲存後自動跳轉到該分類
-            renderButtons();
-            hideEditPanel();
-        }
-    });
-
-    cancelButton.addEventListener('click', hideEditPanel);
-
-    resetButton.addEventListener('click', () => {
-        if (confirm('確定要清除所有自訂內容並恢復預設嗎？')) {
-            localStorage.removeItem('minimalistLinks');
-            links = [...DEFAULT_LINKS];
-            currentCategory = links[0].category;
-            renderButtons();
-            alert('已恢復預設！');
-        }
-    });
-
-    // 初始化執行
     renderButtons();
 });
