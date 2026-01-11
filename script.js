@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { category: 'AI 海報工具', name: 'AI 海報提示詞與創作理念自動生成器', url: 'https://gemini.google.com/share/4cefd7f95e15' },
         { category: 'AI 海報工具', name: '永續生活海報靈感範例庫', url: 'https://gemini.google.com/share/6c26e594a2be' },
         { category: 'AI 海報工具', name: '學生專用AI海報設計器', url: 'https://cpaizo.github.io/student_poster_maker.html' },
+        { category: 'AI 海報工具', name: '2050 永續海報 AI 中英生成助手', url: 'https://gemini.google.com/share/e732b1379ef5' },
         { category: '個人系統', name: '202601 植髮紀錄系統', url: 'https://script.google.com/macros/s/AKfycbyyLvUR_XBMBRIkyLpUJW7VLwJqM2YCxHATgboyL1RpRstix8UeFuA4BmNLlhRcUw9t/exec' },
         { category: '個人系統', name: '202601 CPAIZO 閱讀分享平台', url: 'https://cpaizo-app.web.app/' },
         { category: '管理', name: 'Node: 編輯此處', url: '#' }
@@ -93,3 +94,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderButtons();
 });
+
