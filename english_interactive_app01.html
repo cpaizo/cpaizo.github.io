@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 圖像情境學習 - 語音增強版</title>
+    <style>
+        /* --- 專業配色與樣式 --- */
+        :root {
+            --tiffany-blue: rgb(129, 216, 208);
+            --dark-bg: rgb(28, 35, 38);
+            --card-bg: rgba(255, 255, 255, 0.05);
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: white;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: var(--tiffany-blue);
+            border-bottom: 2px solid var(--tiffany-blue);
+            padding-bottom: 10px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        /* 單字卡片樣式 */
+        .word-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(129, 216, 208, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .word-card:hover {
+            background: rgba(129, 216, 208, 0.1);
+            transform: translateX(5px);
+        }
+
+        .word-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .english {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--tiffany-blue);
+            margin-bottom: 5px;
+        }
+
+        .chinese {
+            font-size: 1rem;
+            color: #ccc;
+        }
+
+        /* 語音按鈕樣式 */
+        .speak-btn {
+            background: none;
+            border: 1px solid var(--tiffany-blue);
+            color: var(--tiffany-blue);
+            font-size: 1.5rem;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .speak-btn:hover {
+            background: var(--tiffany-blue);
+            color: var(--dark-bg);
+            box-shadow: 0 0 15px var(--tiffany-blue);
+        }
+
+        .speak-btn:active {
+            transform: scale(0.9);
+        }
+
+        /* 正在播放時的動畫 */
+        .playing {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0px rgba(129, 216, 208, 0.7); }
+            100% { box-shadow: 0 0 0 15px rgba(129, 216, 208, 0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>魔法教室詞彙學習</h1>
+        
+        <div id="word-list">
+            <div class="word-card">
+                <div class="word-info">
+                    <span class="english">Magic Wand</span>
+                    <span class="chinese">魔法棒</span>
+                </div>
+                <button class="speak-btn" onclick="speak('Magic Wand', this)">🔊</button>
+            </div>
+
+            <div class="word-card">
+                <div class="word-info">
+                    <span class="english">Crystal Ball</span>
+                    <span class="chinese">水晶球</span>
+                </div>
+                <button class="speak-btn" onclick="speak('Crystal Ball', this)">🔊</button>
+            </div>
+
+            <div class="word-card">
+                <div class="word-info">
+                    <span class="english">Spell Book</span>
+                    <span class="chinese">咒語書</span>
+                </div>
+                <button class="speak-btn" onclick="speak('Spell Book', this)">🔊</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * 語音朗讀函式
+         * @param {string} text - 要朗讀的英文
+         * @param {HTMLElement} btn - 觸發的按鈕元素（用於動畫）
+         */
+        function speak(text, btn) {
+            // 1. 檢查瀏覽器是否支援
+            if (!('speechSynthesis' in window)) {
+                alert("您的瀏覽器不支援語音功能，請使用 Chrome 或 Edge。");
+                return;
+            }
+
+            // 2. 如果正在朗讀，先停止之前的
+            window.speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            // 3. 設定參數
+            utterance.lang = 'en-US'; // 美式英語
+            utterance.rate = 0.8;     // 速度稍微放慢 (0.1 ~ 10)
+            utterance.pitch = 1.0;    // 音調 (0 ~ 2)
+
+            // 4. 動態效果：開始朗讀時按鈕發光
+            utterance.onstart = () => {
+                btn.classList.add('playing');
+            };
+
+            // 5. 動態效果：結束朗讀時移除發光
+            utterance.onend = () => {
+                btn.classList.remove('playing');
+            };
+
+            // 6. 執行朗讀
+            window.speechSynthesis.speak(utterance);
+        }
+    </script>
+</body>
+</html>
