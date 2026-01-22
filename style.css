@@ -1,92 +1,184 @@
-/* --- 基礎環境設定 --- */
+/* --- 專業配色與變數設定 --- */
 :root {
-    --neon-green: #00ffcc;
-    --dark-bg: #0a0a0a;
+    --primary-color: rgb(129, 216, 208);      /* Tiffany Blue */
+    --primary-dim: rgba(129, 216, 208, 0.3);  /* 半透明主色 */
+    --primary-glow: rgba(129, 216, 208, 0.1); /* 微光主色 */
+    --dark-bg: rgb(28, 35, 38);               /* 專業深石板灰背景 */
+    --container-bg: rgba(20, 25, 28, 0.9);    /* 容器背景 */
+    --text-white: #ffffff;
+}
+
+/* --- 基礎環境設定 --- */
+* {
+    box-sizing: border-box;
 }
 
 body {
     background-color: var(--dark-bg);
-    color: white;
-    font-family: sans-serif;
+    color: var(--primary-color);
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
     margin: 0;
     display: flex;
     justify-content: center;
+    min-height: 100vh;
+    overflow-x: hidden;
 }
 
+/* --- 背景掃描線 (優化版) --- */
+.background-scanline {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.1) 50%
+    );
+    background-size: 100% 4px;
+    pointer-events: none;
+    z-index: 100;
+}
+
+/* --- 主容器 --- */
 .console-container {
-    width: 90%;
-    max-width: 1000px;
-    margin-top: 50px;
-    padding: 30px;
-    border: 2px solid var(--neon-green);
-    box-shadow: 0 0 20px rgba(0, 255, 204, 0.2);
-    background: rgba(0, 0, 0, 0.9);
+    width: 95%;
+    max-width: 900px;
+    margin: 40px 20px;
+    padding: 40px;
+    border: 1px solid var(--primary-dim);
+    background: var(--container-bg);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    border-radius: 12px;
+    backdrop-filter: blur(10px); /* 磨砂玻璃效果 */
+    z-index: 10;
 }
 
-/* --- 分類導覽按鈕 --- */
-.tab-navigation {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 30px;
-    flex-wrap: wrap;
-    justify-content: center;
+/* --- 頁首標題 --- */
+header h1 {
+    font-size: 1.8rem;
+    margin: 0 0 10px 0;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 300;
 }
 
-.tab-btn {
-    background: #222;
-    color: var(--neon-green);
-    border: 1px solid var(--neon-green);
-    padding: 10px 20px;
-    cursor: pointer;
+.contact-info p {
+    font-size: 0.9rem;
+    color: var(--primary-dim);
+    margin: 0;
+}
+
+.email-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
     transition: 0.3s;
 }
 
+.email-link:hover {
+    border-bottom: 1px solid var(--primary-color);
+}
+
+.console-divider {
+    border: 0;
+    height: 1px;
+    background: linear-gradient(to right, var(--primary-dim), transparent);
+    margin: 30px 0;
+}
+
+/* --- 分類導覽按鈕 (Tab) --- */
+.tab-navigation {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.tab-btn {
+    background: transparent;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-dim);
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    border-radius: 6px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tab-btn:hover {
+    background: var(--primary-glow);
+    border-color: var(--primary-color);
+}
+
 .tab-btn.active {
-    background: var(--neon-green);
-    color: black;
-    box-shadow: 0 0 10px var(--neon-green);
+    background: var(--primary-color);
+    color: var(--dark-bg);
+    font-weight: 600;
+    box-shadow: 0 0 15px var(--primary-dim);
 }
 
-/* --- 連結呈現區 (表格化容器) --- */
-#link-buttons {
-    display: block; /* 確保容器是區塊級別 */
-    width: 100%;
-}
-
+/* --- 連結呈現區 --- */
 .buttons-sub-grid {
-    display: flex; /* 改用 flex 佈局避免 grid 衝突 */
-    flex-direction: column; /* 讓連結像表格一樣一行一行排下來 */
-    gap: 10px;
-    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .link-button {
     display: block;
-    width: 100%; /* 寬度佔滿一行 */
-    padding: 15px;
+    width: 100%;
+    padding: 18px;
     text-decoration: none;
-    color: white;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(0, 255, 204, 0.3);
-    text-align: left; /* 文字靠左比較像表格清單 */
-    box-sizing: border-box;
-    transition: 0.2s;
+    color: var(--primary-color);
+    background: rgba(129, 216, 208, 0.03);
+    border: 1px solid rgba(129, 216, 208, 0.15);
+    border-radius: 8px;
+    text-align: left;
+    transition: all 0.3s ease;
+    font-weight: 400;
 }
 
 .link-button:hover {
-    background: rgba(0, 255, 204, 0.1);
-    border-color: var(--neon-green);
-    padding-left: 25px; /* 滑過時有個向右的小動畫 */
+    background: rgba(129, 216, 208, 0.1);
+    border-color: var(--primary-color);
+    padding-left: 28px; /* 懸停時向右滑動感 */
+    color: var(--text-white);
+    box-shadow: inset 5px 0 0 var(--primary-color); /* 左側強調條 */
 }
 
-/* --- 隱藏邏輯 --- */
-.hidden { display: none !important; }
-
-/* 編輯面板簡單樣式 */
-.edit-panel {
-    border: 1px solid white;
-    padding: 20px;
-    margin-top: 20px;
+/* --- 頁尾 --- */
+.console-footer {
+    margin-top: 40px;
+    font-size: 0.8rem;
+    color: var(--primary-dim);
+    text-align: right;
 }
-.input-group { margin-bottom: 10px; }
-.input-group input { width: 100%; padding: 8px; background: #222; color: white; border: 1px solid #444; }
+
+/* --- 載入中動畫效果 --- */
+.loading-message {
+    padding: 40px;
+    text-align: center;
+    font-style: italic;
+    letter-spacing: 1px;
+}
+
+.cursor {
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    50% { opacity: 0; }
+}
+
+/* --- 手機版優化 --- */
+@media (max-width: 600px) {
+    .console-container {
+        padding: 20px;
+        margin-top: 20px;
+    }
+    header h1 {
+        font-size: 1.4rem;
+    }
+    .tab-btn {
+        flex: 1 1 calc(50% - 12px); /* 手機上按鈕自動撐開 */
+        text-align: center;
+    }
+}
