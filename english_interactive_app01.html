@@ -3,76 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>魔法教室圖文情境教學 - 語音增強版</title>
+    <title>魔法教室圖文情境教學 - Image-Based English Learning</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 設定字體 */
+        /* 設定字體為 Inter 及中文常用的無襯線字體 */
         body {
-            font-family: 'Inter', 'Noto Sans TC', system-ui, -apple-system, sans-serif;
+            font-family: 'Inter', 'Noto Sans TC', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
             background-color: #f7f7f7;
         }
-
-        /* 你的 Tiffany Blue 配色變數 */
-        :root {
-            --tiffany-blue: rgb(129, 216, 208);
-            --tiffany-dark: rgb(100, 180, 175);
-        }
-
-        /* 情境文中的高亮單字 - 改為你的 Tiffany Blue 並加上發音提示 */
-        .vocab-highlight {
-            font-weight: bold;
-            color: #dc2626; /* 保留原本的紅色吸引注意，或可改為 var(--tiffany-blue) */
-            cursor: pointer;
-            border-bottom: 2px dashed #f87171;
+        /* 自訂樣式，使按鈕更具吸引力 */
+        .btn-primary {
             transition: all 0.2s;
-            position: relative;
+            box-shadow: 0 4px #4a90e2;
         }
-
-        .vocab-highlight:hover {
-            color: #b91c1c;
-            background-color: rgba(220, 38, 38, 0.1);
+        .btn-primary:hover {
+            box-shadow: 0 2px #4a90e2;
+            transform: translateY(2px);
         }
-
-        /* 🔊 語音按鈕樣式 */
-        .speak-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background-color: var(--tiffany-blue);
-            color: white;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-left: 8px;
+        .btn-primary:active {
+            box-shadow: none;
+            transform: translateY(4px);
         }
-
-        .speak-btn:hover {
-            background-color: var(--tiffany-dark);
-            transform: scale(1.1);
-        }
-
-        .speak-btn:active {
-            transform: scale(0.9);
-        }
-
-        /* 正在播放時的動畫 */
-        .is-playing {
-            animation: pulse 1s infinite;
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0px rgba(129, 216, 208, 0.7); }
-            100% { box-shadow: 0 0 0 10px rgba(129, 216, 208, 0); }
-        }
-
+        /* 確保圖片在容器內響應式縮放 */
         .responsive-image {
             max-width: 100%;
             height: auto;
             border-radius: 8px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        /* 情境文中的高亮單字 */
+        .vocab-highlight {
+            font-weight: bold;
+            color: #dc2626; /* red-600 */
+            cursor: pointer;
+            border-bottom: 2px dashed #f87171;
+            transition: color 0.1s;
+        }
+        .vocab-highlight:hover {
+            color: #b91c1c; /* red-700 */
+            background-color: rgba(220, 38, 38, 0.05);
+        }
+
+        /* 新增：Tiffany Blue 語音按鈕樣式 */
+        .speak-btn {
+            background-color: rgb(129, 216, 208);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            margin-left: 5px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .speak-btn:hover {
+            background-color: rgb(100, 180, 175);
+            transform: scale(1.1);
+        }
+        /* 播放時的動畫 */
+        .is-speaking {
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0px rgba(129, 216, 208, 0.7); }
+            100% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(129, 216, 208, 0); }
         }
     </style>
 </head>
@@ -84,113 +79,125 @@
             圖像情境學習：魔法教室詞彙 🏰
         </h1>
         <p class="text-center text-lg text-gray-600 mb-8">
-            點擊紅色單字或 🔊 圖示即可聆聽發音
+            Visualize the scene while learning vocabulary and context. (點擊單字聽發音)
         </p>
 
         <div class="flex flex-wrap justify-center space-x-2 sm:space-x-4 mb-8 border-b pb-4">
-            <button class="tab-button bg-red-600 text-white font-bold py-2 px-6 rounded-lg shadow-md" onclick="showTab('image-scenario-mode')">
-                圖文情境
+            <button id="tab-scenario" class="tab-button bg-red-600 text-white font-bold py-2 px-3 sm:px-6 rounded-lg transition duration-150 shadow-md" onclick="switchTab('image-scenario-mode', this)">
+                圖文情境 (Image & Scenario)
             </button>
-            <button class="tab-button bg-gray-200 text-gray-700 font-bold py-2 px-6 rounded-lg hover:bg-gray-300" onclick="showTab('vocabulary-list')">
-                詞彙表
+            <button id="tab-vocab" class="tab-button bg-gray-200 text-gray-700 font-bold py-2 px-3 sm:px-6 rounded-lg transition duration-150 hover:bg-gray-300" onclick="switchTab('vocabulary-list', this)">
+                詞彙表 (Vocabulary List)
+            </button>
+            <button id="tab-quiz" class="tab-button bg-gray-200 text-gray-700 font-bold py-2 px-3 sm:px-6 rounded-lg transition duration-150 hover:bg-gray-300" onclick="switchTab('quiz-mode', this)">
+                單字測驗 (Quiz)
             </button>
         </div>
 
         <div id="image-scenario-mode" class="tab-content">
+            <h2 class="text-2xl font-bold text-indigo-700 mb-4 border-b pb-2">圖文情境：對照學習 (Image & Scenario: Contextual Learning)</h2>
+            
             <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
                 <div class="lg:col-span-2 flex flex-col items-center p-2 bg-gray-50 rounded-xl">
-                    <img id="reference-image" class="responsive-image" src="data:image/jpeg;base64,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">
+                    <img id="reference-image" class="responsive-image"
+                         src="data:image/jpeg;base64,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">
                 </div>
-
+                
                 <div class="lg:col-span-3">
-                    <div class="bg-indigo-50 p-6 rounded-xl border-l-4 border-indigo-500">
+                    <div class="bg-indigo-50 p-6 rounded-xl border-l-4 border-indigo-500 shadow-inner">
                         <p class="text-xl leading-relaxed text-gray-800">
-                            Welcome to the <span class="vocab-highlight" onclick="speak('Magic Classroom', this)">Magic Classroom</span>. 
-                            Inside, you will find a <span class="vocab-highlight" onclick="speak('Crystal Ball', this)">Crystal Ball</span> 
-                            on the table, which helps wizards see the future. The teacher holds a 
-                            <span class="vocab-highlight" onclick="speak('Magic Wand', this)">Magic Wand</span> to cast spells from the 
-                            <span class="vocab-highlight" onclick="speak('Spell Book', this)">Spell Book</span>.
+                            In the <span class="vocab-highlight" onclick="speak('Magic Classroom', this)">Magic Classroom</span>, 
+                            the air is filled with wonder. A shimmering <span class="vocab-highlight" onclick="speak('Crystal Ball', this)">Crystal Ball</span> 
+                            sits upon the desk, revealing secrets of the future. The wizard waves a 
+                            <span class="vocab-highlight" onclick="speak('Magic Wand', this)">Magic Wand</span> with precision, 
+                            chanting ancient spells found within the leather-bound <span class="vocab-highlight" onclick="speak('Spell Book', this)">Spell Book</span>.
                         </p>
-                    </div>
-                    <div class="mt-4 p-4 bg-yellow-50 rounded-lg text-sm text-gray-600 italic">
-                        💡 點擊上方的紅色單字即可聽真人發音。
                     </div>
                 </div>
             </div>
         </div>
 
         <div id="vocabulary-list" class="tab-content hidden">
+            <h2 class="text-2xl font-bold text-indigo-700 mb-4 border-b pb-2">詞彙表 (Vocabulary List)</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white hover:shadow-md transition">
                     <div>
                         <p class="text-lg font-bold text-indigo-700">Magic Classroom</p>
                         <p class="text-gray-600">魔法教室</p>
                     </div>
-                    <button class="speak-btn" onclick="speak('Magic Classroom', this)">🔊</button>
+                    <button class="speak-btn" onclick="speak('Magic Classroom', this)">🔊 Listen</button>
                 </div>
-                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white hover:shadow-md transition">
                     <div>
                         <p class="text-lg font-bold text-indigo-700">Crystal Ball</p>
                         <p class="text-gray-600">水晶球</p>
                     </div>
-                    <button class="speak-btn" onclick="speak('Crystal Ball', this)">🔊</button>
+                    <button class="speak-btn" onclick="speak('Crystal Ball', this)">🔊 Listen</button>
                 </div>
-                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white hover:shadow-md transition">
                     <div>
                         <p class="text-lg font-bold text-indigo-700">Magic Wand</p>
                         <p class="text-gray-600">魔法棒</p>
                     </div>
-                    <button class="speak-btn" onclick="speak('Magic Wand', this)">🔊</button>
+                    <button class="speak-btn" onclick="speak('Magic Wand', this)">🔊 Listen</button>
                 </div>
-                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white hover:shadow-md transition">
                     <div>
                         <p class="text-lg font-bold text-indigo-700">Spell Book</p>
                         <p class="text-gray-600">咒語書</p>
                     </div>
-                    <button class="speak-btn" onclick="speak('Spell Book', this)">🔊</button>
+                    <button class="speak-btn" onclick="speak('Spell Book', this)">🔊 Listen</button>
                 </div>
             </div>
+        </div>
+
+        <div id="quiz-mode" class="tab-content hidden text-center py-10">
+            <h2 class="text-2xl font-bold text-indigo-700 mb-4">單字測驗 (Quiz Mode)</h2>
+            <p class="text-gray-500">測驗功能開發中...</p>
         </div>
 
     </div>
 
     <script>
-        // 切換分頁功能
-        function showTab(tabId) {
-            // 隱藏所有內容
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
-            // 顯示目標內容
-            document.getElementById(tabId).classList.remove('hidden');
-            
-            // 更新按鈕樣式
-            document.querySelectorAll('.tab-button').forEach(btn => {
-                btn.classList.replace('bg-red-600', 'bg-gray-200');
-                btn.classList.replace('text-white', 'text-gray-700');
+        // 1. 分頁切換 JS (保留你原本的邏輯並優化)
+        function switchTab(targetId, btnElement) {
+            // 隱藏所有分頁內容
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
             });
-            event.currentTarget.classList.replace('bg-gray-200', 'bg-red-600');
-            event.currentTarget.classList.replace('text-gray-700', 'text-white');
+            // 顯示目標分頁
+            document.getElementById(targetId).classList.remove('hidden');
+
+            // 更新所有按鈕樣式
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('bg-red-600', 'text-white', 'shadow-md');
+                btn.classList.add('bg-gray-200', 'text-gray-700');
+            });
+            // 啟動點擊的按鈕
+            btnElement.classList.add('bg-red-600', 'text-white', 'shadow-md');
+            btnElement.classList.remove('bg-gray-200', 'text-gray-700');
         }
 
-        // 語音朗讀功能
+        // 2. 語音朗讀 JS (新增功能)
         function speak(text, element) {
             if (!('speechSynthesis' in window)) {
-                alert("抱歉，您的瀏覽器不支援語音功能。");
+                alert("抱歉，您的瀏覽器不支援發音功能。");
                 return;
             }
 
-            // 先停止正在播放的語音
+            // 停止當前正在播放的所有語音
             window.speechSynthesis.cancel();
 
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'en-US';
-            utterance.rate = 0.9;
+            utterance.lang = 'en-US'; // 設定美式英語
+            utterance.rate = 0.8;    // 語速稍微慢一點點
 
-            // 動畫效果
+            // 播放開始與結束的視覺效果
             utterance.onstart = () => {
-                element.classList.add('is-playing');
+                element.classList.add('is-speaking');
             };
             utterance.onend = () => {
-                element.classList.remove('is-playing');
+                element.classList.remove('is-speaking');
             };
 
             window.speechSynthesis.speak(utterance);
