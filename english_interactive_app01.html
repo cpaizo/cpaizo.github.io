@@ -3,204 +3,337 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>魔法教室圖文情境教學 - Image-Based English Learning</title>
+    <title>Magical Classroom Interactive English</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* 設定字體為 Inter 及中文常用的無襯線字體 */
-        body {
-            font-family: 'Inter', 'Noto Sans TC', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-            background-color: #f7f7f7;
-        }
-        /* 自訂樣式，使按鈕更具吸引力 */
-        .btn-primary {
-            transition: all 0.2s;
-            box-shadow: 0 4px #4a90e2;
-        }
-        .btn-primary:hover {
-            box-shadow: 0 2px #4a90e2;
-            transform: translateY(2px);
-        }
-        .btn-primary:active {
-            box-shadow: none;
-            transform: translateY(4px);
-        }
-        /* 確保圖片在容器內響應式縮放 */
-        .responsive-image {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-        /* 情境文中的高亮單字 */
-        .vocab-highlight {
-            font-weight: bold;
-            color: #dc2626; /* red-600 */
-            cursor: pointer;
-            border-bottom: 2px dashed #f87171;
-            transition: color 0.1s;
-        }
-        .vocab-highlight:hover {
-            color: #b91c1c; /* red-700 */
-            background-color: rgba(220, 38, 38, 0.05);
-        }
-
-        /* 新增：Tiffany Blue 語音按鈕樣式 */
-        .speak-btn {
-            background-color: rgb(129, 216, 208);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 9999px;
-            font-size: 0.875rem;
-            margin-left: 5px;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .speak-btn:hover {
-            background-color: rgb(100, 180, 175);
-            transform: scale(1.1);
-        }
-        /* 播放時的動畫 */
-        .is-speaking {
-            animation: pulse 1s infinite;
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); box-shadow: 0 0 0 0px rgba(129, 216, 208, 0.7); }
-            100% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(129, 216, 208, 0); }
-        }
+        .word-red { color: #dc2626; font-weight: 700; cursor: pointer; border-bottom: 1px dashed #dc2626; transition: all 0.2s; }
+        .word-red:hover { background-color: #fee2e2; color: #991b1b; }
+        .tab-active { border-bottom: 4px solid #4f46e5; color: #4f46e5; }
+        .bg-magic { background-color: #f8fafc; background-image: radial-gradient(#e2e8f0 1px, transparent 1px); background-size: 20px 20px; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .animate-fadeIn { animation: fadeIn 0.5s ease-in; }
+        .reading-active { color: #4f46e5; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     </style>
 </head>
-<body class="p-4 sm:p-8">
+<body class="bg-magic min-h-screen font-sans text-gray-900">
 
-    <div id="app" class="max-w-6xl mx-auto bg-white p-6 sm:p-10 rounded-xl shadow-2xl border border-gray-100">
-
-        <h1 class="text-3xl font-extrabold text-gray-800 mb-2 text-center">
-            圖像情境學習：魔法教室詞彙 🏰
-        </h1>
-        <p class="text-center text-lg text-gray-600 mb-8">
-            Visualize the scene while learning vocabulary and context. (點擊單字聽發音)
-        </p>
-
-        <div class="flex flex-wrap justify-center space-x-2 sm:space-x-4 mb-8 border-b pb-4">
-            <button id="tab-scenario" class="tab-button bg-red-600 text-white font-bold py-2 px-3 sm:px-6 rounded-lg transition duration-150 shadow-md" onclick="switchTab('image-scenario-mode', this)">
-                圖文情境 (Image & Scenario)
-            </button>
-            <button id="tab-vocab" class="tab-button bg-gray-200 text-gray-700 font-bold py-2 px-3 sm:px-6 rounded-lg transition duration-150 hover:bg-gray-300" onclick="switchTab('vocabulary-list', this)">
-                詞彙表 (Vocabulary List)
-            </button>
-            <button id="tab-quiz" class="tab-button bg-gray-200 text-gray-700 font-bold py-2 px-3 sm:px-6 rounded-lg transition duration-150 hover:bg-gray-300" onclick="switchTab('quiz-mode', this)">
-                單字測驗 (Quiz)
-            </button>
+    <!-- 頂部導覽 -->
+    <nav class="bg-white shadow-lg p-4 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center">
+            <h1 class="text-2xl font-black text-indigo-700 tracking-tight mb-4 md:mb-0">
+                <i class="fas fa-hat-wizard mr-2"></i>MAGICAL CLASSROOM
+            </h1>
+            <div class="flex space-x-2">
+                <button onclick="switchTab('scene')" id="btn-scene" class="px-5 py-2 font-bold transition tab-active uppercase text-sm">圖文情境</button>
+                <button onclick="switchTab('vocab')" id="btn-vocab" class="px-5 py-2 font-bold transition uppercase text-sm text-gray-500">詞彙表</button>
+                <button onclick="switchTab('quiz')" id="btn-quiz" class="px-5 py-2 font-bold transition uppercase text-sm text-gray-500">單字測驗</button>
+            </div>
         </div>
+    </nav>
 
-        <div id="image-scenario-mode" class="tab-content">
-            <h2 class="text-2xl font-bold text-indigo-700 mb-4 border-b pb-2">圖文情境：對照學習 (Image & Scenario: Contextual Learning)</h2>
+    <main class="max-w-6xl mx-auto p-4 md:p-8">
+        
+        <!-- 1. 圖文情境 -->
+        <section id="scene-section" class="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-fadeIn">
+            <div class="space-y-6">
+                <div class="bg-white p-4 rounded-2xl shadow-xl border-4 border-indigo-50">
+                    <img src="photos/english.jpg" alt="Magical Classroom" class="rounded-lg w-full h-auto object-cover shadow-inner" onerror="this.src='https://placehold.co/600x400?text=Magical+Classroom+Image'">
+                    <p class="mt-4 text-center text-sm text-indigo-400 font-medium">
+                        <i class="fas fa-info-circle mr-1"></i> 點擊故事中的紅色單字可聆聽發音
+                    </p>
+                </div>
+            </div>
             
-            <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                <div class="lg:col-span-2 flex flex-col items-center p-2 bg-gray-50 rounded-xl">
-                    <img id="reference-image" class="responsive-image"
-                         src="data:image/jpeg;base64,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">
+            <div class="bg-white p-8 rounded-2xl shadow-xl border-t-8 border-indigo-500">
+                <div class="flex justify-between items-center mb-6 border-b pb-4">
+                    <h2 class="text-3xl font-bold text-gray-800">Story Time</h2>
+                    <button id="read-story-btn" onclick="toggleStoryReading()" class="flex items-center space-x-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-4 py-2 rounded-full transition-all group">
+                        <span id="read-btn-icon"><i class="fas fa-volume-up"></i></span>
+                        <span id="read-btn-text" class="text-sm font-bold uppercase tracking-wider">聽完整故事</span>
+                    </button>
                 </div>
+                <article id="story-content" class="text-lg leading-relaxed text-gray-700 space-y-4">
+                    <!-- 由 JS 動態生成 -->
+                </article>
+                <div class="mt-8 p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+                    <p class="text-sm text-indigo-800 leading-snug">
+                        <strong>互動提示：</strong>點擊任何紅色標記的單字，系統將自動為您朗讀。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. 詞彙表 -->
+        <section id="vocab-section" class="hidden animate-fadeIn">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="vocab-grid">
+                <!-- 由 JS 動態生成 -->
+            </div>
+        </section>
+
+        <!-- 3. 單字測驗 -->
+        <section id="quiz-section" class="hidden flex flex-col items-center animate-fadeIn">
+            <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-2xl w-full border-b-8 border-green-500">
                 
-                <div class="lg:col-span-3">
-                    <div class="bg-indigo-50 p-6 rounded-xl border-l-4 border-indigo-500 shadow-inner">
-                        <p class="text-xl leading-relaxed text-gray-800">
-                            In the <span class="vocab-highlight" onclick="speak('Magic Classroom', this)">Magic Classroom</span>, 
-                            the air is filled with wonder. A shimmering <span class="vocab-highlight" onclick="speak('Crystal Ball', this)">Crystal Ball</span> 
-                            sits upon the desk, revealing secrets of the future. The wizard waves a 
-                            <span class="vocab-highlight" onclick="speak('Magic Wand', this)">Magic Wand</span> with precision, 
-                            chanting ancient spells found within the leather-bound <span class="vocab-highlight" onclick="speak('Spell Book', this)">Spell Book</span>.
-                        </p>
+                <div id="quiz-container" class="hidden">
+                    <div class="flex justify-between items-center mb-8">
+                        <span id="quiz-progress" class="px-4 py-1 bg-green-100 text-green-700 rounded-full text-sm font-bold">Question 1/10</span>
+                        <div id="quiz-live-score" class="font-mono text-gray-400 font-bold">Score: 0</div>
+                    </div>
+                    <h2 class="text-2xl font-bold mb-8 text-center text-gray-800" id="quiz-question">正在加載題目...</h2>
+                    <div class="grid grid-cols-1 gap-4" id="quiz-options"></div>
+                    <div id="quiz-feedback" class="mt-6 p-4 rounded-xl hidden text-center font-bold"></div>
+                    <button id="next-quiz-btn" onclick="nextQuestion()" class="mt-8 w-full bg-indigo-600 text-white py-4 rounded-xl font-bold hover:bg-indigo-700 shadow-lg transition hidden">
+                        下一題 <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+
+                <div id="quiz-start-screen" class="text-center py-10">
+                    <div class="text-6xl mb-6">📝</div>
+                    <h2 class="text-2xl font-black mb-4">魔法教室挑戰</h2>
+                    <p class="mb-8 text-gray-500 text-lg">隨機 10 題測試，看看您記住了多少單字！</p>
+                    <button onclick="startQuiz()" class="bg-green-500 text-white px-12 py-4 rounded-full text-xl font-black hover:bg-green-600 shadow-xl transform hover:scale-105 transition-all">
+                        開始測驗
+                    </button>
+                </div>
+
+                <div id="quiz-result-screen" class="hidden text-center py-10">
+                    <div id="result-emoji" class="text-7xl mb-6">🏆</div>
+                    <h2 class="text-3xl font-black mb-2 text-gray-800">測驗完成！</h2>
+                    <p id="result-text" class="text-xl mb-8 text-indigo-600 font-bold"></p>
+                    <div class="flex flex-col gap-4">
+                        <button onclick="startQuiz()" class="bg-indigo-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-indigo-700 shadow-lg transition">
+                            再試一次
+                        </button>
+                        <button onclick="switchTab('vocab')" class="text-indigo-500 font-bold hover:underline">
+                            回詞彙表複習
+                        </button>
                     </div>
                 </div>
+
             </div>
-        </div>
+        </section>
 
-        <div id="vocabulary-list" class="tab-content hidden">
-            <h2 class="text-2xl font-bold text-indigo-700 mb-4 border-b pb-2">詞彙表 (Vocabulary List)</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white hover:shadow-md transition">
-                    <div>
-                        <p class="text-lg font-bold text-indigo-700">Magic Classroom</p>
-                        <p class="text-gray-600">魔法教室</p>
-                    </div>
-                    <button class="speak-btn" onclick="speak('Magic Classroom', this)">🔊 Listen</button>
-                </div>
-                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white hover:shadow-md transition">
-                    <div>
-                        <p class="text-lg font-bold text-indigo-700">Crystal Ball</p>
-                        <p class="text-gray-600">水晶球</p>
-                    </div>
-                    <button class="speak-btn" onclick="speak('Crystal Ball', this)">🔊 Listen</button>
-                </div>
-                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white hover:shadow-md transition">
-                    <div>
-                        <p class="text-lg font-bold text-indigo-700">Magic Wand</p>
-                        <p class="text-gray-600">魔法棒</p>
-                    </div>
-                    <button class="speak-btn" onclick="speak('Magic Wand', this)">🔊 Listen</button>
-                </div>
-                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white hover:shadow-md transition">
-                    <div>
-                        <p class="text-lg font-bold text-indigo-700">Spell Book</p>
-                        <p class="text-gray-600">咒語書</p>
-                    </div>
-                    <button class="speak-btn" onclick="speak('Spell Book', this)">🔊 Listen</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="quiz-mode" class="tab-content hidden text-center py-10">
-            <h2 class="text-2xl font-bold text-indigo-700 mb-4">單字測驗 (Quiz Mode)</h2>
-            <p class="text-gray-500">測驗功能開發中...</p>
-        </div>
-
-    </div>
+    </main>
 
     <script>
-        // 1. 分頁切換 JS (保留你原本的邏輯並優化)
-        function switchTab(targetId, btnElement) {
-            // 隱藏所有分頁內容
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.add('hidden');
-            });
-            // 顯示目標分頁
-            document.getElementById(targetId).classList.remove('hidden');
+        const wordData = [
+            { en: "benches", ipa: "/ˈbentʃɪz/", zh: "長凳", sentence: "Around him are rows of wooden desks and ...benches...." },
+            { en: "blackboard", ipa: "/ˈblækˌbɔːrd/", zh: "黑板", sentence: "The ...blackboard... shows mysterious formulas." },
+            { en: "books", ipa: "/bʊks/", zh: "書本", sentence: "Many old ...books... are stacked." },
+            { en: "bookshelves", ipa: "/ˈbʊkˌʃelvs/", zh: "書架", sentence: "The ...bookshelves... lining the stone walls." },
+            { en: "candelabra", ipa: "/ˌkændəˈlɑːbrə/", zh: "燭台", sentence: "A decorative ...candelabra... sits on a table." },
+            { en: "ceiling", ipa: "/ˈsiːlɪŋ/", zh: "天花板", sentence: "Look up at the high arched ...ceiling...." },
+            { en: "chalk", ipa: "/tʃɔːk/", zh: "粉筆", sentence: "perhaps drawn with a piece of ...chalk...." },
+            { en: "classroom", ipa: "/ˈklɑːsˌruːm/", zh: "教室", sentence: "Welcome to the magical ...classroom...." },
+            { en: "crest", ipa: "/krest/", zh: "徽章", sentence: "His house ...crest... is visible." },
+            { en: "desks", ipa: "/desks/", zh: "課桌", sentence: "Around him are rows of wooden ...desks...." },
+            { en: "flasks", ipa: "/flæsks/", zh: "燒瓶", sentence: "You can find laboratory tools like ...flasks...." },
+            { en: "inkwells", ipa: "/ˈɪŋkwelz/", zh: "墨水瓶", sentence: "Quills dipped in ...inkwells...." },
+            { en: "jars", ipa: "/dʒɑːrz/", zh: "罐子", sentence: "You can find laboratory tools like flasks and glass ...jars...." },
+            { en: "light", ipa: "/laɪt/", zh: "光線", sentence: "The natural ...light... streams in." },
+            { en: "quills", ipa: "/kwɪlz/", zh: "羽毛筆", sentence: "You can find writing tools like ...quills...." },
+            { en: "robe", ipa: "/roʊb/", zh: "長袍", sentence: "He is dressed in a black ...robe...." },
+            { en: "shoes", ipa: "/ʃuːz/", zh: "鞋子", sentence: "On his feet are polished black ...shoes...." },
+            { en: "stone floor", ipa: "/stoʊn flɔːr/", zh: "石地板", sentence: "The room has a cold ...stone floor...." },
+            { en: "stone walls", ipa: "/stoʊn wɔːlz/", zh: "石牆", sentence: "The room is built with solid ...stone walls...." },
+            { en: "student", ipa: "/ˈstuːdənt/", zh: "學生", sentence: "A serious ...student... stands in the center." },
+            { en: "sweater vest", ipa: "/ˈswetər vest/", zh: "背心", sentence: "He wears a striped ...sweater vest...." },
+            { en: "tie", ipa: "/taɪ/", zh: "領帶", sentence: "He wears a matching ...tie...." },
+            { en: "trousers", ipa: "/ˈtraʊzərz/", zh: "長褲", sentence: "He is wearing grey ...trousers...." },
+            { en: "wand", ipa: "/wɑːnd/", zh: "魔杖", sentence: "He is ready for a lesson, holding his ...wand...." },
+            { en: "windows", ipa: "/ˈwɪndoʊz/", zh: "窗戶", sentence: "Light streams in through the tall Gothic ...windows...." }
+        ];
 
-            // 更新所有按鈕樣式
-            document.querySelectorAll('.tab-button').forEach(btn => {
-                btn.classList.remove('bg-red-600', 'text-white', 'shadow-md');
-                btn.classList.add('bg-gray-200', 'text-gray-700');
-            });
-            // 啟動點擊的按鈕
-            btnElement.classList.add('bg-red-600', 'text-white', 'shadow-md');
-            btnElement.classList.remove('bg-gray-200', 'text-gray-700');
+        const storyTexts = [
+            "Welcome to the magical classroom. Look up at the high arched ceiling. The natural light streams in through the tall Gothic windows. The room is built with solid stone walls and has a cold stone floor.",
+            "A serious student stands in the center. He is dressed in a black robe over a striped sweater vest and grey trousers. His house crest is visible, and he wears a matching tie. He is ready for a lesson, holding his wand. On his feet are polished black shoes.",
+            "Around him are rows of wooden desks and benches. On the bookshelves lining the stone walls, many old books are stacked. The blackboard shows mysterious formulas, perhaps drawn with a piece of chalk. On the desks, you can find laboratory tools like flasks and glass jars, alongside writing tools: quills dipped in inkwells. A decorative candelabra sits on a table, waiting to be lit."
+        ];
+
+        const storyParagraphs = [
+            `Welcome to the magical <span class="word-red" onclick="speak('classroom')">classroom</span>. Look up at the high arched <span class="word-red" onclick="speak('ceiling')">ceiling</span>. The natural <span class="word-red" onclick="speak('light')">light</span> streams in through the tall Gothic <span class="word-red" onclick="speak('windows')">windows</span>. The room is built with solid <span class="word-red" onclick="speak('stone walls')">stone walls</span> and has a cold <span class="word-red" onclick="speak('stone floor')">stone floor</span>.`,
+            `A serious <span class="word-red" onclick="speak('student')">student</span> stands in the center. He is dressed in a black <span class="word-red" onclick="speak('robe')">robe</span> over a striped <span class="word-red" onclick="speak('sweater vest')">sweater vest</span> and grey <span class="word-red" onclick="speak('trousers')">trousers</span>. His house <span class="word-red" onclick="speak('crest')">crest</span> is visible, and he wears a matching <span class="word-red" onclick="speak('tie')">tie</span>. He is ready for a lesson, holding his <span class="word-red" onclick="speak('wand')">wand</span>. On his feet are polished black <span class="word-red" onclick="speak('shoes')">shoes</span>.`,
+            `Around him are rows of wooden <span class="word-red" onclick="speak('desks')">desks</span> and <span class="word-red" onclick="speak('benches')">benches</span>. On the <span class="word-red" onclick="speak('bookshelves')">bookshelves</span> lining the <span class="word-red" onclick="speak('stone walls')">stone walls</span>, many old <span class="word-red" onclick="speak('books')">books</span> are stacked. The <span class="word-red" onclick="speak('blackboard')">blackboard</span> shows mysterious formulas, perhaps drawn with a piece of <span class="word-red" onclick="speak('chalk')">chalk</span>. On the <span class="word-red" onclick="speak('desks')">desks</span>, you can find laboratory tools like <span class="word-red" onclick="speak('flasks')">flasks</span> and glass <span class="word-red" onclick="speak('jars')">jars</span>, alongside writing tools: <span class="word-red" onclick="speak('quills')">quills</span> dipped in <span class="word-red" onclick="speak('inkwells')">inkwells</span>. A decorative <span class="word-red" onclick="speak('candelabra')">candelabra</span> sits on a table, waiting to be lit.`
+        ];
+
+        window.onload = () => {
+            document.getElementById('story-content').innerHTML = storyParagraphs.map(p => `<p>${p}</p>`).join('');
+            renderVocab();
+        };
+
+        // --- Voice Logic ---
+        let isReadingStory = false;
+
+        function speak(text, callback) {
+            window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance();
+            msg.text = text;
+            msg.lang = 'en-US';
+            msg.rate = 0.85;
+            if(callback) msg.onend = callback;
+            window.speechSynthesis.speak(msg);
         }
 
-        // 2. 語音朗讀 JS (新增功能)
-        function speak(text, element) {
-            if (!('speechSynthesis' in window)) {
-                alert("抱歉，您的瀏覽器不支援發音功能。");
+        function toggleStoryReading() {
+            if (isReadingStory) {
+                window.speechSynthesis.cancel();
+                stopStoryUI();
+            } else {
+                startStoryUI();
+                readStoryPart(0);
+            }
+        }
+
+        function readStoryPart(index) {
+            if (index >= storyTexts.length || !isReadingStory) {
+                stopStoryUI();
                 return;
             }
+            speak(storyTexts[index], () => {
+                if(isReadingStory) setTimeout(() => readStoryPart(index + 1), 500);
+            });
+        }
 
-            // 停止當前正在播放的所有語音
+        function startStoryUI() {
+            isReadingStory = true;
+            document.getElementById('read-btn-icon').innerHTML = '<i class="fas fa-stop-circle"></i>';
+            document.getElementById('read-btn-text').innerText = '停止播放';
+            document.getElementById('read-story-btn').classList.add('reading-active');
+        }
+
+        function stopStoryUI() {
+            isReadingStory = false;
+            document.getElementById('read-btn-icon').innerHTML = '<i class="fas fa-volume-up"></i>';
+            document.getElementById('read-btn-text').innerText = '聽完整故事';
+            document.getElementById('read-story-btn').classList.remove('reading-active');
+        }
+
+        // --- UI & Tabs ---
+        function switchTab(tab) {
+            const sections = ['scene-section', 'vocab-section', 'quiz-section'];
+            const buttons = ['btn-scene', 'btn-vocab', 'btn-quiz'];
+            sections.forEach(s => document.getElementById(s).classList.add('hidden'));
+            buttons.forEach(b => {
+                const btn = document.getElementById(b);
+                btn.classList.remove('tab-active', 'text-indigo-700');
+                btn.classList.add('text-gray-500');
+            });
+            document.getElementById(`${tab}-section`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`btn-${tab}`);
+            activeBtn.classList.add('tab-active', 'text-indigo-700');
+            activeBtn.classList.remove('text-gray-500');
+            
             window.speechSynthesis.cancel();
+            stopStoryUI();
+            if(tab === 'quiz') resetQuizUI();
+        }
 
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'en-US'; // 設定美式英語
-            utterance.rate = 0.8;    // 語速稍微慢一點點
+        function renderVocab() {
+            const grid = document.getElementById('vocab-grid');
+            grid.innerHTML = wordData.map(word => `
+                <div class="bg-white p-6 rounded-2xl shadow border border-gray-100 group">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-xl font-black text-gray-800 group-hover:text-indigo-600">${word.en}</h3>
+                        <button onclick="speak('${word.en}')" class="w-10 h-10 rounded-full bg-indigo-50 text-indigo-500 hover:bg-indigo-600 hover:text-white transition-all flex items-center justify-center">
+                            <i class="fas fa-volume-up"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs font-mono text-gray-400 mb-1">${word.ipa}</p>
+                    <p class="text-lg text-indigo-600 font-bold mb-4">${word.zh}</p>
+                    <div class="pt-4 border-t border-dashed border-gray-200">
+                        <p class="text-sm text-gray-500 italic">"${word.sentence.replace('...', `<span class='font-bold text-indigo-700'>${word.en}</span>`)}"</p>
+                    </div>
+                </div>
+            `).join('');
+        }
 
-            // 播放開始與結束的視覺效果
-            utterance.onstart = () => {
-                element.classList.add('is-speaking');
-            };
-            utterance.onend = () => {
-                element.classList.remove('is-speaking');
-            };
+        // --- Quiz System ---
+        let quizPool = [];
+        let currentQuizIndex = 0;
+        let quizScore = 0;
+        const TOTAL_QUIZ_QUESTIONS = 10;
 
-            window.speechSynthesis.speak(utterance);
+        function resetQuizUI() {
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('quiz-result-screen').classList.add('hidden');
+            document.getElementById('quiz-start-screen').classList.remove('hidden');
+        }
+
+        function startQuiz() {
+            quizPool = [...wordData].sort(() => Math.random() - 0.5).slice(0, TOTAL_QUIZ_QUESTIONS);
+            currentQuizIndex = 0;
+            quizScore = 0;
+            document.getElementById('quiz-start-screen').classList.add('hidden');
+            document.getElementById('quiz-result-screen').classList.add('hidden');
+            document.getElementById('quiz-container').classList.remove('hidden');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const feedback = document.getElementById('quiz-feedback');
+            const nextBtn = document.getElementById('next-quiz-btn');
+            feedback.classList.add('hidden');
+            nextBtn.classList.add('hidden');
+            const currentWord = quizPool[currentQuizIndex];
+            document.getElementById('quiz-progress').innerText = `Question ${currentQuizIndex + 1}/${TOTAL_QUIZ_QUESTIONS}`;
+            document.getElementById('quiz-live-score').innerText = `Score: ${quizScore}`;
+            document.getElementById('quiz-question').innerHTML = `請選擇「<span class="text-indigo-600">${currentWord.zh}</span>」的正確英文：`;
+
+            let options = [currentWord.en];
+            while (options.length < 4) {
+                const randomEn = wordData[Math.floor(Math.random() * wordData.length)].en;
+                if (!options.includes(randomEn)) options.push(randomEn);
+            }
+            options.sort(() => Math.random() - 0.5);
+
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = options.map(opt => `
+                <button onclick="handleAnswer('${opt}', this)" class="w-full text-left p-4 rounded-xl border-2 border-gray-100 hover:border-indigo-300 hover:bg-indigo-50 transition-all font-bold text-gray-700 bg-white shadow-sm">
+                    ${opt}
+                </button>
+            `).join('');
+        }
+
+        function handleAnswer(selected, element) {
+            const feedback = document.getElementById('quiz-feedback');
+            const nextBtn = document.getElementById('next-quiz-btn');
+            const buttons = document.querySelectorAll('#quiz-options button');
+            const currentAnswer = quizPool[currentQuizIndex].en;
+            buttons.forEach(btn => btn.disabled = true);
+            feedback.classList.remove('hidden');
+
+            if (selected === currentAnswer) {
+                quizScore++;
+                element.classList.add('border-green-500', 'bg-green-50', 'text-green-700');
+                feedback.innerHTML = `<i class="fas fa-check-circle mr-2"></i> 正確！`;
+                feedback.className = "mt-6 p-4 rounded-xl text-center font-bold bg-green-100 text-green-700";
+                speak(currentAnswer);
+            } else {
+                element.classList.add('border-red-500', 'bg-red-50', 'text-red-700');
+                feedback.innerHTML = `<i class="fas fa-times-circle mr-2"></i> 答案是 ${currentAnswer}`;
+                feedback.className = "mt-6 p-4 rounded-xl text-center font-bold bg-red-100 text-red-700";
+            }
+            document.getElementById('quiz-live-score').innerText = `Score: ${quizScore}`;
+            nextBtn.classList.remove('hidden');
+            nextBtn.innerHTML = (currentQuizIndex === TOTAL_QUIZ_QUESTIONS - 1) ? '查看結果' : '下一題';
+        }
+
+        function nextQuestion() {
+            currentQuizIndex++;
+            if (currentQuizIndex < TOTAL_QUIZ_QUESTIONS) showQuestion();
+            else showResult();
+        }
+
+        function showResult() {
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('quiz-result-screen').classList.remove('hidden');
+            document.getElementById('result-text').innerText = `得分：${quizScore} / ${TOTAL_QUIZ_QUESTIONS}`;
+            const emoji = document.getElementById('result-emoji');
+            if (quizScore >= 9) emoji.innerText = "🧙‍♂️";
+            else if (quizScore >= 7) emoji.innerText = "📜";
+            else emoji.innerText = "💡";
         }
     </script>
 </body>
