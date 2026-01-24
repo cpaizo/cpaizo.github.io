@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML 探險實驗室</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+        
+        body { 
+            font-family: 'Noto Sans TC', sans-serif; 
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: white;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 0;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #64748b;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        .tab-btn.active {
+            color: #4f46e5;
+            border-bottom-color: #4f46e5;
+            background-color: #f5f3ff;
+        }
+
+        .content-section {
+            display: none;
+            padding: 20px;
+            flex: 1;
+        }
+        .content-section.active {
+            display: block;
+        }
+
+        #html-input {
+            width: 100%;
+            min-height: 350px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            background-color: #1e293b;
+            color: #f1f5f9;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 16px;
+            line-height: 1.5;
+            border: none;
+            outline: none;
+            resize: vertical;
+        }
+
+        #preview-box {
+            border: 2px dashed #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 250px;
+        }
+        /* 預覽區樣式增強 */
+        #preview-box h1 { font-size: 1.8rem; font-weight: bold; margin: 10px 0; display: block; color: #1e293b; }
+        #preview-box h2 { font-size: 1.5rem; font-weight: bold; margin: 8px 0; display: block; color: #334155; }
+        #preview-box p { margin: 10px 0; line-height: 1.6; display: block; color: #475569; }
+        #preview-box button { background: #4f46e5; color: white; padding: 8px 16px; border-radius: 6px; border: none; margin: 5px 0; cursor: pointer; }
+        #preview-box ul { list-style-type: disc; padding-left: 25px; margin: 10px 0; }
+        #preview-box ol { list-style-type: decimal; padding-left: 25px; margin: 10px 0; }
+        #preview-box img { max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0; border: 1px solid #ddd; }
+        #preview-box input { border: 1px solid #cbd5e1; padding: 6px 10px; border-radius: 4px; margin: 5px 0; width: 100%; }
+        #preview-box a { color: #2563eb; text-decoration: underline; }
+
+        .guide-step { display: none; }
+        .guide-step.active { display: block; }
+
+        .structure-card {
+            border-left: 4px solid #4f46e5;
+            padding: 10px;
+            background: #f8fafc;
+            margin-bottom: 10px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        /* 增加底部緩衝區域 */
+        .bottom-spacer {
+            height: 80px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sticky-header shadow-sm">
+        <header class="bg-indigo-600 text-white p-3 flex justify-between items-center">
+            <span class="font-bold tracking-tight">🔍 HTML 探險實驗室</span>
+            <span id="progress-text" class="text-[10px] bg-indigo-500 px-2 py-0.5 rounded-full">先導知識</span>
+        </header>
+        
+        <nav class="flex border-b border-slate-200">
+            <button onclick="switchTab('guide')" class="tab-btn active" id="btn-guide">📖 教學</button>
+            <button onclick="switchTab('editor')" class="tab-btn" id="btn-editor">✍️ 代碼</button>
+            <button onclick="switchTab('preview')" class="tab-btn" id="btn-preview">👁️ 結果</button>
+        </nav>
+    </div>
+
+    <main class="flex-1">
+        <section id="sec-guide" class="content-section active">
+            
+            <!-- 任務 0: 架構介紹 -->
+            <div id="step-0" class="guide-step active">
+                <span class="bg-orange-100 text-orange-700 text-xs px-2 py-1 rounded">先導知識</span>
+                <h2 class="text-2xl font-bold my-3">網頁的「骨架」是什麼？</h2>
+                <p class="text-slate-600 mb-4">在開始練習標籤前，我們要知道 HTML 文件的基本結構，它就像一個人的身體：</p>
+                
+                <div class="space-y-3 mb-6">
+                    <div class="structure-card">
+                        <strong class="text-indigo-600">1. &lt;html&gt;</strong>
+                        <p class="text-xs text-slate-500">這是最外層，代表整份文件的開始與結束。</p>
+                    </div>
+                    <div class="structure-card">
+                        <strong class="text-indigo-600">2. &lt;head&gt; (頭部)</strong>
+                        <p class="text-xs text-slate-500">放網頁的後台資訊，像是網頁標題，通常畫面上看不到。</p>
+                    </div>
+                    <div class="structure-card">
+                        <strong class="text-indigo-600">3. &lt;body&gt; (身體)</strong>
+                        <p class="text-xs text-slate-500">這最重要！所有你在網頁上看到的文字、圖片、按鈕，都要放在這裡。</p>
+                    </div>
+                </div>
+                <p class="text-slate-600 text-sm italic">💡 接下來的練習，我們都會專注在「身體 (body)」裡面的各種零件喔！</p>
+            </div>
+
+            <!-- 10個任務內容 -->
+            <div id="step-1" class="guide-step">
+                <span class="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded">任務 1/10</span>
+                <h2 class="text-2xl font-bold my-3">大標題 h1</h2>
+                <p class="text-slate-600 mb-4">網頁中最大、最重要的標題。</p>
+                <div class="bg-slate-100 p-3 rounded font-mono text-indigo-600 mb-6">&lt;h1&gt;我的探險日誌&lt;/h1&gt;</div>
+            </div>
+
+            <div id="step-2" class="guide-step">
+                <span class="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded">任務 2/10</span>
+                <h2 class="text-2xl font-bold my-3">副標題 h2</h2>
+                <p class="text-slate-600 mb-4">用來區分段落的小標題。</p>
+                <div class="bg-slate-100 p-3 rounded font-mono text-indigo-600 mb-6">&lt;h2&gt;今日學習進度&lt;/h2&gt;</div>
+            </div>
+
+            <div id="step-3" class="guide-step">
+                <span class="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded">任務 3/10</span>
+                <h2 class="text-2xl font-bold my-3">段落文字 p</h2>
+                <p class="text-slate-600 mb-4">一般的文字敘述都放在這。</p>
+                <div class="bg-slate-100 p-3 rounded font-mono text-indigo-600 mb-6">&lt;p&gt;這是一個充滿魔力的練習。&lt;/p&gt;</div>
+            </div>
+
+            <div id="step-4" class="guide-step">
+                <span class="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded">任務 4/10</span>
+                <h2 class="text-2xl font-bold my-3">超連結 a</h2>
+                <p class="text-slate-600 mb-4">可以點擊並跳轉到其他網址。</p>
+                <div class="bg-slate-100 p-3 rounded font-mono text-indigo-600 mb-6">&lt;a href="https://www.google.com"&gt;前往搜尋&lt;/a&gt;</div>
+            </div>
+
+            <div id="step-5" class="guide-step">
+                <span class="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded">任務 5/10</span>
+                <h2 class="text-2xl font-bold my-3">圖片 img</h2>
+                <p class="text-slate-600 mb-4">展示可愛的圖片。</p>
+                <div class="bg-slate-100 p-3 rounded font-mono text-indigo-600 mb-6">&lt;img src="https://picsum.photos/200"&gt;</div>
+            </div>
+
+            <div id="step-6" class="guide-step">
+                <span class="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded">任務 6/10</span>
+                <h2 class="text-2xl font-bold my-3">點點清單 ul</h2>
+                <p class="text-slate-600 mb-4">用來列出沒有順序的項目。</p>
+                <div class="bg-slate-100 p-3 rounded font-mono text-indigo-600 mb-6">&lt;ul&gt;<br>&nbsp;&nbsp;&lt;li&gt;項目一&lt;/li&gt;<br>&lt;/ul&gt;</div>
+            </div>
+
+            <div id="step-7" class="guide-step">
+                <span class="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded">任務 7/10</span>
+                <h2 class="text-2xl font-bold my-3">數字清單 ol</h2>
+                <p class="text-slate-600 mb-4">用來列出有順序（1, 2, 3）的項目。</p>
+                <div class="bg-slate-100 p-3 rounded font-mono text-indigo-600 mb-6">&lt;ol&gt;<br>&nbsp;&nbsp;&lt;li&gt;第一步&lt;/li&gt;<br>&lt;/ol&gt;</div>
+            </div>
+
+            <div id="step-8" class="guide-step">
+                <span class="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded">任務 8/10</span>
+                <h2 class="text-2xl font-bold my-3">輸入框 input</h2>
+                <p class="text-slate-600 mb-4">讓大家可以在網頁上填寫資料。</p>
+                <div class="bg-slate-100 p-3 rounded font-mono text-indigo-600 mb-6">&lt;input type="text"&gt;</div>
+            </div>
+
+            <div id="step-9" class="guide-step">
+                <span class="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded">任務 9/10</span>
+                <h2 class="text-2xl font-bold my-3">按鈕 button</h2>
+                <p class="text-slate-600 mb-4">製作一個可以按下去的開關。</p>
+                <div class="bg-slate-100 p-3 rounded font-mono text-indigo-600 mb-6">&lt;button&gt;送出&lt;/button&gt;</div>
+            </div>
+
+            <div id="step-10" class="guide-step">
+                <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded">終點站</span>
+                <h2 class="text-2xl font-bold my-3">探險大圓滿 🏆</h2>
+                <p class="text-slate-600 mb-6">你已經學會了所有核心技能！試試看組合剛才學到的所有標籤，在「代碼」區塊創作吧！</p>
+                <div class="bg-green-500 text-white p-4 rounded-lg text-center font-bold">挑戰大成功！</div>
+            </div>
+
+            <!-- 控制按鈕區域：增加了底部空間 -->
+            <div class="flex justify-between items-center mt-10 border-t pt-6">
+                <button onclick="changeStep(-1)" id="prev-step-btn" class="text-slate-400 font-bold px-4 py-2 disabled:opacity-30">← 上一步</button>
+                <button onclick="handleNext()" id="next-step-btn" class="bg-indigo-600 text-white px-6 py-2 rounded-full font-bold">開始探險 →</button>
+            </div>
+            
+            <!-- 加入空白緩衝 -->
+            <div class="bottom-spacer"></div>
+        </section>
+
+        <!-- 代碼區 -->
+        <section id="sec-editor" class="content-section">
+            <div class="flex justify-between items-center mb-2">
+                <label class="text-sm font-bold text-slate-500 italic">在下方輸入你的 HTML：</label>
+                <button onclick="confirmClear()" class="text-xs text-red-500">清空內容</button>
+            </div>
+            <textarea id="html-input" placeholder="在這裡輸入標籤..." spellcheck="false"></textarea>
+            <div class="bottom-spacer"></div>
+        </section>
+
+        <!-- 預覽區 -->
+        <section id="sec-preview" class="content-section">
+            <h3 class="text-sm font-bold text-slate-500 mb-2 italic">網頁預覽：</h3>
+            <div id="preview-box">
+                <div class="text-slate-300 text-center py-10">（快去寫代碼看成果吧！）</div>
+            </div>
+            <div class="bottom-spacer"></div>
+        </section>
+    </main>
+
+    <script>
+        let currentStep = 0;
+        const totalSteps = 10;
+        const htmlInput = document.getElementById('html-input');
+        const previewBox = document.getElementById('preview-box');
+
+        htmlInput.addEventListener('input', () => {
+            previewBox.innerHTML = htmlInput.value || '<div class="text-slate-300 text-center py-10">（快去寫代碼看成果吧！）</div>';
+        });
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`sec-${tabId}`).classList.add('active');
+            document.getElementById(`btn-${tabId}`).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        function changeStep(dir) {
+            const next = currentStep + dir;
+            if (next >= 0 && next <= totalSteps) {
+                document.getElementById(`step-${currentStep}`).classList.remove('active');
+                currentStep = next;
+                document.getElementById(`step-${currentStep}`).classList.add('active');
+                updateUI();
+            }
+        }
+
+        function handleNext() {
+            if (currentStep === totalSteps) {
+                document.getElementById(`step-${currentStep}`).classList.remove('active');
+                currentStep = 0;
+                document.getElementById(`step-${currentStep}`).classList.add('active');
+                updateUI();
+                switchTab('guide');
+            } else {
+                changeStep(1);
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('progress-text').innerText = currentStep === 0 ? "先導知識" : `任務 ${currentStep} / ${totalSteps}`;
+            document.getElementById('prev-step-btn').disabled = (currentStep === 0);
+            
+            const nextBtn = document.getElementById('next-step-btn');
+            if (currentStep === 0) {
+                nextBtn.innerText = "開始探險 →";
+                nextBtn.classList.replace('bg-orange-500', 'bg-indigo-600');
+            } else if (currentStep === totalSteps) {
+                nextBtn.innerText = "重新練習 🔄";
+                nextBtn.classList.replace('bg-indigo-600', 'bg-orange-500');
+            } else {
+                nextBtn.innerText = "下一關 →";
+                nextBtn.classList.replace('bg-orange-500', 'bg-indigo-600');
+            }
+            window.scrollTo(0, 0);
+        }
+
+        function confirmClear() {
+            if (confirm('確定要清空代碼嗎？')) {
+                htmlInput.value = '';
+                previewBox.innerHTML = '<div class="text-slate-300 text-center py-10">（快去寫代碼看成果吧！）</div>';
+            }
+        }
+    </script>
+</body>
+</html>
