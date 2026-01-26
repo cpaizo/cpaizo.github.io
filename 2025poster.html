@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2050 未來設計師 - 完整專業版</title>
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --primary: #0984e3;
+            --accent: #00b894;
+            --speech-bg: #fff9db;
+            --btn-radius: 30px;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#dcdde1 1px, transparent 1px);
+            background-size: 20px 20px;
+            font-family: '微軟正黑體', sans-serif;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 950px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        header {
+            text-align: center;
+            background: white;
+            padding: 30px;
+            border-radius: 25px;
+            border-bottom: 6px solid var(--primary);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .input-section {
+            background: white;
+            padding: 30px;
+            border-radius: 25px;
+            border: 2px solid #dfe6e9;
+        }
+
+        .input-group { margin-bottom: 25px; }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            color: #2d3436;
+        }
+        
+        .sub-label {
+            font-size: 0.85rem;
+            color: #636e72;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            border: 2px solid #b2bec3;
+            border-radius: 15px;
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary);
+            outline: none;
+            background-color: #f0f7ff;
+        }
+
+        .category-container {
+            background: white;
+            padding: 25px;
+            border-radius: 25px;
+            border: 1px solid #dfe6e9;
+        }
+
+        .category-title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2d3436;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tags-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .tag {
+            background: #f1f2f6;
+            border: 2px solid transparent;
+            padding: 10px 20px;
+            border-radius: var(--btn-radius);
+            cursor: pointer;
+            transition: 0.2s all;
+            font-size: 0.95rem;
+        }
+
+        .tag:hover { background: #dfe6e9; }
+
+        .tag.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 5px 15px rgba(9, 132, 227, 0.3);
+        }
+
+        .speech-box {
+            background-color: var(--speech-bg);
+            padding: 30px;
+            border-radius: 25px;
+            border: 2px dashed #f1c40f;
+            line-height: 1.8;
+        }
+
+        .speech-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #d35400;
+            text-align: center;
+        }
+
+        .speech-content { font-size: 1.15rem; color: #2d3436; }
+
+        .highlight-text {
+            color: #d63031;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        .output-box {
+            background-color: #2d3436;
+            padding: 25px;
+            border-radius: 25px;
+            color: #fff;
+        }
+
+        .final-prompt {
+            background-color: #1e272e;
+            padding: 20px;
+            border-radius: 15px;
+            color: #ffeaa7;
+            font-family: monospace;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            border: 1px solid #4ecdc4;
+            white-space: pre-wrap;
+        }
+
+        .btn-action {
+            border: none;
+            padding: 15px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.2s;
+        }
+
+        .btn-copy-prompt { background-color: var(--accent); color: white; }
+        .btn-copy-speech { background-color: #e67e22; color: white; margin-top: 15px; }
+        .btn-action:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        .random-box { text-align: center; margin-bottom: 10px; }
+        .btn-random { background: #a29bfe; color: white; padding: 10px 30px; border-radius: 50px; border: none; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>🌍 2050 未來永續設計師</h1>
+            <p>融合式構圖引導：讓問題與方案完美呈現在同一張畫面上</p>
+        </header>
+
+        <div class="input-section">
+            <div class="input-group">
+                <label>👤 你的名字</label>
+                <input type="text" id="nameInput" placeholder="例如：王小明" oninput="updateAll()">
+            </div>
+            
+            <div class="input-group">
+                <label>Q1. 2050 年的環境挑戰 (作為背景) 🤔</label>
+                <span class="sub-label">描寫環境狀態，例如：被垃圾淹沒的珊瑚礁、極度乾旱的龜裂大地、烏煙瘴氣的鋼鐵城市</span>
+                <input type="text" id="problemInput" placeholder="例如：充滿廢棄塑膠的灰暗深海" oninput="updateAll()">
+            </div>
+
+            <div class="input-group">
+                <label>Q2. 你的神奇解決方案 (作為主體) 💡</label>
+                <span class="sub-label">描寫正在行動的發明，例如：發光的清潔機器魚、巨型太陽能人造樹、飄浮的植栽無人機</span>
+                <input type="text" id="solutionInput" placeholder="例如：閃爍著藍光的科技機器魚正在自動回收廢料" oninput="updateAll()">
+            </div>
+        </div>
+
+        <div class="random-box">
+            <button class="btn-random" onclick="randomSelect()">🎲 隨機選風格與光影</button>
+        </div>
+
+        <div class="category-container" id="styleContainer">
+            <div class="category-title">🎨 藝術風格選擇 (10選1)</div>
+            <div class="tags-wrapper">
+                <div class="tag" onclick="toggleTag(this, 'style', '3D動畫大廠皮克斯風格')">3D皮克斯</div>
+                <div class="tag" onclick="toggleTag(this, 'style', '吉卜力手繪動畫風格')">吉卜力手繪</div>
+                <div class="tag" onclick="toggleTag(this, 'style', '賽博龐克未來科技感')">賽博龐克</div>
+                <div class="tag" onclick="toggleTag(this, 'style', '溫暖細膩的水彩插畫')">水彩插畫</div>
+                <div class="tag" onclick="toggleTag(this, 'style', '寫實電影攝影風格')">寫實電影</div>
+                <div class="tag" onclick="toggleTag(this, 'style', '可愛黏土定格動畫風格')">黏土動畫</div>
+                <div class="tag" onclick="toggleTag(this, 'style', '精緻的立體紙雕藝術')">立體紙雕</div>
+                <div class="tag" onclick="toggleTag(this, 'style', '復古蒸氣龐克風格')">蒸氣龐克</div>
+                <div class="tag" onclick="toggleTag(this, 'style', '超現實主義風格')">超現實主義</div>
+                <div class="tag" onclick="toggleTag(this, 'style', '繽紛的樂高積木世界')">樂高積木</div>
+            </div>
+        </div>
+
+        <div class="category-container" id="viewContainer">
+            <div class="category-title">📸 視角與光影 (10選1)</div>
+            <div class="tags-wrapper">
+                <div class="tag" onclick="toggleTag(this, 'view', '絕美的夕陽逆光')">夕陽逆光</div>
+                <div class="tag" onclick="toggleTag(this, 'view', '充滿希望的晨曦光束')">晨曦光束</div>
+                <div class="tag" onclick="toggleTag(this, 'view', '壯闊的鳥瞰俯視角')">鳥瞰俯視</div>
+                <div class="tag" onclick="toggleTag(this, 'view', '有張力的仰視大角度')">英雄仰視</div>
+                <div class="tag" onclick="toggleTag(this, 'view', '聚焦細節的宏觀特寫')">微距特寫</div>
+                <div class="tag" onclick="toggleTag(this, 'view', '神祕的極光環境光')">極光幻影</div>
+                <div class="tag" onclick="toggleTag(this, 'view', '柔和的室內頂部光點')">室內柔光</div>
+                <div class="tag" onclick="toggleTag(this, 'view', '雨後倒影的霓虹光澤')">雨後霓虹</div>
+                <div class="tag" onclick="toggleTag(this, 'view', '廣角鏡頭呈現的大場面')">廣角大場面</div>
+                <div class="tag" onclick="toggleTag(this, 'view', '丁達爾效應的穿透光線')">耶穌光束</div>
+            </div>
+        </div>
+
+        <div class="speech-box">
+            <div class="speech-title">🎤 2050 永續未來發表講稿</div>
+            <div class="speech-content" id="speechArea"> (請填寫上方資料) </div>
+            <button class="btn-action btn-copy-speech" onclick="copyText('speechArea')">📋 複製完整演講稿</button>
+        </div>
+
+        <div class="output-box">
+            <div class="category-title" style="color:var(--accent)">✨ AI 生圖優化咒語 (已強化融合邏輯)</div>
+            <div class="final-prompt" id="finalText">A3海報比例, 8K超高畫質...</div>
+            <button class="btn-action btn-copy-prompt" onclick="copyText('finalText')">📋 複製融合咒語</button>
+        </div>
+    </div>
+
+    <script>
+        let selectedStyle = "";
+        let selectedView = "";
+
+        function updateAll() {
+            const name = document.getElementById('nameInput').value.trim() || "(你的名字)";
+            const prob = document.getElementById('problemInput').value.trim() || "(描述一個環境挑戰)";
+            const sol = document.getElementById('solutionInput').value.trim() || "(描述你的神奇發明)";
+            
+            // 提示詞邏輯優化：主從結構防止畫面分裂
+            let promptText = `A3海報比例, 8K超高畫質, 主題中心為「${sol}」, 場景背景設定在「${prob}」, 兩者完美融合呈現解決問題的瞬間, ${selectedStyle}, ${selectedView}, 極致細節, 電影感構圖`;
+            document.getElementById('finalText').innerText = promptText;
+
+            // 演講稿結構完整化
+            const speech = `各位評審與觀眾大家好，我是 <span class="highlight-text">${name}</span>。
+
+我所構思的 2050 年作品，主題聚焦於解決 <span class="highlight-text">${prob}</span> 的嚴峻問題。我認為科技不應只是冰冷的機器，而應該與自然共生。
+
+因此，我設計了 <span class="highlight-text">${sol}</span>。在我的繪畫設計中，我特別選用了 <span class="highlight-text">${selectedStyle || '獨特的藝術風格'}</span> 來呈現未來的想像力，並透過 <span class="highlight-text">${selectedView || '精心設計的光影視角'}</span>，帶領大家看見問題被改善後的希望感。
+
+透過這件作品，我希望能喚起大家對永續發展的重視。我的分享到此結束，謝謝大家！`;
+            
+            document.getElementById('speechArea').innerHTML = speech;
+        }
+
+        function toggleTag(el, type, text) {
+            el.parentElement.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            if(type === 'style') selectedStyle = text;
+            else selectedView = text;
+            updateAll();
+        }
+
+        function randomSelect() {
+            const styleTags = document.querySelectorAll('#styleContainer .tag');
+            const viewTags = document.querySelectorAll('#viewContainer .tag');
+            styleTags[Math.floor(Math.random()*10)].click();
+            viewTags[Math.floor(Math.random()*10)].click();
+        }
+
+        function copyText(id) {
+            const text = document.getElementById(id).innerText;
+            navigator.clipboard.writeText(text);
+            alert("已複製到剪貼簿！");
+        }
+
+        window.onload = updateAll;
+    </script>
+</body>
+</html>
