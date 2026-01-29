@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2050 永續發明家 - AI 提示詞產生器</title>
+    <style>
+        :root { --primary: #4a90e2; --secondary: #50e3c2; --bg: #f0f4f8; }
+        body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); padding: 20px; color: #333; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: var(--primary); margin-bottom: 30px; }
+        .input-section { display: grid; gap: 20px; margin-bottom: 30px; }
+        label { font-weight: bold; display: block; margin-bottom: 8px; font-size: 1.1em; }
+        input, select { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; transition: 0.3s; }
+        input:focus { border-color: var(--primary); outline: none; }
+        
+        .btn-generate { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none; padding: 15px; border-radius: 10px; font-size: 1.2em; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; }
+        .btn-generate:hover { opacity: 0.9; transform: translateY(-2px); }
+        
+        .result-card { margin-top: 30px; padding: 20px; border-radius: 15px; background: #fafafa; border: 1px solid #eee; position: relative; }
+        .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .tag { background: var(--primary); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.9em; }
+        
+        .copy-btn { background: #fff; border: 1px solid var(--primary); color: var(--primary); padding: 5px 15px; border-radius: 5px; cursor: pointer; transition: 0.2s; }
+        .copy-btn:hover { background: var(--primary); color: white; }
+        
+        .content-box { background: white; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; font-size: 1.05em; line-height: 1.8; white-space: pre-wrap; }
+        .english-box { font-family: 'Courier New', Courier, monospace; background: #2c3e50; color: #ecf0f1; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🌱 2050 永續發明家提示詞產生器</h1>
+    
+    <div class="input-section">
+        <div class="grid-2">
+            <div>
+                <label>👤 我的名字</label>
+                <input type="text" id="name" placeholder="請輸入姓名">
+            </div>
+            <div>
+                <label>🎨 選擇畫風 (15種)</label>
+                <select id="style">
+                    <option value="Epic 3D Disney Pixar movie style, soft lighting, vibrant colors">1. 迪士尼皮克斯 3D 動畫風</option>
+                    <option value="Studio Ghibli, My Neighbor Totoro style, lush green nature, hand-drawn">2. 吉卜力龍貓手繪風</option>
+                    <option value="Lego Bricks world, colorful plastic blocks, miniature photography">3. 樂高積木世界風格</option>
+                    <option value="Cyberpunk 2077, futuristic city, neon lights, high-tech">4. 未來賽博龐克（霓虹燈）</option>
+                    <option value="Vibrant Watercolor, soft edges, dreamy splashes">5. 夢幻水彩渲染插畫</option>
+                    <option value="Minecraft pixel art style, blocky world, retro 8-bit">6. 當個創世神 (Minecraft) 像素風</option>
+                    <option value="Origami paper art, folded paper texture, clean shadows">7. 精緻立體摺紙藝術</option>
+                    <option value="Oil painting, thick impasto, Van Gogh Starry Night style">8. 梵谷星夜油畫風</option>
+                    <option value="Doraemon anime style, clean lines, bright 2D colors">9. 哆啦A夢經典動畫風</option>
+                    <option value="Claymation, Pingu or Wallace and Gromit style, handmade clay texture">10. 黏土動畫風格 (如企鵝家族)</option>
+                    <option value="Hyper-realistic National Geographic photography, sharp details">11. 國家地理雜誌寫實攝影</option>
+                    <option value="Pop Art, Andy Warhol style, bold colors, comic dots">12. 普普藝術風格 (大膽配色)</option>
+                    <option value="Pencil sketch, hand-drawn, artistic shading">13. 素描手繪設計稿</option>
+                    <option value="Glowing Bioluminescence, dark background, magic glowing plants">14. 發光生物幻境 (發光森林感)</option>
+                    <option value="Futuristic Blueprint, holographic UI, technical lines">15. 未來科技藍圖面板風</option>
+                </select>
+            </div>
+        </div>
+        
+        <div>
+            <label>🌋 想要解決的環境挑戰</label>
+            <input type="text" id="challenge" placeholder="例如：海洋垃圾、空氣汙染、森林消失">
+        </div>
+        
+        <div>
+            <label>💡 我的神奇發明</label>
+            <input type="text" id="invention" placeholder="例如：會吸煙霧的機械雲、自動種樹的小螃蟹">
+        </div>
+        
+        <button class="btn-generate" onclick="generateAll()">✨ 點我生成我的作品計畫 ✨</button>
+    </div>
+
+    <div id="results" style="display:none;">
+        <div class="result-card">
+            <div class="result-header">
+                <span class="tag">🎙️ 演講稿 (報告用)</span>
+                <button class="copy-btn" onclick="copyText('speechContent')">複製演講稿</button>
+            </div>
+            <div id="speechContent" class="content-box"></div>
+        </div>
+
+        <div class="result-card">
+            <div class="result-header">
+                <span class="tag">📝 中文提示詞 (設計理念參考)</span>
+                <button class="copy-btn" onclick="copyText('zhPrompt')">複製中文詞</button>
+            </div>
+            <div id="zhPrompt" class="content-box"></div>
+        </div>
+
+        <div class="result-card">
+            <div class="result-header">
+                <span class="tag">🚀 英文提示詞 (貼入 AI 工具生圖)</span>
+                <button class="copy-btn" onclick="copyText('enPrompt')">複製英文詞</button>
+            </div>
+            <div id="enPrompt" class="content-box english-box"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function generateAll() {
+        const name = document.getElementById('name').value || "小小發明家";
+        const challenge = document.getElementById('challenge').value || "環境污染";
+        const invention = document.getElementById('invention').value || "神奇發明";
+        const styleSelect = document.getElementById('style');
+        const styleEng = styleSelect.value;
+        const styleZh = styleSelect.options[styleSelect.selectedIndex].text;
+
+        // 1. 生成演講稿
+        const speech = `各位評審與觀眾大家好，我是 ${name}。 我所構思的 2050 年作品，主題聚焦於解決 ${challenge} 的嚴峻問題。我認為科技不應只是冰冷的機器，而應該與自然共生。 因此，我設計了 ${invention}。在我的繪畫設計中，我特別選用了 ${styleZh} 來呈現未來的想像力，並透過精心設計的光影視角，帶領大家看見問題被改善後的希望感。 透過這件作品，我希望能喚起大家對永續發展的重視。我的分享到此結束，謝謝大家！`;
+        document.getElementById('speechContent').innerText = speech;
+
+        // 2. 生成中文提示詞
+        const zhPrompt = `A3海報比例, 8K超高畫質, 主題中心為「${invention}」, 背景設定在「${challenge}」的環境, 極致細節, 電影感構圖, 解決問題的希望瞬間, 畫風為${styleZh}, 光線追蹤, 丁達爾效應。`;
+        document.getElementById('zhPrompt').innerText = zhPrompt;
+
+        // 3. 生成英文提示詞 (高品質固定詞)
+        const enPrompt = `A3 poster size, aspect ratio 2:3, 8K ultra-high definition, masterpiece, highly detailed. Central subject: ${invention}. Environment background: ${challenge}. The moment of solving environmental issues. Style: ${styleEng}. Cinematic lighting, ray tracing, Tyndall effect, sharp focus, hyper-realistic textures, volumetric fog.`;
+        document.getElementById('enPrompt').innerText = enPrompt;
+
+        document.getElementById('results').style.display = 'block';
+        window.scrollTo({ top: document.getElementById('results').offsetTop - 20, behavior: 'smooth' });
+    }
+
+    function copyText(id) {
+        const text = document.getElementById(id).innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            alert("已成功複製到剪貼簿！");
+        }).catch(err => {
+            alert("複製失敗，請手動選取文字複製。");
+        });
+    }
+</script>
+
+</body>
+</html>
