@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2050 永續生活：AI 海報創作引導</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; background: #f0fdf4; }
+        .step-card { display: none; }
+        .step-card.active { display: block; }
+        .style-btn.selected { border-color: #059669; background-color: #ecfdf5; box-shadow: 0 0 0 2px #059669; }
+        .btn-hover { transition: all 0.2s; }
+        .btn-hover:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-3xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border border-green-100">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-emerald-600 to-teal-600 p-8 text-white text-center">
+            <h1 class="text-3xl font-bold tracking-tight">🌍 2050 永續生活：解決家園難題</h1>
+            <p class="mt-2 text-emerald-50">引導式填空，創造你的未來世界</p>
+        </div>
+
+        <div class="p-6 md:p-10">
+            <!-- Progress Bar -->
+            <div class="flex justify-between mb-10 px-4">
+                <div id="prog-1" class="w-1/5 h-2 rounded-full bg-emerald-500"></div>
+                <div id="prog-2" class="w-1/5 h-2 rounded-full bg-gray-200 ml-1"></div>
+                <div id="prog-3" class="w-1/5 h-2 rounded-full bg-gray-200 ml-1"></div>
+                <div id="prog-4" class="w-1/5 h-2 rounded-full bg-gray-200 ml-1"></div>
+                <div id="prog-5" class="w-1/5 h-2 rounded-full bg-gray-200 ml-1"></div>
+            </div>
+
+            <!-- Step 1: Name -->
+            <div id="step-1" class="step-card active">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800">請輸入你的名字：</h2>
+                <input type="text" id="user-name" placeholder="請輸入姓名..." class="w-full p-4 border-2 border-emerald-100 rounded-2xl focus:border-emerald-500 outline-none text-xl">
+                <div class="mt-8 text-right">
+                    <button onclick="checkName()" class="px-10 py-4 bg-emerald-600 text-white rounded-2xl font-bold shadow-lg btn-hover">開始引導 ➔</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Problem Definition -->
+            <div id="step-2" class="step-card">
+                <h2 class="text-2xl font-bold mb-2 text-gray-800">第二步：發現 2050 年的問題</h2>
+                <p class="text-gray-600 mb-6">你想解決哪一個地球面臨的難題？</p>
+                <div class="grid grid-cols-1 gap-4">
+                    <button onclick="selectProblem('垃圾污染海洋', 'ocean plastic pollution problem')" class="p-5 text-left border-2 border-gray-100 rounded-2xl hover:border-blue-400 hover:bg-blue-50 transition">🌊 藍色難題：大海裡有太多的塑膠垃圾</button>
+                    <button onclick="selectProblem('城市空氣太髒', 'air pollution in the city')" class="p-5 text-left border-2 border-gray-100 rounded-2xl hover:border-gray-400 hover:bg-gray-50 transition">🌫️ 灰色難題：空氣污染讓我們不舒服</button>
+                    <button onclick="selectProblem('電力和資源不夠', 'global energy shortage')" class="p-5 text-left border-2 border-gray-100 rounded-2xl hover:border-yellow-400 hover:bg-yellow-50 transition">💡 電力難題：我們需要更多乾淨的能量</button>
+                    <button onclick="selectProblem('森林消失了', 'deforestation and loss of biodiversity')" class="p-5 text-left border-2 border-gray-100 rounded-2xl hover:border-green-400 hover:bg-green-50 transition">🌳 綠色難題：樹木越來越少，動物沒地方住</button>
+                </div>
+                <div class="mt-8 flex justify-between">
+                    <button onclick="prevStep(1)" class="px-6 py-2 text-gray-400">上一步</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Solution -->
+            <div id="step-3" class="step-card">
+                <h2 class="text-2xl font-bold mb-2 text-gray-800">第三步：你的神奇解決方法</h2>
+                <p class="text-gray-600 mb-6">你要發明什麼來解決上面的問題？</p>
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">我的發明名稱 (例如：吃垃圾的機器魚)</label>
+                        <input type="text" id="solution-zh" placeholder="請輸入中文..." class="w-full p-4 border rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none shadow-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">它如何運作？(例如：它正在把垃圾變成彩色泡泡)</label>
+                        <textarea id="action-zh" rows="2" placeholder="描述解決過程..." class="w-full p-4 border rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none shadow-sm"></textarea>
+                    </div>
+                </div>
+                <div class="mt-8 flex justify-between">
+                    <button onclick="prevStep(2)" class="px-6 py-2 text-gray-400">上一步</button>
+                    <button onclick="nextStep(4)" class="px-10 py-4 bg-emerald-600 text-white rounded-2xl font-bold shadow-lg btn-hover">最後一步 ➔</button>
+                </div>
+            </div>
+
+            <!-- Step 4: Style Select -->
+            <div id="step-4" class="step-card">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800">第四步：選擇海報藝術風格</h2>
+                <div class="grid grid-cols-2 gap-4" id="style-grid"></div>
+                <div class="mt-8 flex justify-between">
+                    <button onclick="prevStep(3)" class="px-6 py-2 text-gray-400">上一步</button>
+                    <button onclick="generateResult()" class="px-10 py-4 bg-teal-600 text-white rounded-2xl font-bold shadow-lg btn-hover">完成作品！</button>
+                </div>
+            </div>
+
+            <!-- Step 5: Final Output -->
+            <div id="step-5" class="step-card">
+                <h2 class="text-2xl font-bold mb-4 text-emerald-700 text-center">🏆 海報設計藍圖完成！</h2>
+                
+                <div class="space-y-6">
+                    <!-- English Copy -->
+                    <div class="bg-gray-50 p-6 rounded-3xl border-2 border-emerald-100 relative">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-xs font-bold text-emerald-600 tracking-widest uppercase">AI Prompt (English)</span>
+                            <button onclick="copyText('final-prompt-en')" class="text-xs bg-emerald-600 text-white px-3 py-1 rounded-full hover:bg-emerald-700">複製英文</button>
+                        </div>
+                        <p id="final-prompt-en" class="text-sm font-mono text-gray-700 leading-relaxed"></p>
+                    </div>
+
+                    <!-- Chinese Preview -->
+                    <div class="bg-white p-6 rounded-3xl border-2 border-blue-50 relative">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-xs font-bold text-blue-600 tracking-widest uppercase">海報內容預覽 (中文)</span>
+                            <button onclick="copyText('final-prompt-zh')" class="text-xs bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-700">複製中文</button>
+                        </div>
+                        <p id="final-prompt-zh" class="text-sm text-gray-700 leading-relaxed"></p>
+                    </div>
+
+                    <!-- Enhanced Speech -->
+                    <div class="bg-emerald-50 p-8 rounded-3xl border border-emerald-100 relative">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold text-emerald-800 flex items-center">
+                                <span class="mr-2">🎤</span> 上台報告演講稿
+                            </h3>
+                            <button onclick="copyText('speech-draft')" class="text-xs bg-emerald-800 text-white px-3 py-1 rounded-full hover:bg-emerald-900 shadow-md">複製講稿</button>
+                        </div>
+                        <div id="speech-draft" class="text-gray-800 text-lg leading-loose space-y-4"></div>
+                    </div>
+                </div>
+
+                <div class="mt-10 flex justify-center space-x-4">
+                    <button onclick="location.reload()" class="px-8 py-3 bg-gray-200 text-gray-700 rounded-xl font-bold">重新創作</button>
+                    <button onclick="window.print()" class="px-8 py-3 bg-emerald-600 text-white rounded-xl font-bold">列印存檔</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const styles = [
+            { zh: '皮克斯動畫 (3D)', en: 'Pixar 3D animation style, cute character design, bright vibrant colors, soft lighting, 8k render' },
+            { zh: '吉卜力大自然', en: 'Studio Ghibli aesthetic, hand-drawn art, lush greenery, peaceful sky, watercolor details' },
+            { zh: '未來寫實攝影', en: 'Hyper-realistic Solarpunk photography, cinematic lighting, glass and plant textures, high quality' },
+            { zh: '立體剪紙藝術', en: 'Vibrant paper-cut style, layered depth, vivid colorful papers, tactile texture' },
+            { zh: '現代海報插畫', en: 'Modern flat vector illustration, clean lines, bold colors, minimalist graphic design' },
+            { zh: '樂高世界', en: 'Lego bricks construction style, colorful blocks, creative builds, toy photography' },
+            { zh: '黏土人偶風格', en: 'Claymation style, soft clay textures, handcrafted look, vibrant character' },
+            { zh: '莫內油畫質感', en: 'Impressionist oil painting, thick brushstrokes, shimmering light, artistic nature' },
+            { zh: '未來藍圖素描', en: 'Futuristic technical blueprint sketch, clean architectural lines, artistic and precise' },
+            { zh: '發光螢光藝術', en: 'Neon bioluminescent style, glowing plants, deep contrast, futuristic bioluminescence' }
+        ];
+
+        let config = {
+            name: '',
+            problemZh: '', problemEn: '',
+            solutionZh: '', actionZh: '',
+            styleZh: '', styleEn: '',
+            fixedPrefix: "A3 poster size, aspect ratio 2:3, 8K ultra-high definition, masterpiece, highly detailed. Central subject "
+        };
+
+        const styleGrid = document.getElementById('style-grid');
+        styles.forEach(s => {
+            const btn = document.createElement('button');
+            btn.className = 'style-btn p-4 border-2 border-gray-100 rounded-2xl hover:bg-emerald-50 transition text-sm text-left btn-hover';
+            btn.innerText = s.zh;
+            btn.onclick = () => {
+                config.styleZh = s.zh;
+                config.styleEn = s.en;
+                document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+            };
+            styleGrid.appendChild(btn);
+        });
+
+        function checkName() {
+            config.name = document.getElementById('user-name').value;
+            if(!config.name) { alert('請輸入名字喔！'); return; }
+            nextStep(2);
+        }
+
+        function selectProblem(zh, en) {
+            config.problemZh = zh;
+            config.problemEn = en;
+            nextStep(3);
+        }
+
+        function nextStep(n) {
+            document.querySelectorAll('.step-card').forEach(c => c.classList.remove('active'));
+            document.getElementById(`step-${n}`).classList.add('active');
+            updateProgress(n);
+        }
+
+        function prevStep(n) { nextStep(n); }
+
+        function updateProgress(n) {
+            for(let i=1; i<=5; i++) {
+                const el = document.getElementById(`prog-${i}`);
+                if(i <= n) el.classList.replace('bg-gray-200', 'bg-emerald-500');
+                else el.classList.replace('bg-emerald-500', 'bg-gray-200');
+            }
+        }
+
+        function copyText(id) {
+            const el = document.getElementById(id);
+            const text = el.innerText;
+            const tempInput = document.createElement("textarea");
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+            alert("已複製到剪貼簿！");
+        }
+
+        function generateResult() {
+            config.solutionZh = document.getElementById('solution-zh').value;
+            config.actionZh = document.getElementById('action-zh').value;
+
+            if(!config.styleEn) { alert('請選一個風格！'); return; }
+            if(!config.solutionZh) { alert('請填寫你的發明！'); return; }
+
+            const finalEn = `${config.fixedPrefix} is a futuristic invention named "${config.solutionZh}", ${config.actionZh}, aimed to solve ${config.problemEn}, ${config.styleEn}`;
+            const finalZh = `海報大小：A3，比例 2:3，8K 超高畫質。中央主體是一個解決「${config.problemZh}」的發明，叫做「${config.solutionZh}」，它正在「${config.actionZh}」，風格呈現為「${config.styleZh}」。`;
+
+            document.getElementById('final-prompt-en').innerText = finalEn;
+            document.getElementById('final-prompt-zh').innerText = finalZh;
+            
+            renderSpeech();
+            nextStep(5);
+        }
+
+        function renderSpeech() {
+            const templates = [
+                "大家好，我是 [名字]。我發現在 2050 年的地球，[問題] 是一個很大的難題。所以我發明了 [發明]，它現在正忙著 [動作]。我選用 [風格] 來畫這張海報，希望大家能一起保護地球！",
+                "評審老師好，我是 [名字]。為了改善 [問題]，我設計了這張海報。畫面的主角是 [發明]，它正在 [動作]，讓環境變更好。這張作品用 [風格] 呈現，這就是我想要的永續生活。",
+                "各位好，我是小小設計師 [名字]。這張海報描述了我如何解決 [問題]。我的主角 [發明] 正在 [動作]，它能幫忙守護自然。希望透過 [風格]，大家能感受到永續的力量。謝謝大家！",
+                "我是 [名字]。想像 2050 年，如果 [問題] 持續下去會很糟糕。所以我創造了 [發明]，並讓它 [動作] 來拯救家園。我用 [風格] 來展現這個想法，謝謝大家觀看我的作品。",
+                "大家好，我是創作者 [名字]。這張海報想解決 [問題]。我的發明 [發明] 在海報中正努力地 [動作]。這代表了 ESG 的環保精神，配合 [風格] 的藝術感，是我最得意的設計。",
+                "大家好，我是 [名字]。當 2050 年來臨時，我想解決 [問題]。我設計的 [發明] 正在海報裡 [動作]，這能讓地球減少負擔。我用 [風格] 畫出這張畫，就是想傳達希望。",
+                "我是 [名字]，我是未來世界的守護者。針對 [問題]，我提出了這個方案：[發明]。你們看，它在海報裡 [動作]，是不是很厲害？配合 [風格]，我畫出了理想的未來生活。",
+                "評審好，我是 [名字]。在我的海報中，我對抗的是 [問題]。我發明了 [發明] 並讓它 [動作] 來幫忙。整張海報使用了 [風格]，我想強調人與自然共存的美好。",
+                "大家好，我是小小工程師 [名字]。我最關心的議題是 [問題]。所以我畫了 [發明]，它正在海報中 [動作]。我選擇 [風格] 來呈現，希望這張海報能讓大家思考永續發展。",
+                "我是 [名字]。2050 年的世界，我們不應該再為 [問題] 煩惱。這張海報展現了我的發明 [發明]，它正在 [動作]。這張畫是 [風格]，謝謝大家聆聽我的理念。",
+                "大家好，我是 [名字]。這張海報的主題是永續。為了解決 [問題]，我設計了 [發明]。在畫面中，它正在 [動作]。透過 [風格]，我想帶給大家溫暖且正面的能量。",
+                "各位老師同學，我是 [名字]。我設計的作品是要應對 [問題]。大家請看海報，[發明] 正透過 [動作] 來改善環境。這就是我的創意設計，風格選用了 [風格]。",
+                "我是 [名字]。針對 2050 年的 [問題]，我有一個夢想。我發明了 [發明] 並且正在 [動作]。我用 [風格] 的視覺效果呈現，希望能感動每個人一起愛護環境。",
+                "大家好，我是 [名字]。我的海報中心是解決 [問題]。這項名為 [發明] 的發明正在 [動作]。我特別用了 [風格] 來強化永續的感覺，希望大家會喜歡！",
+                "評審老師好，我是 [名字]。這張畫的出發點是 [問題]。我讓 [發明] 在海報中 [動作] 來守護地球。這張海報呈現了 [風格]，這就是我對 ESG 未來的想像。",
+                "大家好，我是創意工程師 [名字]。我解決了 2050 年的 [問題]！海報的主角是 [發明]，它正忙著 [動作]。選用 [風格] 是為了讓畫面更有故事感，謝謝大家。",
+                "我是 [名字]，這是我對未來的展望。為了對抗 [問題]，我設計了 [發明]。看，它正在 [動作]！這張海報我用 [風格] 來畫，希望能呈現一個永續發展的新世界。",
+                "大家好，我是 [名字]。這張海報想傳達對地球的熱愛。針對 [問題]，我設計了 [發明]。它在海報裡 [動作]，讓我們家園變更美。風格是 [風格]，謝謝大家。",
+                "各位好，我是 [名字]。我認為 2050 年最重要的課題是 [問題]。所以我畫了 [發明] 來解決它，它正透過 [動作] 展現功能。這張海報採用 [風格]，是我送給未來地球的禮物。",
+                "最後，我是 [名字]。我的作品 [發明] 正在為 [問題] 做出貢獻。在海報中它正在 [動作]。我想透過 [風格] 告訴大家，只要有心，我們都能改變世界，謝謝大家！"
+            ];
+
+            const rawText = templates[Math.floor(Math.random() * templates.length)];
+            const speech = rawText.replace("[名字]", config.name)
+                                .replace("[問題]", config.problemZh)
+                                .replace("[發明]", config.solutionZh)
+                                .replace("[動作]", config.actionZh)
+                                .replace("[風格]", config.styleZh);
+            
+            const container = document.getElementById('speech-draft');
+            container.innerText = speech;
+        }
+    </script>
+</body>
+</html>
