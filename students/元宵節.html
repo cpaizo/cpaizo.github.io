@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>元宵節快樂！天燈升起</title>
+    <style>
+        body {
+            /* 使用深藍色夜空背景 */
+            background-color: #0c1445;
+            color: #fdfd96;
+            font-family: "Microsoft JhengHei", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden; /* 防止滾動條出現 */
+            position: relative; /* 為了定位天燈 */
+        }
+
+        /* 燈籠樣式 (主燈籠) */
+        .main-lantern {
+            width: 120px;
+            height: 150px;
+            background-color: #ff4d4d;
+            border-radius: 50px;
+            position: relative;
+            box-shadow: 0 0 60px #ff4d4d;
+            animation: swing 3s ease-in-out infinite alternate;
+            z-index: 10; /* 確保主燈籠在天燈之上 */
+            margin-bottom: 30px; /* 與文字的間距 */
+        }
+
+        @keyframes swing {
+            from { transform: rotate(-5deg); }
+            to { transform: rotate(5deg); }
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            margin-top: 20px;
+            text-shadow: 0 0 15px #ffcc00, 0 0 25px rgba(255, 204, 0, 0.7);
+            z-index: 10;
+        }
+
+        .wishes {
+            font-size: 1.8rem;
+            color: #ffeb3b;
+            text-shadow: 0 0 8px #ffeb3b;
+            margin-top: 10px;
+            z-index: 10;
+        }
+
+        /* 簡單的圓形月亮 */
+        .moon {
+            position: absolute;
+            top: 50px;
+            right: 80px;
+            width: 100px;
+            height: 100px;
+            background: #fdfd96;
+            border-radius: 50%;
+            box-shadow: 0 0 40px #fdfd96, 0 0 80px rgba(253, 253, 150, 0.5);
+            z-index: 5; /* 確保月亮在背景層 */
+        }
+
+        /* 天燈樣式 */
+        .sky-lantern {
+            position: absolute;
+            bottom: -50px; /* 從底部開始 */
+            width: 60px;
+            height: 80px;
+            background-color: rgba(255, 165, 0, 0.8); /* 橘色半透明 */
+            border-radius: 25px;
+            box-shadow: 0 0 20px rgba(255, 165, 0, 0.8);
+            opacity: 0; /* 初始透明 */
+            animation: rise 15s linear forwards; /* 升起動畫 */
+        }
+
+        /* 天燈升起動畫 */
+        @keyframes rise {
+            0% {
+                bottom: -50px;
+                opacity: 0;
+                transform: translateX(0) scale(0.8);
+            }
+            10% {
+                opacity: 0.7;
+            }
+            80% {
+                opacity: 0.9;
+                transform: translateX(var(--translateX)) scale(1.1); /* 隨機水平移動 */
+            }
+            100% {
+                bottom: 110vh; /* 升到螢幕上方 */
+                opacity: 0;
+                transform: translateX(var(--translateX)) scale(1.2);
+            }
+        }
+
+        /* 調整每個天燈的起始位置、延遲和水平偏移 */
+        .sky-lantern:nth-child(1) {
+            left: 10%;
+            animation-delay: 1s;
+            --translateX: 20px;
+        }
+        .sky-lantern:nth-child(2) {
+            left: 30%;
+            animation-delay: 5s;
+            --translateX: -30px;
+            animation-duration: 17s;
+            background-color: rgba(255, 200, 0, 0.8);
+        }
+        .sky-lantern:nth-child(3) {
+            left: 60%;
+            animation-delay: 9s;
+            --translateX: 40px;
+            animation-duration: 14s;
+            background-color: rgba(255, 100, 0, 0.8);
+        }
+        .sky-lantern:nth-child(4) {
+            left: 80%;
+            animation-delay: 3s;
+            --translateX: -25px;
+            animation-duration: 16s;
+        }
+        .sky-lantern:nth-child(5) {
+            left: 5%;
+            animation-delay: 7s;
+            --translateX: 15px;
+            animation-duration: 18s;
+            background-color: rgba(255, 220, 0, 0.8);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="moon"></div>
+    
+    <div class="main-lantern"></div>
+
+    <h1>🏮 元宵節快樂 🏮</h1>
+    
+    <div class="wishes">
+        <p>花好月圓人團圓，萬事如意順心年</p>
+    </div>
+
+    <div class="sky-lantern"></div>
+    <div class="sky-lantern"></div>
+    <div class="sky-lantern"></div>
+    <div class="sky-lantern"></div>
+    <div class="sky-lantern"></div>
+
+</body>
+</html>
