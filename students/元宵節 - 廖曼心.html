@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>元宵佳節快樂 - 天燈祈福</title>
+    <style>
+        /* 夜空背景 */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #020111 10%, #191621 100%);
+            font-family: "Microsoft JhengHei", sans-serif;
+        }
+
+        /* 祝福文字 */
+        .wishes {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #fceabb;
+            z-index: 10;
+            text-shadow: 0 0 20px rgba(252, 234, 187, 0.8);
+            pointer-events: none;
+        }
+
+        h1 { font-size: 3rem; margin-bottom: 10px; letter-spacing: 5px; }
+        p { font-size: 1.5rem; }
+
+        /* 天燈樣式 */
+        .lantern {
+            position: absolute;
+            bottom: -100px;
+            width: 40px;
+            height: 55px;
+            background: rgba(255, 100, 50, 0.8);
+            border-radius: 10px 10px 5px 5px;
+            box-shadow: 0 0 20px #ff5e00, inset 0 -10px 15px rgba(255, 255, 0, 0.5);
+            animation: fly linear forwards;
+        }
+
+        /* 天燈下方的火焰微光 */
+        .lantern::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 10px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #fff, 0 0 20px #ff0;
+        }
+
+        /* 升空動畫 */
+        @keyframes fly {
+            0% {
+                transform: translateY(0) translateX(0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-120vh) translateX(var(--drift)) scale(0.5);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="wishes">
+        <h1>元宵佳節快樂</h1>
+        <p>願燈火盈門，喜樂安康</p>
+    </div>
+
+    <script>
+        function createLantern() {
+            const lantern = document.createElement('div');
+            lantern.className = 'lantern';
+            
+            // 隨機初始位置
+            const startX = Math.random() * window.innerWidth;
+            // 隨機飄移幅度 (-50px 到 50px)
+            const drift = (Math.random() - 0.5) * 100;
+            // 隨機飛行速度 (10s 到 20s)
+            const duration = Math.random() * 10 + 10;
+            // 隨機大小
+            const sizeScale = Math.random() * 0.5 + 0.8;
+
+            lantern.style.left = `${startX}px`;
+            lantern.style.setProperty('--drift', `${drift}px`);
+            lantern.style.animationDuration = `${duration}s`;
+            lantern.style.transform = `scale(${sizeScale})`;
+
+            document.body.appendChild(lantern);
+
+            // 動畫結束後移除元素，節省記憶體
+            setTimeout(() => {
+                lantern.remove();
+            }, duration * 1000);
+        }
+
+        // 每 800 毫秒產生一個新天燈
+        setInterval(createLantern, 800);
+
+        // 初始化先產生幾個
+        for(let i=0; i<5; i++) {
+            setTimeout(createLantern, i * 1500);
+        }
+    </script>
+</body>
+</html>

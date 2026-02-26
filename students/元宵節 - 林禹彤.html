@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>元宵祝福</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(to bottom, #87CEEB, #4682B4); /* 漸層藍色天空背景 */
+            overflow: hidden; /* 隱藏超出視窗的內容 */
+            font-family: 'Arial', sans-serif;
+            color: white;
+            text-align: center;
+            position: relative;
+        }
+
+        .lantern-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .lantern {
+            position: absolute;
+            bottom: -50px; /* 從下方開始 */
+            width: 50px;
+            height: 80px;
+            background-color: orange;
+            border-radius: 25px 25px 10px 10px;
+            box-shadow: 0 0 15px rgba(255, 165, 0, 0.8);
+            animation: rise 15s linear infinite;
+        }
+
+        .lantern::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 15px;
+            background-color: firebrick;
+            border-radius: 0 0 5px 5px;
+        }
+
+        @keyframes rise {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-120vh) rotate(360deg); /* 上升並旋轉 */
+                opacity: 0;
+            }
+        }
+
+        .content {
+            z-index: 10; /* 確保內容在天燈上方 */
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        }
+
+        p {
+            font-size: 1.5em;
+            line-height: 1.6;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .tangyuan {
+            width: 200px;
+            height: 150px;
+            background-color: white;
+            border-radius: 50%;
+            position: relative;
+            margin: 30px auto;
+            box-shadow: inset 0 -10px 20px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 5px solid #ccc;
+        }
+
+        .tangyuan::before {
+            content: '';
+            position: absolute;
+            width: 180px;
+            height: 130px;
+            background-color: lightgoldenrodyellow;
+            border-radius: 50%;
+            box-shadow: inset 0 -5px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .tangyuan-ball {
+            width: 40px;
+            height: 40px;
+            background-color: white;
+            border-radius: 50%;
+            margin: 0 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="lantern-container"></div>
+
+    <div class="content">
+        <h1>元宵佳節快樂！</h1>
+        <div class="tangyuan">
+            <div class="tangyuan-ball"></div>
+            <div class="tangyuan-ball"></div>
+            <div class="tangyuan-ball"></div>
+        </div>
+        <p>祝您和家人團團圓圓，幸福美滿，</p>
+        <p>心想事成，財源廣進，元宵節快樂！</p>
+    </div>
+
+    <script>
+        // 動態生成天燈
+        function createLantern() {
+            const container = document.querySelector('.lantern-container');
+            const lantern = document.createElement('div');
+            lantern.classList.add('lantern');
+            lantern.style.left = Math.random() * 90 + 'vw'; // 隨機位置
+            lantern.style.animationDuration = (Math.random() * 10 + 10) + 's'; // 隨機動畫時間
+            container.appendChild(lantern);
+
+            // 天燈飛出畫面後移除，避免過多元素
+            lantern.addEventListener('animationend', () => {
+                lantern.remove();
+            });
+        }
+
+        // 每隔一段時間生成新的天燈
+        setInterval(createLantern, 2000); // 每2秒生成一個新的天燈
+
+        // 初始生成幾個天燈
+        for (let i = 0; i < 5; i++) {
+            createLantern();
+        }
+    </script>
+</body>
+</html>

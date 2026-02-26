@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>元宵節快樂</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #020111, #20124d);
+            overflow: hidden;
+            font-family: 'Microsoft JhengHei', 'PingFang TC', sans-serif;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 背景星星 */
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* 標題文字與發光效果 */
+        .greeting-container {
+            z-index: 10;
+            text-align: center;
+            text-shadow: 0 0 10px #ff9800, 0 0 20px #ff9800, 0 0 30px #e65100;
+            animation: pulse 2s infinite alternate;
+        }
+
+        h1 {
+            font-size: 5rem;
+            margin: 0;
+            letter-spacing: 5px;
+        }
+
+        p {
+            font-size: 1.5rem;
+            margin-top: 10px;
+            letter-spacing: 2px;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); text-shadow: 0 0 10px #ff9800, 0 0 20px #ff9800; }
+            100% { transform: scale(1.05); text-shadow: 0 0 20px #ffeb3b, 0 0 30px #ff9800, 0 0 40px #e65100; }
+        }
+
+        /* 天燈的 CSS 設定 */
+        .lantern {
+            position: absolute;
+            width: 40px;
+            height: 60px;
+            background: linear-gradient(180deg, #ffa726, #e64a19);
+            border-radius: 12px 12px 15px 15px;
+            box-shadow: 0 0 20px #ff9800, inset 0 0 10px rgba(255,255,255,0.5);
+            bottom: -100px;
+            z-index: 5;
+            animation: floatUp linear infinite;
+        }
+
+        /* 天燈底部構造 */
+        .lantern::after {
+            content: "";
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 5px;
+            background: #bf360c;
+            border-radius: 0 0 5px 5px;
+        }
+
+        /* 天燈的火光 */
+        .lantern::before {
+            content: "";
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 12px;
+            background: #fff59d;
+            border-radius: 50%;
+            box-shadow: 0 0 15px 5px #ffeb3b;
+        }
+
+        /* 天燈上升的動畫軌跡 */
+        @keyframes floatUp {
+            0% { 
+                transform: translateY(0) rotate(0deg) scale(var(--scale)); 
+                opacity: 0; 
+            }
+            10% { 
+                opacity: 0.9; 
+            }
+            90% { 
+                opacity: 0.9; 
+            }
+            100% { 
+                transform: translateY(-110vh) translateX(50px) rotate(15deg) scale(var(--scale)); 
+                opacity: 0; 
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="greeting-container">
+        <h1>元宵節快樂</h1>
+        <p>月圓人團圓，事事皆圓滿</p>
+    </div>
+
+    <script>
+        // 產生背景星星
+        function createStars() {
+            const starsContainer = document.createElement('div');
+            starsContainer.className = 'stars';
+            document.body.appendChild(starsContainer);
+
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.style.position = 'absolute';
+                star.style.left = `${Math.random() * 100}vw`;
+                star.style.top = `${Math.random() * 100}vh`;
+                star.style.width = `${Math.random() * 3}px`;
+                star.style.height = star.style.width;
+                star.style.backgroundColor = '#fff';
+                star.style.borderRadius = '50%';
+                star.style.opacity = Math.random();
+                star.style.animation = `pulse ${Math.random() * 3 + 1}s infinite alternate`;
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // 動態產生天燈
+        function createLantern() {
+            const lantern = document.createElement('div');
+            lantern.classList.add('lantern');
+            
+            // 隨機設定水平位置
+            lantern.style.left = Math.random() * 100 + 'vw';
+            
+            // 隨機設定動畫時間 (上升速度)
+            const duration = Math.random() * 8 + 7; 
+            lantern.style.animationDuration = duration + 's';
+            
+            // 隨機設定大小比例
+            const scale = Math.random() * 0.6 + 0.4;
+            lantern.style.setProperty('--scale', scale);
+            
+            // 隨機設定稍微不同的深淺顏色
+            const hue = Math.floor(Math.random() * 20) - 10; 
+            lantern.style.filter = `hue-rotate(${hue}deg)`;
+
+            document.body.appendChild(lantern);
+
+            // 當動畫結束後將天燈元素移除，避免佔用記憶體
+            setTimeout(() => {
+                lantern.remove();
+            }, duration * 1000);
+        }
+
+        // 初始化
+        createStars();
+        
+        // 每 800 毫秒產生一個新的天燈
+        setInterval(createLantern, 800);
+        
+        // 初始先放幾個天燈
+        for(let i=0; i<5; i++){
+            setTimeout(createLantern, i * 300);
+        }
+    </script>
+</body>
+</html>

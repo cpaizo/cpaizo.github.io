@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>元宵節快樂 - 慶祝網頁</title>
+    <style>
+        :root {
+            --sky-blue: #020111;
+            --lantern-red: #d32f2f;
+            --gold: #ffd700;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #020111 0%, #191970 100%);
+            font-family: "Microsoft JhengHei", sans-serif;
+        }
+
+        /* --- 燈籠掛飾 --- */
+        .header-lanterns {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 50px;
+            pointer-events: none;
+        }
+
+        .lantern {
+            width: 80px;
+            height: 100px;
+            background-color: var(--lantern-red);
+            border-radius: 40px / 50px;
+            position: relative;
+            box-shadow: 0 0 40px rgba(211, 47, 47, 0.6);
+            transform-origin: top center;
+            animation: swing 3s ease-in-out infinite alternate;
+            border: 2px solid #b71c1c;
+        }
+
+        .lantern::before { /* 燈籠頂部 */
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            width: 40px;
+            height: 10px;
+            background: #333;
+        }
+
+        .lantern::after { /* 燈籠穗子 */
+            content: '';
+            position: absolute;
+            bottom: -30px;
+            left: 38px;
+            width: 4px;
+            height: 30px;
+            background: var(--gold);
+        }
+
+        @keyframes swing {
+            from { transform: rotate(-5deg); }
+            to { transform: rotate(5deg); }
+        }
+
+        /* --- 主標題 --- */
+        .content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: var(--gold);
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 4rem;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            margin-bottom: 20px;
+        }
+
+        /* --- 湯圓碗 --- */
+        .bowl-container {
+            position: relative;
+            width: 200px;
+            margin: 0 auto;
+        }
+
+        .bowl {
+            width: 200px;
+            height: 100px;
+            background: #fff;
+            border-radius: 0 0 100px 100px;
+            position: relative;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .tangyuan-group {
+            position: absolute;
+            top: -20px;
+            left: 30px;
+            display: flex;
+        }
+
+        .tangyuan {
+            width: 45px;
+            height: 45px;
+            background: radial-gradient(circle at 30% 30%, #fff, #ddd);
+            border-radius: 50%;
+            margin-left: -10px;
+        }
+
+        /* --- 天燈動畫 --- */
+        .sky-lantern {
+            position: absolute;
+            width: 40px;
+            height: 55px;
+            background: rgba(255, 165, 0, 0.8);
+            border-radius: 10px 10px 5px 5px;
+            box-shadow: 0 0 20px #ff8c00;
+            bottom: -100px;
+            animation: rise linear infinite;
+        }
+
+        .sky-lantern::after {
+            content: '';
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 10px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #fff;
+        }
+
+        @keyframes rise {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-120vh) rotate(20deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-lanterns">
+        <div class="lantern"></div>
+        <div class="lantern"></div>
+        <div class="lantern"></div>
+    </div>
+
+    <div class="content">
+        <h1>元宵節快樂</h1>
+        <div class="bowl-container">
+            <div class="tangyuan-group">
+                <div class="tangyuan"></div>
+                <div class="tangyuan"></div>
+                <div class="tangyuan"></div>
+                <div class="tangyuan"></div>
+            </div>
+            <div class="bowl"></div>
+        </div>
+        <p style="margin-top: 20px; font-size: 1.2rem;">人圓事圓，花好月圓</p>
+    </div>
+
+    <script>
+        function createSkyLantern() {
+            const lantern = document.createElement('div');
+            lantern.className = 'sky-lantern';
+            
+            // 隨機起始位置
+            const startX = Math.random() * window.innerWidth;
+            const duration = 10 + Math.random() * 15; // 10-25秒上升
+            const sizeScale = 0.5 + Math.random() * 1; // 不同大小
+            
+            lantern.style.left = `${startX}px`;
+            lantern.style.animationDuration = `${duration}s`;
+            lantern.style.transform = `scale(${sizeScale})`;
+            
+            document.body.appendChild(lantern);
+
+            // 動畫結束後移除元素，節省資源
+            setTimeout(() => {
+                lantern.remove();
+            }, duration * 1000);
+        }
+
+        // 每 800 毫秒產生一個新天燈
+        setInterval(createSkyLantern, 800);
+
+        // 初始化產生幾個天燈
+        for(let i=0; i<10; i++) {
+            setTimeout(createSkyLantern, Math.random() * 5000);
+        }
+    </script>
+</body>
+</html>

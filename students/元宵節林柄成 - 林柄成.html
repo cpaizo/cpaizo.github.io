@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>元宵節快樂</title>
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  background: radial-gradient(circle at bottom, #1a0033, #000010);
+  overflow: hidden;
+  font-family: "Microsoft JhengHei", sans-serif;
+  color: white;
+  text-align: center;
+}
+
+/* 標題 */
+h1 {
+  margin-top: 50px;
+  font-size: 48px;
+  color: #ffd700;
+  text-shadow: 0 0 20px #ffcc00, 0 0 40px #ff6600;
+  animation: glow 2s infinite alternate;
+}
+
+@keyframes glow {
+  from { text-shadow: 0 0 10px #ffcc00; }
+  to { text-shadow: 0 0 30px #ff6600; }
+}
+
+/* 星星 */
+.star {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: white;
+  border-radius: 50%;
+  animation: twinkle 2s infinite alternate;
+}
+
+@keyframes twinkle {
+  from { opacity: 0.3; }
+  to { opacity: 1; }
+}
+
+/* 天燈 */
+.lantern {
+  position: absolute;
+  bottom: -150px;
+  width: 60px;
+  height: 80px;
+  background: linear-gradient(to bottom, #ff6600, #cc0000);
+  border-radius: 30px 30px 10px 10px;
+  animation: floatUp 10s linear infinite;
+  box-shadow: 0 0 20px orange;
+}
+
+.lantern::before {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 20px;
+  width: 20px;
+  height: 10px;
+  background: #663300;
+  border-radius: 5px;
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translateY(-120vh) translateX(50px); opacity: 0; }
+}
+
+.message {
+  font-size: 24px;
+  margin-top: 20px;
+  color: #ffffff;
+  text-shadow: 0 0 10px #ffffff;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🏮 元宵節快樂 🏮</h1>
+<div class="message">
+  願你燈火可親，萬事圓滿，幸福安康！
+</div>
+
+<script>
+// 產生星星
+for (let i = 0; i < 100; i++) {
+  let star = document.createElement("div");
+  star.className = "star";
+  star.style.top = Math.random() * 100 + "vh";
+  star.style.left = Math.random() * 100 + "vw";
+  star.style.animationDuration = (Math.random() * 2 + 1) + "s";
+  document.body.appendChild(star);
+}
+
+// 產生天燈
+function createLantern() {
+  let lantern = document.createElement("div");
+  lantern.className = "lantern";
+  lantern.style.left = Math.random() * 100 + "vw";
+  lantern.style.animationDuration = (Math.random() * 5 + 8) + "s";
+  document.body.appendChild(lantern);
+
+  setTimeout(() => {
+    lantern.remove();
+  }, 13000);
+}
+
+setInterval(createLantern, 2000);
+</script>
+
+</body>
+</html>

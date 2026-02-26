@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>元宵節快樂 - 天燈與煙火</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            /* 深海藍夜空背景 */
+            background: linear-gradient(to bottom, #001f3f, #003366, #001a33);
+            font-family: "Microsoft JhengHei", sans-serif;
+            cursor: pointer; /* 游標變成手型，提示可以點擊 */
+        }
+
+        /* 標題文字 */
+        .title {
+            position: absolute;
+            top: 40%;
+            width: 100%;
+            text-align: center;
+            color: #fff;
+            font-size: 4rem;
+            font-weight: bold;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5), 2px 2px 5px rgba(0,0,0,0.8);
+            z-index: 10;
+            pointer-events: none;
+            user-select: none; /* 防止點擊時選取到文字 */
+        }
+
+        /* --- 天燈樣式 (保持不變) --- */
+        .lantern {
+            position: absolute;
+            bottom: -100px;
+            width: 40px;
+            height: 55px;
+            background: #ff9d00;
+            border-radius: 10px 10px 5px 5px;
+            box-shadow: 0 0 15px #ff4500, inset 0 -10px 15px rgba(255, 69, 0, 0.8);
+            opacity: 0.9;
+            animation: floatUp linear infinite;
+            z-index: 1; /* 確保天燈在煙火後面一點 */
+        }
+        .lantern::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 10px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #fff;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+            10% { opacity: 0.9; }
+            100% { transform: translateY(-120vh) translateX(50px) scale(0.5); opacity: 0; }
+        }
+
+        /* --- 新增：煙火粒子樣式 --- */
+        .firework-particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            box-shadow: 0 0 6px currentColor; /* 讓粒子發光，顏色跟隨本體 */
+            pointer-events: none; /* 確保煙火不會擋住滑鼠點擊 */
+            z-index: 20; /* 煙火在最上層 */
+            /* 使用 CSS 變數 (--tx, --ty) 來控制每個粒子不同的飛行方向 
+               動畫設定為 1 秒，往外炸開並緩慢結束
+            */
+            animation: explode 1s ease-out forwards;
+        }
+
+        @keyframes explode {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                /* 移動到 JavaScript 計算出的目標位置 */
+                transform: translate(var(--tx), var(--ty)) scale(0.5);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="title">元宵節快樂</div>
+
+    <script>
+        // --- 天燈邏輯 (保持不變) ---
+        function createLantern() {
+            const lantern = document.createElement('div');
+            lantern.classList.add('lantern');
+            const startX = Math.random() * window.innerWidth;
+            lantern.style.left = startX + 'px';
+            const size = Math.random() * 20 + 30;
+            lantern.style.width = size + 'px';
+            lantern.style.height = (size * 1.4) + 'px';
+            const duration = Math.random() * 5 + 8;
+            lantern.style.animationDuration = duration + 's';
+            const delay = Math.random() * 5;
+            lantern.style.animationDelay = delay + 's';
+            document.body.appendChild(lantern);
+            setTimeout(() => { lantern.remove(); }, (duration + delay) * 1000);
+        }
+        setInterval(createLantern, 600);
+        for(let i = 0; i < 10; i++) createLantern();
+
+
+        // --- 新增：煙火邏輯 ---
+        
+        // 監聽整個網頁的點擊事件
+        document.addEventListener('click', function(e) {
+            // 取得點擊時的滑鼠座標 X 和 Y
+            launchFireworks(e.clientX, e.clientY);
+        });
+
+        function launchFireworks(x, y) {
+            const particleCount = 30; // 一顆煙火炸出多少粒子
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('firework-particle');
+                
+                // 設定粒子的起始位置在點擊處
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+
+                // --- 計算隨機的爆炸方向 ---
+                // 隨機角度 (0 到 360度)
+                const angle = Math.random() * Math.PI * 2;
+                // 隨機距離 (爆炸半徑，50px 到 200px 之間)
+                const distance = Math.random() * 150 + 50;
+                // 利用三角函數計算目標位置的偏移量 (Translate X, Translate Y)
+                const tx = Math.cos(angle) * distance + 'px';
+                const ty = Math.sin(angle) * distance + 'px';
+
+                // --- 設定隨機顏色 ---
+                // 使用 HSL 色彩模式產生鮮豔的隨機顏色
+                const color = `hsl(${Math.random() * 360}, 100%, 60%)`;
+                particle.style.backgroundColor = color;
+                particle.style.color = color; // 用於 box-shadow 的發光顏色
+
+                // --- 將計算好的方向傳給 CSS 變數 ---
+                particle.style.setProperty('--tx', tx);
+                particle.style.setProperty('--ty', ty);
+
+                document.body.appendChild(particle);
+
+                // 動畫結束後 (1秒) 移除粒子
+                setTimeout(() => {
+                    particle.remove();
+                }, 1000);
+            }
+        }
+    </script>
+</body>
+</html>
