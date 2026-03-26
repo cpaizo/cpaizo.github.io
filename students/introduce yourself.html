@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>學生網頁作品集</title>
+    <style>
+        body {
+            background-color: #fcfaf2;
+            font-family: "Microsoft JhengHei", sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            color: #22B1C9;
+            font-size: 2.5rem;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 1.1rem;
+        }
+
+        /* 作品網格佈局 */
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            padding: 20px 0;
+        }
+
+        /* 作品卡片樣式 */
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border: 1px solid #eee;
+            text-decoration: none; /* 移除超連結底線 */
+            display: block;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 25px rgba(34, 177, 201, 0.2);
+            border-color: #22B1C9;
+        }
+
+        .card .icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .card h3 {
+            margin: 10px 0;
+            color: #22B1C9;
+            font-size: 1.3rem;
+        }
+
+        .card p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* 底部裝飾 */
+        .footer {
+            text-align: center;
+            margin-top: 60px;
+            color: #bbb;
+            font-size: 0.9rem;
+        }
+
+        /* 響應式調整 */
+        @media (max-width: 600px) {
+            h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>🌟 學生網頁作品集</h1>
+        <p class="subtitle">網頁設計課程：創意與程式的結晶</p>
+    </header>
+
+    <div class="portfolio-grid">
+        
+        <a href="https://cpaizo.github.io/students/介紹-林禹彤.html" class="card" target="_blank">
+            <span class="icon">🎨</span>
+            <h3>林禹彤</h3>
+            <p>點擊查看個人介紹網頁</p>
+        </a>
+
+        <a href="https://cpaizo.github.io/students/余品樂.html" class="card" target="_blank">
+            <span class="icon">🚀</span>
+            <h3>余品樂</h3>
+            <p>精采作品集展示</p>
+        </a>
+
+        <a href="https://cpaizo.github.io/students/數位名片 張定城.html" class="card" target="_blank">
+            <span class="icon">📇</span>
+            <h3>張定城</h3>
+            <p>數位名片設計</p>
+        </a>
+
+        <a href="https://cpaizo.github.io/students/林柄成.html" class="card" target="_blank">
+            <span class="icon">💻</span>
+            <h3>林柄成</h3>
+            <p>網頁實作練習</p>
+        </a>
+
+        <a href="https://cpaizo.github.io/students/自我介紹 廖曼心.html" class="card" target="_blank">
+            <span class="icon">✨</span>
+            <h3>廖曼心</h3>
+            <p>關於我的自我介紹</p>
+        </a>
+
+        <a href="https://cpaizo.github.io/students/鐘以恆.html" class="card" target="_blank">
+            <span class="icon">🎮</span>
+            <h3>鐘以恆</h3>
+            <p>個人作品展示</p>
+        </a>
+
+    </div>
+
+    <div class="footer">
+        © 2024 網頁設計教學實作範例
+    </div>
+</div>
+
+</body>
+</html>
