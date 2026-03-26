@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>張定城的數位名片</title>
+    <style>
+        /* --- 1. 全域與變數設定 --- */
+        :root {
+            --bg-color: #39B4FF;
+            --text-color: #FFFEA4;
+            --card-bg: rgba(0, 0, 0, 0.15); /* 使用半透明背景讓內容更突出 */
+            --accent-color: #03F2FF;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: "Microsoft JhengHei", "Helvetica Neue", Arial, sans-serif; /* 加上專業字體設定 */
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6; /* 增加行距，讓閱讀更舒適 */
+        }
+
+        /* --- 2. 佈局與結構 --- */
+        .container {
+            max-width: 800px; /* 限制最大寬度，在大螢幕上才不會太寬 */
+            margin: 0 auto;   /* 讓整個區塊置中 */
+        }
+
+        /* --- 3. 標題區塊 --- */
+        .intro-header {
+            border: 8px solid #2e8b57; /* 調整綠色邊框讓整體色調更協調 */
+            border-radius: 15px; /* 加上圓角看起來更現代 */
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .intro-header h1 {
+            font-size: 40px;
+            margin: 0;
+            color: #ffffff; /* 主標題用白色會更清楚 */
+        }
+
+        /* --- 4. 折疊選單 (Details) 樣式 --- */
+        details {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            padding: 15px 20px;
+            transition: background-color 0.3s ease; /* 加上平滑動畫 */
+        }
+
+        details:hover {
+            background-color: rgba(0, 0, 0, 0.25); /* 滑鼠游標移過去時變深 */
+        }
+
+        summary {
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer; /* 讓滑鼠變成手指圖案，提示可以點擊 */
+            outline: none;
+        }
+
+        /* --- 5. 內容元素樣式 --- */
+        .content-title {
+            font-size: 20px;
+            margin-top: 15px;
+        }
+
+        .highlight-color {
+            color: var(--accent-color);
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5); /* 加上文字陰影，解決對比度不夠的問題 */
+        }
+
+        .link-text {
+            color: var(--text-color);
+            text-decoration: underline;
+        }
+
+        .link-text:hover {
+            color: #ffffff;
+        }
+
+        /* --- 6. 圖片庫排列 --- */
+        .image-gallery {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+            flex-wrap: wrap; /* 螢幕太小時會自動換行 */
+        }
+
+        .image-gallery img {
+            border-radius: 10px; /* 圖片圓角 */
+            transition: transform 0.2s ease; /* 圖片縮放動畫 */
+        }
+
+        .image-gallery img:hover {
+            transform: scale(1.05); /* 滑鼠移上去圖片會微微放大 */
+        }
+
+        .footer-logo {
+            display: block;
+            margin: 40px auto;
+            transition: transform 0.2s;
+        }
+        
+        .footer-logo:hover {
+            transform: translateY(-5px); /* 讓維基百科圖示有浮動效果 */
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header class="intro-header">
+        <h1>這是我的自我介紹</h1>
+    </header>
+
+    <main>
+        <details>
+            <summary>我的名字是...</summary>
+            <div class="content-title">張定城</div>
+        </details>
+
+        <details>
+            <summary>我的年齡是...</summary>
+            <div class="content-title">11歲</div>
+        </details>
+
+        <details>
+            <summary>我喜歡的遊戲是...</summary>
+            <ul>
+  					<div class="image-gallery">
+                <a href="https://battlecats.club/tw/" target="_blank">
+                    <img src="photos/貓戰圖片.png" alt="一張貓咪大戰爭的照片" width="200" height="200">
+                </a>
+  				<a href="https://www.minecraft.net/zh-hant" target="_blank">
+                    <img src="photos/minecraft.jpg" alt="一張Minecraft的照片" width="200" height="200">
+                </a>
+            </div>
+			</ul>
+        </details>
+
+        <details>
+            <summary>我喜歡的顏色是...</summary>
+            <div class="content-title highlight-color">天藍色</div>
+        </details>
+
+        <details>
+            <summary>我會用的影片軟體是...</summary>
+            <div class="content-title">
+                <a href="https://www.youtube.com/" target="_blank" class="link-text">YouTube</a>
+            </div>
+        </details>
+
+        <details>
+            <summary>我製作的第一個網頁是...</summary>
+            <div class="content-title">
+                <a href="太空狼人殺_生存挑戰.html" target="_blank" class="link-text">網頁版太空狼人殺</a>
+            </div>
+        </details>
+        <img src="photos/AU屍體.jpg" alt="這是一個屍體" style="display: block; margin: 0 auto;" width="150" height="120">
+    </main>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>林禹彤的個人簡介</title>
+    <style>
+        /* 整體風格設定 */
+        body {
+            background-color: #f0f4ff; /* 淺藍色背景，看起來更清爽 */
+            font-family: "Microsoft JhengHei", sans-serif;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 頂部標題 */
+        header {
+            background-color: #DBBA9A;
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        /* 內容區塊 */
+        .container {
+            max-width: 800px;
+            margin: -40px auto 40px;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        /* 顏色展示區 */
+        .color-palette {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+        }
+        .color-box {
+            text-align: center;
+            flex: 1;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 0 10px;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* 興趣圖片 */
+        .feature-img {
+            display: block;
+            margin: 30px auto;
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* 連結按鈕化 */
+        .btn {
+            display: inline-block;
+            background-color: #ACC8FF;
+            color: #444;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 5px;
+            transition: 0.3s;
+        }
+        .btn:hover {
+            background-color: #8fb1f5;
+        }
+
+        /* 公告欄 */
+        .notice-board {
+            border-left: 5px solid #7F62A8;
+            background-color: #f9f6ff;
+            padding: 20px;
+            margin-top: 40px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>林禹彤的自我介紹</h1>
+</header>
+
+<div class="container">
+    <h2>🎨 我喜歡的顏色</h2>
+    <div class="color-palette">
+        <div class="color-box" style="background-color: #CFA2FF;">紫色</div>
+        <div class="color-box" style="background-color: #A0BEFF;">藍色</div>
+        <div class="color-box" style="background-color: #7CFF9A; color: #333;">綠色</div>
+    </div>
+
+    <hr>
+
+    <h3>我最喜歡的三件事</h3>
+    <ul style="color: #377A5A; font-size: 20px;">
+        <li>騎獨輪車</li>
+        <li>打籃球</li>
+        <li>拼樂高</li>
+    </ul>
+
+    <hr>
+
+    <h2 style="color: #B58A8A; text-align: center;">我非常喜歡騎獨輪車</h2>
+    <img src="photos/獨輪車.jpg" alt="獨輪車" class="feature-img" onerror="this.style.display='none';">
+
+    <div style="text-align: center;">
+        <a href="https://www.google.com/search?q=google+doodle..." class="btn">🎮 玩遊戲</a>
+        <a href="元宵節-林禹彤.html" class="btn">🏮 元宵節網頁</a>
+    </div>
+
+    <div class="notice-board">
+        <h3 style="color:#7F62A8;">📌 公告欄</h3>
+        <p>我喜歡獨輪車 哈哈</p>
+        <a href="https://www.wikipedia.org">
+            <img src="photos/維基百科.jpg" width="100px" alt="Wikipedia" style="margin-top: 10px;">
+        </a>
+    </div>
+</div>
+
+</body>
+</html>

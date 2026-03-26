@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>林柄成的個人網頁</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Microsoft JhengHei', sans-serif;
+            background: linear-gradient(135deg, #74ebd5, #acb6e5);
+            color: #333;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .profile-card {
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            animation: fadeIn 1s ease;
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0; transform: translateY(20px);} 
+            to {opacity: 1; transform: translateY(0);} 
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 2.2em;
+        }
+
+        h2 {
+            color: #16a085;
+        }
+
+        h3 {
+            color: #2980b9;
+        }
+
+        img {
+            border-radius: 12px;
+            margin: 10px;
+            transition: transform 0.3s;
+        }
+
+        img:hover {
+            transform: scale(1.1) rotate(2deg);
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background-color: #e0e0e0;
+            margin: 20px 0;
+        }
+
+        .button-link {
+            display: inline-block;
+            background: linear-gradient(45deg, #3498db, #6dd5fa);
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            margin: 10px 5px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .button-link:hover {
+            transform: scale(1.1);
+            background: linear-gradient(45deg, #2980b9, #4facfe);
+        }
+
+        .bulletin-board {
+            background-color: #fff3cd;
+            border-left: 5px solid #f39c12;
+            border-radius: 5px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        ul {
+            color: darkred;
+            font-size: 20px;
+            text-align: left;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="profile-card">
+        
+        <h1>我是<strong>林柄成</strong></h1>
+        <h2>我今年 <em>12歲</em></h2>
+        
+        <hr>
+        
+        <h3>我喜歡打籃球 🏀</h3>
+        <img src="photos/ball.jpg" width="200px" alt="籃球圖片">
+
+        <h3>我最喜歡做的兩件事</h3>
+        <ul>
+            <li>打球</li>
+            <li>玩</li>
+        </ul>
+        
+        <br>
+        <img src="photos/troll.jpg" width="150px" alt="Trollface">
+        <br>
+
+        <div>
+            <a href="https://en.wikipedia.org/wiki/Trollface#/media/File:Trollface.png" class="button-link" target="_blank">迷因圖片</a>
+            <a href="元宵節林柄成.html" class="button-link">元宵節特輯</a>
+        </div>
+
+        <div style="margin-top: 30px;">
+            <a href="https://www.wikipedia.org" target="_blank">
+                <img src="photos/Wikipedia-logo-v2.svg.png" width="50px" alt="Wikipedia">
+            </a>
+        </div>
+
+        <div class="bulletin-board">
+            <h2>📌 布告欄</h2>
+            <p>嗨！歡迎來到我的個人網頁 😄</p>
+            <p>記得每天開心打球！🏀</p>
+        </div>
+
+    </div>
+
+</body>
+</html>
