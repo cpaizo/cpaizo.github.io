@@ -1,0 +1,3247 @@
+<html lang="zh-Hant"><head><script>(function(firebaseConfig, initialAuthToken, appId) {
+        window.__firebase_config = firebaseConfig;
+        window.__initial_auth_token = initialAuthToken;
+        window.__app_id = appId;
+            })("\n{\n  \"apiKey\": \"AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY\",\n  \"authDomain\": \"bard-frontend.firebaseapp.com\",\n  \"projectId\": \"bard-frontend\",\n  \"storageBucket\": \"bard-frontend.firebasestorage.app\",\n  \"messagingSenderId\": \"175205271074\",\n  \"appId\": \"1:175205271074:web:2b7bd4d34d33bf38e6ec7b\"\n}\n","eyJhbGciOiJSUzI1NiIsImtpZCI6ImMxYmYyOWUyNjI1Yzk1NzI0YWQ3OWJhNGE0ZjcxNDBjNDA0NGRlNjIiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6Ly9pZGVudGl0eXRvb2xraXQuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIwMDI4NTc4NDg0NDM1OTA3OTQ4NyIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJjbGFpbXMiOnsiYXBwSWQiOiJjXzU5MzgwNmIwZjM2MTBjM2NfaW5kZXguaHRtbC02ODkifSwiZXhwIjoxNzc0NTA3NTA0LCJpYXQiOjE3NzQ1MDM5MDQsImFsZyI6IlJTMjU2In0.zhA9VjkPL7aImH63A25W6wProbDxXCXlwoWPP2qZu1S7PbHtXcQizickjueWpMVS0yM5td7CWe-WWR1c5E15LfR2xKS5Sf7foos152Y1gAAnqYHPSrlMQ7v-fUSVF0SrkYd5gcbDzjhB0F9S-hvE1YAzZUNMArkw-cofDTv4tLPN2iN0N4UcNVLULgnZ8oDRIBHPUUAM03Gw339N5axRs0teCyiNK9Mex836AgP3yFdJ0rVsLSYl3Y6hKvv1TPfPYi4W7NGPNWTk2nJICJjkypTCGtIarDLhG7v7xN14eVsrD55VZeyHJYLqymFq7thfJbAPPx0O7BIAAqOnnSdpFw","c_593806b0f3610c3c_index.html-689")</script><script>(function(){'use strict';var h=typeof Object.defineProperties=="function"?Object.defineProperty:function(a,b,d){if(a==Array.prototype||a==Object.prototype)return a;a[b]=d.value;return a};function l(a){a=["object"==typeof globalThis&&globalThis,a,"object"==typeof window&&window,"object"==typeof self&&self,"object"==typeof global&&global];for(var b=0;b<a.length;++b){var d=a[b];if(d&&d.Math==Math)return d}throw Error("Cannot find global object");}var n=l(this);
+function p(a,b){if(b)a:{var d=n;a=a.split(".");for(var c=0;c<a.length-1;c++){var e=a[c];if(!(e in d))break a;d=d[e]}a=a[a.length-1];c=d[a];b=b(c);b!=c&&b!=null&&h(d,a,{configurable:!0,writable:!0,value:b})}}function r(a){function b(c){return a.next(c)}function d(c){return a.throw(c)}return new Promise(function(c,e){function f(g){g.done?c(g.value):Promise.resolve(g.value).then(b,d).then(f,e)}f(a.next())})}function t(a){return r(a())}
+p("Object.values",function(a){return a?a:function(b){var d=[],c;for(c in b)Object.prototype.hasOwnProperty.call(b,c)&&d.push(b[c]);return d}});p("Array.prototype.includes",function(a){return a?a:function(b,d){var c=this;c instanceof String&&(c=String(c));var e=c.length;d=d||0;for(d<0&&(d=Math.max(d+e,0));d<e;d++){var f=c[d];if(f===b||Object.is(f,b))return!0}return!1}});/*
+
+ MIT License
+
+ Copyright (c) 2017-2023 W.Y.
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ SOFTWARE.
+
+*/
+function u(a,b){const d=a.style;b.backgroundColor&&(d.backgroundColor=b.backgroundColor);b.width&&(d.width=`${b.width}px`);b.height&&(d.height=`${b.height}px`);const c=b.style;c!=null&&Object.keys(c).forEach(e=>{d[e]=c[e]})};var v=(()=>{let a=0;return()=>{a+=1;return`u${`0000${(Math.random()*1679616<<0).toString(36)}`.slice(-4)}${a}`}})();function w(a){const b=[];for(let d=0,c=a.length;d<c;d++)b.push(a[d]);return b}let x=null;function y(a={}){return x?x:a.l?x=a.l:x=w(window.getComputedStyle(document.documentElement))}function z(a,b){return(a=(a.ownerDocument.defaultView||window).getComputedStyle(a).getPropertyValue(b))?parseFloat(a.replace("px","")):0}
+function A(a,b={}){var d;if(!(d=b.width)){d=z(a,"border-left-width");var c=z(a,"border-right-width");d=a.clientWidth+d+c}(b=b.height)||(b=z(a,"border-top-width"),c=z(a,"border-bottom-width"),b=a.clientHeight+b+c);return{width:d,height:b}}function B(a){return new Promise((b,d)=>{const c=new Image;c.onload=()=>{c.decode().then(()=>{requestAnimationFrame(()=>b(c))})};c.onerror=d;c.crossOrigin="anonymous";c.decoding="async";c.src=a})}
+function C(a){return t(function*(){return Promise.resolve().then(()=>(new XMLSerializer).serializeToString(a)).then(encodeURIComponent).then(b=>`data:image/svg+xml;charset=utf-8,${b}`)})}
+function D(a,b,d){return t(function*(){const c=document.createElementNS("http://www.w3.org/2000/svg","svg"),e=document.createElementNS("http://www.w3.org/2000/svg","foreignObject");c.setAttribute("width",`${b}`);c.setAttribute("height",`${d}`);c.setAttribute("viewBox",`0 0 ${b} ${d}`);e.setAttribute("width","100%");e.setAttribute("height","100%");e.setAttribute("x","0");e.setAttribute("y","0");e.setAttribute("externalResourcesRequired","true");c.appendChild(e);e.appendChild(a);return C(c)})}
+var E=(a,b)=>{if(a instanceof b)return!0;a=Object.getPrototypeOf(a);return a===null?!1:a.constructor.name===b.name||E(a,b)};function F(a,b){return y(b).map(d=>{const c=a.getPropertyValue(d),e=a.getPropertyPriority(d);return`${d}: ${c}${e?" !important":""};`}).join(" ")}
+function G(a,b,d,c){a=window.getComputedStyle(a,d);var e=a.getPropertyValue("content");if(e!==""&&e!=="none"){var f=v();try{b.className=`${b.className} ${f}`}catch(k){return}e=document.createElement("style");var g=e.appendChild;d=`.${f}:${d}`;a.cssText?(c=a.getPropertyValue("content"),c=`${a.cssText} content: '${c.replace(/'|"/g,"")}';`):c=F(a,c);g.call(e,document.createTextNode(`${d}{${c}}`));b.appendChild(e)}};function H(a){return a.search(/^(data:)/)!==-1}function I(a,b,d){return t(function*(){const c=yield fetch(a,b);if(c.status===404)throw Error(`Resource "${c.url}" not found`);const e=yield c.blob();return new Promise((f,g)=>{const k=new FileReader;k.onerror=g;k.onloadend=()=>{try{f(d({o:c,result:k.result}))}catch(m){g(m)}};k.readAsDataURL(e)})})}const J={};function K(a,b,d){let c=a.replace(/\?.*/,"");d&&(c=a);/ttf|otf|eot|woff2?/i.test(c)&&(c=c.replace(/.*\//,""));return b?`[${b}]${c}`:c}
+function L(a,b,d){return t(function*(){const c=K(a,b,d.C);if(J[c]!=null)return J[c];d.u&&(a+=(/\?/.test(a)?"&":"?")+(new Date).getTime());let e;try{const f=yield I(a,d.i,({o:g,result:k})=>{b||(b=g.headers.get("Content-Type")||"");return k.split(/,/)[1]});e=`data:${b};base64,${f}`}catch(f){e=d.B||""}return J[c]=e})};const M={P:"application/font-woff",R:"application/font-woff",N:"application/font-truetype",v:"application/vnd.ms-fontobject",H:"image/png",F:"image/jpeg",D:"image/jpeg",A:"image/gif",M:"image/tiff",L:"image/svg+xml",O:"image/webp"};function N(a){return(a=/\.([^./]*?)$/g.exec(a))?a[1]:""};function O(a){return t(function*(){const b=a.toDataURL();return b==="data:,"?a.cloneNode(!1):B(b)})}function aa(a,b){return t(function*(){if(a.currentSrc){var d=document.createElement("canvas");const c=d.getContext("2d");d.width=a.clientWidth;d.height=a.clientHeight;c==null||c.drawImage(a,0,0,d.width,d.height);d=d.toDataURL();return B(d)}d=a.poster;d=yield L(d,M[N(d).toLowerCase()]||"",b);return B(d)})}
+function ba(a,b){return t(function*(){try{let d;if(a==null?0:(d=a.contentDocument)==null?0:d.body)return yield P(a.contentDocument.body,b,!0)}catch(d){}return a.cloneNode(!1)})}function ca(a,b){return t(function*(){return E(a,HTMLCanvasElement)?O(a):E(a,HTMLVideoElement)?aa(a,b):E(a,HTMLIFrameElement)?ba(a,b):a.cloneNode(a.tagName!=null&&a.tagName.toUpperCase()==="SVG")})}
+function da(a,b,d){return t(function*(){if(b.tagName!=null&&b.tagName.toUpperCase()==="SVG")return b;let c=[];if(a.tagName!=null&&a.tagName.toUpperCase()==="SLOT"&&a.assignedNodes)c=w(a.assignedNodes());else{let e;if(E(a,HTMLIFrameElement)&&((e=a.contentDocument)==null?0:e.body))c=w(a.contentDocument.body.childNodes);else{let f;c=w(((f=a.shadowRoot)!=null?f:a).childNodes)}}if(c.length===0||E(a,HTMLVideoElement))return b;yield c.reduce((e,f)=>e.then(()=>P(f,d)).then(g=>{g&&b.appendChild(g)}),Promise.resolve());
+return b})}function ea(a,b,d){const c=b.style;if(c){var e=window.getComputedStyle(a);e.cssText?(c.cssText=e.cssText,c.transformOrigin=e.transformOrigin):y(d).forEach(f=>{let g=e.getPropertyValue(f);f==="font-size"&&g.endsWith("px")&&(g=`${Math.floor(parseFloat(g.substring(0,g.length-2)))-.1}px`);E(a,HTMLIFrameElement)&&f==="display"&&g==="inline"&&(g="block");f==="d"&&b.getAttribute("d")&&(g=`path(${b.getAttribute("d")})`);c.setProperty(f,g,e.getPropertyPriority(f))})}}
+function fa(a,b){E(a,HTMLSelectElement)&&(b=Array.from(b.children).find(d=>a.value===d.getAttribute("value")))&&b.setAttribute("selected","")}
+function ha(a,b){return t(function*(){var d=a.querySelectorAll?a.querySelectorAll("use"):[];if(d.length===0)return a;var c={};for(var e=0;e<d.length;e++){var f=d[e].getAttribute("xlink:href");if(f){const g=document.querySelector(f);a.querySelector(f)||!g||c[f]||(c[f]=yield P(g,b,!0))}}d=Object.values(c);if(d.length){c=document.createElementNS("http://www.w3.org/1999/xhtml","svg");c.setAttribute("xmlns","http://www.w3.org/1999/xhtml");c.style.position="absolute";c.style.width="0";c.style.height="0";
+c.style.overflow="hidden";c.style.display="none";e=document.createElementNS("http://www.w3.org/1999/xhtml","defs");c.appendChild(e);for(f=0;f<d.length;f++)e.appendChild(d[f]);a.appendChild(c)}return a})}
+function P(a,b,d){return t(function*(){return d||!b.filter||b.filter(a)?Promise.resolve(a).then(c=>ca(c,b)).then(c=>da(a,c,b)).then(c=>{E(c,Element)&&(ea(a,c,b),G(a,c,":before",b),G(a,c,":after",b),E(a,HTMLTextAreaElement)&&(c.textContent=a.value),E(a,HTMLInputElement)&&c.setAttribute("value",a.value),fa(a,c));return c}).then(c=>ha(c,b)):null})};const Q=/url\((['"]?)([^'"]+?)\1\)/g,ia=/url\([^)]+\)\s*format\((["']?)([^"']+)\1\)/g,ja=/src:\s*(?:url\([^)]+\)\s*format\([^)]+\)[,;]\s*)+/g;function ka(a){const b=[];a.replace(Q,(d,c,e)=>{b.push(e);return d});return b.filter(d=>!H(d))}
+function la(a,b,d,c){return t(function*(){try{const e=d?(new URL(b,d||void 0)).toString():b;let f;f=yield L(e,M[N(b).toLowerCase()]||"",c);return a.replace(new RegExp(`(url\\(['"]?)(${b.replace(/([.*+?^${}()|\[\]\/\\])/g,"\\$1")})(['"]?\\))`,"g"),`$1${f}$3`)}catch(e){}return a})}function ma(a,{I:b}){return b?a.replace(ja,d=>{for(;;){const [c,,e]=ia.exec(d)||[],f=c,g=e;if(!g)return"";if(g===b)return`src: ${f};`}}):a}
+function R(a,b,d){return t(function*(){if(a.search(Q)===-1)return a;const c=ma(a,d);return ka(c).reduce((e,f)=>e.then(g=>la(g,f,b,d)),Promise.resolve(c))})};function S(a,b,d){return t(function*(){var c;const e=(c=b.style)==null?void 0:c.getPropertyValue(a);return e?(c=yield R(e,null,d),b.style.setProperty(a,c,b.style.getPropertyPriority(a)),!0):!1})}function na(a,b){return t(function*(){(yield S("background",a,b))||(yield S("background-image",a,b));(yield S("mask",a,b))||(yield S("-webkit-mask",a,b))||(yield S("mask-image",a,b))||(yield S("-webkit-mask-image",a,b))})}
+function oa(a,b){return t(function*(){const d=E(a,HTMLImageElement);if(d&&!H(a.src)||E(a,SVGImageElement)&&!H(a.href.baseVal)){var c=d?a.src:a.href.baseVal,e=yield L(c,M[N(c).toLowerCase()]||"",b);yield new Promise((f,g)=>{a.onload=f;a.onerror=b.m?(...k)=>{try{f(b.m(...k))}catch(m){g(m)}}:g;a.decode&&(a.decode=f);a.loading==="lazy"&&(a.loading="eager");d?(a.srcset="",a.src=e):a.href.baseVal=e})}})}
+function pa(a,b){return t(function*(){const d=w(a.childNodes).map(c=>T(c,b));yield Promise.all(d).then(()=>a)})}function T(a,b){return t(function*(){E(a,Element)&&(yield na(a,b),yield oa(a,b),yield pa(a,b))})};const U={};function V(a){return t(function*(){var b=U[a];if(b!=null)return b;b=yield(yield fetch(a)).text();b={url:a,cssText:b};return U[a]=b})}function W(a,b){return t(function*(){let d=a.cssText;const c=/url\(["']?([^"')]+)["']?\)/g,e=(d.match(/url\([^)]+\)/g)||[]).map(f=>t(function*(){let g=f.replace(c,"$1");g.startsWith("https://")||(g=(new URL(g,a.url)).href);return I(g,b.i,({result:k})=>{d=d.replace(f,`url(${k})`);return[f,k]})}));return Promise.all(e).then(()=>d)})}
+function X(a){if(a==null)return[];const b=[];a=a.replace(/(\/\*[\s\S]*?\*\/)/gi,"");for(var d=RegExp("((@.*?keyframes [\\s\\S]*?){([\\s\\S]*?}\\s*?)})","gi");;){var c=d.exec(a);if(c===null)break;b.push(c[0])}a=a.replace(d,"");d=/@import[\s\S]*?url\([^)]*\)[\s\S]*?;/gi;for(c=RegExp("((\\s*?(?:\\/\\*[\\s\\S]*?\\*\\/)?\\s*?@media[\\s\\S]*?){([\\s\\S]*?)}\\s*?})|(([\\s\\S]*?){([\\s\\S]*?)})","gi");;){let e=d.exec(a);if(e===null)if(e=c.exec(a),e===null)break;else d.lastIndex=c.lastIndex;else c.lastIndex=
+d.lastIndex;b.push(e[0])}return b}
+function qa(a,b){return t(function*(){const d=[],c=[];a.forEach(e=>{if("cssRules"in e)try{w(e.cssRules||[]).forEach((f,g)=>{if(f.type===CSSRule.IMPORT_RULE){let k=g+1;f=V(f.href).then(m=>W(m,b)).then(m=>X(m).forEach(q=>{try{e.insertRule(q,q.startsWith("@import")?k+=1:e.cssRules.length)}catch(Da){}})).catch(()=>{});c.push(f)}})}catch(f){const g=a.find(k=>k.href==null)||document.styleSheets[0];e.href!=null&&c.push(V(e.href).then(k=>W(k,b)).then(k=>X(k).forEach(m=>{g.insertRule(m,g.cssRules.length)})).catch(()=>
+{}))}});return Promise.all(c).then(()=>{a.forEach(e=>{if("cssRules"in e)try{w(e.cssRules||[]).forEach(f=>{d.push(f)})}catch(f){}});return d})})}function ra(a){return a.filter(b=>b.type===CSSRule.FONT_FACE_RULE).filter(b=>b.style.getPropertyValue("src").search(Q)!==-1)}function sa(a,b){return t(function*(){if(a.ownerDocument==null)throw Error("Provided element is not within a Document");var d=w(a.ownerDocument.styleSheets);d=yield qa(d,b);return ra(d)})}
+function ta(a){function b(c){(c.style.fontFamily||getComputedStyle(c).fontFamily).split(",").forEach(e=>{d.add(e.trim().replace(/["']/g,""))});Array.from(c.children).forEach(e=>{e instanceof HTMLElement&&b(e)})}const d=new Set;b(a);return d}function ua(a,b){return t(function*(){const d=yield sa(a,b),c=ta(a);return(yield Promise.all(d.filter(e=>c.has(e.style.fontFamily.trim().replace(/["']/g,""))).map(e=>R(e.cssText,e.parentStyleSheet?e.parentStyleSheet.href:null,b)))).join("\n")})}
+function va(a,b){return t(function*(){const d=b.j!=null?b.j:b.K?null:yield ua(a,b);if(d){const c=document.createElement("style");c.appendChild(document.createTextNode(d));a.firstChild?a.insertBefore(c,a.firstChild):a.appendChild(c)}})};function wa(a,b={}){return t(function*(){const {width:d,height:c}=A(a,b),e=yield P(a,b,!0);yield va(e,b);yield T(e,b);u(e,b);return yield D(e,d,c)})}
+function xa(a,b={}){return t(function*(){const {width:d,height:c}=A(a,b);var e=yield wa(a,b);e=yield B(e);const f=document.createElement("canvas"),g=f.getContext("2d"),k=b.G||window.devicePixelRatio||1,m=b.h||d,q=b.g||c;f.width=m*k;f.height=q*k;!b.J&&(f.width>16384||f.height>16384)&&(f.width>16384&&f.height>16384?f.width>f.height?(f.height*=16384/f.width,f.width=16384):(f.width*=16384/f.height,f.height=16384):f.width>16384?(f.height*=16384/f.width,f.width=16384):(f.width*=16384/f.height,f.height=
+16384));f.style.width=`${m}`;f.style.height=`${q}`;b.backgroundColor&&(g.fillStyle=b.backgroundColor,g.fillRect(0,0,f.width,f.height));g.drawImage(e,0,0,f.width,f.height);return f})}function ya(a,b={}){return t(function*(){return(yield xa(a,b)).toDataURL()})};const za=["gemini.google.com","corp.google.com","proxy.googlers.com"];function Y(){return document.body.querySelectorAll('[class*="animate"]').length>0}function Z(a){return t(function*(){try{return yield ya(a,{h:a.offsetWidth,g:a.offsetHeight})}catch(d){var b=a.offsetHeight;const c=document.createElement("canvas");c.width=a.offsetWidth;c.height=b;return c.toDataURL("image/png")}})}
+function Aa(){return t(function*(){const a=document.body.offsetWidth,b=document.body.offsetHeight,d=document.body.cloneNode(!0);d.querySelectorAll('[class*="animate"]').forEach(c=>{c.classList.remove(...Array.from(c.classList).filter(e=>e.startsWith("animate")))});d.style.width=`${a}px`;d.style.height=`${b}px`;return d})}
+function Ba(a){return t(function*(){let b=document.body;if(Y()){var d=yield Aa();b=d;document.body.appendChild(d)}d=yield Z(b);Y()&&document.body.removeChild(b);window.parent.postMessage({type:"SEND_SCREENSHOT",image:d,topOffset:document.documentElement.scrollTop},a.origin)})}function Ca(a){return t(function*(){const b={type:"SEND_SCREENSHOT_FOR_DATA_VISUALIZATION",image:yield Z(document.body),topOffset:0};window.parent.postMessage(b,a.origin)})}
+window.addEventListener("message",a=>t(function*(){if(za.some(d=>a.origin.includes(d))){var b=a.data;b&&(b.type==="MAKE_SCREENSHOT"&&(yield Ba(a)),b.type==="MAKE_SCREENSHOT_FOR_DATA_VISUALIZATION"&&(yield Ca(a)))}}));
+})();</script><script>(function() {
+  // Ensure this script is executed only once
+  if (window.firebaseAuthBridgeScriptLoaded) {
+    return;
+  }
+  window.firebaseAuthBridgeScriptLoaded = true;
+
+  let nextTokenPromiseId = 0;
+
+  // Stores { resolve, reject } for ongoing token requests
+  const pendingTokenPromises = {};
+
+  // Listen for messages from the Host Application
+  window.addEventListener('message', function(event) {
+
+    const messageData = event.data;
+
+  if (messageData && messageData.type === 'RESOLVE_NEW_FIREBASE_TOKEN') {
+      const { success, token, error, promiseId } = messageData ?? {};
+      if (pendingTokenPromises[promiseId]) {
+        if (success) {
+          pendingTokenPromises[promiseId].resolve(token);
+        } else {
+          pendingTokenPromises[promiseId].reject(new Error(error || 'Token refresh failed from host.'));
+        }
+        delete pendingTokenPromises[promiseId];
+      }
+    }
+  });
+
+  // Expose a function for the Generated App to request a new Firebase token
+  window.requestNewFirebaseToken = function() {
+    const currentPromiseId = nextTokenPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingTokenPromises[currentPromiseId] = { resolve, reject };
+    });
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'REQUEST_NEW_FIREBASE_TOKEN',
+        promiseId: currentPromiseId
+      }, '*');
+    } else {
+      pendingTokenPromises[currentPromiseId].reject(new Error('No parent window to request token from.'));
+      delete pendingTokenPromises[currentPromiseId];
+    }
+    return promise;
+  };
+})();</script><script>
+let realOriginalGetUserMedia = null;
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  realOriginalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+}
+
+(function() {
+  if (navigator.mediaDevices && navigator.mediaDevices.__proto__) {
+    try {
+      Object.defineProperty(navigator.mediaDevices.__proto__, 'getUserMedia', {
+        get: function() {
+          return undefined; // Or throw an error
+        },
+        configurable: false
+      });
+    } catch (error) {
+      console.error("Error defining prototype getter:", error);
+    }
+  }
+})();
+
+(function() {
+  const pendingMediaResolvers = {};
+  let nextMediaPromiseId = 0;
+
+  function requestMediaPermissions(constraints) {
+    const mediaPromiseId = nextMediaPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingMediaResolvers[mediaPromiseId] = (granted) => {
+        delete pendingMediaResolvers[mediaPromiseId];
+        resolve(granted);
+      };
+    });
+
+    window.parent.postMessage({
+      type: 'requestMediaPermission',
+      constraints: constraints,
+      promiseId: mediaPromiseId,
+    }, '*');
+
+    return promise;
+  }
+
+  let originalGetUserMedia = realOriginalGetUserMedia;
+
+  function interceptGetUserMedia() {
+    if (navigator.mediaDevices) {
+      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+        value: function(constraints) {
+          return requestMediaPermissions(constraints).then((granted) => {
+            if (granted) {
+              if (originalGetUserMedia) {
+                return originalGetUserMedia(constraints);
+              } else {
+                throw new Error("Original getUserMedia not available.");
+              }
+            } else {
+              throw new DOMException('Permission denied', 'NotAllowedError');
+            }
+          });
+        },
+        writable: false,
+        configurable: false
+      });
+    }
+  }
+
+  interceptGetUserMedia();
+
+  const observer = new MutationObserver(function(mutationsList, observer) {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'reconfigured' && mutation.name === 'getUserMedia' && mutation.object === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'attributes' && mutation.attributeName === 'getUserMedia' && mutation.target === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'childList' && mutation.addedNodes) {
+        mutation.addedNodes.forEach(node => {
+          if (node === navigator.mediaDevices) {
+            interceptGetUserMedia();
+          }
+        });
+      }
+    }
+  });
+
+  function interceptSpeechRecognition() {
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      return;
+    }
+
+    const OriginalSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const SpeechRecognitionWrapper = function(...args) {
+      const recognizer = new OriginalSpeechRecognition(...args);
+      const originalStart = recognizer.start.bind(recognizer);
+
+      recognizer.start = function() {
+        requestMediaPermissions({ audio: true }).then(granted => {
+          if (granted) {
+            originalStart();
+          } else {
+            const errorEvent = new SpeechRecognitionErrorEvent('error');
+            errorEvent.error = 'not-allowed'; // This is the standard error for permission denial.
+            recognizer.dispatchEvent(errorEvent);
+          }
+        });
+      };
+
+      return recognizer;
+    };
+
+    SpeechRecognitionWrapper.prototype = OriginalSpeechRecognition.prototype;
+    SpeechRecognitionWrapper.prototype.constructor = SpeechRecognitionWrapper;
+
+    if (window.SpeechRecognition) {
+      window.SpeechRecognition = SpeechRecognitionWrapper;
+    }
+    if (window.webkitSpeechRecognition) {
+      window.webkitSpeechRecognition = SpeechRecognitionWrapper;
+    }
+  }
+
+  interceptSpeechRecognition();
+
+  window.addEventListener('message', function(event) {
+    if (event.data) {
+      if (event.data.type === 'resolveMediaPermission') {
+        const { promiseId, granted } = event.data;
+        if (pendingMediaResolvers[promiseId]) {
+          pendingMediaResolvers[promiseId](granted);
+        }
+      }
+    }
+  });
+
+})();</script><script>((function(modelInformation) {
+  const originalFetch = window.fetch;
+  // TODO: b/421908508 - Move these out of the script and match all generative AI model calls.
+  let googleLlmBaseApiUrls = [
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':streamGenerateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageEditModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageTransformModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.ttsModelName + ':generateContent',
+  ];
+  modelInformation.deprecatedTextModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+    );
+  });
+  modelInformation.deprecatedImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predict',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predictLongRunning',
+    );
+  });
+
+  const pendingFetchResolvers = {};
+  let nextPromiseId = 0;
+
+  function handleStringInput(input, optionsArgument) {
+    const actualUrl = input;
+    const fetchCallArgs = [actualUrl, optionsArgument];
+    const effectiveOptions = optionsArgument || {};
+    const bodyForApiKeyCheck = effectiveOptions.body;
+    const bodyForPostMessage = effectiveOptions.body;
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  function handleRequestInput(input, optionsArgument) {
+    const actualUrl = input.url;
+    const fetchCallArgs = [input, optionsArgument];
+    const effectiveOptions = { method: input.method, headers: new Headers(input.headers) };
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (optionsArgument) {
+      if (optionsArgument.method) effectiveOptions.method = optionsArgument.method;
+      if (optionsArgument.headers) effectiveOptions.headers = new Headers(optionsArgument.headers);
+      if ('body' in optionsArgument) {
+        bodyForApiKeyCheck = optionsArgument.body;
+        bodyForPostMessage = optionsArgument.body;
+      } else {
+        bodyForApiKeyCheck = undefined;
+        bodyForPostMessage = input.body;
+      }
+    } else {
+      bodyForApiKeyCheck = undefined;
+      bodyForPostMessage = input.body;
+    }
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  window.fetch = function(input, optionsArgument) {
+    let actualUrl;
+    let fetchCallArgs;
+    let effectiveOptions = {};
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (typeof input === 'string') {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleStringInput(input, optionsArgument));
+    } else if (input instanceof Request) {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleRequestInput(input, optionsArgument));
+    } else {
+      return originalFetch.apply(window, [input, optionsArgument]);
+    }
+
+    effectiveOptions.method = effectiveOptions.method || 'GET';
+    if (!effectiveOptions.headers) {
+      effectiveOptions.headers = new Headers();
+    }
+
+
+    if (typeof actualUrl === 'string' && googleLlmBaseApiUrls.some((url) => actualUrl.startsWith(url))) {
+      let apiKeyIsNull = true;
+
+      const regex = new RegExp("models/([^:]+)");
+      const modelNameMatch = actualUrl.match(regex);
+      const modelName = modelNameMatch ? modelNameMatch[1] : 'unspecified';
+
+
+      try {
+        const urlObject = new URL(actualUrl);  // Use URL object for robust parsing
+        const apiKeyParam = urlObject.searchParams.get('key');
+        if (apiKeyParam) {
+          apiKeyIsNull = false;
+        }
+      } catch (e) {
+        // Continue checks even if URL parsing fails
+      }
+
+      if (apiKeyIsNull && effectiveOptions.headers) {
+        const h = new Headers(effectiveOptions.headers);
+        const apiKeyHeaderValue = h.get('X-API-Key') || h.get('x-api-key');
+        if (apiKeyHeaderValue) {
+          apiKeyIsNull = false;
+          return originalFetch.apply(window, fetchCallArgs);
+        }
+      }
+
+      if (apiKeyIsNull && effectiveOptions.method && ['POST', 'PUT', 'PATCH'].includes(effectiveOptions.method.toUpperCase()) && typeof bodyForApiKeyCheck === 'string') {
+        try {
+          const bodyData = JSON.parse(bodyForApiKeyCheck);
+          if (bodyData && bodyData.apiKey) {
+            apiKeyIsNull = false;
+            return originalFetch.apply(window, fetchCallArgs);
+          }
+        } catch (e) {
+          // Ignore JSON parsing errors
+        }
+      }
+
+      if(apiKeyIsNull) {
+        const promiseId = nextPromiseId++;
+        const promise = new Promise((resolve) => {
+          pendingFetchResolvers[promiseId] = (resolvedResponse) => {
+            delete pendingFetchResolvers[promiseId];
+            resolve(resolvedResponse);
+          };
+        });
+
+        let serializedBodyForPostMessage;
+        if (typeof bodyForPostMessage === 'string' || bodyForPostMessage == null) {
+            serializedBodyForPostMessage = bodyForPostMessage;
+        } else if (bodyForPostMessage instanceof ReadableStream) {
+            serializedBodyForPostMessage = null;
+        } else {
+            try {
+                serializedBodyForPostMessage = JSON.stringify(bodyForPostMessage);
+            } catch (e) {
+                serializedBodyForPostMessage = null;
+            }
+        }
+
+        const messageOptions = {
+            method: effectiveOptions.method,
+            headers: Object.fromEntries(new Headers(effectiveOptions.headers).entries()),
+            body: serializedBodyForPostMessage
+        };
+
+        window.parent.postMessage({
+          type: 'requestFetch',
+          url: actualUrl,
+          modelName: modelName,
+          options: messageOptions,
+          promiseId: promiseId,
+        }, '*');
+
+        return promise;
+      }
+      return originalFetch.apply(window, fetchCallArgs);
+    }
+    return originalFetch.apply(window, fetchCallArgs);
+  };
+
+  window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'resolveFetch') {
+      const { promiseId, response } = event.data;
+      if (pendingFetchResolvers[promiseId]) {
+        try {
+          const reconstructedResponse = new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: new Headers(response.headers),
+          });
+          pendingFetchResolvers[promiseId](reconstructedResponse);
+        } catch (error) {
+          pendingFetchResolvers[promiseId](new Response(null, { status: 500, statusText: "Interceptor Response Reconstruction Error" }));
+        }
+      }
+    }
+  });
+
+}))({"textModelName":"gemini-3-flash-preview","imageModelName":"imagen-4.0-generate-001","imageEditModelName":"gemini-2.5-flash-image-preview","imageTransformModelName":"gemini-3-pro-image-preview-11-2025","videoModelName":"veo-2.0-generate-001","ttsModelName":"gemini-2.5-flash-preview-tts","deprecatedTextModelNames":["gemini-2.0-flash","gemini-2.5-flash","gemini-2.5-flash-preview-04-17","gemini-2.5-flash-preview-05-20","gemini-2.5-flash-preview-09-2025"],"deprecatedImageModelNames":["imagen-3.0-generate-001","imagen-3.0-generate-002"]})</script><script>(function(){'use strict';function a(){window.parent.postMessage({type:"interaction"},"*")}window.addEventListener("click",a,{capture:!0,passive:!0});window.addEventListener("touchstart",a,{capture:!0,passive:!0});window.addEventListener("keydown",a,{capture:!0,passive:!0});}).call(this);
+</script><script>(function() {
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+
+    /**
+   * Normalizes an error event or a promise rejection reason into a structured error object.
+   * @param {*} errorEventOrReason The error object or reason.
+   * @return {object} Structured error data { message, name, stack }.
+   */
+  function getErrorObject(errorEventOrReason) {
+    if (errorEventOrReason instanceof Error) {
+      return {
+        message: errorEventOrReason.message,
+        name: errorEventOrReason.name,
+        stack: errorEventOrReason.stack,
+      };
+    }
+    // Fallback for non-Error objects.
+    try {
+      return {
+        message: JSON.stringify(errorEventOrReason),
+        name: 'UnknownErrorType',
+        stack: null,
+      };
+    } catch (e) {
+      return {
+        message: String(errorEventOrReason),
+        name: 'UnknownErrorTypeNonStringifiable',
+        stack: null,
+      };
+    }
+  }
+
+  /**
+   * Converts an array of arguments (from log/error) into a single string.
+   * Handles Error objects specially to include their message and stack.
+   * @param {Array<*>} args - Arguments passed to console methods.
+   * @return {string} A string representation of the arguments.
+   */
+  function stringifyArgs(args) {
+    return args
+      .map((arg) => {
+        if (arg instanceof Error) {
+          const {message, stack} = arg;
+          return `Error: ${message}${stack ? ('\nStack: ' + stack) : ''}`;
+        }
+        if (typeof arg === 'object' && arg !== null) {
+          try {
+            return JSON.stringify(arg);
+          } catch (error) {
+            return '[Circular Object]';
+          }
+        } else {
+          return String(arg);
+        }
+      })
+      .join(' ');
+  }
+
+  console.log = function(...args) {
+    const logString = stringifyArgs(args);
+    window.parent.postMessage({ type: 'log', message: logString }, '*');
+    originalConsoleLog.apply(console, args);
+  };
+
+  console.error = function(...args) {
+    let errorData;
+    if (args.length > 0 && args[0] instanceof Error) {
+      const err = args[0];
+      // If the first arg is an Error, capture its details.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        ...getErrorObject(err),
+        rawArgsString: stringifyArgs(args.slice(1)),
+        timestamp: new Date().toISOString(),
+      };
+    } else {
+      // If not an Error object, treat all args as a general error message.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        message: stringifyArgs(args),
+        name: 'ConsoleLoggedError',
+        stack: null,
+        timestamp: new Date().toISOString(),
+      };
+    }
+    window.parent.postMessage(errorData, '*');
+    originalConsoleError.apply(console, args);
+  };
+
+  // Listen for global unhandled synchronous errors.
+  window.addEventListener('error', function(event) {
+    const errorDetails = event.error ? getErrorObject(event.error) : {
+      message: event.message,
+      name: 'GlobalError',
+      stack: null,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+    };
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'global',
+      ...errorDetails,
+      message: errorDetails.message || event.message,
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+  // Listen for unhandled promise rejections (asynchronous errors).
+  window.addEventListener('unhandledrejection', function(event) {
+    const errorDetails = getErrorObject(event.reason);
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'unhandledrejection',
+      ...errorDetails,
+      message: errorDetails.message || 'Unhandled Promise Rejection',
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+})();</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>太空狼人殺：生存挑戰 (完整修復版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; color: white; font-family: 'Microsoft JhengHei', sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
+        #gameCanvas { display: block; }
+        .ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; }
+        .interactive { pointer-events: auto; }
+        #joystick-zone { position: absolute; bottom: 40px; left: 40px; width: 150px; height: 150px; z-index: 10; }
+        .controls-right { position: absolute; bottom: 40px; right: 40px; display: grid; grid-template-columns: 80px 80px 80px; grid-template-rows: 80px 80px 80px; gap: 15px; z-index: 10; align-items: center; justify-items: center; pointer-events: none; }
+        .game-btn { width: 80px; height: 80px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; user-select: none; backdrop-filter: blur(4px); transition: all 0.1s; text-shadow: 1px 1px 2px black; box-shadow: 0 4px 6px rgba(0,0,0,0.3); pointer-events: auto; }
+        .game-btn:active { transform: scale(0.95); }
+        #action-btn { grid-column: 2; grid-row: 3; background-color: rgba(255, 255, 255, 0.15); border: 2px solid rgba(255, 255, 255, 0.6); width: 90px; height: 90px; }
+        #action-btn.active { background-color: rgba(255, 255, 255, 0.9); color: black; box-shadow: 0 0 20px #fff; transform: scale(1.1); text-shadow: none; }
+        .skill-btn { font-size: 14px; }
+        #scan-btn { background-color: rgba(14, 165, 233, 0.3); border: 2px solid rgba(14, 165, 233, 0.8); }
+        #scan-btn.active-state { background-color: rgba(239, 68, 68, 0.8); animation: pulse-red 0.5s infinite; }
+        #disguise-btn { background-color: rgba(168, 85, 247, 0.3); border: 2px solid rgba(168, 85, 247, 0.8); }
+        #disguise-btn.active-state { background-color: rgba(255, 255, 255, 0.8); color: black; border-color: #fff; }
+        #sprint-btn { background-color: rgba(234, 179, 8, 0.3); border: 2px solid rgba(234, 179, 8, 0.8); }
+        #sprint-btn.active-state { background-color: rgba(250, 204, 21, 0.9); color: black; border-color: #fff; transform: scale(1.05); }
+        #eagle-btn { background-color: rgba(20, 184, 166, 0.3); border: 2px solid rgba(20, 184, 166, 0.8); }
+        #eagle-btn.active-state { background-color: rgba(45, 212, 191, 0.9); color: black; border-color: #fff; }
+        #alert-btn { background-color: rgba(249, 115, 22, 0.3); border: 2px solid rgba(249, 115, 22, 0.8); }
+        #alert-btn.active-state { background-color: rgba(251, 146, 60, 0.9); color: black; border-color: #fff; animation: pulse-shield 0.5s infinite; }
+        #wallwalk-btn { background-color: rgba(99, 102, 241, 0.3); border: 2px solid rgba(99, 102, 241, 0.8); }
+        #wallwalk-btn.ready { border-color: #818cf8; box-shadow: 0 0 10px rgba(129, 140, 248, 0.3); }
+        #wallwalk-btn.active-state { background-color: rgba(129, 140, 248, 0.8); color: black; border-color: #fff; box-shadow: 0 0 15px #818cf8; }
+        #avenger-btn { background-color: rgba(220, 38, 38, 0.3); border: 2px solid rgba(220, 38, 38, 0.8); }
+        #avenger-btn.ready { border-color: #f87171; box-shadow: 0 0 10px rgba(248, 113, 113, 0.3); }
+        #avenger-btn.active-state { background-color: rgba(239, 68, 68, 0.9); color: white; border-color: #fff; box-shadow: 0 0 20px #ef4444; animation: pulse-red 0.5s infinite; }
+        #teleporter-btn { background-color: rgba(217, 70, 239, 0.3); border: 2px solid rgba(217, 70, 239, 0.8); }
+        #teleporter-btn.ready { border-color: #e879f9; box-shadow: 0 0 10px rgba(232, 121, 249, 0.3); }
+        #teleporter-btn.active-state { background-color: rgba(232, 121, 249, 0.8); color: black; border-color: #fff; }
+        #repel-btn { background-color: rgba(244, 63, 94, 0.3); border: 2px solid rgba(244, 63, 94, 0.8); }
+        #repel-btn.ready { border-color: #fb7185; box-shadow: 0 0 10px rgba(251, 113, 133, 0.3); }
+        #repel-btn.active-state { background-color: rgba(251, 113, 133, 0.8); color: black; border-color: #fff; animation: pulse-repel 0.3s infinite; }
+        #swap-btn { background-color: rgba(132, 204, 22, 0.3); border: 2px solid rgba(132, 204, 22, 0.8); }
+        #swap-btn.ready { border-color: #a3e635; box-shadow: 0 0 10px rgba(163, 230, 53, 0.3); }
+        #swap-btn.active-state { background-color: rgba(163, 230, 53, 0.9); color: black; border-color: #fff; animation: pulse-green 0.5s infinite; }
+        #spirit-btn { background-color: rgba(139, 92, 246, 0.3); border: 2px solid rgba(139, 92, 246, 0.8); }
+        #spirit-btn.ready { border-color: #a78bfa; box-shadow: 0 0 10px rgba(167, 139, 250, 0.3); }
+        #spirit-btn.active-state { background-color: rgba(124, 58, 237, 0.9); color: white; border-color: #fff; animation: pulse-purple 1s infinite; }
+        #spirit-btn.danger-state { background-color: rgba(239, 68, 68, 0.9); animation: pulse-red 0.2s infinite; }
+        #gamble-btn { background-color: rgba(217, 119, 6, 0.3); border: 2px solid rgba(217, 119, 6, 0.8); }
+        #gamble-btn.ready { border-color: #f59e0b; box-shadow: 0 0 10px rgba(245, 158, 11, 0.3); }
+        #gamble-btn.active-state { background-color: rgba(245, 158, 11, 0.9); color: black; border-color: #fff; animation: pulse-gold 0.5s infinite; }
+        #trapper-btn { background-color: rgba(120, 53, 15, 0.3); border: 2px solid rgba(120, 53, 15, 0.8); }
+        #trapper-btn.ready { border-color: #b45309; box-shadow: 0 0 10px rgba(180, 83, 9, 0.3); }
+        #trapper-btn.active-state { background-color: rgba(180, 83, 9, 0.9); color: white; border-color: #fff; }
+        .cooldown { background-color: rgba(50, 50, 50, 0.6) !important; border-color: #666 !important; color: #ccc !important; box-shadow: none !important; animation: none !important; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); display: flex; justify-content: center; align-items: center; flex-direction: column; z-index: 50; pointer-events: auto; }
+        .hidden { display: none !important; }
+        #task-ui { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 320px; background: rgba(30, 41, 59, 0.98); border: 2px solid #38bdf8; padding: 20px; border-radius: 12px; text-align: center; z-index: 20; box-shadow: 0 0 20px rgba(56, 189, 248, 0.3); display: flex; flex-direction: column; gap: 15px; pointer-events: auto; user-select: none; }
+        .minigame-track { position: relative; width: 100%; height: 20px; background: #1e293b; border-radius: 10px; border: 1px solid #475569; overflow: hidden; }
+        .minigame-target { position: absolute; top: 0; height: 100%; background: #22c55e; opacity: 0.8; }
+        .minigame-cursor { position: absolute; top: -2px; width: 6px; height: 24px; background: white; border-radius: 3px; box-shadow: 0 0 5px white; transform: translateX(-50%); }
+        .progress-dots { display: flex; justify-content: center; gap: 8px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; background: #334155; border: 1px solid #475569; }
+        .dot.active { background: #38bdf8; box-shadow: 0 0 8px #38bdf8; border-color: #e0f2fe; }
+        #game-wires { height: 220px; position: relative; display: flex; justify-content: space-between; padding: 10px; background: #0f172a; border-radius: 8px; }
+        .wire-column { display: flex; flex-direction: column; justify-content: space-around; height: 100%; z-index: 20; }
+        .wire-terminal { width: 30px; height: 30px; border-radius: 50%; border: 3px solid #64748b; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: transform 0.1s; }
+        .wire-terminal:active { transform: scale(0.9); }
+        .wire-red { background-color: #ef4444; }
+        .wire-blue { background-color: #3b82f6; }
+        .wire-yellow { background-color: #eab308; }
+        .wire-pink { background-color: #d946ef; }
+        #wire-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+        .animate-danger { animation: pulse-red 1s infinite; }
+        @keyframes pulse-red { 0%, 100% { transform: scale(1); box-shadow: 0 0 0 rgba(239, 68, 68, 0.4); } 50% { transform: scale(1.05); box-shadow: 0 0 15px rgba(239, 68, 68, 0.8); } }
+        @keyframes pulse-shield { 0% { transform: scale(1); box-shadow: 0 0 0 rgba(251, 146, 60, 0.4); } 50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(251, 146, 60, 0.9); } }
+        #notification { position: absolute; top: 20%; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.85); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 12px 24px; border-radius: 30px; font-size: 16px; font-weight: bold; opacity: 0; transition: opacity 0.5s; pointer-events: none; z-index: 40; width: max-content; max-width: 80%; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        #notification.show { opacity: 1; }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%; background: #ef4444; cursor: pointer; margin-top: -10px; box-shadow: 0 0 10px rgba(239,68,68,0.8); }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #4b5563; border-radius: 2px; }
+        #map-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.3); display: flex; justify-content: center; align-items: center; z-index: 60; }
+        #map-container { background: rgba(15, 23, 42, 0.85); border: 2px solid rgba(51, 65, 85, 0.8); border-radius: 12px; padding: 10px; position: relative; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
+        .radio-group { display: flex; gap: 1rem; justify-content: center; margin-top: 1rem; }
+        .radio-label { display: flex; align-items: center; cursor: pointer; color: #cbd5e1; font-size: 0.9rem; }
+        .radio-input { margin-right: 0.5rem; accent-color: #3b82f6; width: 1.2rem; height: 1.2rem; }
+        .lobby-input { background: rgba(15, 23, 42, 0.8); border: 2px solid #475569; color: white; padding: 10px; border-radius: 8px; width: 200px; text-align: center; font-size: 1.2rem; letter-spacing: 2px; text-transform: uppercase; }
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-auto{pointer-events:auto}.absolute{position:absolute}.relative{position:relative}.right-6{right:1.5rem}.top-6{top:1.5rem}.z-50{z-index:50}.mx-auto{margin-left:auto;margin-right:auto}.mb-1{margin-bottom:0.25rem}.mb-2{margin-bottom:0.5rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.mb-8{margin-bottom:2rem}.mt-1{margin-top:0.25rem}.mt-2{margin-top:0.5rem}.mt-4{margin-top:1rem}.mt-6{margin-top:1.5rem}.flex{display:flex}.hidden{display:none}.h-2{height:0.5rem}.h-5{height:1.25rem}.h-8{height:2rem}.h-full{height:100%}.w-0{width:0px}.w-48{width:12rem}.w-64{width:16rem}.w-8{width:2rem}.w-full{width:100%}.max-w-lg{max-width:32rem}.transform{transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.cursor-pointer{cursor:pointer}.appearance-none{-webkit-appearance:none;appearance:none}.flex-col{flex-direction:column}.items-start{align-items:flex-start}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.gap-6{gap:1.5rem}.overflow-hidden{overflow:hidden}.rounded{border-radius:0.25rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-2{border-width:2px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}.border-blue-500{--tw-border-opacity:1;border-color:rgb(59 130 246 / var(--tw-border-opacity, 1))}.border-gray-700{--tw-border-opacity:1;border-color:rgb(55 65 81 / var(--tw-border-opacity, 1))}.border-green-600{--tw-border-opacity:1;border-color:rgb(22 163 74 / var(--tw-border-opacity, 1))}.border-red-500{--tw-border-opacity:1;border-color:rgb(239 68 68 / var(--tw-border-opacity, 1))}.border-red-600{--tw-border-opacity:1;border-color:rgb(220 38 38 / var(--tw-border-opacity, 1))}.border-slate-500{--tw-border-opacity:1;border-color:rgb(100 116 139 / var(--tw-border-opacity, 1))}.border-slate-600{--tw-border-opacity:1;border-color:rgb(71 85 105 / var(--tw-border-opacity, 1))}.border-slate-700{--tw-border-opacity:1;border-color:rgb(51 65 85 / var(--tw-border-opacity, 1))}.bg-black\/50{background-color:rgb(0 0 0 / 0.5)}.bg-blue-600{--tw-bg-opacity:1;background-color:rgb(37 99 235 / var(--tw-bg-opacity, 1))}.bg-emerald-600{--tw-bg-opacity:1;background-color:rgb(5 150 105 / var(--tw-bg-opacity, 1))}.bg-gray-700{--tw-bg-opacity:1;background-color:rgb(55 65 81 / var(--tw-bg-opacity, 1))}.bg-red-900\/90{background-color:rgb(127 29 29 / 0.9)}.bg-slate-800{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.bg-slate-800\/80{background-color:rgb(30 41 59 / 0.8)}.bg-slate-900\/80{background-color:rgb(15 23 42 / 0.8)}.bg-gradient-to-b{background-image:linear-gradient(to bottom, var(--tw-gradient-stops))}.bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.from-black\/90{--tw-gradient-from:rgb(0 0 0 / 0.9) var(--tw-gradient-from-position);--tw-gradient-to:rgb(0 0 0 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-blue-400{--tw-gradient-from:#60a5fa var(--tw-gradient-from-position);--tw-gradient-to:rgb(96 165 250 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-green-600{--tw-gradient-from:#16a34a var(--tw-gradient-from-position);--tw-gradient-to:rgb(22 163 74 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.to-cyan-300{--tw-gradient-to:#67e8f9 var(--tw-gradient-to-position)}.to-green-400{--tw-gradient-to:#4ade80 var(--tw-gradient-to-position)}.to-transparent{--tw-gradient-to:transparent var(--tw-gradient-to-position)}.bg-clip-text{-webkit-background-clip:text;background-clip:text}.p-2{padding:0.5rem}.p-4{padding:1rem}.p-6{padding:1.5rem}.px-4{padding-left:1rem;padding-right:1rem}.px-8{padding-left:2rem;padding-right:2rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-4{padding-top:1rem;padding-bottom:1rem}.pb-2{padding-bottom:0.5rem}.pt-4{padding-top:1rem}.text-left{text-align:left}.text-center{text-align:center}.text-5xl{font-size:3rem;line-height:1}.text-6xl{font-size:3.75rem;line-height:1}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-black{font-weight:900}.font-bold{font-weight:700}.uppercase{text-transform:uppercase}.tracking-tighter{letter-spacing:-0.05em}.tracking-wider{letter-spacing:0.05em}.tracking-widest{letter-spacing:0.1em}.text-amber-200{--tw-text-opacity:1;color:rgb(253 230 138 / var(--tw-text-opacity, 1))}.text-amber-600{--tw-text-opacity:1;color:rgb(217 119 6 / var(--tw-text-opacity, 1))}.text-blue-400{--tw-text-opacity:1;color:rgb(96 165 250 / var(--tw-text-opacity, 1))}.text-fuchsia-200{--tw-text-opacity:1;color:rgb(245 208 254 / var(--tw-text-opacity, 1))}.text-gray-300{--tw-text-opacity:1;color:rgb(209 213 219 / var(--tw-text-opacity, 1))}.text-gray-400{--tw-text-opacity:1;color:rgb(156 163 175 / var(--tw-text-opacity, 1))}.text-gray-500{--tw-text-opacity:1;color:rgb(107 114 128 / var(--tw-text-opacity, 1))}.text-green-200{--tw-text-opacity:1;color:rgb(187 247 208 / var(--tw-text-opacity, 1))}.text-green-500{--tw-text-opacity:1;color:rgb(34 197 94 / var(--tw-text-opacity, 1))}.text-indigo-200{--tw-text-opacity:1;color:rgb(199 210 254 / var(--tw-text-opacity, 1))}.text-lime-200{--tw-text-opacity:1;color:rgb(217 249 157 / var(--tw-text-opacity, 1))}.text-orange-200{--tw-text-opacity:1;color:rgb(254 215 170 / var(--tw-text-opacity, 1))}.text-purple-200{--tw-text-opacity:1;color:rgb(233 213 255 / var(--tw-text-opacity, 1))}.text-red-100{--tw-text-opacity:1;color:rgb(254 226 226 / var(--tw-text-opacity, 1))}.text-red-200{--tw-text-opacity:1;color:rgb(254 202 202 / var(--tw-text-opacity, 1))}.text-red-400{--tw-text-opacity:1;color:rgb(248 113 113 / var(--tw-text-opacity, 1))}.text-red-500{--tw-text-opacity:1;color:rgb(239 68 68 / var(--tw-text-opacity, 1))}.text-red-600{--tw-text-opacity:1;color:rgb(220 38 38 / var(--tw-text-opacity, 1))}.text-rose-200{--tw-text-opacity:1;color:rgb(254 205 211 / var(--tw-text-opacity, 1))}.text-sky-200{--tw-text-opacity:1;color:rgb(186 230 253 / var(--tw-text-opacity, 1))}.text-sky-300{--tw-text-opacity:1;color:rgb(125 211 252 / var(--tw-text-opacity, 1))}.text-sky-400{--tw-text-opacity:1;color:rgb(56 189 248 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-teal-200{--tw-text-opacity:1;color:rgb(153 246 228 / var(--tw-text-opacity, 1))}.text-transparent{color:transparent}.text-violet-200{--tw-text-opacity:1;color:rgb(221 214 254 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-yellow-200{--tw-text-opacity:1;color:rgb(254 240 138 / var(--tw-text-opacity, 1))}.text-yellow-400{--tw-text-opacity:1;color:rgb(250 204 21 / var(--tw-text-opacity, 1))}.opacity-50{opacity:0.5}.shadow-\[0_0_10px_rgba\(59\2c 130\2c 246\2c 0\.5\)\]{--tw-shadow:0 0 10px rgba(59,130,246,0.5);--tw-shadow-colored:0 0 10px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_0_15px_rgba\(239\2c 68\2c 68\2c 0\.5\)\]{--tw-shadow:0 0 15px rgba(239,68,68,0.5);--tw-shadow-colored:0 0 15px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.drop-shadow-\[0_0_10px_rgba\(255\2c 255\2c 255\2c 0\.5\)\]{--tw-drop-shadow:drop-shadow(0 0 10px rgba(255,255,255,0.5));filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.drop-shadow-\[0_0_10px_rgba\(34\2c 211\2c 238\2c 0\.5\)\]{--tw-drop-shadow:drop-shadow(0 0 10px rgba(34,211,238,0.5));filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.drop-shadow-md{--tw-drop-shadow:drop-shadow(0 4px 3px rgb(0 0 0 / 0.07)) drop-shadow(0 2px 2px rgb(0 0 0 / 0.06));filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.filter{filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-colors{transition-property:color, background-color, border-color, fill, stroke, -webkit-text-decoration-color;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, -webkit-text-decoration-color;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-300{transition-duration:300ms}.hover\:scale-105:hover{--tw-scale-x:1.05;--tw-scale-y:1.05;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:bg-blue-500:hover{--tw-bg-opacity:1;background-color:rgb(59 130 246 / var(--tw-bg-opacity, 1))}.hover\:bg-blue-600:hover{--tw-bg-opacity:1;background-color:rgb(37 99 235 / var(--tw-bg-opacity, 1))}.hover\:bg-emerald-500:hover{--tw-bg-opacity:1;background-color:rgb(16 185 129 / var(--tw-bg-opacity, 1))}.hover\:bg-green-600:hover{--tw-bg-opacity:1;background-color:rgb(22 163 74 / var(--tw-bg-opacity, 1))}.hover\:bg-red-600:hover{--tw-bg-opacity:1;background-color:rgb(220 38 38 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-600:hover{--tw-bg-opacity:1;background-color:rgb(71 85 105 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-700:hover{--tw-bg-opacity:1;background-color:rgb(51 65 85 / var(--tw-bg-opacity, 1))}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.active\:scale-95:active{--tw-scale-x:.95;--tw-scale-y:.95;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@media (min-width: 640px){.sm\:h-6{height:1.5rem}.sm\:w-64{width:16rem}.sm\:text-6xl{font-size:3.75rem;line-height:1}}</style></head>
+<body>
+
+    <canvas id="gameCanvas" width="1182" height="726"></canvas>
+
+    <div class="ui-layer">
+        <div class="p-6 w-full flex justify-between items-start bg-gradient-to-b from-black/90 to-transparent">
+            <div class="flex flex-col gap-1">
+                <div class="text-sky-400 font-bold text-lg tracking-wider drop-shadow-md" id="hud-title">任務/時間</div>
+                <div class="w-48 sm:w-64 h-5 sm:h-6 bg-slate-800 rounded-full border border-slate-600 overflow-hidden relative shadow-lg">
+                    <div id="total-progress" class="h-full bg-gradient-to-r from-green-600 to-green-400 w-0 transition-all duration-300"></div>
+                </div>
+                <div class="text-xs text-gray-400 mt-1 flex gap-4">
+                    <span id="hud-text">已完成 <span id="task-count">0</span> / <span id="max-task-count">0</span></span>
+                </div>
+            </div>
+            
+            <div id="alert-text" class="hidden bg-red-900/90 border border-red-500 text-red-100 px-4 py-2 rounded animate-danger font-bold tracking-widest shadow-[0_0_15px_rgba(239,68,68,0.5)]">
+                ⚠ 掃描：發現威脅
+            </div>
+
+            <div class="flex gap-3 absolute top-6 right-6">
+                <button id="map-btn" title="地圖 (M/Tab)" class="p-2 bg-slate-800/80 border border-slate-600 rounded-full hover:bg-slate-700 active:scale-95 transition-all z-50 pointer-events-auto backdrop-blur-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-white">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c-.317.159-.69.159-1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z"></path>
+                    </svg>
+                </button>
+                <button id="pause-btn" title="暫停 (P/Esc)" class="p-2 bg-slate-800/80 border border-slate-600 rounded-full hover:bg-slate-700 active:scale-95 transition-all z-50 pointer-events-auto backdrop-blur-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-white">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div id="notification"></div>
+
+        <div id="mobile-controls" class="interactive">
+            <div id="joystick-zone"></div>
+            <div class="controls-right">
+                <div id="disguise-btn" class="game-btn skill-btn ready interactive" style="display:none;"><div>偽裝</div><div id="disguise-cd-text" class="text-xs text-purple-200">E</div></div>
+                <div id="scan-btn" class="game-btn skill-btn ready interactive" style="display:none;"><div>掃描</div><div id="scan-cd-text" class="text-xs text-sky-200">Q</div></div>
+                <div id="sprint-btn" class="game-btn skill-btn ready interactive" style="display:none;"><div>衝刺</div><div id="sprint-cd-text" class="text-xs text-yellow-200">Shf</div></div>
+                <div id="eagle-btn" class="game-btn skill-btn ready interactive" style="display:none;"><div>鷹眼</div><div id="eagle-cd-text" class="text-xs text-teal-200">R</div></div>
+                <div id="alert-btn" class="game-btn skill-btn ready interactive" style="display:none;"><div>警戒</div><div id="alert-cd-text" class="text-xs text-orange-200">F</div></div>
+                <div id="wallwalk-btn" class="game-btn skill-btn ready interactive" style="display:none;"><div>穿牆</div><div id="wallwalk-cd-text" class="text-xs text-indigo-200">G</div></div>
+                <div id="avenger-btn" class="game-btn skill-btn ready interactive" style="display:none;"><div>反殺</div><div id="avenger-cd-text" class="text-xs text-red-200">T</div></div>
+                <div id="teleporter-btn" class="game-btn skill-btn ready interactive" style="display:none;"><div>傳送</div><div id="teleporter-cd-text" class="text-xs text-fuchsia-200">H</div></div>
+                <div id="repel-btn" class="game-btn skill-btn ready interactive" style="display:none;"><div>別過來</div><div id="repel-cd-text" class="text-xs text-rose-200">V</div></div>
+                <div id="swap-btn" class="game-btn skill-btn ready interactive" style="display:none;"><div>換位</div><div id="swap-cd-text" class="text-xs text-lime-200">C</div></div>
+                <div id="spirit-btn" class="game-btn skill-btn ready interactive" style="display:none;"><div>靈魂</div><div id="spirit-cd-text" class="text-xs text-violet-200">B</div></div>
+                <div id="gamble-btn" class="game-btn skill-btn ready interactive" style="display:none;"><div>賭博</div><div id="gamble-cd-text" class="text-xs text-amber-200">J</div></div>
+                <div id="trapper-btn" class="game-btn skill-btn ready interactive" style="display:none;"><div>陷阱</div><div id="trap-cd-text" class="text-xs text-amber-600">K</div></div>
+
+                <div id="action-btn" class="game-btn interactive">
+                    <div>互動</div>
+                    <div class="text-xs opacity-50">空白鍵</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="task-ui" class="hidden">
+        <div id="task-title" class="text-sky-300 font-bold text-lg mb-1">任務執行中</div>
+        <div id="task-desc" class="text-xs text-slate-400">請完成指示操作</div>
+        <div id="game-calibration" class="hidden w-full">
+            <div class="minigame-track mt-4">
+                <div id="minigame-target" class="minigame-target"></div>
+                <div id="minigame-cursor" class="minigame-cursor"></div>
+            </div>
+            <div class="progress-dots mt-4">
+                <div id="dot-1" class="dot"></div>
+                <div id="dot-2" class="dot"></div>
+                <div id="dot-3" class="dot"></div>
+            </div>
+            <div class="text-xs text-gray-500 mt-1">校準進度: <span id="minigame-stage">0</span>/3</div>
+        </div>
+        <div id="game-wires" class="hidden w-full">
+            <svg id="wire-svg"></svg>
+            <div id="wire-left" class="wire-column"></div>
+            <div id="wire-right" class="wire-column"></div>
+        </div>
+    </div>
+
+    <div id="map-modal" class="hidden">
+        <div id="map-container">
+            <div class="text-white font-bold text-center mb-2">太空站導航圖</div>
+            <canvas id="mapCanvas" width="400" height="400" class="bg-black/50 rounded border border-gray-700"></canvas>
+            <div class="text-xs text-gray-400 mt-2 text-center">點擊任意處或按 M 關閉</div>
+        </div>
+    </div>
+
+    <div id="start-screen" class="modal">
+        <div class="text-center p-4 max-w-lg w-full">
+            <h1 class="text-5xl sm:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300 mb-2 tracking-tighter filter drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]">太空狼人殺</h1>
+            <p class="text-slate-400 mb-6 text-xl tracking-widest uppercase">生存挑戰</p>
+            
+            <div id="main-menu" class="bg-slate-900/80 p-6 rounded-xl border border-slate-700 text-left mb-6 mx-auto w-full">
+                <p class="text-yellow-400 mb-3 font-bold border-b border-gray-700 pb-2">🎮 選擇模式</p>
+                <div class="mb-4">
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="gameMode" value="SURVIVAL" class="radio-input interactive" checked="">
+                            生存挑戰 (經典)
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="gameMode" value="HIDE_SEEK" class="radio-input interactive">
+                            捉迷藏 (限時)
+                        </label>
+                    </div>
+                </div>
+
+                <p class="text-yellow-400 mb-3 font-bold border-b border-gray-700 pb-2 mt-4">⚠️ 設定難度</p>
+                <div class="mb-4">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-gray-300">內鬼數量：</span>
+                        <span id="impostor-val" class="text-red-400 font-bold text-xl">1</span>
+                    </div>
+                    <input type="range" id="impostor-slider" min="1" max="10" value="1" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer interactive">
+                    <div class="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>簡單</span>
+                        <span>地獄</span>
+                    </div>
+                </div>
+
+                <div id="map-select-area" class="mb-4 border-t border-gray-700 pt-4">
+                    <p class="text-yellow-400 mb-2 font-bold">🗺️ 選擇地圖</p>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="mapType" value="FIXED" class="radio-input interactive" checked="">
+                            固定地圖 (太空站)
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="mapType" value="RANDOM" class="radio-input interactive">
+                            隨機地圖 (迷宮)
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="flex gap-4 justify-center mt-6">
+                    <button id="start-btn" class="px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold text-lg rounded-full shadow-lg transition-all transform hover:scale-105 active:scale-95">單人開始</button>
+                    <button id="download-btn" class="px-8 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-lg rounded-full shadow-lg transition-all transform hover:scale-105 active:scale-95">下載遊戲</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="pause-screen" class="modal hidden">
+        <h1 class="text-6xl font-black text-white mb-8 tracking-widest drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">遊戲暫停</h1>
+        <div class="flex flex-col gap-6 w-64">
+            <button id="resume-btn" class="px-8 py-4 border-2 border-blue-500 text-blue-400 hover:bg-blue-600 hover:text-white font-bold rounded-lg interactive transition-all text-xl shadow-[0_0_10px_rgba(59,130,246,0.5)]">繼續遊戲</button>
+            <button id="menu-btn" class="px-8 py-4 border-2 border-slate-500 text-slate-400 hover:bg-slate-600 hover:text-white font-bold rounded-lg interactive transition-all text-xl">回到主單</button>
+        </div>
+    </div>
+
+    <div id="game-over-screen" class="modal hidden">
+        <h1 class="text-6xl font-black text-red-600 mb-2 tracking-widest">任務失敗</h1>
+        <p class="text-red-200 text-xl mb-8" id="death-reason">你已被內鬼殺害</p>
+        <button id="retry-btn-loss" class="px-8 py-3 border-2 border-red-600 text-red-500 hover:bg-red-600 hover:text-white font-bold rounded-lg interactive transition-colors">重新開始</button>
+    </div>
+
+    <div id="victory-screen" class="modal hidden">
+        <h1 class="text-6xl font-black text-green-500 mb-2 tracking-widest">任務完成</h1>
+        <p class="text-green-200 text-xl mb-8" id="win-reason">所有系統已修復，逃生成功</p>
+        <button id="retry-btn-win" class="px-8 py-3 border-2 border-green-600 text-green-500 hover:bg-green-600 hover:text-white font-bold rounded-lg interactive transition-colors">再次挑戰</button>
+    </div>
+
+    <div id="kill-screen" class="modal hidden">
+        <h1 class="text-6xl font-black text-green-500 mb-2 tracking-widest">獵殺成功</h1>
+        <p class="text-green-200 text-xl mb-8">所有內鬼已被消滅</p>
+        <button id="retry-btn-kill" class="px-8 py-3 border-2 border-green-600 text-green-500 hover:bg-green-600 hover:text-white font-bold rounded-lg interactive transition-colors">再次挑戰</button>
+    </div>
+
+<script>
+// Game Globals
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d', { alpha: false });
+
+const TILE_SIZE = 50;
+const MAP_COLS = 50; 
+const MAP_ROWS = 50;
+const WORLD_WIDTH = MAP_COLS * TILE_SIZE;
+const WORLD_HEIGHT = MAP_ROWS * TILE_SIZE;
+const TOTAL_TASKS = 10;
+const NPC_COUNT = 15;
+
+const COLORS = {
+    BG: '#000000',
+    GRID: '#1a1a1a',
+    PLAYER_BODY: '#0ea5e9', 
+    PLAYER_DISGUISED: '#94a3b8', 
+    PLAYER_PHASE: '#6366f1', 
+    PLAYER_AVENGER: '#ef4444',
+    IMPOSTOR_BODY: '#ffffff', 
+    IMPOSTOR_STUNNED: '#555555',
+    IMPOSTOR_DEAD: '#333333',
+    IMPOSTOR_RED: '#ef4444', 
+    NPC_BODY: '#ffffff',      
+    WALL: '#475569', 
+    TASK_OFF: '#fbbf24',
+    TASK_ON: '#22c55e',
+    TELEPAD: '#d946ef',
+    PLAYER_INVINCIBLE: '#bef264',
+    PLAYER_SPIRIT: '#a78bfa',
+    PLAYER_SHELL: '#334155',
+    TRAP: '#b45309',
+    PLAYER_GHOST: 'rgba(255, 255, 255, 0.4)'
+};
+
+let gameState = 'MENU'; 
+let isPaused = false;
+let isMapOpen = false;
+let lastTime = 0;
+let camera = { x: 0, y: 0 };
+let stars = [];
+
+let activeSkills = new Set(); 
+let isAwakenedRole = false;
+let impostorCount = 1; 
+let mapType = 'FIXED'; 
+let gameMode = 'SURVIVAL'; 
+let survivalTimer = 300.0; 
+let maxSurvivalTime = 300.0;
+
+let telepads = [];
+let publicTelepads = [];
+let traps = []; 
+
+let player = { 
+    x: 0, y: 0, radius: 18, speed: 5.0, dead: false, facingRight: true,
+    scan: { state: 'READY', timer: 0, duration: 300, maxCooldown: 600 },
+    disguise: { state: 'READY', timer: 0, duration: 300, maxCooldown: 1200 },
+    sprint: { state: 'READY', stamina: 300, maxStamina: 300, speedBuff: 10.0, fatigue: 0 },
+    eagle: { state: 'READY', timer: 0, duration: 180, maxCooldown: 1200 },
+    alert: { state: 'READY', timer: 0, duration: 300, maxCooldown: 1200 }, 
+    wallwalk: { state: 'READY', timer: 0, duration: 600, maxCooldown: 1800 },
+    avenger: { state: 'READY', timer: 0, duration: 1200, maxCooldown: 3000 },
+    teleporter: { state: 'READY', timer: 0, maxCooldown: 600 },
+    repel: { state: 'READY', timer: 0, maxCooldown: 1800 }, 
+    swap: { state: 'READY', timer: 0, duration: 180, maxCooldown: 1500 }, 
+    spirit: { state: 'READY', timer: 0, duration: 600, bodyX: 0, bodyY: 0 }, 
+    gamble: { state: 'READY', charges: 3, maxCooldown: 60 }, 
+    trapper: { state: 'READY', timer: 0, maxCooldown: 1200 }, 
+    walkAnim: 0,
+    isInTeleport: false,
+    teleportTimer: 0,
+    currentPadIndex: -1,
+    publicTeleportsLeft: 5,
+    color: COLORS.PLAYER_BODY, 
+    lastX: 0, 
+    lastY: 0,
+    subClass: null, 
+    hasRevived: false 
+};
+
+let activeTaskType = null; 
+let exploredCells = new Set(); 
+let gameHistory = []; 
+const HISTORY_DURATION = 600; 
+
+let miniGame = {
+    cursorPos: 0,
+    direction: 1,
+    speed: 1.5,
+    targetStart: 40,
+    targetWidth: 20,
+    stage: 0,
+    active: false
+};
+
+let wireGame = {
+    colors: ['red', 'blue', 'yellow', 'pink'],
+    leftOrder: [],
+    rightOrder: [],
+    connections: [],
+    dragging: null,
+    currentMouse: { x: 0, y: 0 },
+    completedCount: 0
+};
+
+let impostors = [];
+let npcs = []; 
+
+const wallMap = new Uint8Array(MAP_COLS * MAP_ROWS);
+let tasks = []; 
+let nearestTask = null;
+let completedCount = 0;
+let currentTask = null;
+
+const keys = {};
+let joystick = { active: false, tx: 0, ty: 0, dx: 0, dy: 0 };
+let isActionPressed = false;
+let skillInput = {}; 
+let skillLocks = {};
+
+// --- Helper Functions ---
+function addWall(c, r) { 
+    if (c >= 0 && c < MAP_COLS && r >= 0 && r < MAP_ROWS) {
+        wallMap[c + r * MAP_COLS] = 1;
+    }
+}
+function removeWall(c, r) {
+    if (c >= 0 && c < MAP_COLS && r >= 0 && r < MAP_ROWS) {
+        wallMap[c + r * MAP_COLS] = 0;
+    }
+}
+function isWall(c, r) { 
+    if (c < 0 || c >= MAP_COLS || r < 0 || r >= MAP_ROWS) return true; 
+    return wallMap[c + r * MAP_COLS] === 1;
+}
+
+function checkCollision(x, y) {
+    if (x < 0 || x > WORLD_WIDTH || y < 0 || y > WORLD_HEIGHT) return true;
+    const margin = 12;
+    const points = [{x:x-margin, y:y-margin}, {x:x+margin, y:y-margin}, {x:x-margin, y:y+margin}, {x:x+margin, y:y+margin}];
+    for(let p of points) {
+        if (isWall(Math.floor(p.x/TILE_SIZE), Math.floor(p.y/TILE_SIZE))) return true;
+    }
+    return false;
+}
+
+function moveEntity(ent, dx, dy, ignoreCollision = false) {
+    if(ignoreCollision) {
+        if(ent.x + dx > 0 && ent.x + dx < WORLD_WIDTH) ent.x += dx;
+        if(ent.y + dy > 0 && ent.y + dy < WORLD_HEIGHT) ent.y += dy;
+        return;
+    }
+    if(!checkCollision(ent.x + dx, ent.y)) ent.x += dx;
+    if(!checkCollision(ent.x, ent.y + dy)) ent.y += dy;
+}
+
+function checkWallStuck() {
+    const c = Math.floor(player.x / TILE_SIZE);
+    const r = Math.floor(player.y / TILE_SIZE);
+    if(isWall(c, r)) {
+        let found = false;
+        let dist = 1;
+        while(!found && dist < 20) {
+            for(let rOff = -dist; rOff <= dist; rOff++) {
+                for(let cOff = -dist; cOff <= dist; cOff++) {
+                    if(Math.abs(rOff) === dist || Math.abs(cOff) === dist) {
+                        if(!isWall(c + cOff, r + rOff) && c+cOff > 0 && c+cOff < MAP_COLS && r+rOff > 0 && r+rOff < MAP_ROWS) {
+                            player.x = (c + cOff) * TILE_SIZE + TILE_SIZE/2;
+                            player.y = (r + rOff) * TILE_SIZE + TILE_SIZE/2;
+                            found = true;
+                            showNotification("⚠ 已傳送至安全區域");
+                            break;
+                        }
+                    }
+                }
+                if(found) break;
+            }
+            dist++;
+        }
+    }
+}
+
+function getRandomPoint() {
+    let spot = {x:0, y:0};
+    let found = false;
+    let tries = 0;
+    while(!found && tries < 500) {
+        const tx = Math.random() * (WORLD_WIDTH - 100) + 50;
+        const ty = Math.random() * (WORLD_HEIGHT - 100) + 50;
+        if(!isWall(Math.floor(tx/TILE_SIZE), Math.floor(ty/TILE_SIZE))) {
+            spot.x = tx;
+            spot.y = ty;
+            found = true;
+        }
+        tries++;
+    }
+    // Fallback if random fails (rare in this map)
+    if(!found) { spot.x = 25*TILE_SIZE; spot.y = 25*TILE_SIZE; }
+    return spot;
+}
+
+function getPointNearPlayer() {
+    let tries = 0;
+    while(tries < 20) {
+        const ang = Math.random() * Math.PI * 2;
+        const rad = Math.random() * 600;
+        const tx = player.x + Math.cos(ang) * rad;
+        const ty = player.y + Math.sin(ang) * rad;
+        if(tx > 0 && tx < WORLD_WIDTH && ty > 0 && ty < WORLD_HEIGHT) {
+             if(!isWall(Math.floor(tx/TILE_SIZE), Math.floor(ty/TILE_SIZE))) return {x: tx, y: ty};
+        }
+        tries++;
+    }
+    return getRandomPoint(); 
+}
+
+function bfsNextMove(startX, startY, targetX, targetY) {
+    const startC = Math.floor(startX / TILE_SIZE);
+    const startR = Math.floor(startY / TILE_SIZE);
+    const targetC = Math.floor(targetX / TILE_SIZE);
+    const targetR = Math.floor(targetY / TILE_SIZE);
+
+    if (startC === targetC && startR === targetR) return { x: targetX, y: targetY };
+
+    let queue = [{ c: startC, r: startR, path: [] }];
+    let visited = new Set();
+    visited.add(`${startC},${startR}`);
+    
+    let iterations = 0;
+    
+    while (queue.length > 0 && iterations < 500) {
+        let curr = queue.shift();
+        iterations++;
+        
+        if (curr.c === targetC && curr.r === targetR) {
+            if (curr.path.length > 0) {
+                return { x: curr.path[0].c * TILE_SIZE + TILE_SIZE/2, y: curr.path[0].r * TILE_SIZE + TILE_SIZE/2 };
+            }
+            return { x: targetX, y: targetY };
+        }
+
+        const dirs = [[0,1], [0,-1], [1,0], [-1,0]];
+        for(let d of dirs) {
+            let nc = curr.c + d[0];
+            let nr = curr.r + d[1];
+            if(nc >= 0 && nc < MAP_COLS && nr >= 0 && nr < MAP_ROWS) {
+                if(!visited.has(`${nc},${nr}`) && !isWall(nc, nr)) {
+                    visited.add(`${nc},${nr}`);
+                    let newPath = [...curr.path];
+                    if (newPath.length === 0) newPath.push({c: nc, r: nr}); 
+                    queue.push({c: nc, r: nr, path: newPath});
+                }
+            }
+        }
+    }
+    return { x: targetX, y: targetY };
+}
+
+function generateMap() {
+    wallMap.fill(0);
+    
+    if (mapType === 'FIXED') {
+        for(let c=0; c<MAP_COLS; c++) {
+            for(let r=0; r<MAP_ROWS; r++) {
+                addWall(c, r);
+            }
+        }
+        const carve = (c, r, w, h) => {
+            for(let x=c; x<c+w; x++) {
+                for(let y=r; y<r+h; y++) {
+                    removeWall(x, y); 
+                }
+            }
+        };
+
+        carve(22, 4, 6, 42);  
+        carve(4, 22, 42, 6);  
+        carve(20, 20, 10, 10); 
+        carve(8, 8, 34, 3);   
+        carve(8, 39, 34, 3);  
+        carve(8, 8, 3, 34);   
+        carve(39, 8, 3, 34);  
+        carve(3, 3, 4, 4);    
+        carve(13, 13, 6, 6);  
+        carve(43, 3, 4, 4);   
+        carve(31, 13, 6, 6);  
+        carve(3, 43, 4, 4);   
+        carve(13, 31, 6, 6);  
+        carve(43, 43, 4, 4);  
+        carve(31, 31, 6, 6);  
+        carve(8, 15, 14, 2);  
+        carve(28, 15, 14, 2); 
+        carve(8, 33, 14, 2);  
+        carve(28, 33, 14, 2); 
+        carve(15, 8, 2, 14);  
+        carve(33, 8, 2, 14);  
+        carve(15, 28, 2, 14); 
+        carve(33, 28, 2, 14); 
+        carve(6, 6, 3, 3);    
+        carve(41, 6, 3, 3);   
+        carve(6, 41, 3, 3);   
+        carve(41, 41, 3, 3);  
+        carve(18, 24, 2, 2);  
+        carve(30, 24, 2, 2);  
+        carve(24, 18, 2, 2);  
+        carve(24, 30, 2, 2);  
+        
+        // Ensure center is clear for spawn
+        removeWall(25, 25);
+        removeWall(24, 25);
+        
+        addWall(22, 22); addWall(27, 22); 
+        addWall(22, 27); addWall(27, 27);
+        
+        addWall(15, 15); addWall(35, 15);
+        addWall(15, 35); addWall(35, 35);
+
+    } else {
+        for(let c=0; c<MAP_COLS; c++) { addWall(c, 0); addWall(c, MAP_ROWS-1); }
+        for(let r=0; r<MAP_ROWS; r++) { addWall(0, r); addWall(MAP_COLS-1, r); }
+        for(let r=2; r<MAP_ROWS-2; r+=2) {
+            for(let c=2; c<MAP_COLS-2; c+=2) {
+                if(Math.random() > 0.65) {
+                    addWall(c, r); addWall(c+1, r); addWall(c, r+1); addWall(c+1, r+1);
+                }
+                if(Math.random() > 0.8) { addWall(c+2, r); addWall(c+2, r+1); }
+            }
+        }
+    }
+    
+    // Always carve out corners for public telepads and set their coordinates
+    const padSize = 3;
+    const offset = 1;
+    for (let r=offset; r<offset+padSize; r++) {
+        for (let c=offset; c<offset+padSize; c++) {
+            removeWall(c, r);
+            removeWall(MAP_COLS - 1 - c, r);
+            removeWall(c, MAP_ROWS - 1 - r);
+            removeWall(MAP_COLS - 1 - c, MAP_ROWS - 1 - r);
+        }
+    }
+    
+    publicTelepads = [
+        {x: (offset + padSize/2) * TILE_SIZE, y: (offset + padSize/2) * TILE_SIZE},
+        {x: (MAP_COLS - 1 - offset - padSize/2 + 0.5) * TILE_SIZE, y: (offset + padSize/2) * TILE_SIZE},
+        {x: (offset + padSize/2) * TILE_SIZE, y: (MAP_ROWS - 1 - offset - padSize/2 + 0.5) * TILE_SIZE},
+        {x: (MAP_COLS - 1 - offset - padSize/2 + 0.5) * TILE_SIZE, y: (MAP_ROWS - 1 - offset - padSize/2 + 0.5) * TILE_SIZE}
+    ];
+}
+
+function getConnectedRegion(startC, startR) {
+    let visited = new Set();
+    let queue = [{c: startC, r: startR}];
+    let result = [];
+    let startKey = `${startC},${startR}`;
+    visited.add(startKey);
+    result.push({c: startC, r: startR});
+    let head = 0;
+    while(head < queue.length) {
+        let curr = queue[head++];
+        const dirs = [[0,1], [0,-1], [1,0], [-1,0]];
+        for(let d of dirs) {
+            let nc = curr.c + d[0];
+            let nr = curr.r + d[1];
+            if(nc >= 0 && nc < MAP_COLS && nr >= 0 && nr < MAP_ROWS) {
+                let key = `${nc},${nr}`;
+                if(!visited.has(key) && !isWall(nc, nr)) {
+                    visited.add(key);
+                    queue.push({c: nc, r: nr});
+                    result.push({c: nc, r: nr});
+                }
+            }
+        }
+    }
+    return result;
+}
+
+// Slider Listener
+const slider = document.getElementById('impostor-slider');
+const valDisplay = document.getElementById('impostor-val');
+slider.addEventListener('input', (e) => {
+    impostorCount = parseInt(e.target.value);
+    valDisplay.innerText = impostorCount;
+});
+
+// Map Type Listener
+document.querySelectorAll('input[name="mapType"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+        mapType = e.target.value;
+        if (gameMode === 'HIDE_SEEK') {
+             if (mapType === 'RANDOM') {
+                 // Reset to Fixed visually? 
+             }
+        }
+    });
+});
+
+// Game Mode Listener
+document.querySelectorAll('input[name="gameMode"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+        gameMode = e.target.value;
+        const mapArea = document.getElementById('map-select-area');
+        if (gameMode === 'HIDE_SEEK') {
+            mapType = 'FIXED';
+            mapArea.classList.add('opacity-50', 'pointer-events-none');
+            // Force select fixed
+            document.querySelector('input[name="mapType"][value="FIXED"]').checked = true;
+        } else {
+            mapArea.classList.remove('opacity-50', 'pointer-events-none');
+        }
+    });
+});
+
+document.getElementById('start-btn').addEventListener('click', () => { 
+    document.getElementById('start-screen').classList.add('hidden'); 
+    init(); 
+    startGame(); 
+});
+
+// Added Download Listener
+document.getElementById('download-btn').addEventListener('click', () => {
+    const htmlContent = document.documentElement.outerHTML;
+    const blob = new Blob([htmlContent], {type: 'text/html'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = '太空狼人殺_生存挑戰.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+});
+
+function init() {
+    resize();
+    window.addEventListener('resize', resize);
+    
+    stars = [];
+    for(let i=0; i<300; i++) {
+        stars.push({
+            x: Math.random() * WORLD_WIDTH,
+            y: Math.random() * WORLD_HEIGHT,
+            size: Math.random() * 2 + 0.5,
+            alpha: Math.random() * 0.5 + 0.1
+        });
+    }
+    document.getElementById('mobile-controls').style.display = 'block';
+    requestAnimationFrame(loop);
+}
+
+function showNotification(text) {
+    const el = document.getElementById('notification');
+    el.innerText = text;
+    el.classList.add('show');
+    setTimeout(() => { el.classList.remove('show'); }, 3000);
+}
+
+function startGame() {
+    gameState = 'PLAY';
+    isPaused = false;
+    isMapOpen = false;
+    document.getElementById('pause-screen').classList.add('hidden');
+    document.getElementById('map-modal').classList.add('hidden');
+    completedCount = 0;
+    exploredCells.clear(); 
+    gameHistory = []; 
+    player.hasRevived = false; 
+    activeSkills.clear(); 
+    traps = []; 
+    player.publicTeleportsLeft = 5;
+    
+    // Reset all cooldowns first
+    const skillList = ['scan', 'disguise', 'sprint', 'eagle', 'alert', 'wallwalk', 'avenger', 'teleporter', 'repel', 'swap', 'spirit', 'gamble', 'trapper'];
+    skillList.forEach(key => {
+        if(player[key]) {
+            if (key === 'sprint') {
+                player.sprint.state = 'READY';
+                player.sprint.stamina = player.sprint.maxStamina;
+                player.sprint.fatigue = 0;
+            } else if (key === 'spirit') {
+                player.spirit.state = 'READY';
+                player.spirit.timer = 0;
+            } else if (key === 'gamble') {
+                player.gamble.state = 'COOLDOWN';
+                player.gamble.timer = player.gamble.maxCooldown;
+                player.gamble.charges = 3;
+            } else {
+                player[key].state = 'COOLDOWN';
+                player[key].timer = player[key].maxCooldown;
+            }
+        }
+    });
+
+    if (gameMode === 'HIDE_SEEK') {
+        survivalTimer = 300.0;
+        maxSurvivalTime = 300.0;
+        impostorCount = 1; 
+        mapType = 'FIXED';
+        isAwakenedRole = false;
+        player.subClass = null; // No subclasses in Hide & Seek
+        
+        showNotification("模式：捉迷藏！躲避紅色內鬼 5 分鐘 (300秒)！");
+    } else {
+        // Survival Mode: Assign Roles
+        const modes = ['SCAN', 'DISGUISE', 'SPRINT', 'EAGLE', 'ALERT', 'WALLWALK', 'AVENGER', 'TELEPORTER', 'REPEL', 'SWAP', 'SPIRIT', 'AWAKENED', 'GAMBLE', 'TRAPPER'];
+        const initialSkill = modes[Math.floor(Math.random() * modes.length)];
+        activeSkills.add(initialSkill);
+        isAwakenedRole = (initialSkill === 'AWAKENED');
+        
+        player.subClass = null;
+        if (Math.random() < 0.5) {
+            const subClasses = ['STEALTH', 'MAPPER', 'ONE_HIT', 'RUNNER']; 
+            player.subClass = subClasses[Math.floor(Math.random() * subClasses.length)];
+        }
+
+        // Show Notification based on Role
+        if(initialSkill === 'SCAN') showNotification("裝備：掃描器 (Q) - 偵測敵人");
+        else if(initialSkill === 'DISGUISE') showNotification("裝備：偽裝系統 (E) - 隱身迴避");
+        else if(initialSkill === 'SPRINT') showNotification("裝備：極速衝刺 (Shift) - 按住加速");
+        else if(initialSkill === 'EAGLE') showNotification("裝備：鷹眼 (R) - 全圖視野");
+        else if(initialSkill === 'ALERT') showNotification("裝備：警戒 (F) - 護盾反殺");
+        else if(initialSkill === 'WALLWALK') showNotification("裝備：穿牆術 (G) - 自由穿梭");
+        else if(initialSkill === 'AVENGER') showNotification("裝備：反殺者 (T) - 獵殺內鬼");
+        else if(initialSkill === 'TELEPORTER') showNotification("裝備：傳送師 (H) - 空間跳躍");
+        else if(initialSkill === 'REPEL') showNotification("裝備：別過來 (V) - 彈飛敵人");
+        else if(initialSkill === 'SWAP') showNotification("裝備：隨機傳送 (C) - 換位無敵");
+        else if(initialSkill === 'SPIRIT') showNotification("裝備：靈魂出竅 (B) - 穿牆/無敵/限時");
+        else if(initialSkill === 'GAMBLE') showNotification("職業：賭徒 (J) - 生死一瞬間");
+        else if(initialSkill === 'TRAPPER') showNotification("職業：設陷者 (K) - 放置陷阱捕捉內鬼");
+        else if(initialSkill === 'AWAKENED') showNotification("身分：覺醒者 - 完成3個任務以覺醒能力");
+
+        if (player.subClass === 'RUNNER') {
+            setTimeout(() => {
+                showNotification("【副職業】逃跑者：看見內鬼時腎上腺素爆發(加速)");
+            }, 1500);
+        }
+    }
+
+    player.walkAnim = 0;
+    player.isInTeleport = false;
+    player.teleportTimer = 0;
+    player.dead = false; 
+    telepads = [];
+    
+    updateHUD();
+    generateMap();
+    spawnEntities();
+    updateAbilities(); 
+    lastTime = performance.now();
+}
+
+function spawnEntities() {
+    let validCoords = [];
+    if (mapType === 'FIXED') {
+        validCoords = getConnectedRegion(25, 25);
+    } else {
+        let attempts = 0;
+        while(validCoords.length < 500 && attempts < 100) {
+            let seedC = Math.floor(Math.random() * (MAP_COLS-2)) + 1;
+            let seedR = Math.floor(Math.random() * (MAP_ROWS-2)) + 1;
+            if(!isWall(seedC, seedR)) validCoords = getConnectedRegion(seedC, seedR);
+            attempts++;
+        }
+    }
+    if(validCoords.length < 50) {
+         for(let r=20; r<30; r++) for(let c=20; c<30; c++) {
+            wallSet.delete(`${c},${r}`);
+            validCoords.push({c,r});
+        }
+    }
+
+    const pickSpot = (minDist = 0, refX = 0, refY = 0) => {
+        let spot = {x:0, y:0};
+        let found = false;
+        let tries = 0;
+        while(!found && tries < 500) {
+            const rnd = validCoords[Math.floor(Math.random() * validCoords.length)];
+            const tx = rnd.c * TILE_SIZE + TILE_SIZE/2;
+            const ty = rnd.r * TILE_SIZE + TILE_SIZE/2;
+            if(minDist > 0) {
+                if(Math.hypot(tx - refX, ty - refY) > minDist) { spot.x = tx; spot.y = ty; found = true; }
+            } else { spot.x = tx; spot.y = ty; found = true; }
+            tries++;
+        }
+        if(!found && validCoords.length > 0) { 
+            const f = validCoords[0]; 
+            spot.x = f.c*TILE_SIZE+TILE_SIZE/2; 
+            spot.y = f.r*TILE_SIZE+TILE_SIZE/2; 
+        }
+        return spot;
+    };
+
+    const pSpot = pickSpot();
+    player.x = pSpot.x;
+    player.y = pSpot.y;
+    player.lastX = pSpot.x;
+    player.lastY = pSpot.y;
+    
+    impostors = [];
+    for(let i=0; i<impostorCount; i++) {
+        const iSpot = pickSpot(600, player.x, player.y);
+        impostors.push({
+            x: iSpot.x, y: iSpot.y, radius: 20, speed: 15.0, // 內鬼速度調整為玩家(5.0)的 3 倍
+            state: 'patrol', target: getRandomPoint(), 
+            waitTimer: 0, stuckTimer: 0, stunTimer: 0, 
+            isDead: false,
+            lastPos: {x: iSpot.x, y: iSpot.y},
+            walkAnim: 0,
+            lastX: iSpot.x,
+            lastY: iSpot.y,
+            freezeTimer: (gameMode === 'HIDE_SEEK') ? 600 : 0, 
+            isTrapped: false
+        });
+    }
+
+    tasks = [];
+    for(let i=0; i<TOTAL_TASKS; i++) {
+        let tSpot;
+        let valid = false;
+        let attempts = 0;
+        while(!valid && attempts < 100) {
+            tSpot = pickSpot(200, player.x, player.y);
+            let overlaps = false;
+            for(let existingTask of tasks) {
+                if(Math.hypot(tSpot.x - existingTask.x, tSpot.y - existingTask.y) < 60) {
+                    overlaps = true;
+                    break;
+                }
+            }
+            if(!overlaps) valid = true;
+            attempts++;
+        }
+        tasks.push({x: tSpot.x, y: tSpot.y, id: i, completed: false});
+    }
+
+    npcs = [];
+    for(let i=0; i<NPC_COUNT; i++) {
+        const nSpot = pickSpot(100, player.x, player.y);
+        npcs.push({
+            x: nSpot.x, y: nSpot.y, target: getRandomPoint(),
+            waitTimer: Math.random() * 60, speed: 2.0 + Math.random(), facingRight: true,
+            walkAnim: 0,
+            lastX: nSpot.x,
+            lastY: nSpot.y,
+            taskTarget: null,
+            taskTimer: 0,
+            isDead: false
+        });
+    }
+    
+    const maxTaskEl = document.getElementById('max-task-count');
+    if (maxTaskEl) maxTaskEl.innerText = TOTAL_TASKS;
+}
+
+const FIXED_STEP = 1000 / 60;
+let accumulator = 0;
+
+function lerp(start, end, t) {
+    return start * (1 - t) + end * t;
+}
+
+function saveLastState() {
+    player.lastX = player.x;
+    player.lastY = player.y;
+    impostors.forEach(imp => { imp.lastX = imp.x; imp.lastY = imp.y; });
+    npcs.forEach(npc => { npc.lastX = npc.x; npc.lastY = npc.y; });
+}
+
+function recordGameState() {
+    const snapshot = {
+        player: { x: player.x, y: player.y },
+        impostors: impostors.map(i => ({ x: i.x, y: i.y })),
+        npcs: npcs.map(n => ({ x: n.x, y: n.y }))
+    };
+    gameHistory.push(snapshot);
+    if (gameHistory.length > HISTORY_DURATION) {
+        gameHistory.shift();
+    }
+}
+
+function triggerTimeRewind() {
+    if (gameHistory.length === 0) return;
+    const pastState = gameHistory[0];
+    
+    player.x = pastState.player.x;
+    player.y = pastState.player.y;
+    player.lastX = player.x;
+    player.lastY = player.y;
+    
+    impostors.forEach((imp, i) => {
+        if (pastState.impostors[i]) {
+            imp.x = pastState.impostors[i].x;
+            imp.y = pastState.impostors[i].y;
+            imp.lastX = imp.x;
+            imp.lastY = imp.y;
+        }
+    });
+
+    npcs.forEach((npc, i) => {
+        if (pastState.npcs[i]) {
+            npc.x = pastState.npcs[i].x;
+            npc.y = pastState.npcs[i].y;
+            npc.lastX = npc.x;
+            npc.lastY = npc.y;
+        }
+    });
+    
+    gameHistory = [];
+    showNotification("💥 觸發被動：時光倒流 (10秒前)！");
+}
+
+function loop(timestamp) {
+    let dt = timestamp - lastTime;
+    lastTime = timestamp;
+    
+    if (dt > 1000) dt = 1000;
+    
+    accumulator += dt;
+
+    let updates = 0;
+    while (accumulator >= FIXED_STEP && updates < 5) { 
+        if (!isPaused && (gameState === 'PLAY' || gameState === 'TASK')) {
+            saveLastState();
+            recordGameState(); 
+            update();
+        }
+        accumulator -= FIXED_STEP;
+        updates++;
+    }
+    
+    const alpha = accumulator / FIXED_STEP;
+
+    if (isMapOpen) drawMap();
+    draw(alpha);
+    requestAnimationFrame(loop);
+}
+
+function update() {
+    let mx = 0, my = 0;
+
+    if(keys['w'] || keys['arrowup']) my = -1;
+    if(keys['s'] || keys['arrowdown']) my = 1;
+    if(keys['a'] || keys['arrowleft']) mx = -1;
+    if(keys['d'] || keys['arrowright']) mx = 1;
+    if(joystick.active) {
+        mx = joystick.dx / 50; my = joystick.dy / 50;
+        const len = Math.hypot(mx, my);
+        if(len > 1) { mx /= len; my /= len; }
+    }
+
+    if (player.subClass === 'MAPPER') {
+        const pc = Math.floor(player.x / TILE_SIZE);
+        const pr = Math.floor(player.y / TILE_SIZE);
+        const radius = 4;
+        for(let r = pr - radius; r <= pr + radius; r++) {
+            for(let c = pc - radius; c <= pc + radius; c++) {
+                if (c >= 0 && c < MAP_COLS && r >= 0 && r < MAP_ROWS) {
+                    if (Math.hypot(c - pc, r - pr) <= radius) {
+                        exploredCells.add(`${c},${r}`);
+                    }
+                }
+            }
+        }
+    }
+
+    if (gameState === 'TASK') {
+        if (Math.abs(mx) > 0.1 || Math.abs(my) > 0.1) {
+            cancelTask();
+        } else {
+            if (activeTaskType === 'CALIBRATION') {
+                updateCalibrationGame();
+            }
+        }
+    }
+    
+    if (gameState === 'PLAY' || gameState === 'TASK') {
+        if (gameMode === 'HIDE_SEEK') {
+            survivalTimer -= (FIXED_STEP / 1000);
+            updateHUD();
+            if (survivalTimer <= 0) {
+                document.getElementById('win-reason').innerText = "時間到！躲藏者獲勝！";
+                endGame('WIN');
+                return;
+            }
+        }
+
+        if (player.isInTeleport) {
+            player.teleportTimer -= (FIXED_STEP / 1000) * 60;
+            if (player.teleportTimer <= 0) {
+                player.isInTeleport = false; 
+                showNotification("傳送陣失效，強制現身！");
+            }
+
+            if (telepads.length > 1) {
+                if (keys['d'] || keys['arrowright'] || keys['w'] || keys['arrowup']) {
+                    if (!keys.lock) {
+                        player.currentPadIndex = (player.currentPadIndex + 1) % telepads.length;
+                        keys.lock = true;
+                    }
+                } else if (keys['a'] || keys['arrowleft'] || keys['s'] || keys['arrowdown']) {
+                    if (!keys.lock) {
+                        player.currentPadIndex = (player.currentPadIndex - 1 + telepads.length) % telepads.length;
+                        keys.lock = true;
+                    }
+                } else if (joystick.active) {
+                     if (!keys.lock) {
+                        player.currentPadIndex = (player.currentPadIndex + 1) % telepads.length;
+                        keys.lock = true;
+                     }
+                } else {
+                    keys.lock = false;
+                }
+                
+                const target = telepads[player.currentPadIndex];
+                player.x = target.x;
+                player.y = target.y;
+            }
+        } else {
+            if (mx !== 0 || my !== 0 && !joystick.active) {
+                const len = Math.hypot(mx, my);
+                if (len > 0) { mx /= len; my /= len; }
+            }
+            
+            if (mx !== 0) player.facingRight = mx > 0;
+
+            if (mx !== 0 || my !== 0) {
+                player.walkAnim += 0.25;
+            } else {
+                player.walkAnim = 0;
+            }
+            
+            let currentSpeed = player.speed;
+            if (player.subClass === 'RUNNER') {
+                let impostorInSight = false;
+                for(let imp of impostors) {
+                     if (!imp.isDead && imp.stunTimer <= 0) {
+                         const d = Math.hypot(imp.x - player.x, imp.y - player.y);
+                         if (d < 600) { 
+                             impostorInSight = true;
+                             break;
+                         }
+                     }
+                }
+                if (impostorInSight) currentSpeed = 6.0;
+            }
+
+            if(activeSkills.has('SPRINT')) {
+                let isSprintPressed = keys['shift'] || skillInput['SPRINT'];
+                
+                if (player.sprint.fatigue > 0) {
+                    player.sprint.fatigue--;
+                    player.sprint.state = 'COOLDOWN';
+                } else if (!isSprintPressed && player.sprint.stamina < player.sprint.maxStamina) {
+                    player.sprint.stamina += 1;
+                    player.sprint.state = 'READY';
+                }
+
+                if (isSprintPressed && player.sprint.fatigue <= 0) {
+                    if (player.sprint.stamina > 0) {
+                        player.sprint.state = 'ACTIVE';
+                        player.sprint.stamina -= 2; 
+                        currentSpeed = player.sprint.speedBuff;
+                    } else {
+                        player.sprint.fatigue = 120; 
+                        player.sprint.state = 'COOLDOWN';
+                    }
+                }
+            }
+
+            let ignoreCollision = (activeSkills.has('WALLWALK') && player.wallwalk.state === 'ACTIVE');
+            if (activeSkills.has('SPIRIT') && player.spirit.state === 'ACTIVE') ignoreCollision = true;
+            
+            if (Math.abs(mx) > 0.01 || Math.abs(my) > 0.01) {
+                moveEntity(player, mx * currentSpeed, my * currentSpeed, ignoreCollision);
+            }
+            if (gameState === 'PLAY') {
+                processActiveSkills();
+            }
+            checkTasks();
+        }
+
+        let targetX = player.x - canvas.width / 2;
+        let targetY = player.y - canvas.height / 2;
+        targetX = Math.max(0, Math.min(targetX, WORLD_WIDTH - canvas.width));
+        targetY = Math.max(0, Math.min(targetY, WORLD_HEIGHT - canvas.height));
+        
+        camera.x += (targetX - camera.x) * 0.15;
+        camera.y += (targetY - camera.y) * 0.15;
+        
+        updateImpostors();
+        updateSkillLogic();
+        updateNPCs();
+        updateTraps();
+        updateAbilities();
+    }
+}
+
+function updateSkillLogic() {
+    if (activeSkills.has('SPIRIT')) {
+        const s = player.spirit;
+        if (s.state === 'ACTIVE') {
+            s.timer--;
+            if (s.timer <= 0) {
+                document.getElementById('death-reason').innerText = "魂飛魄散（靈魂出竅超時）";
+                endGame('LOSS');
+            }
+        }
+    }
+
+    const skillList = ['scan', 'disguise', 'eagle', 'alert', 'wallwalk', 'avenger', 'teleporter', 'repel', 'swap', 'gamble', 'trapper'];
+    skillList.forEach(key => {
+        if (player[key]) {
+            const s = player[key];
+            if (s.state === 'ACTIVE') {
+                s.timer--;
+                if (s.timer <= 0) {
+                    s.state = 'COOLDOWN';
+                    s.timer = isAwakenedRole ? s.maxCooldown / 2 : s.maxCooldown;
+                    if (key === 'wallwalk') checkWallStuck();
+                }
+            } else if (s.state === 'COOLDOWN') {
+                s.timer--;
+                if (s.timer <= 0) {
+                    s.state = 'READY';
+                }
+            }
+        }
+    });
+}
+
+function processActiveSkills() {
+    const SKILL_KEYS = {
+        'SCAN': 'q',
+        'DISGUISE': 'e',
+        'EAGLE': 'r',
+        'ALERT': 'f',
+        'WALLWALK': 'g',
+        'AVENGER': 't',
+        'TELEPORTER': 'h',
+        'REPEL': 'v',
+        'SWAP': 'c',
+        'SPIRIT': 'b',
+        'GAMBLE': 'j',
+        'TRAPPER': 'k'
+    };
+
+    activeSkills.forEach(skillName => {
+        if (skillName === 'SPRINT') return;
+
+        let key = SKILL_KEYS[skillName];
+        let isPressed = keys[key] || skillInput[skillName];
+
+        if (isPressed) {
+            if (!skillLocks[skillName]) {
+                activateSkillLogic(skillName);
+                skillLocks[skillName] = true;
+            }
+        } else {
+            skillLocks[skillName] = false;
+        }
+    });
+}
+
+function activateSkillLogic(selectedSkill) {
+    let skillObj = null;
+    if(selectedSkill === 'SCAN') skillObj = player.scan;
+    else if(selectedSkill === 'DISGUISE') skillObj = player.disguise;
+    else if(selectedSkill === 'EAGLE') skillObj = player.eagle;
+    else if(selectedSkill === 'ALERT') skillObj = player.alert;
+    else if(selectedSkill === 'WALLWALK') skillObj = player.wallwalk;
+    else if(selectedSkill === 'AVENGER') skillObj = player.avenger;
+    else if(selectedSkill === 'TELEPORTER') skillObj = player.teleporter;
+    else if(selectedSkill === 'REPEL') skillObj = player.repel;
+    else if(selectedSkill === 'SWAP') skillObj = player.swap;
+    else if(selectedSkill === 'SPIRIT') skillObj = player.spirit;
+    else if(selectedSkill === 'GAMBLE') skillObj = player.gamble;
+    else if(selectedSkill === 'TRAPPER') skillObj = player.trapper;
+
+    if(skillObj) {
+        if(selectedSkill === 'TELEPORTER') {
+            if(skillObj.state === 'READY') {
+                telepads.push({x: player.x, y: player.y});
+                if(telepads.length > 4) telepads.shift(); 
+                showNotification("傳送陣已設置 (" + telepads.length + "/4)");
+                
+                skillObj.state = 'COOLDOWN'; 
+                skillObj.timer = isAwakenedRole ? skillObj.maxCooldown / 2 : skillObj.maxCooldown;
+            }
+        } else if (selectedSkill === 'REPEL') {
+            if(skillObj.state === 'READY') {
+                const range = 250; 
+                const entities = [...impostors, ...npcs];
+                let hit = false;
+                
+                entities.forEach(ent => {
+                    const dist = Math.hypot(player.x - ent.x, player.y - ent.y);
+                    if (dist < range) {
+                        hit = true;
+                        const corners = [
+                            {x: TILE_SIZE, y: TILE_SIZE}, 
+                            {x: WORLD_WIDTH - TILE_SIZE, y: TILE_SIZE},
+                            {x: TILE_SIZE, y: WORLD_HEIGHT - TILE_SIZE},
+                            {x: WORLD_WIDTH - TILE_SIZE, y: WORLD_HEIGHT - TILE_SIZE}
+                        ];
+                        
+                        let maxD = -1;
+                        let target = corners[0];
+                        
+                        corners.forEach(c => {
+                            const d = Math.hypot(player.x - c.x, player.y - c.y);
+                            if (d > maxD) {
+                                maxD = d;
+                                target = c;
+                            }
+                        });
+                        
+                        if (isWall(Math.floor(target.x/TILE_SIZE), Math.floor(target.y/TILE_SIZE))) {
+                            let safe = getRandomPoint();
+                            ent.x = safe.x;
+                            ent.y = safe.y;
+                        } else {
+                            ent.x = target.x;
+                            ent.y = target.y;
+                        }
+                    }
+                });
+                
+                if (hit) showNotification("敵人已彈飛！");
+                else showNotification("周圍沒有目標");
+
+                skillObj.state = 'COOLDOWN'; 
+                skillObj.timer = isAwakenedRole ? skillObj.maxCooldown / 2 : skillObj.maxCooldown;
+            }
+
+        } else if (selectedSkill === 'SWAP') {
+            if(skillObj.state === 'READY') {
+                if (npcs.length > 0) {
+                    const targetNPC = npcs[Math.floor(Math.random() * npcs.length)];
+                    
+                    const tempX = player.x;
+                    const tempY = player.y;
+                    player.x = targetNPC.x;
+                    player.y = targetNPC.y;
+                    targetNPC.x = tempX;
+                    targetNPC.y = tempY;
+                    
+                    showNotification("位置交換！獲得3秒無敵！");
+                    skillObj.state = 'ACTIVE'; 
+                    skillObj.timer = skillObj.duration;
+                } else {
+                    showNotification("無可交換目標！");
+                }
+            }
+        } else if (selectedSkill === 'SPIRIT') {
+             if (skillObj.state === 'READY') {
+                 skillObj.state = 'ACTIVE';
+                 skillObj.timer = skillObj.duration;
+                 skillObj.bodyX = player.x;
+                 skillObj.bodyY = player.y;
+                 showNotification("靈魂出竅！10秒內必須回魂！");
+                 
+                 skillInput['SPIRIT'] = false; 
+             } else if (skillObj.state === 'ACTIVE') {
+                 player.x = skillObj.bodyX;
+                 player.y = skillObj.bodyY;
+                 player.lastX = player.x;
+                 player.lastY = player.y;
+                 
+                 skillObj.state = 'READY'; 
+                 showNotification("回魂成功！");
+                 
+                 skillInput['SPIRIT'] = false; 
+             }
+        } else if (selectedSkill === 'GAMBLE') {
+            if (skillObj.state === 'READY' && skillObj.charges > 0) {
+                skillObj.charges--;
+                skillObj.state = 'COOLDOWN'; 
+                skillObj.timer = skillObj.maxCooldown;
+
+                if (Math.random() < 0.5) {
+                    document.getElementById('death-reason').innerText = "賭徒的末路（賭博失敗）";
+                    endGame('LOSS');
+                } else {
+                    const possibleSkills = ['SCAN', 'DISGUISE', 'SPRINT', 'EAGLE', 'ALERT', 'WALLWALK', 'AVENGER', 'TELEPORTER', 'REPEL', 'SWAP', 'SPIRIT', 'TRAPPER'];
+                    const newSkill = possibleSkills[Math.floor(Math.random() * possibleSkills.length)];
+                    
+                    activeSkills.add(newSkill);
+                    
+                    let skillText = "";
+                    if(newSkill === 'SCAN') skillText = "獲得技能：掃描器";
+                    else if(newSkill === 'DISGUISE') skillText = "獲得技能：偽裝系統";
+                    else if(newSkill === 'SPRINT') skillText = "獲得技能：極速衝刺";
+                    else if(newSkill === 'EAGLE') skillText = "獲得技能：鷹眼";
+                    else if(newSkill === 'ALERT') skillText = "獲得技能：警戒";
+                    else if(newSkill === 'WALLWALK') skillText = "獲得技能：穿牆術";
+                    else if(newSkill === 'AVENGER') skillText = "獲得技能：反殺者";
+                    else if(newSkill === 'TELEPORTER') skillText = "獲得技能：傳送師";
+                    else if(newSkill === 'REPEL') skillText = "獲得技能：別過來";
+                    else if(newSkill === 'SWAP') skillText = "獲得技能：隨機傳送";
+                    else if(newSkill === 'SPIRIT') skillText = "獲得技能：靈魂出竅";
+                    else if(newSkill === 'TRAPPER') skillText = "獲得技能：設陷者";
+
+                    showNotification(`賭博大成功！${skillText}`);
+                    
+                    const newSkillKey = newSkill.toLowerCase();
+                    if(player[newSkillKey]) {
+                        player[newSkillKey].state = 'READY';
+                        player[newSkillKey].timer = 0;
+                        if (newSkill === 'SPRINT') player[newSkillKey].stamina = player[newSkillKey].maxStamina;
+                    }
+                }
+            }
+        } else if (selectedSkill === 'TRAPPER') {
+            if(skillObj.state === 'READY') {
+                traps.push({
+                    x: player.x,
+                    y: player.y,
+                    active: true,
+                    victim: null,
+                    timer: 0
+                });
+                showNotification("陷阱已放置！");
+                skillObj.state = 'COOLDOWN';
+                skillObj.timer = isAwakenedRole ? skillObj.maxCooldown / 2 : skillObj.maxCooldown;
+            }
+        } else {
+            if(skillObj.state === 'READY') {
+                skillObj.state = 'ACTIVE';
+                skillObj.timer = skillObj.duration;
+            }
+        }
+    }
+}
+
+function updateAbilities() {
+    const skills = [
+        { id: 'SCAN', obj: player.scan, btn: 'scan-btn', txt: 'scan-cd-text', label: 'Q' },
+        { id: 'DISGUISE', obj: player.disguise, btn: 'disguise-btn', txt: 'disguise-cd-text', label: 'E' },
+        { id: 'SPRINT', obj: player.sprint, btn: 'sprint-btn', txt: 'sprint-cd-text', label: 'Shf' },
+        { id: 'EAGLE', obj: player.eagle, btn: 'eagle-btn', txt: 'eagle-cd-text', label: 'R' },
+        { id: 'ALERT', obj: player.alert, btn: 'alert-btn', txt: 'alert-cd-text', label: 'F' },
+        { id: 'WALLWALK', obj: player.wallwalk, btn: 'wallwalk-btn', txt: 'wallwalk-cd-text', label: 'G' },
+        { id: 'AVENGER', obj: player.avenger, btn: 'avenger-btn', txt: 'avenger-cd-text', label: 'T' },
+        { id: 'TELEPORTER', obj: player.teleporter, btn: 'teleporter-btn', txt: 'teleporter-cd-text', label: 'H' },
+        { id: 'REPEL', obj: player.repel, btn: 'repel-btn', txt: 'repel-cd-text', label: 'V' },
+        { id: 'SWAP', obj: player.swap, btn: 'swap-btn', txt: 'swap-cd-text', label: 'C' },
+        { id: 'SPIRIT', obj: player.spirit, btn: 'spirit-btn', txt: 'spirit-cd-text', label: 'B' },
+        { id: 'GAMBLE', obj: player.gamble, btn: 'gamble-btn', txt: 'gamble-cd-text', label: 'J' },
+        { id: 'TRAPPER', obj: player.trapper, btn: 'trapper-btn', txt: 'trap-cd-text', label: 'K' } 
+    ];
+
+    const btns = ['scan-btn', 'disguise-btn', 'sprint-btn', 'eagle-btn', 'alert-btn', 'wallwalk-btn', 'avenger-btn', 'teleporter-btn', 'repel-btn', 'swap-btn', 'spirit-btn', 'gamble-btn', 'trapper-btn'];
+    btns.forEach(id => document.getElementById(id).style.display = 'none');
+
+    let activeList = skills.filter(s => activeSkills.has(s.id));
+    
+    activeList.forEach((s, index) => {
+        const btn = document.getElementById(s.btn);
+        const txt = document.getElementById(s.txt);
+        
+        btn.style.display = 'flex';
+        
+        let col = (index % 3) + 1;
+        let row = 2 - Math.floor(index / 3); 
+        
+        if (row < 1) row = 1; 
+        
+        btn.style.gridColumn = col;
+        btn.style.gridRow = row;
+
+        if (s.id === 'SPIRIT') {
+            if (s.obj.state === 'ACTIVE') {
+                 btn.className = 'game-btn active-state interactive danger-state';
+                 btn.firstElementChild.innerText = '回魂';
+                 txt.innerText = (s.obj.timer/60).toFixed(1);
+            } else {
+                 btn.className = 'game-btn ready interactive';
+                 btn.firstElementChild.innerText = '出竅';
+                 txt.innerText = s.label;
+            }
+            return;
+        }
+
+        if (s.id === 'GAMBLE') {
+            if(s.obj.state === 'COOLDOWN') {
+                btn.className = 'game-btn cooldown interactive';
+            } else {
+                btn.className = 'game-btn ready interactive';
+            }
+            txt.innerText = `x${s.obj.charges}`;
+            return;
+        }
+
+        if(s.id === 'TELEPORTER' || s.id === 'REPEL' || s.id === 'TRAPPER') {
+            if(s.obj.state === 'COOLDOWN') {
+                btn.className = 'game-btn cooldown interactive';
+                txt.innerText = Math.ceil(s.obj.timer/60);
+            } else {
+                btn.className = 'game-btn ready interactive';
+                txt.innerText = s.label;
+            }
+            return;
+        }
+
+        if(s.id === 'SPRINT') {
+            if(s.obj.state === 'COOLDOWN') {
+                btn.className = 'game-btn cooldown interactive';
+                txt.innerText = "累";
+            } else if(s.obj.state === 'ACTIVE') {
+                btn.className = 'game-btn active-state interactive';
+                txt.innerText = Math.ceil((s.obj.stamina/s.obj.maxStamina)*100) + "%";
+            } else {
+                btn.className = 'game-btn ready interactive';
+                txt.innerText = Math.ceil((s.obj.stamina/s.obj.maxStamina)*100) + "%";
+            }
+            return;
+        }
+
+        if(s.obj.state === 'ACTIVE') {
+            btn.className = 'game-btn active-state interactive';
+            txt.innerText = (s.obj.timer/60).toFixed(1);
+        } else if(s.obj.state === 'COOLDOWN') {
+            btn.className = 'game-btn cooldown interactive';
+            txt.innerText = Math.ceil(s.obj.timer/60);
+        } else {
+            btn.className = 'game-btn ready interactive';
+            txt.innerText = s.label;
+        }
+    });
+}
+
+function updateTraps() {
+    for (let i = traps.length - 1; i >= 0; i--) {
+        const trap = traps[i];
+        if (trap.victim) {
+            trap.timer++;
+            const victim = trap.victim;
+            let rescued = false;
+            for(let otherImp of impostors) {
+                if (otherImp !== victim && !otherImp.isDead) {
+                    if (Math.hypot(otherImp.x - trap.x, otherImp.y - trap.y) < 50) {
+                        rescued = true;
+                        break;
+                    }
+                }
+            }
+            if (!rescued) {
+                for(let npc of npcs) {
+                    if (Math.hypot(npc.x - trap.x, npc.y - trap.y) < 50) {
+                        rescued = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (rescued) {
+                showNotification("內鬼已被救出！");
+                victim.isTrapped = false;
+                trap.active = false;
+                traps.splice(i, 1);
+                continue;
+            }
+            
+            if (trap.timer > 300) { 
+                victim.isDead = true;
+                victim.isTrapped = false;
+                showNotification("陷阱處決成功！");
+                if (Math.random() < 0.3) {
+                    trap.victim = null;
+                    trap.timer = 0;
+                    trap.active = true;
+                    showNotification("陷阱自動重置！");
+                } else {
+                    traps.splice(i, 1);
+                }
+            }
+        } else {
+            for(let imp of impostors) {
+                if (!imp.isDead && !imp.isTrapped) {
+                    if (Math.hypot(imp.x - trap.x, imp.y - trap.y) < 20) {
+                        imp.isTrapped = true;
+                        trap.victim = imp;
+                        trap.timer = 0;
+                        showNotification("內鬼踩到陷阱了！");
+                        break; 
+                    }
+                }
+            }
+        }
+    }
+}
+
+function updateImpostors() {
+    let activeImpostors = impostors.filter(imp => !imp.isDead);
+
+    if (gameMode !== 'HIDE_SEEK' && activeImpostors.length === 0) {
+        endGame('KILL');
+        return;
+    }
+
+    let detectionRange = 600;
+    if (player.subClass === 'STEALTH') {
+        detectionRange = 350; 
+    }
+    
+    activeImpostors.forEach(impostor => {
+        if (impostor.isTrapped) return;
+        if (impostor.freezeTimer > 0) { 
+            impostor.freezeTimer--; 
+            return; 
+        }
+        if (impostor.stunTimer > 0) { impostor.stunTimer--; impostor.walkAnim = 0; return; }
+
+        let target = null;
+        let minDist = Infinity;
+        
+        let potentialTargets = [];
+        if (!player.dead) potentialTargets.push({entity: player, x: player.x, y: player.y, isPlayer: true});
+        npcs.forEach(n => { if(!n.isDead) potentialTargets.push({entity: n, x: n.x, y: n.y, isPlayer: false}); });
+        
+        potentialTargets.forEach(t => {
+            const d = Math.hypot(t.x - impostor.x, t.y - impostor.y);
+            if (d < minDist) {
+                minDist = d;
+                target = t;
+            }
+        });
+
+        if (gameMode === 'HIDE_SEEK') {
+            if (target) {
+                if (!impostor.pathTimer) impostor.pathTimer = 0;
+                impostor.pathTimer++;
+                
+                let moveTarget = {x: target.x, y: target.y};
+                
+                if (impostor.pathTimer > 10) { 
+                     impostor.pathTimer = 0;
+                     let nextStep = bfsNextMove(impostor.x, impostor.y, target.x, target.y);
+                     impostor.bfsTarget = nextStep;
+                }
+                
+                if (impostor.bfsTarget) {
+                     moveTarget = impostor.bfsTarget;
+                }
+                
+                const angle = Math.atan2(moveTarget.y - impostor.y, moveTarget.x - impostor.x);
+                const idx = Math.cos(angle) * impostor.speed;
+                const idy = Math.sin(angle) * impostor.speed;
+                
+                if(!checkCollision(impostor.x + idx, impostor.y)) impostor.x += idx;
+                if(!checkCollision(impostor.x, impostor.y + idy)) impostor.y += idy;
+                
+                impostor.walkAnim += 0.25;
+                
+                const killDist = Math.hypot(target.x - impostor.x, target.y - impostor.y);
+                if (killDist < 30) {
+                     if (target.isPlayer) {
+                         player.dead = true;
+                         showNotification("你已死亡！變成幽靈觀戰！");
+                     } else {
+                         target.entity.isDead = true;
+                     }
+                }
+            }
+            return; 
+        }
+        
+        // Survival Mode logic
+        const dist = Math.hypot(player.x - impostor.x, player.y - impostor.y);
+        let isDisguised = (player.disguise.state === 'ACTIVE');
+        if (player.isInTeleport) isDisguised = true;
+        let canSee = (!isDisguised && dist < detectionRange);
+        
+        if (canSee) { impostor.state = 'chase'; impostor.stuckTimer = 0; } 
+        else { if(impostor.state === 'chase') { impostor.state = 'patrol'; impostor.target = getRandomPoint(); } }
+
+        let currentMoveTarget = impostor.state === 'chase' ? player : impostor.target;
+        
+        const angle = Math.atan2(currentMoveTarget.y - impostor.y, currentMoveTarget.x - impostor.x);
+        const idx = Math.cos(angle) * impostor.speed;
+        const idy = Math.sin(angle) * impostor.speed;
+        
+        if (idx !== 0 || idy !== 0) impostor.walkAnim += 0.25;
+
+        if(!checkCollision(impostor.x + idx, impostor.y)) impostor.x += idx;
+        if(!checkCollision(impostor.x, impostor.y + idy)) impostor.y += idy;
+        
+        let targetX = player.x;
+        let targetY = player.y;
+        let isSpiritMode = (player.spirit.state === 'ACTIVE');
+        let checkX = isSpiritMode ? player.spirit.bodyX : player.x;
+        let checkY = isSpiritMode ? player.spirit.bodyY : player.y;
+        const checkDist = Math.hypot(checkX - impostor.x, checkY - impostor.y);
+
+        if(checkDist < 30 && !player.isInTeleport) { 
+            if(activeSkills.has('AVENGER') && player.avenger.state === 'ACTIVE') {
+                impostor.isDead = true;
+                showNotification("擊殺確認：內鬼已清除！");
+                return;
+            }
+            if(activeSkills.has('ALERT') && player.alert.state === 'ACTIVE') {
+                impostor.stunTimer = 300; 
+                showNotification("防禦成功！內鬼已石化！");
+                player.alert.state = 'COOLDOWN'; player.alert.timer = player.alert.maxCooldown;
+                return;
+            }
+            if(activeSkills.has('SWAP') && player.swap.state === 'ACTIVE') return; 
+            
+            if(isSpiritMode) {
+                 if (player.subClass === 'ONE_HIT' && !player.hasRevived) {
+                     player.hasRevived = true;
+                     triggerTimeRewind();
+                     impostor.stunTimer = 60; 
+                     return;
+                 }
+                 document.getElementById('death-reason').innerText = "你的肉體已被摧毀";
+                 endGame('LOSS');
+                 return;
+            } else {
+                if (player.subClass === 'ONE_HIT' && !player.hasRevived) {
+                    player.hasRevived = true;
+                    triggerTimeRewind();
+                    impostor.stunTimer = 60; 
+                    return;
+                }
+                if(player.disguise.state !== 'ACTIVE') { 
+                    player.dead = true;
+                    document.getElementById('death-reason').innerText = "你已被內鬼殺害";
+                    endGame('LOSS'); 
+                    return; 
+                }
+            }
+        }
+    });
+}
+
+function updateNPCs() {
+    npcs.forEach(npc => {
+        if (npc.isDead) return;
+
+        let fleeing = false;
+        for(let imp of impostors) {
+            if (imp.isDead || imp.stunTimer > 0 || imp.isTrapped || imp.freezeTimer > 0) continue;
+            const d = Math.hypot(imp.x - npc.x, imp.y - npc.y);
+            if (d < 350) { 
+                const angle = Math.atan2(npc.y - imp.y, npc.x - imp.x); 
+                const idx = Math.cos(angle) * npc.speed * 1.5; 
+                const idy = Math.sin(angle) * npc.speed * 1.5;
+                if(!checkCollision(npc.x + idx, npc.y)) npc.x += idx;
+                if(!checkCollision(npc.x, npc.y + idy)) npc.y += idy;
+                fleeing = true;
+                npc.walkAnim += 0.4;
+                if (idx !== 0) npc.facingRight = idx > 0;
+                break;
+            }
+        }
+        if (fleeing) return; 
+
+        if (gameMode === 'HIDE_SEEK') {
+            if (!npc.taskTarget) {
+                 const t = tasks[Math.floor(Math.random() * tasks.length)];
+                 npc.taskTarget = t;
+            } else {
+                const d = Math.hypot(npc.taskTarget.x - npc.x, npc.taskTarget.y - npc.y);
+                if (d < 20) {
+                    npc.taskTimer++;
+                    if (npc.taskTimer > 180) { 
+                        survivalTimer -= 5;
+                        showNotification("隊友完成任務！時間 -5s");
+                        npc.taskTarget = null;
+                        npc.taskTimer = 0;
+                    }
+                } else {
+                    const angle = Math.atan2(npc.taskTarget.y - npc.y, npc.taskTarget.x - npc.x);
+                    const idx = Math.cos(angle) * npc.speed;
+                    const idy = Math.sin(angle) * npc.speed;
+                    if(!checkCollision(npc.x + idx, npc.y)) npc.x += idx;
+                    if(!checkCollision(npc.x, npc.y + idy)) npc.y += idy;
+                    npc.walkAnim += 0.25;
+                    if (idx !== 0) npc.facingRight = idx > 0;
+                }
+            }
+            return;
+        }
+
+        if (Math.hypot(npc.target.x - npc.x, npc.target.y - npc.y) < 10) {
+            npc.waitTimer++;
+            npc.walkAnim = 0; 
+            if(npc.waitTimer > 100) { npc.target = getRandomPoint(); npc.waitTimer = 0; }
+            return;
+        }
+        const angle = Math.atan2(npc.target.y - npc.y, npc.target.x - npc.x);
+        const idx = Math.cos(angle) * npc.speed;
+        const idy = Math.sin(angle) * npc.speed;
+        
+        if (idx !== 0 || idy !== 0) npc.walkAnim += 0.25;
+        if (idx !== 0) npc.facingRight = idx > 0;
+        
+        if(!checkCollision(npc.x + idx, npc.y)) npc.x += idx;
+        if(!checkCollision(npc.x, npc.y + idy)) npc.y += idy;
+    });
+}
+
+function checkTasks() {
+    const btn = document.getElementById('action-btn');
+    
+    if (player.spirit.state === 'ACTIVE') {
+        btn.classList.remove('active');
+        return;
+    }
+
+    let near = false;
+    
+    let onPubPad = null;
+    for (let i = 0; i < publicTelepads.length; i++) {
+        if (Math.hypot(player.x - publicTelepads[i].x, player.y - publicTelepads[i].y) < 40) {
+            onPubPad = publicTelepads[i];
+            break;
+        }
+    }
+
+    let onPadIndex = -1;
+    if (!onPubPad) {
+        for (let i = 0; i < telepads.length; i++) {
+            if (Math.hypot(player.x - telepads[i].x, player.y - telepads[i].y) < 30) {
+                onPadIndex = i;
+                break;
+            }
+        }
+    }
+
+    if (onPubPad && player.publicTeleportsLeft > 0) {
+        near = true;
+        btn.classList.add('active');
+        if (isActionPressed && gameState === 'PLAY' && !keys.spaceLock) {
+            let otherPads = publicTelepads.filter(p => p !== onPubPad);
+            let targetPad = otherPads[Math.floor(Math.random() * otherPads.length)];
+            player.x = targetPad.x;
+            player.y = targetPad.y;
+            player.lastX = player.x;
+            player.lastY = player.y;
+            player.publicTeleportsLeft--;
+            showNotification(`已使用公共傳送陣！(剩餘 ${player.publicTeleportsLeft} 次)`);
+            updateHUD();
+            keys.spaceLock = true;
+        } else if (!isActionPressed) {
+            keys.spaceLock = false;
+        }
+    } else if (player.isInTeleport) {
+        near = true;
+        btn.classList.add('active');
+        if (isActionPressed && gameState === 'PLAY' && !keys.spaceLock) {
+            player.isInTeleport = false;
+            keys.spaceLock = true;
+        } else if (!isActionPressed) {
+            keys.spaceLock = false;
+        }
+    } else if (onPadIndex !== -1) {
+        near = true;
+        btn.classList.add('active');
+        if (isActionPressed && gameState === 'PLAY' && !keys.spaceLock) {
+            player.isInTeleport = true;
+            player.teleportTimer = 5 * 60; 
+            player.currentPadIndex = onPadIndex;
+            keys.spaceLock = true;
+        } else if (!isActionPressed) {
+            keys.spaceLock = false;
+        }
+    } else {
+        for(let t of tasks) {
+            if(t.completed) continue;
+            if (Math.hypot(player.x - t.x, player.y - t.y) < 50) {
+                near = true;
+                btn.classList.add('active');
+                if(isActionPressed && gameState === 'PLAY') startTask(t);
+                break;
+            }
+        }
+    }
+
+    if(!near) {
+        btn.classList.remove('active');
+        if(gameState === 'TASK' && currentTask && Math.hypot(player.x - currentTask.x, player.y - currentTask.y) > 60) cancelTask();
+    }
+}
+
+function startTask(t) { 
+    currentTask = t; 
+    gameState = 'TASK'; 
+    document.getElementById('task-ui').classList.remove('hidden');
+    
+    activeTaskType = Math.random() < 0.5 ? 'CALIBRATION' : 'WIRES';
+    
+    if (activeTaskType === 'CALIBRATION') {
+        document.getElementById('task-title').innerText = "精準校準";
+        document.getElementById('task-desc').innerHTML = '當指針進入 <span class="text-green-400 font-bold">綠色</span> 區域時按下互動鍵';
+        document.getElementById('game-calibration').classList.remove('hidden');
+        document.getElementById('game-wires').classList.add('hidden');
+        miniGame.stage = 0;
+        document.getElementById('minigame-stage').innerText = '0';
+        document.querySelectorAll('.dot').forEach(d => d.classList.remove('active'));
+        resetMiniGameRound();
+    } else {
+        document.getElementById('task-title').innerText = "連接線路";
+        document.getElementById('task-desc').innerText = "拖曳左側接頭至右側對應顏色";
+        document.getElementById('game-wires').classList.remove('hidden');
+        document.getElementById('game-calibration').classList.add('hidden');
+        initWireGame();
+    }
+}
+
+function cancelTask() { 
+    gameState = 'PLAY'; 
+    currentTask = null; 
+    document.getElementById('task-ui').classList.add('hidden'); 
+}
+
+function completeTask() { 
+    currentTask.completed = true; 
+    completedCount++; 
+    cancelTask(); 
+    
+    if (gameMode === 'HIDE_SEEK') {
+        survivalTimer -= 5;
+        showNotification("任務完成！生存時間 -5s");
+        updateHUD();
+        return; 
+    }
+
+    if(activeSkills.has('AWAKENED') && completedCount === 3) {
+        const skills = ['SCAN', 'DISGUISE', 'SPRINT', 'EAGLE', 'ALERT', 'WALLWALK', 'AVENGER', 'TELEPORTER', 'REPEL', 'SWAP', 'SPIRIT', 'GAMBLE', 'TRAPPER'];
+        const newSkill = skills[Math.floor(Math.random() * skills.length)];
+        activeSkills.add(newSkill);
+        let skillName = newSkill; 
+        const skillKey = newSkill.toLowerCase();
+        if (player[skillKey]) {
+            if (newSkill === 'SPIRIT') { player[skillKey].state = 'READY'; player[skillKey].timer = 0; }
+            else if (newSkill === 'SPRINT') { player[skillKey].state = 'READY'; player[skillKey].stamina = player[skillKey].maxStamina; }
+            else if (newSkill === 'GAMBLE') { player[skillKey].state = 'READY'; player[skillKey].charges = 3; }
+            else { player[skillKey].state = 'COOLDOWN'; player[skillKey].timer = player[skillKey].maxCooldown / 2; }
+        }
+        showNotification("覺醒成功！獲得裝備：" + skillName);
+    }
+    updateHUD(); 
+    if (completedCount >= TOTAL_TASKS) endGame('WIN'); 
+}
+
+function updateHUD() {
+    if (gameMode === 'HIDE_SEEK') {
+        document.getElementById('hud-title').innerText = "生存倒數";
+        document.getElementById('hud-text').innerHTML = `<span class="text-red-400 font-bold text-xl">${Math.max(0, survivalTimer).toFixed(1)}</span> s &nbsp;|&nbsp; 公共傳送: <span class="text-sky-400 font-bold">${player.publicTeleportsLeft}/5</span>`;
+        document.getElementById('total-progress').style.width = Math.max(0, (survivalTimer / maxSurvivalTime) * 100) + '%';
+    } else {
+        document.getElementById('hud-title').innerText = "任務進度";
+        document.getElementById('hud-text').innerHTML = `已完成 <span id="task-count">${completedCount}</span> / <span id="max-task-count">${TOTAL_TASKS}</span>`;
+        document.getElementById('total-progress').style.width = (completedCount/TOTAL_TASKS*100) + '%';
+    }
+}
+
+function endGame(result) {
+    gameState = result;
+    const screen = result === 'WIN' ? 'victory-screen' : (result === 'KILL' ? 'kill-screen' : 'game-over-screen');
+    document.getElementById(screen).classList.remove('hidden');
+    document.getElementById('alert-text').classList.add('hidden');
+    document.getElementById('task-ui').classList.add('hidden');
+    
+    document.getElementById('map-modal').classList.add('hidden');
+    isMapOpen = false;
+}
+
+function calculateVisibilityPoints(originX, originY, radius) {
+    let points = [];
+    const numRays = 120; 
+    const step = 20; 
+    
+    for (let i = 0; i <= numRays; i++) { 
+        const angle = (i / numRays) * Math.PI * 2;
+        const sin = Math.sin(angle);
+        const cos = Math.cos(angle);
+        let hitX = originX + cos * radius;
+        let hitY = originY + sin * radius;
+        
+        let lastCheckC = -9999;
+        let lastCheckR = -9999;
+
+        for (let d = 0; d < radius; d += step) {
+            const tx = originX + cos * d;
+            const ty = originY + sin * d;
+            
+            if(tx < 0 || tx > WORLD_WIDTH || ty < 0 || ty > WORLD_HEIGHT) { 
+                hitX = tx; hitY = ty; 
+                break; 
+            }
+
+            const c = Math.floor(tx/TILE_SIZE);
+            const r = Math.floor(ty/TILE_SIZE);
+
+            if (c !== lastCheckC || r !== lastCheckR) {
+                if(isWall(c, r)) { 
+                    hitX = tx + cos * 10; 
+                    hitY = ty + sin * 10; 
+                    break; 
+                }
+                lastCheckC = c;
+                lastCheckR = r;
+            }
+        }
+        points.push({x: hitX, y: hitY}); 
+    }
+    return points;
+}
+
+function getRenderPos(entity, alpha) {
+    if (Math.abs(entity.x - entity.lastX) > 100 || Math.abs(entity.y - entity.lastY) > 100) {
+        return { x: entity.x, y: entity.y };
+    }
+    return {
+        x: lerp(entity.lastX, entity.x, alpha),
+        y: lerp(entity.lastY, entity.y, alpha)
+    };
+}
+
+function draw(alpha = 1.0) {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+
+    if(player.eagle.state === 'ACTIVE') {
+        const scale = 0.7; 
+        ctx.translate(canvas.width/2, canvas.height/2);
+        ctx.scale(scale, scale);
+        ctx.translate(-canvas.width/2, -canvas.height/2);
+    }
+
+    const pRender = getRenderPos(player, alpha);
+    let targetX = pRender.x - canvas.width / 2;
+    let targetY = pRender.y - canvas.height / 2;
+    targetX = Math.max(0, Math.min(targetX, WORLD_WIDTH - canvas.width));
+    targetY = Math.max(0, Math.min(targetY, WORLD_HEIGHT - canvas.height));
+    camera.x += (targetX - camera.x) * 0.15;
+    camera.y += (targetY - camera.y) * 0.15;
+
+    ctx.translate(-camera.x, -camera.y);
+
+    ctx.fillStyle = COLORS.BG; ctx.fillRect(camera.x, camera.y, canvas.width, canvas.height); 
+    ctx.fillStyle = '#fff';
+    stars.forEach(s => {
+        if (s.x > camera.x - 500 && s.x < camera.x + canvas.width + 500 && s.y > camera.y - 500 && s.y < camera.y + canvas.height + 500) {
+            ctx.globalAlpha = s.alpha;
+            ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI*2); ctx.fill();
+        }
+    });
+    ctx.globalAlpha = 1.0;
+    
+    drawGrid();
+
+    publicTelepads.forEach(pad => {
+        ctx.save();
+        ctx.translate(pad.x, pad.y);
+        ctx.fillStyle = 'rgba(14, 165, 233, 0.3)';
+        ctx.beginPath();
+        ctx.arc(0, 0, 35, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#0ea5e9';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(0, 0, 25 + Math.sin(Date.now() / 150) * 5, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('公共', 0, 4);
+        ctx.restore();
+    });
+
+    telepads.forEach((pad, index) => {
+        ctx.save();
+        ctx.translate(pad.x, pad.y);
+        ctx.fillStyle = 'rgba(217, 70, 239, 0.4)';
+        ctx.beginPath();
+        ctx.arc(0, 0, 25, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = COLORS.TELEPAD;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, 15 + Math.sin(Date.now() / 200) * 5, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+    });
+
+    tasks.forEach(t => {
+        if(t.completed) return;
+        ctx.fillStyle = COLORS.TASK_OFF;
+        const pulse = Math.sin(Date.now()/200)*2;
+        ctx.fillRect(t.x-15-pulse, t.y-15-pulse, 30+pulse*2, 30+pulse*2);
+    });
+
+    traps.forEach(trap => {
+        if(trap.active || trap.victim) {
+            ctx.save();
+            ctx.translate(trap.x, trap.y);
+            ctx.fillStyle = COLORS.TRAP;
+            ctx.beginPath();
+            ctx.moveTo(-15, -15);
+            ctx.lineTo(15, -15);
+            ctx.lineTo(15, 15);
+            ctx.lineTo(-15, 15);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = '#713f12';
+            ctx.lineWidth = 2;
+            const spikeOffset = Math.abs(Math.sin(Date.now() / 200)) * 5;
+            ctx.beginPath();
+            ctx.moveTo(-10, -10 + spikeOffset); ctx.lineTo(-10, 10 - spikeOffset);
+            ctx.moveTo(0, -10 + spikeOffset); ctx.lineTo(0, 10 - spikeOffset);
+            ctx.moveTo(10, -10 + spikeOffset); ctx.lineTo(10, 10 - spikeOffset);
+            ctx.stroke();
+            ctx.restore();
+        }
+    });
+
+    const startCol = Math.max(0, Math.floor(camera.x / TILE_SIZE));
+    const endCol = Math.min(MAP_COLS, startCol + Math.ceil(canvas.width / TILE_SIZE) + 1);
+    const startRow = Math.max(0, Math.floor(camera.y / TILE_SIZE));
+    const endRow = Math.min(MAP_ROWS, startRow + Math.ceil(canvas.height / TILE_SIZE) + 1);
+    ctx.fillStyle = COLORS.WALL;
+    for (let c = startCol; c <= endCol; c++) {
+        for (let r = startRow; r <= endRow; r++) {
+            if (isWall(c, r)) {
+                ctx.fillRect(c*TILE_SIZE, r*TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                ctx.strokeStyle = '#334155';
+                ctx.strokeRect(c*TILE_SIZE, r*TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            }
+        }
+    }
+
+    npcs.forEach(n => { 
+        const nRender = getRenderPos(n, alpha);
+        if (nRender.x >= camera.x - 50 && nRender.x <= camera.x + canvas.width + 50 &&
+            nRender.y >= camera.y - 50 && nRender.y <= camera.y + canvas.height + 50) {
+            drawCharacter(nRender.x, nRender.y, COLORS.NPC_BODY, n.facingRight, false, null, n.walkAnim); 
+        }
+    });
+    
+    impostors.forEach(impostor => {
+        const iRender = getRenderPos(impostor, alpha);
+        if (iRender.x >= camera.x - 50 && iRender.x <= camera.x + canvas.width + 50 &&
+            iRender.y >= camera.y - 50 && iRender.y <= camera.y + canvas.height + 50) {
+            if(impostor.isDead) {
+                ctx.save(); ctx.translate(impostor.x, impostor.y);
+                ctx.fillStyle = COLORS.IMPOSTOR_DEAD;
+                ctx.beginPath(); ctx.ellipse(0, 10, 20, 10, 0, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#cc0000'; ctx.beginPath(); ctx.ellipse(5, 5, 8, 8, 0, 0, Math.PI*2); ctx.fill(); 
+                ctx.restore();
+                return;
+            }
+            let impColor = (gameMode === 'HIDE_SEEK') ? COLORS.IMPOSTOR_RED : COLORS.IMPOSTOR_BODY;
+            if(impostor.stunTimer > 0) impColor = COLORS.IMPOSTOR_STUNNED;
+            if(impostor.isTrapped) impColor = COLORS.TRAP; 
+
+            let facingRight = iRender.x > impostor.lastX;
+            if(Math.abs(iRender.x - impostor.lastX) < 0.1) {
+                 if (player.spirit.state === 'ACTIVE') facingRight = impostor.x < player.spirit.bodyX;
+                 else facingRight = impostor.x < pRender.x;
+            }
+            
+            drawCharacter(iRender.x, iRender.y, impColor, facingRight, true, impostor, impostor.walkAnim);
+            
+            if(impostor.isTrapped) {
+                 ctx.save();
+                 ctx.translate(iRender.x, iRender.y - 50);
+                 ctx.fillStyle = "orange";
+                 ctx.font = "bold 14px Arial";
+                 ctx.textAlign = "center";
+                 ctx.fillText("TRAPPED!", 0, 0);
+                 ctx.restore();
+            }
+        }
+    });
+    
+    if (!player.isInTeleport) {
+        let pColor = player.color;
+        if(player.disguise.state === 'ACTIVE') pColor = COLORS.PLAYER_DISGUISED;
+        if(player.wallwalk.state === 'ACTIVE') pColor = COLORS.PLAYER_PHASE;
+        if(player.avenger.state === 'ACTIVE') pColor = COLORS.PLAYER_AVENGER;
+        if(player.swap.state === 'ACTIVE') pColor = COLORS.PLAYER_INVINCIBLE;
+        if(player.spirit.state === 'ACTIVE') pColor = COLORS.PLAYER_SPIRIT;
+        if(player.dead && gameMode === 'HIDE_SEEK') pColor = COLORS.PLAYER_GHOST;
+        
+        if (player.spirit.state === 'ACTIVE') {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(139, 92, 246, 0.4)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([10, 10]);
+            ctx.beginPath();
+            ctx.moveTo(player.spirit.bodyX, player.spirit.bodyY);
+            ctx.lineTo(pRender.x, pRender.y);
+            ctx.stroke();
+            ctx.restore();
+            
+            drawCharacter(player.spirit.bodyX, player.spirit.bodyY, COLORS.PLAYER_SHELL, player.facingRight, false, null, 0); 
+        }
+
+        if(player.spirit.state === 'ACTIVE') ctx.globalAlpha = 0.7;
+        drawCharacter(pRender.x, pRender.y, pColor, player.facingRight, false, null, player.walkAnim);
+        if(player.spirit.state === 'ACTIVE') ctx.globalAlpha = 1.0;
+
+        if(player.alert.state === 'ACTIVE') {
+            ctx.save(); ctx.translate(pRender.x, pRender.y); ctx.beginPath(); ctx.arc(0, 0, 30, 0, Math.PI*2);
+            ctx.strokeStyle = 'rgba(251, 146, 60, 0.7)'; ctx.lineWidth = 4; ctx.stroke();
+            ctx.fillStyle = 'rgba(251, 146, 60, 0.2)'; ctx.fill(); ctx.restore();
+        }
+
+        if(player.swap.state === 'ACTIVE') {
+            ctx.save(); ctx.translate(pRender.x, pRender.y); ctx.beginPath(); ctx.arc(0, 0, 25, 0, Math.PI*2);
+            ctx.strokeStyle = 'rgba(190, 242, 100, 0.7)'; ctx.lineWidth = 3; ctx.stroke();
+            ctx.fillStyle = 'rgba(190, 242, 100, 0.2)'; ctx.fill(); ctx.restore();
+        }
+
+        if(player.avenger.state === 'ACTIVE') {
+            ctx.save(); ctx.translate(pRender.x, pRender.y);
+            if(!player.facingRight) ctx.scale(-1, 1);
+            ctx.translate(20, 0); ctx.rotate(-Math.PI / 4);
+            ctx.shadowBlur = 15; ctx.shadowColor = '#ef4444';
+            ctx.fillStyle = '#ef4444'; ctx.fillRect(0, -2, 40, 4); 
+            ctx.fillStyle = '#999'; ctx.fillRect(-10, -3, 10, 6); 
+            ctx.restore();
+        }
+        
+    } else if (player.isInTeleport) {
+        ctx.save();
+        ctx.translate(player.x, player.y - 40);
+        ctx.fillStyle = "white";
+        ctx.font = "bold 14px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText((player.teleportTimer / 60).toFixed(1) + "s", 0, 0);
+        ctx.fillStyle = "#333";
+        ctx.fillRect(-20, 5, 40, 6);
+        ctx.fillStyle = COLORS.TELEPAD;
+        ctx.fillRect(-20, 5, 40 * (player.teleportTimer / 300), 6);
+        ctx.restore();
+    } else if (player.dead && gameMode !== 'HIDE_SEEK') {
+        ctx.save(); ctx.translate(player.x, player.y);
+        ctx.fillStyle = COLORS.IMPOSTOR_DEAD;
+        ctx.beginPath(); ctx.ellipse(0, 10, 20, 10, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#cc0000'; ctx.beginPath(); ctx.ellipse(5, 5, 8, 8, 0, 0, Math.PI*2); ctx.fill(); 
+        ctx.restore();
+    }
+
+    if(nearestTask && !player.dead) {
+        const angle = Math.atan2(nearestTask.y - pRender.y, nearestTask.x - pRender.x);
+        const orbit = 60; const cx = pRender.x + Math.cos(angle) * orbit; const cy = pRender.y + Math.sin(angle) * orbit;
+        ctx.save(); ctx.translate(cx, cy); ctx.rotate(angle);
+        const bob = Math.sin(Date.now() / 150) * 5; ctx.translate(bob, 0);
+        ctx.fillStyle = COLORS.TASK_OFF; ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(-10, 8); ctx.lineTo(-10, -8); ctx.closePath();
+        ctx.fill(); ctx.stroke(); ctx.restore();
+    }
+    
+    // Always apply vision fog restriction UNLESS eagle eye, wallwalk, or spirit is active (or dead)
+    // Removed the gameMode !== 'HIDE_SEEK' condition to ensure Hide & Seek mode ALSO restricts vision through walls.
+    if(player.eagle.state !== 'ACTIVE' && player.wallwalk.state !== 'ACTIVE' && player.spirit.state !== 'ACTIVE' && !player.dead) {
+        ctx.save();
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.98)';
+        ctx.beginPath();
+        const pad = 2000;
+        ctx.rect(camera.x - pad, camera.y - pad, canvas.width + pad*2, canvas.height + pad*2);
+        
+        const points = calculateVisibilityPoints(pRender.x, pRender.y, 450);
+        
+        ctx.moveTo(points[0].x, points[0].y);
+        for(let i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].x, points[i].y);
+        }
+        ctx.closePath();
+        
+        ctx.shadowColor = 'black'; ctx.shadowBlur = 60; 
+        ctx.fill('evenodd');
+        ctx.restore();
+    }
+    
+    if (player.scan.state === 'ACTIVE' && !player.dead) {
+        impostors.forEach(impostor => {
+            if(impostor.isDead || impostor.stunTimer > 0) return;
+            const iRender = getRenderPos(impostor, alpha);
+            const dist = Math.hypot(iRender.x - pRender.x, iRender.y - pRender.y);
+            if(dist < 1000) {
+                const angle = Math.atan2(iRender.y - pRender.y, iRender.x - pRender.x);
+                const orbit = 80; const cx = pRender.x + Math.cos(angle) * orbit; const cy = pRender.y + Math.sin(angle) * orbit;
+                ctx.save(); ctx.translate(cx, cy); ctx.rotate(angle);
+                const pulse = 1 + Math.sin(Date.now() / 50) * 0.2; ctx.scale(pulse, pulse);
+                ctx.fillStyle = '#ef4444'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(12, 0); ctx.lineTo(-12, 10); ctx.lineTo(-12, -10); ctx.closePath();
+                ctx.fill(); ctx.stroke(); ctx.restore();
+            }
+        });
+    }
+
+    ctx.restore();
+}
+
+function drawGrid() {
+    ctx.strokeStyle = '#1a1a1a'; ctx.lineWidth = 2; ctx.beginPath();
+    const startCol = Math.max(0, Math.floor(camera.x / TILE_SIZE));
+    const endCol = Math.min(MAP_COLS, startCol + Math.ceil(canvas.width / TILE_SIZE) + 1);
+    const startRow = Math.max(0, Math.floor(camera.y / TILE_SIZE));
+    const endRow = Math.min(MAP_ROWS, startRow + Math.ceil(canvas.height / TILE_SIZE) + 1);
+    for(let c = startCol; c <= endCol; c++) {
+        let x = c * TILE_SIZE;
+        ctx.moveTo(x, camera.y);
+        ctx.lineTo(x, camera.y + canvas.height);
+    }
+    for(let r = startRow; r <= endRow; r++) {
+        let y = r * TILE_SIZE;
+        ctx.moveTo(camera.x, y);
+        ctx.lineTo(camera.x + canvas.width, y);
+    }
+    ctx.stroke();
+}
+
+function drawMap() {
+    const mapCanvas = document.getElementById('mapCanvas');
+    if (!mapCanvas) return;
+    const mCtx = mapCanvas.getContext('2d');
+    mCtx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
+    
+    const scaleX = mapCanvas.width / (MAP_COLS * TILE_SIZE);
+    const scaleY = mapCanvas.height / (MAP_ROWS * TILE_SIZE);
+    
+    mCtx.fillStyle = '#0f172a';
+    mCtx.fillRect(0,0, mapCanvas.width, mapCanvas.height);
+
+    if (player.subClass === 'MAPPER' && mapType === 'RANDOM') {
+        mCtx.fillStyle = '#1e293b'; 
+        exploredCells.forEach(key => {
+            const [c, r] = key.split(',').map(Number);
+            if (!isWall(c, r)) { 
+                mCtx.fillRect(c * TILE_SIZE * scaleX, r * TILE_SIZE * scaleY, TILE_SIZE * scaleX, TILE_SIZE * scaleY);
+            }
+        });
+
+        mCtx.fillStyle = '#475569'; 
+        exploredCells.forEach(key => {
+            const [c, r] = key.split(',').map(Number);
+            if (isWall(c, r)) { 
+                mCtx.fillRect(c * TILE_SIZE * scaleX, r * TILE_SIZE * scaleY, TILE_SIZE * scaleX, TILE_SIZE * scaleY);
+            }
+        });
+        
+    } else {
+        mCtx.fillStyle = '#475569'; 
+        for(let r=0; r<MAP_ROWS; r++) {
+            for(let c=0; c<MAP_COLS; c++) {
+                if(isWall(c, r)) {
+                    mCtx.fillRect(c * TILE_SIZE * scaleX, r * TILE_SIZE * scaleY, TILE_SIZE * scaleX, TILE_SIZE * scaleY);
+                }
+            }
+        }
+        
+        mCtx.fillStyle = '#fbbf24';
+        tasks.forEach(t => {
+            if(!t.completed) {
+                mCtx.fillRect(t.x * scaleX - 2, t.y * scaleY - 2, 4, 4);
+            }
+        });
+    }
+    
+    mCtx.fillStyle = '#0ea5e9';
+    mCtx.beginPath();
+    mCtx.arc(player.x * scaleX, player.y * scaleY, 4, 0, Math.PI * 2);
+    mCtx.fill();
+    mCtx.strokeStyle = '#fff';
+    mCtx.lineWidth = 1;
+    mCtx.stroke();
+}
+
+function drawCharacter(x, y, color, facingRight, isImp, impObj, walkAnim = 0) {
+    ctx.save(); 
+    ctx.translate(x, y); 
+    if (!facingRight) ctx.scale(-1, 1);
+    
+    ctx.fillStyle = 'rgba(0,0,0,0.5)'; 
+    ctx.beginPath(); ctx.ellipse(0, 18, 14, 6, 0, 0, Math.PI*2); ctx.fill(); 
+
+    const bobY = Math.abs(Math.sin(walkAnim)) * 2;
+    const legOffset = Math.sin(walkAnim) * 5;
+
+    ctx.fillStyle = color;
+
+    ctx.beginPath(); ctx.roundRect(-10, 12 + legOffset, 8, 12, 4); ctx.fill();
+    ctx.beginPath(); ctx.roundRect(2, 12 - legOffset, 8, 12, 4); ctx.fill();
+
+    ctx.save();
+    ctx.translate(0, -bobY);
+
+    ctx.beginPath(); ctx.roundRect(-22, -8, 10, 24, 4); ctx.fill(); 
+    
+    ctx.beginPath(); ctx.roundRect(-15, -20, 30, 40, 12); ctx.fill(); 
+    
+    ctx.fillStyle = '#7dd3fc'; ctx.beginPath(); ctx.roundRect(0, -12, 18, 14, 6); ctx.fill(); 
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(10, -8, 4, 2, 0, 0, Math.PI*2); ctx.fill(); 
+    
+    ctx.restore(); 
+
+    if(isImp && impObj && impObj.state === 'chase' && impObj.stunTimer <= 0) {
+        const dist = Math.hypot(player.x - x, player.y - y);
+        
+        let targetX = player.spirit.state === 'ACTIVE' ? player.spirit.bodyX : player.x;
+        let targetY = player.spirit.state === 'ACTIVE' ? player.spirit.bodyY : player.y;
+        
+        if(Math.hypot(targetX - x, targetY - y) < 10 * TILE_SIZE) { 
+            ctx.save();
+            ctx.translate(0, -45 - bobY);
+            ctx.fillStyle = 'red'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-5, -15); ctx.lineTo(5, -15); ctx.fill();
+            ctx.beginPath(); ctx.rect(-2, -5, 4, 10); ctx.fillStyle = 'brown'; ctx.fill();
+            ctx.restore();
+        }
+    }
+    ctx.restore();
+}
+
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+
+function updateCalibrationGame() {
+    miniGame.cursorPos += miniGame.speed * miniGame.direction;
+    if (miniGame.cursorPos >= 100) {
+        miniGame.cursorPos = 100;
+        miniGame.direction = -1;
+    } else if (miniGame.cursorPos <= 0) {
+        miniGame.cursorPos = 0;
+        miniGame.direction = 1;
+    }
+    document.getElementById('minigame-cursor').style.left = miniGame.cursorPos + '%';
+    
+    if (isActionPressed && !keys.spaceLock) {
+        handleTaskInput();
+        keys.spaceLock = true;
+    } else if (!isActionPressed) {
+        keys.spaceLock = false;
+    }
+}
+
+function handleTaskInput() {
+    if (activeTaskType === 'CALIBRATION') {
+        const hitStart = miniGame.targetStart;
+        const hitEnd = miniGame.targetStart + miniGame.targetWidth;
+        if (miniGame.cursorPos >= hitStart && miniGame.cursorPos <= hitEnd) {
+            miniGame.stage++;
+            document.getElementById('minigame-stage').innerText = miniGame.stage;
+            document.getElementById(`dot-${miniGame.stage}`).classList.add('active');
+            if (miniGame.stage >= 3) completeTask();
+            else resetMiniGameRound();
+        }
+    }
+}
+
+function resetMiniGameRound() {
+    miniGame.cursorPos = 0;
+    miniGame.direction = 1;
+    miniGame.targetStart = Math.random() * 70 + 10;
+    document.getElementById('minigame-target').style.left = miniGame.targetStart + '%';
+    document.getElementById('minigame-target').style.width = miniGame.targetWidth + '%';
+}
+
+function initWireGame() {
+    wireGame.colors = ['red', 'blue', 'yellow', 'pink'];
+    wireGame.leftOrder = [...wireGame.colors].sort(() => Math.random() - 0.5);
+    wireGame.rightOrder = [...wireGame.colors].sort(() => Math.random() - 0.5);
+    wireGame.connections = [];
+    wireGame.dragging = null;
+    wireGame.completedCount = 0;
+
+    const leftCol = document.getElementById('wire-left');
+    const rightCol = document.getElementById('wire-right');
+    leftCol.innerHTML = '';
+    rightCol.innerHTML = '';
+
+    wireGame.leftOrder.forEach((color, i) => {
+        const div = document.createElement('div');
+        div.className = `wire-terminal wire-${color}`;
+        div.dataset.side = 'left';
+        div.dataset.color = color;
+        div.dataset.index = i;
+        div.addEventListener('mousedown', onWireDragStart);
+        div.addEventListener('touchstart', onWireDragStart, {passive: false});
+        leftCol.appendChild(div);
+    });
+
+    wireGame.rightOrder.forEach((color, i) => {
+        const div = document.createElement('div');
+        div.className = `wire-terminal wire-${color}`;
+        div.dataset.side = 'right';
+        div.dataset.color = color;
+        div.dataset.index = i;
+        div.addEventListener('mouseup', onWireDrop);
+        div.addEventListener('touchend', onWireDrop);
+        rightCol.appendChild(div);
+    });
+
+    drawWires();
+}
+
+function onWireDragStart(e) {
+    e.preventDefault();
+    if(this.dataset.fixed === 'true') return; 
+
+    const rect = this.getBoundingClientRect();
+    const containerRect = document.getElementById('game-wires').getBoundingClientRect();
+    
+    const startX = rect.left + rect.width/2 - containerRect.left;
+    const startY = rect.top + rect.height/2 - containerRect.top;
+
+    wireGame.dragging = {
+        color: this.dataset.color,
+        startX: startX,
+        startY: startY,
+        element: this
+    };
+    
+    document.addEventListener('mousemove', onWireDragMove);
+    document.addEventListener('touchmove', onWireDragMove, {passive: false});
+    document.addEventListener('mouseup', onWireDragEnd);
+    document.addEventListener('touchend', onWireDragEnd);
+}
+
+function onWireDragMove(e) {
+    if(!wireGame.dragging) return;
+    e.preventDefault(); 
+    
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const containerRect = document.getElementById('game-wires').getBoundingClientRect();
+
+    wireGame.currentMouse.x = clientX - containerRect.left;
+    wireGame.currentMouse.y = clientY - containerRect.top;
+    
+    drawWires();
+}
+
+function onWireDrop(e) {
+    if(!wireGame.dragging) return;
+    
+    const targetColor = this.dataset.color;
+    if(targetColor === wireGame.dragging.color) {
+        const rect = this.getBoundingClientRect();
+        const containerRect = document.getElementById('game-wires').getBoundingClientRect();
+        const endX = rect.left + rect.width/2 - containerRect.left;
+        const endY = rect.top + rect.height/2 - containerRect.top;
+
+        wireGame.connections.push({
+            startColor: wireGame.dragging.color,
+            startX: wireGame.dragging.startX,
+            startY: wireGame.dragging.startY,
+            endX: endX,
+            endY: endY
+        });
+
+        wireGame.dragging.element.dataset.fixed = 'true';
+        this.dataset.fixed = 'true';
+        this.style.opacity = '0.5'; 
+        wireGame.dragging.element.style.opacity = '0.5';
+
+        wireGame.completedCount++;
+        if(wireGame.completedCount >= 4) {
+            completeTask();
+        }
+    }
+}
+
+function onWireDragEnd(e) {
+    wireGame.dragging = null;
+    document.removeEventListener('mousemove', onWireDragMove);
+    document.removeEventListener('touchmove', onWireDragMove);
+    document.removeEventListener('mouseup', onWireDragEnd);
+    document.removeEventListener('touchend', onWireDragEnd);
+    drawWires();
+}
+
+function drawWires() {
+    const svg = document.getElementById('wire-svg');
+    let html = '';
+
+    wireGame.connections.forEach(conn => {
+        const colorHex = getColorHex(conn.startColor);
+        html += `<line x1="${conn.startX}" y1="${conn.startY}" x2="${conn.endX}" y2="${conn.endY}" stroke="${colorHex}" stroke-width="8" stroke-linecap="round" />`;
+    });
+
+    if(wireGame.dragging) {
+        const colorHex = getColorHex(wireGame.dragging.color);
+        html += `<line x1="${wireGame.dragging.startX}" y1="${wireGame.dragging.startY}" x2="${wireGame.currentMouse.x}" y2="${wireGame.currentMouse.y}" stroke="${colorHex}" stroke-width="8" stroke-linecap="round" />`;
+    }
+
+    svg.innerHTML = html;
+}
+
+function getColorHex(name) {
+    switch(name) {
+        case 'red': return '#ef4444';
+        case 'blue': return '#3b82f6';
+        case 'yellow': return '#eab308';
+        case 'pink': return '#d946ef';
+        default: return '#fff';
+    }
+}
+
+function togglePause() {
+    if (gameState === 'MENU' || gameState === 'WIN' || gameState === 'LOSS' || gameState === 'KILL') return;
+    
+    isPaused = !isPaused;
+    
+    if (isPaused) {
+        document.getElementById('pause-screen').classList.remove('hidden');
+    } else {
+        document.getElementById('pause-screen').classList.add('hidden');
+        lastTime = performance.now(); 
+    }
+}
+
+function toggleMap() {
+    if (gameState === 'MENU' || gameState === 'WIN' || gameState === 'LOSS' || gameState === 'KILL') return;
+
+    if (mapType === 'RANDOM' && player.subClass !== 'MAPPER') {
+        showNotification("警告：未知區域無法建立地圖數據！(需繪圖師副職業)");
+        return;
+    }
+    
+    isMapOpen = !isMapOpen;
+    const mapModal = document.getElementById('map-modal');
+    
+    if (isMapOpen) {
+        mapModal.classList.remove('hidden');
+    } else {
+        mapModal.classList.add('hidden');
+    }
+}
+
+document.getElementById('retry-btn-loss').addEventListener('click', () => { document.getElementById('game-over-screen').classList.add('hidden'); startGame(); });
+document.getElementById('retry-btn-win').addEventListener('click', () => { document.getElementById('victory-screen').classList.add('hidden'); startGame(); });
+document.getElementById('retry-btn-kill').addEventListener('click', () => { document.getElementById('kill-screen').classList.add('hidden'); startGame(); });
+
+const joyZone = document.getElementById('joystick-zone');
+const actBtn = document.getElementById('action-btn');
+const skillBtns = document.querySelectorAll('.game-btn');
+
+joyZone.addEventListener('touchstart', e => { e.preventDefault(); const t = e.changedTouches[0]; joystick.active = true; joystick.tx = t.clientX; joystick.ty = t.clientY; }, {passive:false});
+joyZone.addEventListener('touchmove', e => { e.preventDefault(); if(!joystick.active) return; const t = e.changedTouches[0]; joystick.dx = t.clientX - joystick.tx; joystick.dy = t.clientY - joystick.ty; }, {passive:false});
+joyZone.addEventListener('touchend', e => { e.preventDefault(); joystick.active = false; joystick.dx = 0; joystick.dy = 0; }, {passive:false});
+
+actBtn.addEventListener('touchstart', e => { e.preventDefault(); isActionPressed = true; actBtn.style.transform = 'scale(0.9)'; }, {passive:false});
+actBtn.addEventListener('touchend', e => { e.preventDefault(); isActionPressed = false; actBtn.style.transform = 'scale(1.1)'; });
+actBtn.addEventListener('mousedown', e => { isActionPressed = true; });
+actBtn.addEventListener('mouseup', e => { isActionPressed = false; });
+
+skillBtns.forEach(btn => {
+    if(btn.id !== 'action-btn') {
+        btn.addEventListener('touchstart', e => { 
+            e.preventDefault(); 
+            const skillName = btn.id.replace('-btn', '').toUpperCase();
+            skillInput[skillName] = true;
+            btn.style.transform = 'scale(0.9)'; 
+        }, {passive:false});
+        btn.addEventListener('touchend', e => { 
+            e.preventDefault(); 
+            const skillName = btn.id.replace('-btn', '').toUpperCase();
+            skillInput[skillName] = false;
+            btn.style.transform = 'scale(1.1)'; 
+        });
+        btn.addEventListener('mousedown', e => { 
+            const skillName = btn.id.replace('-btn', '').toUpperCase();
+            skillInput[skillName] = true;
+        });
+        btn.addEventListener('mouseup', e => { 
+            const skillName = btn.id.replace('-btn', '').toUpperCase();
+            skillInput[skillName] = false;
+        });
+    }
+});
+
+document.getElementById('pause-btn').addEventListener('click', function() {
+    togglePause();
+    this.blur(); 
+});
+document.getElementById('resume-btn').addEventListener('click', togglePause);
+document.getElementById('menu-btn').addEventListener('click', () => {
+    isPaused = false;
+    document.getElementById('pause-screen').classList.add('hidden');
+    document.getElementById('start-screen').classList.remove('hidden');
+    document.getElementById('task-ui').classList.add('hidden');
+    gameState = 'MENU';
+});
+
+document.getElementById('map-btn').addEventListener('click', function() {
+    toggleMap();
+    this.blur();
+});
+document.getElementById('map-modal').addEventListener('click', function(e) {
+    if(e.target === this) toggleMap(); 
+});
+
+window.addEventListener('keydown', e => { 
+    if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
+        togglePause();
+        e.preventDefault();
+    }
+    if (e.key === 'm' || e.key === 'M' || e.key === 'Tab') {
+        toggleMap();
+        e.preventDefault();
+    }
+    keys[e.key.toLowerCase()] = true; 
+    if(e.code === 'Space') isActionPressed = true; 
+});
+window.addEventListener('keyup', e => {
+    keys[e.key.toLowerCase()] = false;
+    if(e.key === 'Shift') {
+        keys['shift'] = false;
+    }
+    if(e.code === 'Space') {
+        isActionPressed = false;
+        keys.spaceLock = false;
+    }
+    const skillKeys = ['q', 'e', 'r', 'f', 'g', 't', 'h', 'v', 'c', 'b', 'j', 'k'];
+    if (skillKeys.includes(e.key.toLowerCase())) {
+        skillLocks[e.key.toUpperCase()] = false;
+    }
+});
+
+window.addEventListener('resize', resize);
+resize();
+</script>
+
+</body></html>
