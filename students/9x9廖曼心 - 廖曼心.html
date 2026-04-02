@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>🍭 夢幻馬卡龍乘法表 🍭</title>
+    <style>
+        body {
+            background-color: #fff9fb; /* 淡淡的粉底色 */
+            font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+            margin: 0;
+        }
+
+        h1 {
+            color: #ff85a2;
+            font-size: 40px;
+            text-shadow: 3px 3px 0 white;
+            margin-bottom: 20px;
+        }
+
+        /* 讓表格置中的容器 */
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 40px;
+            box-shadow: 0 15px 35px rgba(255, 182, 193, 0.4);
+            border: 5px solid #ffe4e1;
+        }
+
+        table {
+            border-collapse: separate;
+            border-spacing: 12px; /* 格子間距加大 */
+        }
+
+        td {
+            width: 90px;
+            height: 90px;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #666;
+            border-radius: 20px; /* 像小餅乾一樣圓圓的 */
+            background: #fff;
+            border: 2px dashed #ffc0cb;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+
+        /* 滑鼠移上去的可愛動畫 */
+        td:hover {
+            transform: scale(1.15) rotate(-3deg);
+            background-color: #ffebf0 !important;
+            border: 2px solid #ff85a2;
+            color: #ff4d6d;
+            box-shadow: 0 5px 15px rgba(255, 133, 162, 0.3);
+        }
+
+        /* 每一行的夢幻馬卡龍色系 */
+        tr:nth-child(1) td { background-color: #ffdef2; } /* 粉紅 */
+        tr:nth-child(2) td { background-color: #f2e2ff; } /* 紫色 */
+        tr:nth-child(3) td { background-color: #e2f0ff; } /* 淺藍 */
+        tr:nth-child(4) td { background-color: #e2fffa; } /* 薄荷 */
+        tr:nth-child(5) td { background-color: #f0ffe2; } /* 嫩綠 */
+        tr:nth-child(6) td { background-color: #ffffd1; } /* 淺黃 */
+        tr:nth-child(7) td { background-color: #ffe8d1; } /* 橘粉 */
+        tr:nth-child(8) td { background-color: #f5f5f5; } /* 霧灰 */
+        tr:nth-child(9) td { background-color: #ffffff; } /* 純白 */
+
+    </style>
+</head>
+<body>
+
+    <h1>✨ 乘法小精靈 ✨</h1>
+
+    <div class="container">
+        <table id="myTable">
+            </table>
+    </div>
+
+    <script>
+        // 使用 window.onload 確保網頁載入完成後才執行腳本
+        window.onload = function() {
+            const table = document.getElementById('myTable');
+            let htmlString = '';
+
+            for (let i = 1; i <= 9; i++) {
+                htmlString += '<tr>';
+                for (let j = 1; j <= 9; j++) {
+                    // 為了美觀，將公式換行顯示
+                    htmlString += `<td>${j}×${i}<br><span style="font-size:1.4em; color:#ff85a2;">${i * j}</span></td>`;
+                }
+                htmlString += '</tr>';
+            }
+            
+            table.innerHTML = htmlString;
+            console.log("表格生成成功！");
+        };
+    </script>
+
+</body>
+</html>

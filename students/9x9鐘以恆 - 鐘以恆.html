@@ -1,0 +1,31 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>九九乘法表</title>
+    <style>
+        table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; }
+        td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        tr:hover { background-color: #e2f0ff; }
+        .header { font-weight: bold; background-color: #4CAF50; color: white; }
+    </style>
+</head>
+<body>
+    <h2>九九乘法表</h2>
+    <table id="multiTable"></table>
+
+    <script>
+        const table = document.getElementById('multiTable');
+        for (let i = 1; i <= 9; i++) {
+            let row = table.insertRow();
+            for (let j = 1; j <= 9; j++) {
+                let cell = row.insertCell();
+                cell.innerHTML = `${j} &times; ${i} = <b>${i * j}</b>`;
+            }
+        }
+    </script>
+</body>
+</html>

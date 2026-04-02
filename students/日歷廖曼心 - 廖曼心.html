@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>2026 全年度手帳月曆</title>
+    <style>
+        :root {
+            --paper-bg: #fdfaf1;
+            --text-color: #5a5a5a;
+            --accent-color: #d4a373;
+            --grid-line: #eeeae0;
+            --weekend-bg: #f9f7f0;
+        }
+
+        body {
+            background-color: #f4f1ea;
+            font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .year-title {
+            text-align: center;
+            font-size: 50px;
+            font-weight: 900;
+            letter-spacing: 15px;
+            margin-bottom: 50px;
+            color: var(--accent-color);
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.05);
+        }
+
+        /* 月份區塊佈局 */
+        .month-wrapper {
+            display: grid;
+            grid-template-columns: 1fr; /* 預設手機版一列 */
+            gap: 60px;
+        }
+
+        @media (min-width: 900px) {
+            .month-wrapper {
+                grid-template-columns: 1fr 1fr; /* 電腦版兩列並排 */
+            }
+        }
+
+        .month-card {
+            background: var(--paper-bg);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.05);
+            border-left: 8px solid var(--accent-color);
+            position: relative;
+        }
+
+        .month-header {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--accent-color);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        th {
+            font-size: 12px;
+            color: #aaa;
+            padding: 5px 0;
+            text-align: center;
+        }
+
+        td {
+            height: 60px;
+            border: 1px solid var(--grid-line);
+            vertical-align: top;
+            padding: 5px;
+            font-size: 14px;
+        }
+
+        /* 週末背景稍微加深 */
+        td:nth-child(6), td:nth-child(7) {
+            background-color: var(--weekend-bg);
+        }
+
+        .date-num {
+            font-family: "Georgia", serif;
+            font-weight: bold;
+        }
+
+        .holiday {
+            color: #e63946;
+        }
+
+        /* 裝飾細節 */
+        .month-card::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 30px;
+            height: 30px;
+            background: rgba(212, 163, 115, 0.1);
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="year-title">2026</h1>
+    <div class="month-wrapper" id="calendar-container">
+        </div>
+</div>
+
+<script>
+    const monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+    const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const container = document.getElementById('calendar-container');
+
+    for (let m = 0; m < 12; m++) {
+        const monthCard = document.createElement('div');
+        monthCard.className = 'month-card';
+
+        let tableHtml = `
+            <div class="month-header">
+                <span>${monthNames[m]}</span>
+                <span style="opacity: 0.3">${m + 1}</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>${dayNames.map(d => `<th>${d}</th>`).join('')}</tr>
+                </thead>
+                <tbody>
+        `;
+
+        const firstDay = new Date(2026, m, 1).getDay(); // 0 是週日
+        const daysInMonth = new Date(2026, m + 1, 0).getDate();
+        
+        // 調整週一為起始 (1=Mon, 2=Tue... 0=Sun 改成 7)
+        let startGrid = firstDay === 0 ? 7 : firstDay;
+        
+        let date = 1;
+        for (let i = 0; i < 6; i++) { // 最多 6 週
+            tableHtml += '<tr>';
+            for (let j = 1; j <= 7; j++) {
+                if (i === 0 && j < startGrid) {
+                    tableHtml += '<td></td>';
+                } else if (date > daysInMonth) {
+                    tableHtml += '<td></td>';
+                } else {
+                    const isWeekend = (j === 6 || j === 7);
+                    tableHtml += `<td><span class="date-num ${isWeekend ? 'holiday' : ''}">${date}</span></td>`;
+                    date++;
+                }
+            }
+            tableHtml += '</tr>';
+            if (date > daysInMonth) break;
+        }
+
+        tableHtml += `</tbody></table>`;
+        monthCard.innerHTML = tableHtml;
+        container.appendChild(monthCard);
+    }
+</script>
+
+</body>
+</html>

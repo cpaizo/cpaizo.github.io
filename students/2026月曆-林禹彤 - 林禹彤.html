@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>2026 漫畫風月曆</title>
+    <style>
+        :root {
+            --black: #000000;
+            --white: #ffffff;
+            --yellow: #FFD700;
+            --blue: #00A8FF;
+            --red: #FF4757;
+        }
+
+        body {
+            background-color: #f0f0f0;
+            /* 模擬漫畫網點背景 */
+            background-image: radial-gradient(var(--black) 1px, transparent 0);
+            background-size: 40px 40px;
+            background-attachment: fixed;
+            opacity: 0.9;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Microsoft JhengHei', sans-serif;
+            padding: 20px;
+        }
+
+        .main-title {
+            text-align: center;
+            font-size: 4rem;
+            background: var(--yellow);
+            display: inline-block;
+            padding: 10px 40px;
+            border: 5px solid var(--black);
+            border-radius: 50px;
+            box-shadow: 8px 8px 0px var(--black);
+            margin: 20px auto;
+            display: block;
+            width: fit-content;
+            transform: rotate(-2deg);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 20px;
+        }
+
+        .month-card {
+            background: var(--white);
+            border: 4px solid var(--black);
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 10px 10px 0px var(--black);
+            transition: transform 0.2s;
+        }
+
+        .month-card:hover {
+            transform: translateY(-5px) scale(1.02);
+        }
+
+        .month-name {
+            background: var(--blue);
+            color: white;
+            text-align: center;
+            padding: 10px;
+            margin: -15px -15px 15px -15px;
+            border-bottom: 4px solid var(--black);
+            border-radius: 15px 15px 0 0;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 2px;
+        }
+
+        th {
+            color: var(--red);
+            font-size: 0.8rem;
+            padding: 5px;
+        }
+
+        td {
+            text-align: center;
+            padding: 8px;
+            border: 2px solid transparent;
+            font-weight: bold;
+            border-radius: 8px;
+        }
+
+        td:hover:not(.empty) {
+            border-color: var(--black);
+            background: var(--yellow);
+            cursor: pointer;
+        }
+
+        .today {
+            background: var(--red) !important;
+            color: white;
+            border: 2px solid var(--black) !important;
+        }
+
+        /* 響應式調整 */
+        @media (max-width: 600px) {
+            .main-title { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<h1 class="main-title">2026 CALENDAR</h1>
+
+<div class="calendar-grid" id="calendar">
+    </div>
+
+<script>
+    const months = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+
+    function generateCalendar(year) {
+        const container = document.getElementById('calendar');
+        
+        for (let m = 0; m < 12; m++) {
+            const date = new Date(year, m, 1);
+            let tableHtml = `
+                <div class="month-card">
+                    <div class="month-name">${months[m]}</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>SUN</th><th>MON</th><th>TUE</th><th>WED</th><th>THU</th><th>FRI</th><th>SAT</th>
+                            </tr>
+                        </thead>
+                        <tbody><tr>`;
+
+            // 填充第一天之前的空白
+            for (let i = 0; i < date.getDay(); i++) {
+                tableHtml += `<td class="empty"></td>`;
+            }
+
+            // 填充日期
+            while (date.getMonth() === m) {
+                tableHtml += `<td>${date.getDate()}</td>`;
+                if (date.getDay() === 6) {
+                    tableHtml += `</tr><tr>`;
+                }
+                date.setDate(date.getDate() + 1);
+            }
+
+            tableHtml += `</tr></tbody></table></div>`;
+            container.innerHTML += tableHtml;
+        }
+    }
+
+    generateCalendar(2026);
+</script>
+
+</body>
+</html>

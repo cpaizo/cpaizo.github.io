@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>九九乘法表</title>
+    <style>
+        /* 基本頁面排版與重置 */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0fdf4; /* 淺綠色背景 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            box-sizing: border-box;
+        }
+
+        /* 標題樣式 */
+        h1 {
+            color: #166534;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+        }
+
+        /* 表格外框容器，增加陰影與圓角 */
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            overflow-x: auto; /* 在小螢幕上允許水平滾動 */
+            max-width: 100%;
+        }
+
+        /* 表格本體樣式 */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        /* 儲存格基本樣式 */
+        th, td {
+            border: 1px solid #e5e7eb;
+            padding: 12px 16px;
+            text-align: center;
+            white-space: nowrap;
+            transition: all 0.2s ease; /* 讓滑鼠懸停效果更滑順 */
+        }
+
+        /* 表頭樣式 (頂部與左側的數字) */
+        th {
+            background-color: #22c55e;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        /* 頂部左上角的空白/乘號格子 */
+        th:first-child {
+            background-color: #166534;
+        }
+
+        /* 內容儲存格樣式 */
+        td {
+            background-color: #fafafa;
+            color: #4b5563;
+            font-size: 1rem;
+        }
+
+        /* 斑馬紋效果，讓相鄰行有微小的顏色差異 */
+        tr:nth-child(even) td {
+            background-color: #ffffff;
+        }
+
+        /* 滑鼠懸停效果：突顯當前指到的格子 */
+        td:hover {
+            background-color: #bbf7d0 !important; /* 亮綠色背景 */
+            color: #166534; /* 深綠色文字 */
+            font-weight: bold;
+            transform: scale(1.05); /* 微微放大 */
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.4); /* 增加發光陰影 */
+            position: relative;
+            z-index: 10;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        /* 響應式設計：在較小的螢幕上縮小字體與內距 */
+        @media (max-width: 768px) {
+            th, td {
+                padding: 8px 10px;
+                font-size: 0.9rem;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            .table-container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>九九乘法表</h1>
+    
+    <div class="table-container">
+        <!-- 表格將由下方的 JavaScript 動態生成 -->
+        <table id="table-99">
+        </table>
+    </div>
+
+    <script>
+        // 當網頁內容載入完成後執行
+        document.addEventListener('DOMContentLoaded', () => {
+            const table = document.getElementById('table-99');
+            let htmlContent = '';
+
+            // 1. 生成表頭 (Thead)：頂部的 1 到 9
+            htmlContent += '<thead><tr><th>&times;</th>'; // 第一個格子放乘號
+            for (let col = 1; col <= 9; col++) {
+                htmlContent += `<th>${col}</th>`;
+            }
+            htmlContent += '</tr></thead>';
+
+            // 2. 生成表格主體 (Tbody)
+            htmlContent += '<tbody>';
+            for (let row = 1; row <= 9; row++) {
+                // 每列的第一個格子是列標題
+                htmlContent += `<tr><th>${row}</th>`; 
+                
+                // 產生該列的 1 到 9 乘法內容
+                for (let col = 1; col <= 9; col++) {
+                    const result = row * col;
+                    // 使用 &times; 顯示標準的乘號 (×)
+                    htmlContent += `<td>${row} &times; ${col} = ${result}</td>`;
+                }
+                htmlContent += '</tr>';
+            }
+            htmlContent += '</tbody>';
+
+            // 將生成的 HTML 字串放入表格中
+            table.innerHTML = htmlContent;
+        });
+    </script>
+</body>
+</html>

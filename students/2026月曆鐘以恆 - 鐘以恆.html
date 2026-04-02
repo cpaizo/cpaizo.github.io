@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 年完整月曆</title>
+    <style>
+        body { font-family: "Microsoft JhengHei", Arial, sans-serif; background: #f4f7f6; padding: 20px; }
+        h1 { text-align: center; color: #333; }
+        
+        /* 網格佈局：在大螢幕上一列顯示 3 個月 */
+        .calendar-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .month-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 15px;
+        }
+
+        .month-title {
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 5px;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: center; padding: 8px; font-size: 0.9em; }
+        th { color: #777; border-bottom: 1px solid #eee; }
+        
+        /* 週末顏色 */
+        th:nth-child(1), td:nth-child(1) { color: #e74c3c; } /* 週日紅 */
+        th:nth-child(7), td:nth-child(7) { color: #3498db; } /* 週六藍 */
+
+        .today { background: #4CAF50; color: white !important; border-radius: 50%; }
+    </style>
+</head>
+<body>
+
+    <h1>2026 年年度月曆</h1>
+    <div class="calendar-container" id="calendar"></div>
+
+    <script>
+        const year = 2026;
+        const container = document.getElementById('calendar');
+        const monthNames = ["一月", "二月", "三月", "四月", "五月", "六月", 
+                            "七月", "八月", "九月", "十月", "十一月", "十二月"];
+        const dayNames = ["日", "一", "二", "三", "四", "五", "六"];
+
+        for (let month = 0; month < 12; month++) {
+            // 建立月份卡片
+            let monthCard = document.createElement('div');
+            monthCard.className = 'month-card';
+            
+            let title = `<div class="month-title">${year}年 ${monthNames[month]}</div>`;
+            let table = '<table><thead><tr>';
+            
+            // 星期標頭
+            dayNames.forEach(day => table += `<th>${day}</th>`);
+            table += '</tr></thead><tbody><tr>';
+
+            // 獲取該月第一天是星期幾 & 該月總天數
+            let firstDay = new Date(year, month, 1).getDay();
+            let daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            // 填充第一週之前的空白
+            for (let i = 0; i < firstDay; i++) {
+                table += '<td></td>';
+            }
+
+            // 填充日期
+            for (let date = 1; date <= daysInMonth; date++) {
+                if ((firstDay + date - 1) % 7 === 0 && date !== 1) {
+                    table += '</tr><tr>';
+                }
+                table += `<td>${date}</td>`;
+            }
+
+            table += '</tr></tbody></table>';
+            monthCard.innerHTML = title + table;
+            container.appendChild(monthCard);
+        }
+    </script>
+</body>
+</html>

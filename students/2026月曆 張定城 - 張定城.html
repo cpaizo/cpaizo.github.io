@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 Minecraft 風格月曆</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        :root {
+            --mc-bg: #c6c6c6;
+            --mc-border-dark: #555555;
+            --mc-border-light: #ffffff;
+            --mc-text: #333333;
+            --mc-hover: #8b8b8b;
+            --mc-grass-top: #529646;
+            --mc-dirt: #866043;
+        }
+
+        body {
+            /* 使用深灰色模擬遊戲背景 */
+            background-color: #1d1d1d;
+            background-image: 
+                linear-gradient(45deg, #181818 25%, transparent 25%, transparent 75%, #181818 75%, #181818), 
+                linear-gradient(45deg, #181818 25%, transparent 25%, transparent 75%, #181818 75%, #181818);
+            background-size: 32px 32px;
+            background-position: 0 0, 16px 16px;
+            color: #ffffff;
+            font-family: 'Press Start 2P', 'Courier New', monospace, '微軟正黑體';
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #ffff55; /* Minecraft 黃色文字 */
+            text-shadow: 3px 3px 0 #3e3e15;
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2rem;
+            line-height: 1.5;
+        }
+
+        .calendar-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        /* Minecraft UI 面板樣式 */
+        .mc-panel {
+            background-color: var(--mc-bg);
+            border: 4px solid #000;
+            position: relative;
+            padding: 12px;
+            box-shadow: 
+                inset 4px 4px 0 var(--mc-border-light),
+                inset -4px -4px 0 var(--mc-border-dark);
+            color: var(--mc-text);
+            image-rendering: pixelated;
+        }
+
+        .month-title {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #ffffff;
+            text-shadow: 2px 2px 0 #3e3e3e;
+            background-color: var(--mc-grass-top);
+            padding: 10px;
+            border: 4px solid #000;
+            box-shadow: 
+                inset 4px 4px 0 #73d162,
+                inset -4px -4px 0 #325a2b;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: '微軟正黑體', 'Courier New', monospace;
+            font-weight: bold;
+        }
+
+        th, td {
+            width: 14.28%;
+            text-align: center;
+            padding: 8px 0;
+            font-size: 1rem;
+        }
+
+        th {
+            color: #555555;
+            text-shadow: 1px 1px 0 #ffffff;
+            padding-bottom: 12px;
+        }
+
+        /* 假日顯示紅色 */
+        th:first-child, td:first-child,
+        th:last-child, td:last-child {
+            color: #aa0000;
+        }
+
+        td {
+            position: relative;
+            cursor: default;
+            height: 40px;
+            vertical-align: middle;
+        }
+
+        /* 模擬物品欄格子的樣式 */
+        .day-cell {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            line-height: 32px;
+            background-color: #8b8b8b;
+            border: 2px solid #000;
+            box-shadow: 
+                inset 2px 2px 0 #373737,
+                inset -2px -2px 0 #ffffff;
+            transition: all 0.1s ease;
+        }
+
+        .day-cell:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+            outline: 2px solid #ffffff;
+            box-shadow: none;
+            z-index: 10;
+        }
+
+        .empty-cell {
+            background-color: transparent;
+            border: none;
+            box-shadow: none;
+        }
+
+        /* RWD 調整 */
+        @media (max-width: 600px) {
+            h1 { font-size: 1.5rem; }
+            .calendar-container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>2026<br>MINECRAFT CALENDAR</h1>
+    
+    <div class="calendar-container" id="calendar">
+        <!-- JavaScript 將在這裡生成 12 個月的表格 -->
+    </div>
+
+    <script>
+        const year = 2026;
+        const monthNames = ["一月 (JAN)", "二月 (FEB)", "三月 (MAR)", "四月 (APR)", "五月 (MAY)", "六月 (JUN)", 
+                            "七月 (JUL)", "八月 (AUG)", "九月 (SEP)", "十月 (OCT)", "十一月 (NOV)", "十二月 (DEC)"];
+        const weekDays = ["日", "一", "二", "三", "四", "五", "六"];
+        const calendarContainer = document.getElementById('calendar');
+
+        for (let month = 0; month < 12; month++) {
+            // 建立月份面板
+            const panel = document.createElement('div');
+            panel.className = 'mc-panel';
+
+            // 建立月份標題
+            const title = document.createElement('div');
+            title.className = 'month-title';
+            title.innerText = monthNames[month];
+            panel.appendChild(title);
+
+            // 建立表格
+            const table = document.createElement('table');
+            
+            // 建立表頭 (星期)
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            weekDays.forEach(day => {
+                const th = document.createElement('th');
+                th.innerText = day;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            // 建立表身 (日期)
+            const tbody = document.createElement('tbody');
+            
+            // 取得該月第一天是星期幾 & 該月有幾天
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            let date = 1;
+            for (let i = 0; i < 6; i++) { // 最多 6 週
+                const row = document.createElement('tr');
+                let rowHasDays = false;
+
+                for (let j = 0; j < 7; j++) {
+                    const cell = document.createElement('td');
+                    if (i === 0 && j < firstDay) {
+                        // 空白儲存格
+                        cell.className = 'empty-cell';
+                    } else if (date > daysInMonth) {
+                        // 月底後的空白儲存格
+                        cell.className = 'empty-cell';
+                    } else {
+                        // 有日期的儲存格
+                        const dayDiv = document.createElement('div');
+                        dayDiv.className = 'day-cell';
+                        dayDiv.innerText = date;
+                        cell.appendChild(dayDiv);
+                        date++;
+                        rowHasDays = true;
+                    }
+                    row.appendChild(cell);
+                }
+                
+                if (rowHasDays) {
+                    tbody.appendChild(row);
+                } else {
+                    break; // 如果這週沒有任何日期就不加入表格，避免多出空白列
+                }
+            }
+
+            table.appendChild(tbody);
+            panel.appendChild(table);
+            calendarContainer.appendChild(panel);
+        }
+    </script>
+
+</body>
+</html>
