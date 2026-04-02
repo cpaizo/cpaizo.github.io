@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>學生網頁作品集</title>
+    <style>
+        :root {
+            --bg-color: #fff9fb;
+            --card-bg: #ffffff;
+            --primary-pink: #ff85a1;
+            --primary-blue: #a2d2ff;
+            --primary-yellow: #ffd6a5;
+            --text-color: #5a5a5a;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#ffe4e1 1px, transparent 1px);
+            background-size: 20px 20px;
+            font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: var(--primary-pink);
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 0px #fff, 4px 4px 0px rgba(255, 133, 161, 0.1);
+            margin-bottom: 40px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .category-box {
+            background: var(--card-bg);
+            border-radius: 25px;
+            padding: 25px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            border: 3px solid #ffe4e1;
+            transition: transform 0.3s ease;
+        }
+
+        .category-box:hover {
+            transform: translateY(-5px);
+        }
+
+        .category-title {
+            font-size: 1.5rem;
+            margin-top: 0;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 2px dashed #eee;
+            padding-bottom: 10px;
+        }
+
+        .calendar-title { color: #ff85a1; }
+        .math-title { color: #72efdd; }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        li {
+            margin-bottom: 12px;
+        }
+
+        a {
+            text-decoration: none;
+            color: #666;
+            background: #fdfdfd;
+            padding: 10px 15px;
+            border-radius: 15px;
+            display: block;
+            border: 1px solid #f0f0f0;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        a:hover {
+            background: var(--primary-pink);
+            color: white;
+            border-color: var(--primary-pink);
+            padding-left: 20px;
+        }
+
+        .icon {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+
+
+
+    <h1>🌟 學生網頁作品集 🌟</h1>
+
+    <div class="container">
+        
+        <div class="category-box">
+            <h2 class="category-title calendar-title"><span class="icon">📅</span>2026月曆與日曆</h2>
+            <ul>
+                <li><a href="https://cpaizo.github.io/students/2026月曆%20張定城%20-%20張定城.html" target="_blank">張定城 - 2026月曆</a></li>
+                <li><a href="https://cpaizo.github.io/students/2026月曆-林禹彤%20-%20林禹彤.html" target="_blank">林禹彤 - 2026月曆</a></li>
+                <li><a href="https://cpaizo.github.io/students/2026月曆鐘以恆%20-%20鐘以恆.html" target="_blank">鐘以恆 - 2026月曆</a></li>
+                <li><a href="https://cpaizo.github.io/students/日歷廖曼心 - 廖曼心.html" target="_blank">廖曼心 - 日曆作品</a></li>
+                <li><a href="https://cpaizo.github.io/students/月曆%20-%20余品樂.html" target="_blank">余品樂 - 月曆作品</a></li>
+            </ul>
+        </div>
+
+        <div class="category-box">
+            <h2 class="category-title math-title"><span class="icon">🍭</span>九九乘法表</h2>
+            <ul>
+                <li><a href="https://cpaizo.github.io/students/9×9乘法表 張定城 - 張定城.html" target="_blank">張定城 - 乘法表</a></li>
+                <li><a href="https://cpaizo.github.io/students/9x9-林禹彤%20-%20林禹彤.html" target="_blank">林禹彤 - 乘法表</a></li>
+                <li><a href="https://cpaizo.github.io/students/9x9鐘以恆%20-%20鐘以恆.html" target="_blank">鐘以恆 - 乘法表</a></li>
+                <li><a href="https://cpaizo.github.io/students/9x9廖曼心%20-%20廖曼心.html" target="_blank">廖曼心 - 乘法表</a></li>
+                <li><a href="https://cpaizo.github.io/students/九九乘法表%20-%20余品樂.html" target="_blank">余品樂 - 乘法表</a></li>
+            </ul>
+        </div>
+
+    </div>
+
+    <footer style="margin-top: 50px; color: #bbb; font-size: 0.9rem;">
+        點擊上方連結查看作品內容
+    </footer>
+
+</body>
+</html>
