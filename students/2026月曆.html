@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>2026 可愛彩色月曆</title>
+    <style>
+        :root {
+            --primary-pink: #ffafbd;
+            --holiday-red: #ff6b6b;
+            --weekend-blue: #a2d2ff;
+            --bg-color: #fff9f9;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            font-family: "Microsoft JhengHei", cursive, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .calendar-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .month-card {
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 8px 20px rgba(255, 175, 189, 0.2);
+            border: 3px solid #ffe4e1;
+        }
+
+        .month-title {
+            text-align: center;
+            color: #ff85a1;
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            border-bottom: 2px dashed #ffe4e1;
+            padding-bottom: 5px;
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+        }
+
+        .day-name {
+            font-weight: bold;
+            color: #b5838d;
+            font-size: 0.8em;
+            padding: 5px 0;
+        }
+
+        .day {
+            padding: 10px 0;
+            border-radius: 10px;
+            margin: 2px;
+            font-size: 0.9em;
+            position: relative;
+            cursor: default;
+        }
+
+        /* 假日與週末樣式 */
+        .weekend { color: var(--weekend-blue); }
+        .holiday { 
+            background-color: #ffe5e5; 
+            color: var(--holiday-red); 
+            font-weight: bold;
+        }
+        .holiday::after {
+            content: "•";
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+        }
+
+        .today { background-color: var(--primary-pink); color: white !important; }
+    </style>
+</head>
+<body>
+
+    <h1 style="color: #ff85a1;">🌸 2026 (民國115年) 行事曆 🌸</h1>
+    <p style="color: #999;">只補假不補班，可愛過每一天</p>
+
+    <div class="calendar-container" id="calendar"></div>
+
+    <script>
+        // 2026 國定假日資料庫 (格式: M-D)
+        const holidays = {
+            "1-1": "元旦",
+            "2-15": "小年夜補假", "2-16": "除夕", "2-17": "初一", "2-18": "初二", "2-19": "初三", "2-20": "春節補假",
+            "2-27": "228補假", "2-28": "和平紀念日",
+            "4-3": "兒童節補假", "4-4": "兒童節", "4-5": "清明節", "4-6": "清明補假",
+            "5-1": "勞動節",
+            "6-19": "端午節",
+            "9-25": "中秋節", "9-28": "教師節",
+            "10-9": "國慶補假", "10-10": "國慶日",
+            "10-26": "光復補假", 
+            "12-25": "行憲紀念日"
+        };
+
+        const calendarEl = document.getElementById('calendar');
+
+        function generateCalendar() {
+            for (let month = 0; month < 12; month++) {
+                const date = new Date(2026, month, 1);
+                const monthName = (month + 1) + "月";
+                
+                let html = `
+                    <div class="month-card">
+                        <div class="month-title">${monthName}</div>
+                        <div class="days-grid">
+                            <div class="day-name">日</div><div class="day-name">一</div>
+                            <div class="day-name">二</div><div class="day-name">三</div>
+                            <div class="day-name">四</div><div class="day-name">五</div>
+                            <div class="day-name">六</div>
+                `;
+
+                // 填充第一天之前的空白
+                const firstDay = date.getDay();
+                for (let i = 0; i < firstDay; i++) {
+                    html += `<div class="day"></div>`;
+                }
+
+                // 填充日期
+                const daysInMonth = new Date(2026, month + 1, 0).getDate();
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const checkDate = `${month + 1}-${d}`;
+                    const dayOfWeek = new Date(2026, month, d).getDay();
+                    let className = "day";
+                    
+                    if (dayOfWeek === 0 || dayOfWeek === 6) className += " weekend";
+                    if (holidays[checkDate]) className += " holiday";
+
+                    html += `<div class="${className}" title="${holidays[checkDate] || ''}">${d}</div>`;
+                }
+
+                html += `</div></div>`;
+                calendarEl.innerHTML += html;
+            }
+        }
+
+        generateCalendar();
+    </script>
+</body>
+</html>
