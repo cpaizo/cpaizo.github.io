@@ -78,6 +78,16 @@
             body { background: white; }
             .shadow-2xl { box-shadow: none !important; }
         }
+
+        footer {
+                width: 100%;
+                padding: 10px 0;
+                text-align: center;
+                /*background-color: #f8f9fa; /* 淺灰色背景 */
+                color: #b7b7b7;           /* 深灰色文字 */
+                font-family: Arial, sans-serif;
+                border-top: 1px solid #ddd;
+               }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4">
@@ -125,7 +135,7 @@
             
             <div id="setup-view" class="text-center space-y-12 animate-in fade-in zoom-in-95 duration-1000">
                 <div class="py-14 bg-blue-50/50 rounded-[3rem] border border-blue-100/50 shadow-sm max-w-2xl mx-auto">
-                    <p class="text-blue-400 text-xs font-black tracking-[0.4em] mb-4 uppercase">參與發表學校</p>
+                    <p class="text-blue-400 text-2xl font-black tracking-[0.4em] mb-4 uppercase">參與發表學校</p>
                     <div class="flex flex-wrap justify-center gap-6 text-blue-600 font-bold text-xl">
                         <span class="hover:text-blue-400 transition-colors">和平國小</span>
                         <span class="text-blue-200">/</span>
@@ -329,6 +339,11 @@
             resultView.classList.remove('flex');
             document.getElementById('setup-view').classList.remove('hidden');
         }
+
+
     </script>
+<footer>
+     <p>2026 CPAIZO · Created with Purpose</p>
+</footer>
 </body>
 </html>
