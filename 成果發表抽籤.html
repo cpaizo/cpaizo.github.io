@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>財團法人花仙子教育基金會 - 成果發表抽籤</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+            overflow-x: hidden;
+        }
+
+        /* 柔和背景浮動動畫 */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) scale(1) rotate(0deg); }
+            33% { transform: translateY(-20px) scale(1.1) rotate(5deg); }
+            66% { transform: translateX(10px) translateY(-10px) rotate(-5deg); }
+        }
+        .animate-float {
+            animation: float 12s ease-in-out infinite;
+        }
+
+        /* 按鈕柔和光澤與點擊效果 */
+        @keyframes shimmer {
+            100% { transform: translateX(100%); }
+        }
+        .shimmer-btn {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .shimmer-btn::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: translateX(-100%);
+            animation: shimmer 4s infinite;
+        }
+        .shimmer-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* 揭曉時的擴散波紋 */
+        @keyframes ripple {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(4); opacity: 0; }
+        }
+        .ripple-effect {
+            position: fixed;
+            top: 50%; left: 50%;
+            width: 100px; height: 100px;
+            background: rgba(14, 165, 233, 0.2);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        /* 結果由下而上依序彈出 */
+        .result-entry {
+            animation: slideIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            opacity: 0;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media print {
+            .no-print { display: none; }
+            body { background: white; }
+            .shadow-2xl { box-shadow: none !important; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <audio id="bgMusic" preload="auto">
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- 藝術裝飾背景 -->
+    <div class="fixed inset-0 pointer-events-none opacity-20 overflow-hidden">
+        <i data-lucide="circle" class="absolute top-10 left-10 w-32 h-32 text-blue-300 animate-float opacity-40"></i>
+        <i data-lucide="cloud" class="absolute bottom-20 right-10 w-48 h-48 text-blue-200 animate-float" style="animation-delay: 3s;"></i>
+        <i data-lucide="heart" class="absolute top-1/4 right-1/4 w-16 h-16 text-blue-300 animate-float opacity-30" style="animation-delay: 1.5s;"></i>
+        <i data-lucide="sparkles" class="absolute bottom-1/4 left-1/4 w-12 h-12 text-blue-400 animate-float" style="animation-delay: 4s;"></i>
+    </div>
+
+    <!-- 波紋動畫容器 (JS 觸發) -->
+    <div id="ripple-container"></div>
+
+    <div class="w-full max-w-4xl bg-white/90 backdrop-blur-md rounded-[4rem] shadow-[0_32px_64px_-16px_rgba(186,230,253,0.5)] overflow-hidden border border-white relative z-10 flex flex-col min-h-[720px]">
+        
+        <div class="bg-white/50 pt-12 pb-10 px-12 border-b-[4px] border-blue-100">
+            <div class="flex flex-col md:flex-row items-center justify-center gap-8">
+                <div class="flex-shrink-0">
+                    <!-- 使用您指定的 logo 路徑 -->
+                    <img src="photos/brand01-logo.png" alt="花仙子 Logo" class="h-24 object-contain" onerror="this.style.display='none'; document.getElementById('fallback-icon').style.display='block';">
+                    <div id="fallback-icon" class="hidden">
+                        <i data-lucide="flower-2" class="text-blue-400 w-16 h-16"></i>
+                    </div>
+                </div>
+
+                <div class="text-center md:text-left">
+                    <div class="flex items-center justify-center md:justify-start gap-2 mb-2">
+                        <i data-lucide="heart" class="w-5 h-5 fill-blue-400 text-blue-400"></i>
+                        <span class="text-blue-500 font-bold text-3xl tracking-tighter">財團法人花仙子教育基金會</span>
+                    </div>
+                    <h1 class="text-2xl md:text-2xl font-black text-blue-700 tracking-tight whitespace-nowrap">
+                        AI 永續生活營隊成果發表會
+                    </h1>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-grow flex flex-col justify-center p-8 md:p-12 relative">
+            
+            <div id="setup-view" class="text-center space-y-12 animate-in fade-in zoom-in-95 duration-1000">
+                <div class="py-14 bg-blue-50/50 rounded-[3rem] border border-blue-100/50 shadow-sm max-w-2xl mx-auto">
+                    <p class="text-blue-400 text-xs font-black tracking-[0.4em] mb-4 uppercase">參與發表學校</p>
+                    <div class="flex flex-wrap justify-center gap-6 text-blue-600 font-bold text-xl">
+                        <span class="hover:text-blue-400 transition-colors">和平國小</span>
+                        <span class="text-blue-200">/</span>
+                        <span class="hover:text-blue-400 transition-colors">八里國小</span>
+                        <span class="text-blue-200">/</span>
+                        <span class="hover:text-blue-400 transition-colors">中湖國小</span>
+                    </div>
+                </div>
+                
+                <button onclick="startMagicDraw()" class="shimmer-btn group w-full max-w-md mx-auto py-8 text-white rounded-[2.5rem] font-black text-2xl shadow-[0_20px_40px_-10px_rgba(14,165,233,0.4)] hover:shadow-[0_25px_50px_-12px_rgba(14,165,233,0.5)] flex items-center justify-center gap-4">
+                    <i data-lucide="sparkles" class="text-blue-100 group-hover:rotate-12 transition-transform"></i>
+                    開啟成果發表抽籤
+                </button>
+                <p class="text-xs text-blue-300 font-medium tracking-widest italic">點擊瞬間將綻放永續種子</p>
+            </div>
+
+            <div id="shuffling-view" class="hidden text-center animate-in fade-in scale-95">
+                <div class="relative inline-block mb-10">
+                    <div class="w-32 h-32 rounded-full bg-blue-50 animate-pulse flex items-center justify-center border border-blue-100">
+                        <i data-lucide="loader-2" class="text-blue-400 w-16 h-16 animate-spin"></i>
+                    </div>
+                </div>
+                <p class="text-blue-500 font-black text-2xl tracking-[0.4em] mb-12">順序正在悄悄綻放...</p>
+                
+                <div class="w-full max-w-2xl mx-auto h-3 bg-white rounded-full overflow-hidden shadow-inner border border-blue-50">
+                    <div id="progress-bar" class="h-full bg-gradient-to-r from-blue-300 via-blue-400 to-blue-500 w-0"></div>
+                </div>
+            </div>
+
+            <div id="result-view" class="hidden flex flex-col items-center">
+                <div class="w-full max-w-2xl space-y-6">
+                    <div class="flex items-center justify-between border-b-2 border-blue-50/50 pb-6 mb-2">
+                        <h2 class="font-black text-blue-600 flex items-center gap-3 tracking-tighter text-2xl italic">
+                            <i data-lucide="award" class="text-blue-400 fill-blue-50 w-8 h-8"></i> 最終發表順序
+                        </h2>
+                        <div class="bg-white px-4 py-2 rounded-full flex items-center gap-2 border border-blue-50 shadow-sm">
+                            <i data-lucide="check" class="text-blue-400 w-4 h-4"></i>
+                            <span class="text-blue-400 text-xs font-black tracking-widest uppercase">成果確認</span>
+                        </div>
+                    </div>
+
+                    <div id="result-list" class="space-y-4">
+                        <!-- JS 生成 -->
+                    </div>
+
+                    <div class="pt-10 grid grid-cols-2 gap-6 no-print">
+                        <button onclick="window.print()" class="py-5 bg-blue-100 text-blue-600 font-black rounded-[2rem] hover:bg-blue-200 transition-all flex items-center justify-center gap-3 shadow-sm text-lg">
+                            <i data-lucide="printer"></i> 列印成果
+                        </button>
+                        <button onclick="resetSystem()" class="py-5 bg-white text-blue-400 font-black rounded-[2rem] border-2 border-blue-100 hover:bg-blue-50 transition-all shadow-sm text-lg">
+                            重新開始
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="py-8 bg-white/50 text-center border-t border-blue-50/50">
+            <p class="text-xs text-blue-300 font-bold tracking-[0.5em] uppercase">
+                讓教育在愛中綻放 ‧ 花仙子教育基金會
+            </p>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const schools = ["和平國小", "八里國小", "中湖國小"];
+        const bgMusic = document.getElementById('bgMusic');
+        const progressBar = document.getElementById('progress-bar');
+        
+        const DRAW_DURATION = 6000; 
+        const FADE_START_TIME = 4500; 
+
+        function fireConfetti() {
+            const count = 150;
+            const defaults = { origin: { y: 0.7 }, colors: ['#0ea5e9', '#bae6fd', '#ffffff'] };
+
+            function fire(particleRatio, opts) {
+                confetti({
+                    ...defaults,
+                    ...opts,
+                    particleCount: Math.floor(count * particleRatio)
+                });
+            }
+
+            fire(0.25, { spread: 26, startVelocity: 55 });
+            fire(0.2, { spread: 60 });
+            fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+            fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+            fire(0.1, { spread: 120, startVelocity: 45 });
+        }
+
+        function triggerRipple() {
+            const container = document.getElementById('ripple-container');
+            const ripple = document.createElement('div');
+            ripple.className = 'ripple-effect';
+            ripple.style.animation = 'ripple 1.5s ease-out forwards';
+            container.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 1500);
+        }
+
+        function startMagicDraw() {
+            // 觸發紙屑
+            fireConfetti();
+            
+            setTimeout(() => {
+                document.getElementById('setup-view').classList.add('hidden');
+                document.getElementById('shuffling-view').classList.remove('hidden');
+                
+                bgMusic.currentTime = 0;
+                bgMusic.volume = 1;
+                bgMusic.play().catch(e => console.warn("需要使用者授權播放音樂"));
+
+                progressBar.style.transition = `width ${DRAW_DURATION}ms cubic-bezier(0.1, 0, 0.3, 1)`;
+                setTimeout(() => progressBar.style.width = '100%', 50);
+
+                const fadeTotalDuration = 1500; 
+                const fadeInterval = 50; 
+                const steps = fadeTotalDuration / fadeInterval;
+                const volDecrement = 1 / steps;
+
+                setTimeout(() => {
+                    let fadeTimer = setInterval(() => {
+                        if (bgMusic.volume > volDecrement) {
+                            bgMusic.volume -= volDecrement;
+                        } else {
+                            bgMusic.volume = 0;
+                            bgMusic.pause();
+                            clearInterval(fadeTimer);
+                        }
+                    }, fadeInterval);
+                }, FADE_START_TIME);
+
+                // 揭曉結果
+                setTimeout(() => {
+                    triggerRipple(); // 揭曉時的衝擊波
+                    bgMusic.pause();
+                    bgMusic.volume = 0;
+                    const results = shuffleArray([...schools]).map((school, index) => ({
+                        school,
+                        order: index + 1
+                    }));
+                    displayResults(results);
+                }, DRAW_DURATION);
+            }, 300); // 稍微延遲一點讓紙屑噴出感更好
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function displayResults(results) {
+            document.getElementById('shuffling-view').classList.add('hidden');
+            const resultView = document.getElementById('result-view');
+            const resultList = document.getElementById('result-list');
+            resultView.classList.add('flex');
+            resultView.classList.remove('hidden');
+            
+            resultList.innerHTML = '';
+            results.forEach((item, index) => {
+                const isFirst = item.order === 1;
+                const div = document.createElement('div');
+                div.className = `result-entry flex items-center justify-between p-6 md:p-8 rounded-[2.8rem] border-2 transition-all`;
+                div.style.animationDelay = `${index * 250}ms`;
+                
+                if (isFirst) {
+                    div.className += ' bg-gradient-to-br from-blue-50 to-white border-blue-200 shadow-[0_15px_30px_-10px_rgba(186,230,253,0.4)] scale-105 z-10';
+                } else {
+                    div.className += ' bg-white/60 border-blue-50/50 shadow-sm';
+                }
+                
+                div.innerHTML = `
+                    <div class="flex items-center gap-8 md:gap-10">
+                        <div class="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center rounded-[1.8rem] font-black text-3xl md:text-5xl shadow-sm ${isFirst ? 'bg-blue-500 text-white' : (item.order === 2 ? 'bg-blue-300 text-white' : 'bg-blue-100 text-blue-400')}">
+                            ${item.order}
+                        </div>
+                        <div>
+                            <div class="text-[10px] font-black text-blue-300 tracking-[0.2em] mb-1 uppercase">發表順位 ${item.order}</div>
+                            <div class="font-black text-2xl md:text-[1.75rem] text-blue-700 tracking-tight">${item.school}</div>
+                        </div>
+                    </div>
+                    ${isFirst ? '<div class="text-blue-400 animate-bounce"><i data-lucide="award" class="w-8 h-8 md:w-10 md:h-10 fill-blue-50"></i></div>' : ''}
+                `;
+                resultList.appendChild(div);
+            });
+            lucide.createIcons();
+        }
+
+        function resetSystem() {
+            bgMusic.pause();
+            bgMusic.currentTime = 0;
+            progressBar.style.transition = 'none';
+            progressBar.style.width = '0%';
+            const resultView = document.getElementById('result-view');
+            resultView.classList.add('hidden');
+            resultView.classList.remove('flex');
+            document.getElementById('setup-view').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
