@@ -24,7 +24,7 @@
         .button-group {
             display: flex;
             flex-direction: column;
-            gap: 20px; /* 按鈕間距調整 */
+            gap: 20px;
         }
 
         .button {
@@ -48,21 +48,24 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
-        /* 粉蜜柑色 */
+        /* 按鈕顏色設定 */
         .btn-view { background: linear-gradient(135deg, #ffd1a4 0%, #ffb366 100%); }
-        /* 粉薄荷色 */
         .btn-history { background: linear-gradient(135deg, #a7e9e1 0%, #80ded3 100%); }
+        .btn-list { background: linear-gradient(135deg, #c4b5fd 0%, #a78bfa 100%); } /* 新增的紫色系按鈕 */
     </style>
 </head>
 <body>
 
     <div class="container">
         <div class="button-group">
-            <a href="https://script.google.com/macros/s/AKfycbwLvrIazrGBW2IabsAQNHWlV5A8U9hPLlt_GvZLk9P86Ywgk2uBD7IwIE_wQ7MO93sH/exec?p=view" 
+            <a href="https://script.google.com/macros/s/AKfycby2QEeoPA2SU77cxCCvxHaYzcJfhmUZJJ84HfnUl0KAWPIoeZgnLWhBak8vLAQeeLH5/exec?p=view" 
                target="_blank" class="button btn-view">資料查看</a>
                
-            <a href="https://script.google.com/macros/s/AKfycbwLvrIazrGBW2IabsAQNHWlV5A8U9hPLlt_GvZLk9P86Ywgk2uBD7IwIE_wQ7MO93sH/exec?p=history" 
+            <a href="https://script.google.com/macros/s/AKfycby2QEeoPA2SU77cxCCvxHaYzcJfhmUZJJ84HfnUl0KAWPIoeZgnLWhBak8vLAQeeLH5/exec?p=history" 
                target="_blank" class="button btn-history">歷史紀錄</a>
+
+            <a href="https://script.google.com/macros/s/AKfycby2QEeoPA2SU77cxCCvxHaYzcJfhmUZJJ84HfnUl0KAWPIoeZgnLWhBak8vLAQeeLH5/exec?p=list" 
+               target="_blank" class="button btn-list">清單瀏覽</a>
         </div>
     </div>
 
