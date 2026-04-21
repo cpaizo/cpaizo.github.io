@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>選手順序抽籤系統</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f8fafc;
+        }
+        .rolling {
+            animation: bounce 0.1s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .animate-pop {
+            animation: popIn 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+
+    <div class="w-full max-w-3xl space-y-8">
+        
+        <div class="bg-white rounded-[2rem] shadow-2xl p-8 md:p-10 border border-white">
+            <header class="text-center mb-8">
+                <h1 class="text-3xl font-black text-slate-800 tracking-tight">比賽順序抽籤</h1>
+                <p class="text-slate-500 mt-2 font-medium">請選擇姓名並按下開始抽籤</p>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-600 mb-3 ml-1">選擇您的姓名</label>
+                        <select id="student-select" class="w-full p-5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all text-slate-700 font-bold text-xl appearance-none cursor-pointer">
+                            <option value="" disabled selected>-- 點擊選擇學校姓名 --</option>
+                        </select>
+                    </div>
+                    <button id="draw-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-5 rounded-2xl text-2xl shadow-xl shadow-indigo-200 active:scale-95 transition-all disabled:bg-slate-300 disabled:shadow-none">
+                        開始抽籤
+                    </button>
+                </div>
+
+                <div class="bg-gradient-to-br from-indigo-600 to-indigo-800 rounded-[2rem] p-10 text-center shadow-2xl shadow-indigo-200 relative overflow-hidden">
+                    <div id="display-number" class="text-[10rem] leading-none font-black text-white drop-shadow-2xl relative z-10">?</div>
+                    <div id="display-info" class="text-sm text-indigo-100 font-bold uppercase tracking-[0.3em] mt-4 relative z-10">READY</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-[2rem] shadow-2xl p-8 md:p-10 border border-white">
+            <div class="flex justify-between items-center mb-8 border-b-2 border-slate-50 pb-6">
+                <h3 class="text-2xl font-black text-slate-800 flex items-center gap-4">
+                    <span class="w-3 h-8 bg-indigo-600 rounded-full"></span>
+                    最終抽籤順序看板
+                </h3>
+                <button id="reset-btn" class="text-sm font-bold text-red-500 hover:bg-red-50 px-4 py-2 rounded-xl transition-colors">系統重設</button>
+            </div>
+            
+            <div id="results-list" class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div class="col-span-full text-center text-slate-300 py-16 italic text-xl">目前尚未有抽籤紀錄</div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const students = [
+            { school: "和平國小", name: "陳芃潔" },
+            { school: "中湖國小", name: "劉品忻" },
+            { school: "八里國小", name: "張立薇" },
+            { school: "中湖國小", name: "劉軒宇" },
+            { school: "八里國小", name: "汪翊恩" },
+            { school: "和平國小", name: "張哲語" },
+            { school: "八里國小", name: "黃詩淇" },
+            { school: "和平國小", name: "李尚恩" },
+            { school: "中湖國小", name: "卓芳伃" }
+        ].map((s, index) => ({ ...s, id: index, drawn: false, result: null }));
+
+        let availableNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+        let isProcessing = false;
+
+        const selectEl = document.getElementById('student-select');
+        const drawBtn = document.getElementById('draw-btn');
+        const displayNum = document.getElementById('display-number');
+        const displayInfo = document.getElementById('display-info');
+        const resultsList = document.getElementById('results-list');
+        const resetBtn = document.getElementById('reset-btn');
+
+        function initSelect() {
+            const currentValue = selectEl.value;
+            selectEl.innerHTML = '<option value="" disabled selected>-- 點擊選擇學校姓名 --</option>';
+            const sortedStudents = [...students].sort((a, b) => a.school.localeCompare(b.school, 'zh-Hant'));
+            sortedStudents.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = `${s.school} - ${s.name}${s.drawn ? ' (已抽出)' : ''}`;
+                opt.disabled = s.drawn;
+                selectEl.appendChild(opt);
+            });
+            if (currentValue && !students.find(s => s.id == currentValue).drawn) {
+                selectEl.value = currentValue;
+            }
+        }
+
+        function updateResults() {
+            const drawnStudents = students.filter(s => s.drawn);
+            if (drawnStudents.length === 0) {
+                resultsList.innerHTML = '<div class="col-span-full text-center text-slate-300 py-16 italic text-xl">目前尚未有抽籤紀錄</div>';
+                return;
+            }
+            drawnStudents.sort((a, b) => a.result - b.result);
+            resultsList.innerHTML = '';
+            drawnStudents.forEach(s => {
+                const div = document.createElement('div');
+                div.className = "flex flex-col items-center p-6 bg-slate-50 border-2 border-slate-100 rounded-[2rem] shadow-sm animate-pop text-center hover:bg-white hover:border-indigo-200 hover:shadow-xl transition-all border-l-[10px] border-l-indigo-600";
+                div.innerHTML = `
+                    <div class="text-6xl font-black text-indigo-600 mb-2 leading-none">${s.result}</div>
+                    <div class="flex flex-col gap-1">
+                        <span class="text-sm text-slate-400 font-bold uppercase tracking-widest">${s.school}</span>
+                        <span class="text-2xl font-black text-slate-800">${s.name}</span>
+                    </div>
+                `;
+                resultsList.appendChild(div);
+            });
+        }
+
+        async function handleDraw() {
+            const studentId = parseInt(selectEl.value);
+            if (isNaN(studentId) || isProcessing) return;
+            const student = students.find(s => s.id === studentId);
+            if (student.drawn) return;
+
+            isProcessing = true;
+            drawBtn.disabled = true;
+            displayInfo.innerText = "ROLLING...";
+            displayNum.classList.add('rolling');
+
+            for (let i = 0; i < 18; i++) {
+                const randomTemp = availableNumbers[Math.floor(Math.random() * availableNumbers.length)];
+                displayNum.innerText = randomTemp;
+                await new Promise(r => setTimeout(r, 60));
+            }
+
+            const finalIndex = Math.floor(Math.random() * availableNumbers.length);
+            const finalNumber = availableNumbers.splice(finalIndex, 1)[0];
+            student.drawn = true;
+            student.result = finalNumber;
+
+            displayNum.classList.remove('rolling');
+            displayNum.innerText = finalNumber;
+            displayInfo.innerText = "SUCCESS";
+
+            initSelect();
+            updateResults();
+            isProcessing = false;
+            drawBtn.disabled = false;
+        }
+
+        function handleReset() {
+            if (!confirm('確定要清除所有結果重新開始嗎？')) return;
+            students.forEach(s => { s.drawn = false; s.result = null; });
+            availableNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+            displayNum.innerText = '?';
+            displayInfo.innerText = 'READY';
+            initSelect();
+            updateResults();
+        }
+
+        drawBtn.addEventListener('click', handleDraw);
+        resetBtn.addEventListener('click', handleReset);
+        initSelect();
+    </script>
+</body>
+</html>
