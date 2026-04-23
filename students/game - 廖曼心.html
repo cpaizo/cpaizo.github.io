@@ -1,209 +1,233 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>Smooth Flow Parkour</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>仲夏端陽 - 慶端午</title>
     <style>
-        body { margin: 0; background: #111; overflow: hidden; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        canvas { background: #1a1a1a; border: 3px solid #333; border-radius: 10px; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
-        #ui { position: absolute; top: 20px; color: white; text-align: center; width: 100%; pointer-events: none; }
-        .stat-box { display: inline-block; margin: 0 20px; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 5px; border-bottom: 2px solid #00ff88; }
+        /* 全域設定 */
+        :root {
+            --primary-green: #2d5a27;
+            --accent-gold: #f1c40f;
+            --soft-cream: #fdfaf1;
+            --dragon-red: #c0392b;
+        }
+
+        body {
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+            margin: 0;
+            background-color: var(--soft-cream);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* 導覽列 */
+        nav {
+            background-color: var(--primary-green);
+            padding: 1rem 0;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 20px;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: var(--accent-gold);
+        }
+
+        /* 英雄區 (Hero Section) */
+        .hero {
+            height: 60vh;
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), 
+                        url('https://images.unsplash.com/photo-1590059392234-31010c9794d8?auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: 10px;
+        }
+
+        /* 內容區塊 */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .section-title {
+            text-align: center;
+            color: var(--primary-green);
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: "";
+            display: block;
+            width: 60px;
+            height: 4px;
+            background: var(--accent-gold);
+            margin: 10px auto;
+        }
+
+        /* 習俗卡片 */
+        .customs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+            border-top: 5px solid var(--primary-green);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+        }
+
+        .card h3 {
+            color: var(--dragon-red);
+            margin-top: 0;
+        }
+
+        /* 互動區塊 - 立蛋 */
+        .egg-section {
+            background-color: #e8f5e9;
+            text-align: center;
+            padding: 50px 20px;
+            margin: 40px 0;
+            border-radius: 20px;
+        }
+
+        #egg {
+            font-size: 100px;
+            cursor: pointer;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: inline-block;
+            user-select: none;
+        }
+
+        /* 頁尾 */
+        footer {
+            background-color: var(--primary-green);
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 50px;
+        }
+
+        /* 響應式調整 */
+        @media (max-width: 600px) {
+            .hero h1 { font-size: 2.5rem; }
+        }
     </style>
 </head>
 <body>
 
-<div id="ui">
-    <div class="stat-box">STAGE: <span id="lvl">1</span></div>
-    <div class="stat-box">FAILURES: <span id="fails">0</span></div>
-</div>
+    <nav>
+        <a href="#about">節日由來</a>
+        <a href="#customs">傳統習俗</a>
+        <a href="#game">互動立蛋</a>
+    </nav>
 
-<canvas id="game"></canvas>
+    <header class="hero">
+        <h1>端午安康</h1>
+        <p>農曆五月初五 · 仲夏之宴</p>
+    </header>
 
-<script>
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-canvas.width = 900;
-canvas.height = 500;
+    <div class="container" id="about">
+        <h2 class="section-title">節日由來</h2>
+        <p style="text-align: center; font-size: 1.1rem;">
+            端午節與春節、中秋節並稱為中華文化三大傳統節日。除了最為人熟知的紀念愛國詩人<strong>屈原</strong>之外，
+            端午在古代也是一個祭祀龍祖、祈求除穢避邪的節氣。
+        </p>
+    </div>
 
-// Game Physics Tweaks
-const GRAVITY = 0.4;
-const FRICTION = 0.85;
-const ACCEL = 0.6;
-const MAX_SPEED = 5.5;
-const JUMP_POWER = -9.5;
+    <div class="container" id="customs">
+        <h2 class="section-title">傳統習俗</h2>
+        <div class="customs-grid">
+            <div class="card">
+                <h3>🛶 划龍舟</h3>
+                <p>傳說中為了搜尋投江的屈原，後演變成具競爭性與祈福意義的體育活動。</p>
+            </div>
+            <div class="card">
+                <h3>🍙 吃粽子</h3>
+                <p>糯米包裹著各式內餡，鹹甜各異，是端午節最具代表性的節慶美食。</p>
+            </div>
+            <div class="card">
+                <h3>🌿 掛艾草與菖蒲</h3>
+                <p>五月被視為毒月，門口懸掛艾草與菖蒲可以驅除蚊蟲、驅邪避毒。</p>
+            </div>
+            <div class="card">
+                <h3>📿 佩戴香包</h3>
+                <p>內裝中藥辛香料，不僅美觀，更有散風驅寒、預防瘟疫的用意。</p>
+            </div>
+        </div>
+    </div>
 
-let currentLvl = 0;
-let deathCount = 0;
-let jumpBuffer = 0; // Remembers jump press
-let coyoteTime = 0; // Allows jump after falling
+    <div class="container" id="game">
+        <h2 class="section-title">午時立蛋體驗</h2>
+        <div class="egg-section">
+            <p>點擊下方的雞蛋，挑戰在正午時分將它立起來！</p>
+            <div id="egg">🥚</div>
+            <h3 id="egg-status">蛋倒了...</h3>
+            <button onclick="resetEgg()" style="padding: 10px 20px; cursor: pointer;">重試</button>
+        </div>
+    </div>
 
-const player = {
-    x: 0, y: 0, w: 22, h: 22,
-    vx: 0, vy: 0,
-    grounded: false
-};
+    <footer>
+        <p>© 2024 端午節文化專題 · 願你端午安康</p>
+    </footer>
 
-const levels = [
-    [ // Stage 1: The Warmup
-        "                                ",
-        "                                ",
-        "        3                       ",
-        "       111         11           ",
-        "                11              ",
-        "     11                         ",
-        "  P        2222                 ",
-        "11111111111111111111111111111111"
-    ],
-    [ // Stage 2: The Flow (Horizontal & Fair)
-        "                                ",
-        "                                ",
-        "                   111      3   ",
-        "               111     1111111  ",
-        "          111                   ",
-        "     111                        ",
-        "  P                             ",
-        "111  222222222222222222222222221"
-    ],
-    [ // Stage 3: The Leap
-        "P                               ",
-        "11                              ",
-        "   11                           ",
-        "      11                        ",
-        "         11          11         ",
-        "            11    11    11    3 ",
-        "              11           1111 ",
-        "22222222222222222222222222222222"
-    ]
-];
+    <script>
+        const egg = document.getElementById('egg');
+        const statusText = document.getElementById('egg-status');
+        let isStood = false;
 
-let mapData = [];
-
-function loadLevel(n) {
-    mapData = [];
-    document.getElementById('lvl').innerText = n + 1;
-    const layout = levels[n];
-    for(let y=0; y<layout.length; y++) {
-        for(let x=0; x<layout[y].length; x++) {
-            let char = layout[y][x];
-            let block = { x: x*40, y: y*50, w: 40, h: 50, type: char };
-            if(char !== ' ') mapData.push(block);
-            if(char === 'P') { player.x = block.x; player.y = block.y; player.vx = 0; player.vy = 0; }
-        }
-    }
-}
-
-const keys = {};
-window.onkeydown = (e) => {
-    keys[e.code] = true;
-    if(e.code === 'Space' || e.code === 'KeyW' || e.code === 'ArrowUp') jumpBuffer = 6; 
-};
-window.onkeyup = (e) => keys[e.code] = false;
-
-function update() {
-    // Movement logic
-    if (keys['ArrowLeft'] || keys['KeyA']) player.vx -= ACCEL;
-    if (keys['ArrowRight'] || keys['KeyD']) player.vx += ACCEL;
-    player.vx *= FRICTION;
-
-    player.vy += GRAVITY;
-    
-    // Jump Logic (with Buffer and Coyote Time)
-    if (jumpBuffer > 0) {
-        if (player.grounded || coyoteTime > 0) {
-            player.vy = JUMP_POWER;
-            player.grounded = false;
-            jumpBuffer = 0;
-            coyoteTime = 0;
-        }
-        jumpBuffer--;
-    }
-
-    if (player.grounded) coyoteTime = 6;
-    else coyoteTime--;
-
-    // Collision (Split Axis)
-    player.x += player.vx;
-    handleCollisions('x');
-    
-    player.y += player.vy;
-    player.grounded = false;
-    handleCollisions('y');
-
-    if (player.y > canvas.height) reset();
-}
-
-function handleCollisions(axis) {
-    for (let b of mapData) {
-        if (b.type === 'P') continue;
-        
-        if (player.x < b.x + b.w && player.x + player.w > b.x &&
-            player.y < b.y + b.h && player.y + player.h > b.y) {
-            
-            if (b.type === '1') { // Solid
-                if (axis === 'x') {
-                    if (player.vx > 0) player.x = b.x - player.w;
-                    else player.x = b.x + b.w;
-                    player.vx = 0;
-                } else {
-                    if (player.vy > 0) {
-                        player.y = b.y - player.h;
-                        player.grounded = true;
-                    } else {
-                        player.y = b.y + b.h;
-                    }
-                    player.vy = 0;
-                }
-            } else if (b.type === '2') { // Lava
-                reset();
-            } else if (b.type === '3') { // Goal
-                currentLvl = (currentLvl + 1) % levels.length;
-                loadLevel(currentLvl);
+        egg.addEventListener('click', () => {
+            if (!isStood) {
+                // 模擬立蛋成功的動畫
+                egg.style.transform = 'rotate(0deg) scale(1.1)';
+                statusText.innerText = '✨ 恭喜！蛋立起來了！運勢大發！ ✨';
+                statusText.style.color = '#c0392b';
+                isStood = true;
             }
+        });
+
+        function resetEgg() {
+            egg.style.transform = 'rotate(90deg)';
+            statusText.innerText = '蛋倒了...';
+            statusText.style.color = '#333';
+            isStood = false;
         }
-    }
-}
 
-function reset() {
-    deathCount++;
-    document.getElementById('fails').innerText = deathCount;
-    loadLevel(currentLvl);
-}
+        // 初始化讓蛋是倒下的
+        resetEgg();
+    </script>
 
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw Level
-    mapData.forEach(b => {
-        if(b.type === '1') {
-            ctx.fillStyle = '#333';
-            ctx.fillRect(b.x, b.y, b.w, b.h);
-            ctx.strokeStyle = '#444';
-            ctx.strokeRect(b.x, b.y, b.w, b.h);
-        } else if(b.type === '2') {
-            ctx.fillStyle = '#ff4444';
-            ctx.fillRect(b.x, b.y + 30, b.w, 20); // Lava sits lower
-        } else if(b.type === '3') {
-            ctx.fillStyle = '#00ff88';
-            ctx.shadowBlur = 15;
-            ctx.shadowColor = '#00ff88';
-            ctx.fillRect(b.x + 10, b.y, 20, b.h);
-            ctx.shadowBlur = 0;
-        }
-    });
-
-    // Draw Player
-    ctx.fillStyle = '#00ccff';
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = '#00ccff';
-    ctx.fillRect(player.x, player.y, player.w, player.h);
-    ctx.shadowBlur = 0;
-
-    update();
-    requestAnimationFrame(draw);
-}
-
-loadLevel(currentLvl);
-draw();
-</script>
 </body>
 </html>
