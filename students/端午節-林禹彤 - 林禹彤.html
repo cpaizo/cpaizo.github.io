@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>端午安康 · 民俗守護</title>
+    <style>
+        :root {
+            --cinnabar: #B22222; /* 硃砂紅 */
+            --mugwort: #3E5B40;  /* 艾草綠 */
+            --silk-gold: #D4AF37; /* 絲綢金 */
+            --parchment: #F5F2E9; /* 古紙色 */
+        }
+
+        body {
+            margin: 0;
+            font-family: "Noto Serif TC", serif;
+            background-color: var(--parchment);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* 頂部裝飾條：象徵五彩繩 */
+        .top-border {
+            height: 8px;
+            background: linear-gradient(90deg, #FF0000, #FFFF00, #0000FF, #008000, #800080);
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            padding: 60px 20px;
+            background: radial-gradient(circle, #fff 0%, var(--parchment) 100%);
+            border-bottom: 2px solid var(--silk-gold);
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: var(--cinnabar);
+            margin: 0;
+            letter-spacing: 0.5rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--mugwort);
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        /* 守護卡片 */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--silk-gold);
+        }
+
+        .card::before {
+            content: '🧧';
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        h2 {
+            color: var(--cinnabar);
+            border-bottom: 1px solid var(--silk-gold);
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        /* 祝福語區塊 */
+        .blessing-section {
+            background-color: var(--mugwort);
+            color: white;
+            padding: 50px 20px;
+            margin-top: 60px;
+            text-align: center;
+            border-radius: 4px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 40px;
+            font-size: 0.9rem;
+            color: #777;
+        }
+
+        /* 裝飾性元素 */
+        .amulet-icon {
+            font-size: 3rem;
+            color: var(--silk-gold);
+            margin: 20px 0;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="top-border"></div>
+
+    <header>
+        <h1>端午安康</h1>
+        <p class="subtitle">艾旗招福 · 菖蒲作劍 · 守護平安</p>
+    </header>
+
+    <div class="container">
+        <div class="card-grid">
+            <div class="card">
+                <h2>懸艾祈福</h2>
+                <p>手執艾草，招百福，保平安。古人認為艾草象徵著招納福氣，懸掛門前可守護家宅安寧。</p>
+            </div>
+
+            <div class="card">
+                <h2>佩戴香囊</h2>
+                <p>內裝硃砂、雄黃與中藥香料。一針一線皆是長輩的叮嚀，辟邪除穢，伴隨左右。</p>
+            </div>
+
+            <div class="card">
+                <h2>繫五彩繩</h2>
+                <p>青、紅、白、黑、黃五色絲線，象徵五方神力。繫於腕間，祈求健康長壽，災病遠離。</p>
+            </div>
+        </div>
+
+        <div class="blessing-section">
+            <div class="amulet-icon">❈</div>
+            <h3>「重五佳辰，願您歲歲平安」</h3>
+            <p>這不僅是一個節日，更是一份對生命與健康的隆重守護。</p>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>© 2026 民俗守護風 · 端午文化專頁</p>
+    </footer>
+
+</body>
+</html>

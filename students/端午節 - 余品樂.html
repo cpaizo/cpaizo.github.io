@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>端午安康 - 慶祝端午節</title>
+    <style>
+        /* 基本樣式設定 */
+        body {
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f1;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* 橫幅 Header */
+        header {
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), 
+                        url('https://images.unsplash.com/photo-1599021419847-d8a7a6aba5b4?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* 主體內容容器 */
+        .container {
+            max-width: 900px;
+            margin: -50px auto 50px;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            color: #2d5a27;
+            border-bottom: 2px solid #a8d5ba;
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+
+        /* 習俗區塊樣式 */
+        .customs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: #eaf4e9;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #2d5a27;
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: #1b3d17;
+        }
+
+        /* 祝福動畫效果 */
+        .blessing {
+            text-align: center;
+            margin: 50px 0;
+            padding: 30px;
+            background-color: #fff9e6;
+            border: 2px dashed #ffcc00;
+            border-radius: 10px;
+        }
+
+        .zongzi-icon {
+            font-size: 50px;
+            display: inline-block;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: #2d5a27;
+            color: white;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>端午安康</h1>
+        <p>農曆五月初五 · 傳承千年的文化慶典</p>
+    </header>
+
+    <div class="container">
+        <section>
+            <h2 class="section-title">關於端午</h2>
+            <p>端午節，又稱端陽節、龍舟節，是華人世界最重要的傳統節日之一。這一天不僅是祭祀先驅屈原的日子，也是祈求健康、驅除疫病的時刻。</p>
+        </section>
+
+        <section>
+            <h2 class="section-title">傳統習俗</h2>
+            <div class="customs">
+                <div class="card">
+                    <h3>粽葉飄香</h3>
+                    <p>包裹著糯米、瘦肉、蛋黃與香菇的粽子，是端午節最具代表性的美食。</p>
+                </div>
+                <div class="card">
+                    <h3>賽龍舟</h3>
+                    <p>鼓聲震天，龍舟競渡。這項運動象徵著團隊合作與勇往直前的精神。</p>
+                </div>
+                <div class="card">
+                    <h3>掛艾草與菖蒲</h3>
+                    <p>人們將艾草掛於門前，用以驅邪避毒，祈求家人身體健康。</p>
+                </div>
+                <div class="card">
+                    <h3>立蛋挑戰</h3>
+                    <p>相傳在端午節的正午，若能將雞蛋立起來，未來一年將會好運連連。</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="blessing">
+            <div class="zongzi-icon"></div>
+            <h2>祝您端午節快樂！</h2>
+            <p>願您歲歲平安，生活如粽子般甜蜜飽滿。</p>
+        </section>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 端午節文化專頁 | 祝大家節日愉快</p>
+    </footer>
+
+</body>
+</html>

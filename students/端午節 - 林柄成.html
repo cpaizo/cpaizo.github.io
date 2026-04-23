@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>端午節快樂 | 傳統文化與習俗</title>
+    <style>
+        /* 基礎重置與字體設定 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: '微軟正黑體', 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f4f9f4; /* 淡淡的背景色 */
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* 頁首樣式 */
+        header {
+            background-color: #2e5c31; /* 粽葉綠 */
+            color: white;
+            text-align: center;
+            padding: 4rem 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        header h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: 2px;
+        }
+        header p {
+            color: #f7d060; /* 節慶金 */
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        /* 內容區塊 */
+        .container {
+            max-width: 1000px;
+            margin: 3rem auto;
+            padding: 0 1.5rem;
+        }
+        .intro-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+        .intro-section h2 {
+            color: #2e5c31;
+            margin-bottom: 1rem;
+        }
+
+        /* 習俗卡片網格 */
+        .traditions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+        .card {
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 10px;
+            border-top: 5px solid #2e5c31;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card h3 {
+            color: #d32f2f; /* 點綴的喜慶紅 */
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+        }
+
+        /* 頁尾 */
+        footer {
+            background-color: #1b5e20;
+            color: #a5d6a7;
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: 3rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>端午節快樂</h1>
+        <p>農曆五月初五 · 傳承千年的文化之美</p>
+    </header>
+
+    <div class="container">
+        <section class="intro-section">
+            <h2>關於端午節</h2>
+            <p>端午節是華人四大傳統節日之一，通常在農曆五月初五。這一天最初是夏季驅離五瘟神和祭龍的節日，後來也成為了紀念愛國詩人屈原的重要日子。在這天，人們會透過各種習俗來祈求平安、健康與順利。</p>
+        </section>
+
+        <div class="traditions-grid">
+            <div class="card">
+                <h3>划龍舟</h3>
+                <p>龍舟競渡是端午節最熱鬧的活動。相傳古人為了尋找投江的屈原，划船在江上打撈，演變至今成了考驗團隊合作與體力的精彩水上競技。</p>
+            </div>
+            
+            <div class="card">
+                <h3>吃粽子</h3>
+                <p>粽子是以竹葉包裹糯米與各式餡料蒸熟而成的美食。南部粽、北部粽、鹼水粽各有特色，不僅美味，也象徵著投入江中餵食魚蝦以保護屈原遺體的傳說。</p>
+            </div>
+
+            <div class="card">
+                <h3>立蛋與香包</h3>
+                <p>民間傳說在端午節正午時分，陽氣最重，若能將雞蛋立起，就能帶來一整年的好運。此外，配戴裝滿中藥材的香包，也能驅蟲避邪、保佑平安。</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 端午節文化推廣網頁. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>
