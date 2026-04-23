@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>歡慶端午節</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 自定義動畫 */
+        @keyframes float-leaf {
+            0% { transform: translateY(-10vh) rotate(0deg) translateX(0); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { transform: translateY(110vh) rotate(360deg) translateX(50px); opacity: 0; }
+        }
+        .leaf {
+            position: fixed;
+            top: -50px;
+            width: 30px;
+            height: 30px;
+            background-color: #22c55e; /* 綠色粽葉 */
+            border-radius: 0 15px 0 15px; /* 葉子形狀 */
+            opacity: 0.6;
+            z-index: 0;
+            pointer-events: none;
+            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.1);
+        }
+
+        @keyframes boat-rocking {
+            0% { transform: translateY(0) rotate(-2deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+            100% { transform: translateY(0) rotate(-2deg); }
+        }
+        .dragon-boat-anim {
+            display: inline-block;
+            animation: boat-rocking 3s infinite ease-in-out;
+            transform-origin: bottom center;
+        }
+
+        @keyframes wave {
+            0% { background-position: 0 0; }
+            100% { background-position: 1000px 0; }
+        }
+        .water-wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1000 100" xmlns="http://www.w3.org/2000/svg"><path d="M0,50 Q250,100 500,50 T1000,50 L1000,100 L0,100 Z" fill="rgba(14, 116, 144, 0.5)"/></svg>') repeat-x;
+            animation: wave 15s linear infinite;
+        }
+        .water-wave.wave2 {
+            bottom: -10px;
+            opacity: 0.7;
+            animation: wave 20s linear infinite reverse;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1000 100" xmlns="http://www.w3.org/2000/svg"><path d="M0,50 Q250,100 500,50 T1000,50 L1000,100 L0,100 Z" fill="rgba(8, 145, 178, 0.6)"/></svg>') repeat-x;
+        }
+
+        /* 隱藏卷軸但保留滾動功能 */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #064e3b; }
+        ::-webkit-scrollbar-thumb { background: #10b981; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #059669; }
+    </style>
+</head>
+<body class="bg-emerald-950 text-emerald-50 font-sans overflow-x-hidden">
+
+    <!-- 背景落葉特效 -->
+    <div id="leaves-container" class="fixed inset-0 pointer-events-none overflow-hidden z-0"></div>
+
+    <!-- 頂部導航 -->
+    <nav class="fixed top-0 z-50 w-full p-4 flex justify-between items-center bg-emerald-950/80 backdrop-blur-md border-b border-emerald-800 shadow-lg shadow-emerald-900/50">
+        <div class="text-2xl font-bold text-emerald-400 tracking-wider flex items-center gap-2">
+            🐉 端午佳節
+        </div>
+        <div class="hidden md:flex space-x-6 font-medium">
+            <a href="#about" class="hover:text-amber-400 transition">節慶意義</a>
+            <a href="#customs" class="hover:text-amber-400 transition">傳統習俗</a>
+            <a href="#quiz" class="hover:text-amber-400 transition">端午問答</a>
+        </div>
+    </nav>
+
+    <!-- 主視覺 Header -->
+    <header id="about" class="relative z-10 flex flex-col items-center justify-center min-h-[85vh] text-center px-4 pt-20 overflow-hidden bg-gradient-to-b from-emerald-900 to-cyan-950">
+        
+        <div class="dragon-boat-anim text-8xl md:text-9xl mb-8 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]">
+            🛶
+        </div>
+
+        <h1 class="text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 mb-6 tracking-widest drop-shadow-xl">
+            粽葉飄香慶端午
+        </h1>
+        <p class="text-xl md:text-2xl text-emerald-200 max-w-2xl mt-2 leading-relaxed">
+            農曆五月初五，紀念愛國詩人屈原，<br>
+            品嚐美味粽子，觀賞熱血龍舟競渡。
+        </p>
+        
+        <button onclick="document.getElementById('quiz').scrollIntoView({behavior: 'smooth'})" class="mt-10 px-8 py-4 bg-amber-500 hover:bg-amber-400 text-emerald-950 font-bold text-lg rounded-full transition transform hover:scale-105 shadow-[0_0_20px_rgba(245,158,11,0.4)] flex items-center gap-2">
+            <span>參加端午知識挑戰</span>
+            <span>🎯</span>
+        </button>
+
+        <!-- 底部波浪裝飾 -->
+        <div class="water-wave"></div>
+        <div class="water-wave wave2"></div>
+    </header>
+
+    <!-- 內容區塊 -->
+    <main class="relative z-10 container mx-auto px-4 py-20 space-y-32">
+        
+        <!-- 傳統習俗 Section -->
+        <section id="customs" class="scroll-mt-24">
+            <div class="text-center mb-16">
+                <span class="text-amber-400 font-bold tracking-widest text-sm uppercase">Traditions</span>
+                <h2 class="text-4xl md:text-5xl font-bold mt-2 text-white">端午習俗</h2>
+                <div class="w-24 h-1 bg-amber-500 mx-auto mt-6 rounded-full"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- 習俗卡片 1 -->
+                <div class="bg-emerald-900/40 backdrop-blur-sm p-6 rounded-3xl border border-emerald-800 hover:bg-emerald-800/50 hover:border-amber-400/50 transition-all duration-300 group shadow-lg relative">
+                    <div onclick="openBombGame()" title="點擊玩粽子炸彈！" class="cursor-pointer w-20 h-20 bg-emerald-800 hover:bg-emerald-700 rounded-2xl flex items-center justify-center mb-6 group-hover:-translate-y-2 transition transform shadow-inner hover:shadow-[0_0_15px_rgba(52,211,153,0.5)] relative z-10">
+                        <!-- 粽子 SVG 圖示 -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" class="w-10 h-10 drop-shadow-md">
+                          <path d="M32 6 C 12 35, 6 50, 6 56 C 6 60, 10 60, 32 60 C 54 60, 58 60, 58 56 C 58 50, 52 35, 32 6 Z" fill="#22c55e"/>
+                          <path d="M32 6 C 24 30, 20 45, 20 56" stroke="#15803d" stroke-width="1.5" fill="none"/>
+                          <path d="M32 6 C 40 30, 44 45, 44 56" stroke="#15803d" stroke-width="1.5" fill="none"/>
+                          <path d="M 8 38 Q 32 46 56 38" stroke="#fde047" stroke-width="2.5" fill="none"/>
+                          <path d="M 12 48 Q 32 56 52 48" stroke="#fde047" stroke-width="2.5" fill="none"/>
+                        </svg>
+                    </div>
+                    <span class="absolute top-10 left-28 text-xs font-bold text-amber-400 animate-pulse bg-emerald-950 px-2 py-1 rounded-lg pointer-events-none border border-amber-500/30">
+                        點擊玩小遊戲！
+                    </span>
+                    <h3 class="text-2xl font-bold mb-4 text-amber-300">吃粽子</h3>
+                    <p class="text-emerald-200/90 leading-relaxed text-sm">
+                        相傳楚國百姓為怕江中魚蝦吃掉屈原的身體，便將包著米飯的竹葉投入江中。現今演變為吃粽子的傳統。
+                    </p>
+                </div>
+                <!-- 習俗卡片 2 -->
+                <div class="bg-emerald-900/40 backdrop-blur-sm p-6 rounded-3xl border border-emerald-800 hover:bg-emerald-800/50 hover:border-amber-400/50 transition-all duration-300 group shadow-lg relative">
+                    <div onclick="openRaceGame()" title="點擊玩龍舟競渡！" class="cursor-pointer w-20 h-20 bg-emerald-800 hover:bg-emerald-700 rounded-2xl flex items-center justify-center text-4xl mb-6 group-hover:-translate-y-2 transition transform shadow-inner hover:shadow-[0_0_15px_rgba(52,211,153,0.5)] relative z-10">
+                        🚣
+                    </div>
+                    <span class="absolute top-10 left-28 text-xs font-bold text-amber-400 animate-pulse bg-emerald-950 px-2 py-1 rounded-lg pointer-events-none border border-amber-500/30">
+                        來比賽划龍舟！
+                    </span>
+                    <h3 class="text-2xl font-bold mb-4 text-amber-300">划龍舟</h3>
+                    <p class="text-emerald-200/90 leading-relaxed text-sm">
+                        源於古人駕舟拯救屈原的傳說。如今龍舟競渡已成為一項熱血的體育賽事，展現團結拼搏的精神。
+                    </p>
+                </div>
+                <!-- 習俗卡片 3 -->
+                <div class="bg-emerald-900/40 backdrop-blur-sm p-6 rounded-3xl border border-emerald-800 hover:bg-emerald-800/50 hover:border-amber-400/50 transition-all duration-300 group shadow-lg relative">
+                    <div onclick="openMugwortGame()" title="點擊玩畫符驅邪！" class="cursor-pointer w-20 h-20 bg-emerald-800 hover:bg-emerald-700 rounded-2xl flex items-center justify-center text-4xl mb-6 group-hover:-translate-y-2 transition transform shadow-inner hover:shadow-[0_0_15px_rgba(52,211,153,0.5)] relative z-10">
+                        🌿
+                    </div>
+                    <span class="absolute top-10 left-28 text-xs font-bold text-amber-400 animate-pulse bg-emerald-950 px-2 py-1 rounded-lg pointer-events-none border border-amber-500/30">
+                        畫符驅邪！
+                    </span>
+                    <h3 class="text-2xl font-bold mb-4 text-amber-300">掛艾草</h3>
+                    <p class="text-emerald-200/90 leading-relaxed text-sm">
+                        端午節正值炎夏，傳統上會在門口插上艾草與菖蒲以驅蚊避邪、保佑健康，驅除夏日的瘟疫與疾病。
+                    </p>
+                </div>
+                <!-- 習俗卡片 4 -->
+                <div class="bg-emerald-900/40 backdrop-blur-sm p-6 rounded-3xl border border-emerald-800 hover:bg-emerald-800/50 hover:border-amber-400/50 transition-all duration-300 group shadow-lg">
+                    <div class="w-20 h-20 bg-emerald-800 rounded-2xl flex items-center justify-center text-4xl mb-6 group-hover:-translate-y-2 transition transform shadow-inner">
+                        🥚
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 text-amber-300">立蛋</h3>
+                    <p class="text-emerald-200/90 leading-relaxed text-sm">
+                        正午時分陽氣最重，此時會進行「立蛋」遊戲。傳說如果能成功將雞蛋立起，象徵將會獲得一整年的好運。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 互動問答 Section -->
+        <section id="quiz" class="scroll-mt-24">
+            <div class="max-w-4xl mx-auto bg-gradient-to-br from-emerald-800 to-emerald-950 p-2 md:p-10 rounded-[2.5rem] border border-emerald-700 shadow-2xl relative overflow-hidden">
+                <!-- 裝飾 -->
+                <div class="absolute -right-20 -top-20 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl"></div>
+                <div class="absolute -left-20 -bottom-20 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl"></div>
+                
+                <div class="relative z-10 p-6 md:p-8">
+                    <div class="text-center mb-10">
+                        <span class="inline-block py-1 px-4 rounded-full bg-amber-500/20 text-amber-400 font-bold text-sm mb-4">Interactive Game</span>
+                        <h2 class="text-3xl md:text-4xl font-bold text-white">端午知識大挑戰</h2>
+                    </div>
+                    
+                    <!-- 遊戲進度條 -->
+                    <div class="w-full bg-emerald-950 rounded-full h-2.5 mb-8 border border-emerald-800/50">
+                        <div id="progress-bar" class="bg-amber-400 h-2.5 rounded-full transition-all duration-500" style="width: 20%"></div>
+                    </div>
+                    
+                    <!-- 題目區 -->
+                    <div id="quiz-container" class="bg-emerald-900/80 backdrop-blur rounded-2xl p-6 md:p-10 shadow-inner border border-emerald-800 min-h-[300px] flex flex-col justify-center">
+                        
+                        <div class="mb-8">
+                            <span class="text-emerald-400 font-bold block mb-2" id="question-counter">問題 1 / 5</span>
+                            <h3 id="question-text" class="text-2xl md:text-3xl text-emerald-50 font-medium leading-relaxed">
+                                載入題目中...
+                            </h3>
+                        </div>
+
+                        <!-- 選項按鈕 -->
+                        <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- JS 動態生成 -->
+                        </div>
+
+                        <!-- 結果提示 (預設隱藏) -->
+                        <div id="result-message" class="mt-6 text-center text-lg font-bold hidden opacity-0 transition-opacity duration-300">
+                            正確！
+                        </div>
+                    </div>
+
+                    <!-- 遊戲結束區 (預設隱藏) -->
+                    <div id="end-screen" class="bg-emerald-900/80 backdrop-blur rounded-2xl p-10 text-center shadow-inner border border-emerald-800 hidden flex-col items-center justify-center">
+                        <div class="text-6xl mb-6">🏆</div>
+                        <h3 class="text-3xl font-bold text-amber-400 mb-4">挑戰完成！</h3>
+                        <p class="text-xl text-emerald-100 mb-8">您的得分：<span id="final-score" class="text-3xl font-bold text-white">0</span> / 5</p>
+                        <button onclick="initQuiz()" class="px-8 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition shadow-lg">
+                            再玩一次 🔄
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- 粽子炸彈遊戲 Modal (預設隱藏) -->
+        <div id="bomb-game-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <div class="bg-emerald-900 border-2 border-amber-500 rounded-3xl p-6 w-full max-w-4xl max-h-[90vh] flex flex-col relative shadow-2xl">
+                <button onclick="closeBombGame()" class="absolute top-4 right-5 text-emerald-300 hover:text-white text-4xl font-bold transition">&times;</button>
+                <h2 class="text-3xl font-bold text-amber-400 mb-2 text-center">💣 粽子炸彈 💣</h2>
+                <p class="text-emerald-200 text-center mb-4">100個粽子中藏著 1 顆炸彈，快來測試你的運氣，千萬別吃到炸彈！</p>
+                
+                <div id="bomb-game-status" class="text-center font-bold text-xl mb-4 text-white h-8">請隨意挑選一顆粽子打開它！</div>
+                
+                <div class="overflow-y-auto flex-1 pr-2 rounded-xl bg-emerald-950/50 p-4 border border-emerald-800/50 shadow-inner">
+                    <div id="zongzi-grid" class="grid grid-cols-5 md:grid-cols-10 gap-2 md:gap-3">
+                        <!-- JS 動態生成 100 個粽子 -->
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex justify-center">
+                    <button onclick="initBombGame()" class="px-8 py-3 bg-amber-500 hover:bg-amber-400 text-emerald-950 font-bold rounded-xl transition shadow-lg flex items-center gap-2">
+                        <span>重新洗牌</span>
+                        <span>🔄</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 龍舟競渡遊戲 Modal (預設隱藏) -->
+        <div id="race-game-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <div class="bg-cyan-950 border-2 border-amber-500 rounded-3xl overflow-hidden w-full max-w-md flex flex-col relative shadow-2xl h-[85vh] max-h-[800px]">
+                <button onclick="closeRaceGame()" class="absolute top-2 right-4 text-cyan-300 hover:text-white text-4xl font-bold transition z-50">&times;</button>
+                
+                <div class="p-4 bg-cyan-900 border-b border-cyan-700 text-center relative z-10 shadow-md">
+                    <h2 class="text-2xl font-bold text-amber-400">🚣 龍舟爭霸賽 🚣</h2>
+                    <p class="text-xs text-cyan-200 mt-1">抓準時機擊鼓前進，左右鍵閃避石頭！</p>
+                </div>
+
+                <!-- 遊戲主體 -->
+                <div class="flex-1 relative bg-cyan-800 flex flex-col items-center overflow-hidden">
+                    <canvas id="race-canvas" class="w-full h-full object-cover"></canvas>
+                    
+                    <button id="btn-left" onmousedown="steerPlayer(-1)" ontouchstart="steerPlayer(-1); event.preventDefault();" class="absolute left-4 bottom-40 w-14 h-14 bg-white/20 hover:bg-white/30 rounded-full text-white text-2xl flex items-center justify-center active:bg-white/50 z-20 backdrop-blur-md border border-white/30 shadow-lg">⬅️</button>
+                    <button id="btn-right" onmousedown="steerPlayer(1)" ontouchstart="steerPlayer(1); event.preventDefault();" class="absolute right-4 bottom-40 w-14 h-14 bg-white/20 hover:bg-white/30 rounded-full text-white text-2xl flex items-center justify-center active:bg-white/50 z-20 backdrop-blur-md border border-white/30 shadow-lg">➡️</button>
+
+                    <div id="race-feedback" class="absolute top-1/4 left-1/2 -translate-x-1/2 text-4xl font-black text-amber-300 opacity-0 transition-opacity duration-200 z-20 pointer-events-none drop-shadow-[0_0_10px_rgba(251,191,36,0.8)]"></div>
+                    
+                    <!-- 擊鼓與節奏區 -->
+                    <div class="absolute bottom-0 w-full p-4 bg-cyan-950/95 backdrop-blur-md border-t-2 border-cyan-700 z-30">
+                        <div class="w-full h-8 bg-cyan-900 rounded-full mb-3 relative overflow-hidden border-2 border-cyan-800 shadow-inner">
+                            <div class="absolute left-1/2 -translate-x-1/2 w-16 h-full bg-green-500/40 border-x border-green-400"></div>
+                            <div id="rhythm-cursor" class="absolute left-0 top-0 w-4 h-full bg-amber-300 rounded-full shadow-[0_0_10px_rgba(251,191,36,0.8)]"></div>
+                        </div>
+                        <div class="flex justify-center">
+                            <button id="drum-btn" onmousedown="hitDrum()" ontouchstart="hitDrum(); event.preventDefault();" class="w-20 h-20 bg-red-700 hover:bg-red-600 rounded-full border-4 border-amber-500 text-4xl shadow-[0_5px_15px_rgba(0,0,0,0.5)] active:scale-95 active:translate-y-1 transition-transform flex items-center justify-center disabled:opacity-50 disabled:grayscale" disabled>
+                                🥁
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 開始/結算覆蓋層 -->
+                    <div id="race-overlay" class="absolute inset-0 bg-cyan-950/90 z-40 flex flex-col items-center justify-center p-6 text-center backdrop-blur-sm">
+                        <div class="text-6xl mb-4">🏆</div>
+                        <h3 id="race-result-title" class="text-3xl font-bold text-amber-400 mb-2">龍舟爭霸賽</h3>
+                        <p id="race-result-desc" class="text-cyan-100 mb-8 leading-relaxed">當黃色游標到達綠色區域時<br>點擊下方大鼓加速！<br>使用鍵盤左右鍵(或畫面按鈕)閃避石頭！</p>
+                        <button onclick="startRaceGame()" class="px-8 py-4 bg-amber-500 hover:bg-amber-400 text-cyan-950 font-bold rounded-full transition transform hover:scale-105 shadow-[0_0_20px_rgba(245,158,11,0.5)] text-xl">
+                            開始比賽 🏁
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 畫符驅邪遊戲 Modal (預設隱藏) -->
+        <div id="mugwort-game-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <div class="bg-emerald-950 border-2 border-amber-500 rounded-3xl overflow-hidden w-full max-w-md flex flex-col relative shadow-2xl h-[85vh] max-h-[800px]">
+                <button onclick="closeMugwortGame()" class="absolute top-2 right-4 text-emerald-300 hover:text-white text-4xl font-bold transition z-50">&times;</button>
+                
+                <div class="p-4 bg-emerald-900 border-b border-emerald-700 text-center relative z-10 shadow-md">
+                    <h2 class="text-2xl font-bold text-amber-400">🌿 畫符驅邪 🌿</h2>
+                    <p class="text-xs text-emerald-200 mt-1">在畫面上畫出惡靈頭上的符號來消滅它們！</p>
+                    <div class="mt-2 text-xl font-black text-white flex flex-col items-center">
+                        <div>剩餘時間: <span id="mugwort-time" class="text-amber-400">60</span> 秒</div>
+                        <div id="mugwort-health" class="text-red-500 text-lg tracking-widest mt-1">❤️❤️❤️❤️❤️</div>
+                    </div>
+                </div>
+
+                <!-- 遊戲主體 -->
+                <div class="flex-1 relative bg-emerald-950 flex flex-col items-center overflow-hidden">
+                    <!-- 使用 touch-action: none 防止手機滑動干擾畫畫 -->
+                    <canvas id="mugwort-canvas" class="w-full h-full cursor-crosshair" style="touch-action: none;"></canvas>
+
+                    <!-- 開始/結算覆蓋層 -->
+                    <div id="mugwort-overlay" class="absolute inset-0 bg-emerald-950/90 z-40 flex flex-col items-center justify-center p-6 text-center backdrop-blur-sm">
+                        <div id="mugwort-result-icon" class="text-6xl mb-4">👻</div>
+                        <h3 id="mugwort-result-title" class="text-3xl font-bold text-amber-400 mb-2">驅邪挑戰</h3>
+                        <div id="mugwort-result-desc" class="text-emerald-100 mb-8 leading-relaxed text-sm md:text-base">
+                            保護中央的艾草！你有 <span class="text-red-400 font-bold">5 顆心</span> 的生命值。<br>
+                            畫出對應符號消滅惡靈：<br>
+                            <span class="font-bold text-amber-300">一</span> (黃)、<span class="font-bold text-blue-400">|</span> (藍)、<span class="font-bold text-green-400">v</span> (綠)、<span class="font-bold text-purple-400">^</span> (紫)。<br>
+                            每隔 20 秒會出現 <span class="font-bold text-pink-400">紅心幽靈💖</span>，<br>
+                            一筆畫出<span class="font-bold text-red-500">封閉的圈或愛心</span>將其消滅並回血！
+                        </div>
+                        <button onclick="startMugwortGame()" class="px-8 py-4 bg-amber-500 hover:bg-amber-400 text-emerald-950 font-bold rounded-full transition transform hover:scale-105 shadow-[0_0_20px_rgba(245,158,11,0.5)] text-xl">
+                            開始驅邪 ⚔️
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- 頁腳 -->
+    <footer class="relative z-10 bg-emerald-950 py-12 border-t border-emerald-900 mt-20 text-center">
+        <div class="text-4xl mb-4">🐉 🛶 🌿 🥚</div>
+        <p class="text-emerald-400 font-medium text-lg">祝您端午安康，闔家平安！</p>
+        <p class="text-emerald-700 text-sm mt-4">© 2026 歡慶端午節特輯</p>
+    </footer>
+
+    <!-- JavaScript 邏輯 -->
+    <script>
+        /* --- 落葉背景特效 --- */
+        function createLeaves() {
+            const container = document.getElementById('leaves-container');
+            const leafCount = 15;
+
+            for (let i = 0; i < leafCount; i++) {
+                const leaf = document.createElement('div');
+                leaf.classList.add('leaf');
+                
+                // 隨機屬性
+                const left = Math.random() * 100; // 橫向位置
+                const animationDuration = 8 + Math.random() * 10; // 掉落速度
+                const animationDelay = Math.random() * 15; // 延遲時間
+                const size = 20 + Math.random() * 20; // 葉子大小
+                const rotation = Math.random() * 360;
+
+                leaf.style.left = `${left}vw`;
+                leaf.style.animation = `float-leaf ${animationDuration}s linear ${animationDelay}s infinite`;
+                leaf.style.width = `${size}px`;
+                leaf.style.height = `${size}px`;
+                leaf.style.transform = `rotate(${rotation}deg)`;
+                
+                // 稍微改變顏色深淺
+                const greenValue = 150 + Math.floor(Math.random() * 50);
+                leaf.style.backgroundColor = `rgb(34, ${greenValue}, 94)`;
+
+                container.appendChild(leaf);
+            }
+        }
+        createLeaves();
+
+        /* --- 知識問答遊戲邏輯 --- */
+        const quizData = [
+            {
+                question: "端午節是農曆的哪一天？",
+                options: ["四月初四", "五月初五", "八月十五", "九月初九"],
+                correctAnswer: 1
+            },
+            {
+                question: "端午節主要是為了紀念哪一位歷史人物？",
+                options: ["孔子", "李白", "屈原", "關羽"],
+                correctAnswer: 2
+            },
+            {
+                question: "下列哪一項『不是』端午節的傳統習俗？",
+                options: ["吃粽子", "划龍舟", "賞月", "立蛋"],
+                correctAnswer: 2
+            },
+            {
+                question: "傳統上，端午節正午會玩什麼遊戲來祈求一整年的好運？",
+                options: ["猜燈謎", "立蛋", "放風箏", "踩高蹺"],
+                correctAnswer: 1
+            },
+            {
+                question: "傳說中，百姓把粽子投入江中是為了怕魚蝦吃掉誰的身體？",
+                options: ["白素貞", "嫦娥", "屈原", "神農氏"],
+                correctAnswer: 2
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let isAnswering = false; // 防止重複點擊
+
+        const elQuestionText = document.getElementById('question-text');
+        const elOptionsContainer = document.getElementById('options-container');
+        const elQuestionCounter = document.getElementById('question-counter');
+        const elProgressBar = document.getElementById('progress-bar');
+        const elResultMessage = document.getElementById('result-message');
+        const elQuizContainer = document.getElementById('quiz-container');
+        const elEndScreen = document.getElementById('end-screen');
+        const elFinalScore = document.getElementById('final-score');
+
+        function initQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            isAnswering = false;
+            
+            elQuizContainer.classList.remove('hidden');
+            elEndScreen.classList.add('hidden');
+            elQuizContainer.classList.add('flex');
+            
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            isAnswering = false;
+            const currentQ = quizData[currentQuestionIndex];
+            
+            // 更新進度與計數器
+            elQuestionCounter.textContent = `問題 ${currentQuestionIndex + 1} / ${quizData.length}`;
+            const progress = ((currentQuestionIndex) / quizData.length) * 100;
+            elProgressBar.style.width = `${progress}%`;
+            
+            // 隱藏結果提示
+            elResultMessage.classList.add('hidden');
+            elResultMessage.classList.remove('opacity-100');
+            elResultMessage.className = "mt-6 text-center text-lg font-bold hidden opacity-0 transition-opacity duration-300";
+
+            // 設定題目
+            elQuestionText.textContent = currentQ.question;
+            
+            // 清空並生成選項按鈕
+            elOptionsContainer.innerHTML = '';
+            currentQ.options.forEach((option, index) => {
+                const btn = document.createElement('button');
+                btn.textContent = option;
+                btn.className = "p-4 text-left bg-emerald-800/60 hover:bg-emerald-700 border border-emerald-600 rounded-xl transition-all duration-200 text-emerald-100 hover:text-white hover:shadow-md";
+                btn.onclick = () => checkAnswer(index, btn);
+                elOptionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedIndex, btnElement) {
+            if (isAnswering) return;
+            isAnswering = true;
+
+            const currentQ = quizData[currentQuestionIndex];
+            const isCorrect = (selectedIndex === currentQ.correctAnswer);
+            
+            // 禁用所有按鈕
+            const allButtons = elOptionsContainer.querySelectorAll('button');
+            allButtons.forEach(btn => btn.classList.add('opacity-50', 'cursor-not-allowed'));
+
+            // 顯示結果
+            elResultMessage.classList.remove('hidden');
+            // 觸發重繪以播放動畫
+            void elResultMessage.offsetWidth; 
+            elResultMessage.classList.add('opacity-100');
+
+            if (isCorrect) {
+                score++;
+                btnElement.classList.remove('bg-emerald-800/60', 'hover:bg-emerald-700', 'border-emerald-600');
+                btnElement.classList.add('bg-green-600', 'border-green-400', 'text-white', 'opacity-100');
+                elResultMessage.textContent = "✅ 答對了！";
+                elResultMessage.classList.add('text-green-400');
+            } else {
+                btnElement.classList.remove('bg-emerald-800/60', 'hover:bg-emerald-700', 'border-emerald-600');
+                btnElement.classList.add('bg-red-600/80', 'border-red-500', 'text-white', 'opacity-100');
+                elResultMessage.textContent = "❌ 答錯了！正確答案是：" + currentQ.options[currentQ.correctAnswer];
+                elResultMessage.classList.add('text-red-400');
+                
+                // 標示正確答案
+                allButtons[currentQ.correctAnswer].classList.remove('opacity-50', 'bg-emerald-800/60');
+                allButtons[currentQ.correctAnswer].classList.add('bg-green-600/50', 'border-green-500', 'text-white');
+            }
+
+            // 延遲進入下一題
+            setTimeout(() => {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < quizData.length) {
+                    loadQuestion();
+                } else {
+                    showEndScreen();
+                }
+            }, 2000);
+        }
+
+        function showEndScreen() {
+            elProgressBar.style.width = `100%`;
+            elQuizContainer.classList.add('hidden');
+            elQuizContainer.classList.remove('flex');
+            elEndScreen.classList.remove('hidden');
+            elEndScreen.classList.add('flex');
+            
+            elFinalScore.textContent = score;
+        }
+
+        // 啟動遊戲
+        window.addEventListener('DOMContentLoaded', () => {
+            initQuiz();
+        });
+
+        /* --- 粽子炸彈遊戲邏輯 --- */
+        let bombNumber = 0;
+        let currentMin = 0;
+        let currentMax = 101;
+        let isBombGameOver = false;
+
+        const zongziSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" class="w-8 h-8 md:w-10 md:h-10 drop-shadow-md">
+          <path d="M32 6 C 12 35, 6 50, 6 56 C 6 60, 10 60, 32 60 C 54 60, 58 60, 58 56 C 58 50, 52 35, 32 6 Z" fill="#22c55e"/>
+          <path d="M32 6 C 24 30, 20 45, 20 56" stroke="#15803d" stroke-width="1.5" fill="none"/>
+          <path d="M32 6 C 40 30, 44 45, 44 56" stroke="#15803d" stroke-width="1.5" fill="none"/>
+          <path d="M 8 38 Q 32 46 56 38" stroke="#fde047" stroke-width="2.5" fill="none"/>
+          <path d="M 12 48 Q 32 56 52 48" stroke="#fde047" stroke-width="2.5" fill="none"/>
+        </svg>`;
+
+        // 剝開的粽子 (糯米飯與內餡)
+        const riceSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" class="w-8 h-8 md:w-10 md:h-10 drop-shadow-md">
+          <path d="M32 8 C 14 35, 10 48, 10 54 C 10 58, 14 58, 32 58 C 50 58, 54 58, 54 54 C 54 48, 50 35, 32 8 Z" fill="#fef3c7"/>
+          <path d="M28 20 Q 32 25 28 30" stroke="#fde68a" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M38 30 Q 34 35 38 40" stroke="#fde68a" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M20 40 Q 25 42 22 48" stroke="#fde68a" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M45 42 Q 40 45 42 50" stroke="#fde68a" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <ellipse cx="32" cy="42" rx="6" ry="4" fill="#78350f" opacity="0.8"/>
+          <circle cx="25" cy="46" r="2.5" fill="#92400e" opacity="0.7"/>
+          <circle cx="38" cy="48" r="3" fill="#451a03" opacity="0.6"/>
+        </svg>`;
+
+        function openBombGame() {
+            const modal = document.getElementById('bomb-game-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            // 防止背景滾動
+            document.body.style.overflow = 'hidden'; 
+            initBombGame();
+        }
+
+        function closeBombGame() {
+            const modal = document.getElementById('bomb-game-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            // 恢復背景滾動
+            document.body.style.overflow = 'auto';
+        }
+
+        function initBombGame() {
+            const grid = document.getElementById('zongzi-grid');
+            const status = document.getElementById('bomb-game-status');
+            grid.innerHTML = ''; // 清空網格
+            status.textContent = '遊戲開始！請隨意挑選一顆粽子打開';
+            status.className = 'text-center font-bold text-xl mb-4 text-emerald-300 h-8';
+            
+            // 隨機決定炸彈編號 (1~100)
+            bombNumber = Math.floor(Math.random() * 100) + 1;
+            currentMin = 0;
+            currentMax = 101;
+            isBombGameOver = false;
+
+            // 生成 100 個粽子按鈕
+            for (let i = 1; i <= 100; i++) {
+                const btn = document.createElement('button');
+                btn.id = `zongzi-${i}`; // 加上 ID 方便後續尋找
+                btn.className = 'aspect-square flex flex-col items-center justify-center bg-emerald-800 hover:bg-emerald-600 border border-emerald-600 rounded-xl transition-all duration-500 relative group shadow-sm';
+                btn.innerHTML = `
+                    <div class="group-hover:scale-110 transition-transform duration-200">${zongziSvg}</div>
+                    <span class="text-xs text-emerald-200 font-bold mt-1 bg-emerald-950/50 px-1.5 rounded">${i}</span>
+                `;
+                btn.onclick = () => handleZongziClick(i, btn);
+                grid.appendChild(btn);
+            }
+        }
+
+        function handleZongziClick(num, btn) {
+            if (isBombGameOver || btn.disabled) return;
+
+            if (num === bombNumber) {
+                // 踩到炸彈：遊戲結束
+                isBombGameOver = true;
+                btn.disabled = true;
+                btn.className = 'aspect-square flex flex-col items-center justify-center bg-red-600 border-2 border-red-400 rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.8)] scale-110 transition-all z-10 relative';
+                btn.innerHTML = `
+                    <span class="text-3xl animate-bounce drop-shadow-lg">💥</span>
+                    <span class="text-xs text-white font-bold mt-1">${num}</span>
+                `;
+                
+                const status = document.getElementById('bomb-game-status');
+                status.textContent = '💥 咬到炸彈啦！遊戲結束 💥';
+                status.className = 'text-center font-bold text-xl mb-4 text-red-400 h-8 animate-pulse';
+
+                // 禁用並淡化其他所有粽子
+                const allBtns = document.getElementById('zongzi-grid').children;
+                for (let b of allBtns) {
+                    b.disabled = true;
+                    if (!b.classList.contains('bg-red-600') && !b.classList.contains('opacity-0')) {
+                        b.classList.add('opacity-40', 'grayscale');
+                        b.classList.remove('hover:bg-emerald-600');
+                    }
+                }
+            } else {
+                // 安全：根據終極密碼邏輯，更新上下邊界
+                if (num > bombNumber) {
+                    currentMax = num;
+                } else {
+                    currentMin = num;
+                }
+
+                // 更新 1~100 所有粽子的狀態
+                for (let i = 1; i <= 100; i++) {
+                    const currentBtn = document.getElementById(`zongzi-${i}`);
+                    if (!currentBtn) continue;
+                    
+                    if (i === currentMin || i === currentMax) {
+                        // 點擊的當前新邊界：顯示為剝開的糯米飯
+                        currentBtn.disabled = true;
+                        currentBtn.className = 'aspect-square flex flex-col items-center justify-center bg-emerald-900/40 border border-emerald-700/50 rounded-xl transition-all duration-500 scale-95 shadow-inner';
+                        currentBtn.innerHTML = `
+                            <div class="drop-shadow-md">${riceSvg}</div>
+                            <span class="text-xs text-emerald-400 font-bold mt-1 bg-emerald-950/80 px-1.5 rounded">${i}</span>
+                        `;
+                    } else if (i > currentMin && i < currentMax) {
+                        // 在範圍內的未點擊粽子：保留原狀，不作改動
+                    } else {
+                        // 在範圍外 (包含舊的飯糰，或是尚未點擊的粽子)：通通透明消失，但保留佔位
+                        currentBtn.disabled = true;
+                        currentBtn.className = 'aspect-square flex flex-col items-center justify-center border border-emerald-900/30 rounded-xl opacity-0 scale-50 pointer-events-none transition-all duration-500';
+                    }
+                }
+                
+                if (currentMax - currentMin === 2) {
+                    // 勝利條件 (排除了所有不可能的選項，只剩下夾在中間的炸彈)
+                    isBombGameOver = true;
+                    const status = document.getElementById('bomb-game-status');
+                    status.textContent = '🏆 太神啦！你成功逼出了唯一的炸彈！ 🏆';
+                    status.className = 'text-center font-bold text-xl mb-4 text-amber-400 h-8 animate-bounce';
+                    
+                    // 讓最後一顆炸彈顯示為勝利標示
+                    const bombBtn = document.getElementById(`zongzi-${bombNumber}`);
+                    if (bombBtn) {
+                        bombBtn.className = 'aspect-square flex flex-col items-center justify-center bg-amber-500 border-2 border-amber-300 rounded-xl shadow-[0_0_20px_rgba(245,158,11,0.8)] scale-110 transition-all z-10 relative animate-pulse';
+                        bombBtn.innerHTML = `
+                            <span class="text-3xl drop-shadow-lg">💣</span>
+                            <span class="text-xs text-emerald-900 font-bold mt-1">SAFE</span>
+                        `;
+                    }
+                } else {
+                    // 遊戲繼續，更新狀態提示目前的區間
+                    const status = document.getElementById('bomb-game-status');
+                    status.textContent = `✅ 安全！範圍縮小到 ${currentMin + 1} ~ ${currentMax - 1}`;
+                    status.className = 'text-center font-bold text-xl mb-4 text-emerald-300 h-8';
+                }
+            }
+        }
+
+        /* --- 龍舟競渡遊戲邏輯 --- */
+        let raceAnimId;
+        let raceState = 'idle'; // idle, playing, finished
+        const TRACK_LENGTH = 10000;
+        let raceCanvas, ctx;
+        
+        let player = { lane: 1, progress: 0, speed: 5, targetLane: 1, collisionTimer: 0 };
+        let opponents = [
+            { lane: 0, progress: 0, speed: 10, name: '紅龍' },
+            { lane: 2, progress: 0, speed: 9.5, name: '黃龍' }
+        ];
+        let rocks = [];
+        
+        let rhythmProgress = 0;
+        let rhythmDir = 1;
+        let rhythmSpeed = 2.0;
+
+        function openRaceGame() {
+            const modal = document.getElementById('race-game-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+            
+            raceCanvas = document.getElementById('race-canvas');
+            ctx = raceCanvas.getContext('2d');
+            // 適應螢幕解析度
+            raceCanvas.width = raceCanvas.clientWidth;
+            raceCanvas.height = raceCanvas.clientHeight;
+            
+            resetRaceGame();
+            document.addEventListener('keydown', handleRaceKey);
+        }
+
+        function closeRaceGame() {
+            const modal = document.getElementById('race-game-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = 'auto';
+            
+            cancelAnimationFrame(raceAnimId);
+            raceState = 'idle';
+            document.removeEventListener('keydown', handleRaceKey);
+        }
+
+        function handleRaceKey(e) {
+            if (raceState !== 'playing') return;
+            if (e.key === 'ArrowLeft') steerPlayer(-1);
+            if (e.key === 'ArrowRight') steerPlayer(1);
+        }
+
+        function steerPlayer(dir) {
+            if (raceState !== 'playing') return;
+            // 限制水道為 0(左), 1(中), 2(右)
+            player.targetLane = Math.max(0, Math.min(2, player.targetLane + dir));
+            player.lane = player.targetLane;
+        }
+
+        function resetRaceGame() {
+            player = { lane: 1, progress: 0, speed: 5, targetLane: 1, collisionTimer: 0 };
+            opponents = [
+                { lane: 0, progress: 50, speed: 8.5 + Math.random() * 1.5, name: '紅龍' },
+                { lane: 2, progress: 20, speed: 8.8 + Math.random() * 1.5, name: '黃龍' }
+            ];
+            
+            // 隨機生成障礙物石頭
+            rocks = [];
+            for(let i = 500; i < TRACK_LENGTH - 500; i += 250 + Math.random() * 400) {
+                rocks.push({
+                    lane: Math.floor(Math.random() * 3),
+                    y: i,
+                    hit: false
+                });
+            }
+            
+            const overlay = document.getElementById('race-overlay');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+            
+            // 恢復標題文字與樣式 (避免被結算畫面的樣式覆蓋)
+            const title = document.getElementById('race-result-title');
+            title.textContent = "龍舟爭霸賽";
+            title.className = "text-3xl font-bold text-amber-400 mb-2";
+            
+            document.getElementById('race-result-desc').innerHTML = "當黃色游標到達綠色區域時<br>點擊下方大鼓加速！<br>使用鍵盤左右鍵(或畫面按鈕)閃避石頭！";
+            document.getElementById('drum-btn').disabled = true;
+            
+            // 將按鈕功能與文字改回「開始比賽」
+            const btn = overlay.querySelector('button');
+            btn.textContent = "開始比賽 🏁";
+            btn.setAttribute('onclick', 'startRaceGame()');
+            
+            drawRace(); 
+        }
+
+        function startRaceGame() {
+            document.getElementById('race-overlay').classList.add('hidden');
+            document.getElementById('race-overlay').classList.remove('flex');
+            document.getElementById('drum-btn').disabled = false;
+            
+            raceState = 'playing';
+            rhythmProgress = 0;
+            rhythmDir = 1;
+            lastTime = performance.now();
+            
+            cancelAnimationFrame(raceAnimId);
+            raceLoop(performance.now());
+        }
+
+        let lastTime = 0;
+        function raceLoop(time) {
+            if (raceState !== 'playing') return;
+            
+            const deltaTime = (time - lastTime) / 1000;
+            lastTime = time;
+
+            // 1. 更新節奏游標
+            rhythmProgress += rhythmSpeed * rhythmDir * 60 * deltaTime; 
+            if (rhythmProgress >= 100) { rhythmProgress = 100; rhythmDir = -1; }
+            if (rhythmProgress <= 0) { rhythmProgress = 0; rhythmDir = 1; }
+            document.getElementById('rhythm-cursor').style.left = `${rhythmProgress}%`;
+
+            // 2. 更新玩家位置與速度
+            if (player.collisionTimer > 0) {
+                player.collisionTimer -= deltaTime;
+                player.speed = 2; // 暈眩時的極慢速
+            } else {
+                // 速度自然衰減，最低保持 5
+                player.speed += (5 - player.speed) * 1.5 * deltaTime; 
+            }
+            player.progress += player.speed * 60 * deltaTime;
+
+            // 3. 更新電腦對手
+            opponents.forEach(opp => {
+                opp.progress += opp.speed * 60 * deltaTime;
+                // AI 簡單閃避邏輯 (有 5% 機率變換車道閃避)
+                let incomingRock = rocks.find(r => r.lane === opp.lane && r.y > opp.progress && r.y < opp.progress + 300);
+                if (incomingRock && Math.random() < 0.05) {
+                    opp.lane = (opp.lane + 1) % 3; 
+                }
+            });
+
+            // 4. 碰撞偵測 (玩家與石頭)
+            rocks.forEach(rock => {
+                if (!rock.hit && rock.lane === player.lane) {
+                    const dist = Math.abs(rock.y - player.progress);
+                    if (dist < 40) { // 碰撞容錯距離
+                        rock.hit = true;
+                        player.collisionTimer = 1.5; // 暈眩 1.5 秒
+                        player.speed = -3; // 稍微彈後退
+                        showRaceFeedback("💥 撞到石頭！", 'text-red-500');
+                        shakeScreen();
+                    }
+                }
+            });
+
+            // 5. 繪製畫面
+            drawRace();
+
+            // 6. 檢查是否有人到達終點
+            if (player.progress >= TRACK_LENGTH || opponents.some(o => o.progress >= TRACK_LENGTH)) {
+                endRace();
+            } else {
+                raceAnimId = requestAnimationFrame(raceLoop);
+            }
+        }
+
+        // 擊鼓判定邏輯
+        function hitDrum() {
+            if (raceState !== 'playing') return;
+            
+            const diff = Math.abs(rhythmProgress - 50); // 完美落在 50% 的位置
+            let boost = 0;
+            
+            if (diff <= 12) {
+                boost = 16; // 完美判定
+                showRaceFeedback("🔥 完美加速！", 'text-amber-300');
+            } else if (diff <= 25) {
+                boost = 10; // 良好判定
+                showRaceFeedback("👍 不錯！", 'text-green-300');
+            } else {
+                boost = 2; // 失誤判定
+                showRaceFeedback("❌ 節奏錯誤", 'text-gray-400');
+            }
+            
+            if (player.collisionTimer <= 0) {
+                player.speed = Math.min(player.speed + boost, 22); // 加速並限制最高速
+            }
+            
+            // 大鼓按鈕的點擊特效
+            const drum = document.getElementById('drum-btn');
+            drum.classList.add('scale-90', 'bg-red-500');
+            setTimeout(() => drum.classList.remove('scale-90', 'bg-red-500'), 100);
+        }
+
+        function showRaceFeedback(text, colorClass) {
+            const fb = document.getElementById('race-feedback');
+            fb.textContent = text;
+            fb.className = `absolute top-1/4 left-1/2 -translate-x-1/2 text-3xl md:text-4xl font-black ${colorClass} opacity-100 transition-opacity duration-100 z-20 pointer-events-none drop-shadow-[0_0_10px_rgba(0,0,0,0.8)]`;
+            
+            fb.style.transform = "translate(-50%, -20px) scale(1.2)";
+            setTimeout(() => {
+                fb.style.transform = "translate(-50%, 0) scale(1)";
+                fb.classList.replace('opacity-100', 'opacity-0');
+                fb.classList.add('duration-500');
+            }, 500);
+        }
+
+        function shakeScreen() {
+            const canvas = document.getElementById('race-canvas');
+            canvas.classList.add('translate-x-2', 'translate-y-2');
+            setTimeout(() => canvas.classList.replace('translate-x-2', '-translate-x-2'), 50);
+            setTimeout(() => canvas.classList.replace('-translate-x-2', 'translate-x-2'), 100);
+            setTimeout(() => canvas.classList.remove('translate-x-2', '-translate-x-2', 'translate-y-2'), 150);
+        }
+
+        // 渲染 Canvas 畫面
+        function drawRace() {
+            if (!ctx) return;
+
+            // 確保畫布尺寸與實際 DOM 元素一致，避免因為 modal 動畫導致尺寸抓取錯誤
+            if (raceCanvas.width !== raceCanvas.clientWidth || raceCanvas.height !== raceCanvas.clientHeight) {
+                raceCanvas.width = raceCanvas.clientWidth;
+                raceCanvas.height = Math.max(raceCanvas.clientHeight, 400); // 確保最小高度
+            }
+
+            const w = raceCanvas.width;
+            const h = raceCanvas.height;
+            const laneWidth = w / 3;
+            
+            // 畫河水
+            ctx.fillStyle = '#0891b2'; // 碧水藍
+            ctx.fillRect(0, 0, w, h);
+            
+            // 畫動態水波紋
+            ctx.strokeStyle = '#0e7490';
+            ctx.lineWidth = 2;
+            const scrollOffset = (player.progress * 1.5) % 100;
+            for(let i = -100; i < h; i += 60) {
+                ctx.beginPath();
+                ctx.moveTo(0, i + scrollOffset);
+                ctx.quadraticCurveTo(w/2, i + scrollOffset + 20, w, i + scrollOffset);
+                ctx.stroke();
+            }
+
+            // 畫車道分隔線 (虛線)
+            ctx.strokeStyle = '#22d3ee';
+            ctx.setLineDash([20, 20]);
+            ctx.lineWidth = 2;
+            ctx.globalAlpha = 0.3;
+            ctx.beginPath();
+            ctx.moveTo(laneWidth, 0); ctx.lineTo(laneWidth, h);
+            ctx.moveTo(laneWidth*2, 0); ctx.lineTo(laneWidth*2, h);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.globalAlpha = 1.0;
+
+            // 畫面以玩家為中心追蹤
+            const cameraY = player.progress;
+            // 將玩家位置往上移，避免被下方的擊鼓 UI 遮擋
+            const playerScreenY = h - 250; 
+
+            // 畫終點線
+            const finishLineY = playerScreenY - (TRACK_LENGTH - cameraY);
+            if (finishLineY > -100 && finishLineY < h) {
+                ctx.fillStyle = '#facc15';
+                ctx.fillRect(0, finishLineY, w, 20);
+                ctx.fillStyle = '#000';
+                for(let i = 0; i < w; i += 40) {
+                    ctx.fillRect(i, finishLineY, 20, 10);
+                    ctx.fillRect(i+20, finishLineY+10, 20, 10);
+                }
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 24px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('FINISH', w/2, finishLineY - 10);
+            }
+
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // 畫石頭
+            ctx.font = '36px sans-serif';
+            rocks.forEach(rock => {
+                const screenY = playerScreenY - (rock.y - cameraY);
+                if (screenY > -50 && screenY < h + 50) {
+                    ctx.globalAlpha = rock.hit ? 0.4 : 1.0;
+                    ctx.fillText('🪨', laneWidth * rock.lane + laneWidth/2, screenY);
+                    ctx.globalAlpha = 1.0;
+                }
+            });
+
+            // 畫電腦對手
+            opponents.forEach(opp => {
+                const screenY = playerScreenY - (opp.progress - cameraY);
+                if (screenY > -100 && screenY < h + 100) {
+                    ctx.font = '40px sans-serif';
+                    ctx.fillText('🛶', laneWidth * opp.lane + laneWidth/2, screenY);
+                    ctx.font = '14px sans-serif';
+                    ctx.fillStyle = opp.name === '紅龍' ? '#fca5a5' : '#fde047';
+                    ctx.fillText(opp.name, laneWidth * opp.lane + laneWidth/2, screenY - 30);
+                }
+            });
+
+            // 畫玩家
+            ctx.globalAlpha = (player.collisionTimer > 0 && Math.floor(player.collisionTimer * 10) % 2 === 0) ? 0.5 : 1.0;
+            ctx.font = '40px sans-serif';
+            ctx.fillText('🛶', laneWidth * player.lane + laneWidth/2, playerScreenY);
+            ctx.font = 'bold 16px sans-serif';
+            ctx.fillStyle = '#67e8f9';
+            ctx.fillText('你', laneWidth * player.lane + laneWidth/2, playerScreenY + 30);
+            ctx.globalAlpha = 1.0;
+            
+            // 畫計分板
+            drawHUD();
+        }
+
+        function drawHUD() {
+            const w = raceCanvas.width;
+            
+            // 剩餘距離
+            const remaining = Math.max(0, Math.floor((TRACK_LENGTH - player.progress) / 10));
+            ctx.fillStyle = 'rgba(8, 145, 178, 0.85)';
+            ctx.fillRect(10, 10, 110, 60);
+            ctx.strokeStyle = '#22d3ee';
+            ctx.strokeRect(10, 10, 110, 60);
+            
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText('剩餘距離:', 20, 30);
+            ctx.font = 'bold 20px sans-serif';
+            ctx.fillStyle = '#fde047';
+            ctx.fillText(remaining + ' m', 20, 55);
+            
+            // 名次推算
+            let rank = 1;
+            if (opponents[0].progress > player.progress) rank++;
+            if (opponents[1].progress > player.progress) rank++;
+            
+            ctx.fillStyle = 'rgba(8, 145, 178, 0.85)';
+            ctx.fillRect(w - 100, 10, 90, 60);
+            ctx.strokeRect(w - 100, 10, 90, 60);
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px sans-serif';
+            ctx.fillText('目前名次:', w - 90, 30);
+            ctx.font = 'bold 24px sans-serif';
+            ctx.fillStyle = rank === 1 ? '#4ade80' : (rank === 2 ? '#fde047' : '#f87171');
+            ctx.fillText('第 ' + rank, w - 90, 55);
+        }
+
+        // 結束結算
+        function endRace() {
+            raceState = 'finished';
+            document.getElementById('drum-btn').disabled = true;
+            
+            let rank = 1;
+            if (opponents[0].progress >= TRACK_LENGTH && opponents[0].progress > player.progress) rank++;
+            if (opponents[1].progress >= TRACK_LENGTH && opponents[1].progress > player.progress) rank++;
+            
+            const title = document.getElementById('race-result-title');
+            const desc = document.getElementById('race-result-desc');
+            
+            if (rank === 1) {
+                title.textContent = "🏆 冠軍！太神啦 🏆";
+                title.className = "text-4xl font-bold text-green-400 mb-4 animate-bounce";
+                desc.textContent = "你擁有完美的節奏感，成功奪得第一！";
+            } else {
+                title.textContent = `第 ${rank} 名完成`;
+                title.className = "text-3xl font-bold text-amber-400 mb-4";
+                desc.textContent = "差一點點！再試一次，專注擊鼓節奏與閃躲吧！";
+            }
+            
+            const overlay = document.getElementById('race-overlay');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+            
+            // 將按鈕功能綁定為重置遊戲 (resetRaceGame)
+            const btn = overlay.querySelector('button');
+            btn.textContent = "再玩一次 🔄";
+            btn.setAttribute('onclick', 'resetRaceGame()');
+        }
+
+        /* --- 畫符驅邪遊戲邏輯 --- */
+        let mugwortAnimId;
+        let mugwortState = 'idle'; // idle, playing, finished
+        let mugwortCanvas, mugCtx;
+        
+        let timeLeft = 60;
+        let playerHealth = 5;
+        let lastTickTime = 0;
+        let spiritSpawnTimer = 0;
+        let heartSpawned40 = false;
+        let heartSpawned20 = false;
+        
+        let mugSpirits = [];
+        let userStroke = [];
+        let fadingStroke = null; // 新增：用於顯示判定結果的殘留筆跡
+        let isDrawing = false;
+        const playerPos = { x: 0, y: 0 }; // 會在 render 時更新
+
+        function openMugwortGame() {
+            const modal = document.getElementById('mugwort-game-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+            
+            mugwortCanvas = document.getElementById('mugwort-canvas');
+            mugCtx = mugwortCanvas.getContext('2d');
+            
+            // 設定 Pointer Events 來畫畫
+            mugwortCanvas.addEventListener('pointerdown', handlePointerDown);
+            mugwortCanvas.addEventListener('pointermove', handlePointerMove);
+            window.addEventListener('pointerup', handlePointerUp); // 用 window 避免滑出邊界
+            window.addEventListener('pointercancel', handlePointerUp);
+            
+            resetMugwortGame();
+        }
+
+        function closeMugwortGame() {
+            const modal = document.getElementById('mugwort-game-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = 'auto';
+            
+            cancelAnimationFrame(mugwortAnimId);
+            mugwortState = 'idle';
+            
+            mugwortCanvas.removeEventListener('pointerdown', handlePointerDown);
+            mugwortCanvas.removeEventListener('pointermove', handlePointerMove);
+            window.removeEventListener('pointerup', handlePointerUp);
+            window.removeEventListener('pointercancel', handlePointerUp);
+        }
+
+        function resetMugwortGame() {
+            mugSpirits = [];
+            userStroke = [];
+            fadingStroke = null;
+            timeLeft = 60;
+            playerHealth = 5;
+            updateHealthUI();
+            document.getElementById('mugwort-time').textContent = timeLeft;
+            
+            const overlay = document.getElementById('mugwort-overlay');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+            
+            document.getElementById('mugwort-result-title').textContent = "驅邪挑戰";
+            document.getElementById('mugwort-result-title').className = "text-3xl font-bold text-amber-400 mb-2";
+            document.getElementById('mugwort-result-icon').textContent = "👻";
+            document.getElementById('mugwort-result-desc').innerHTML = `
+                保護中央的艾草！你有 <span class="text-red-400 font-bold">5 顆心</span> 的生命值。<br>
+                畫出對應符號消滅惡靈：<br>
+                <span class="font-bold text-amber-300">一</span> (黃)、<span class="font-bold text-blue-400">|</span> (藍)、<span class="font-bold text-green-400">v</span> (綠)、<span class="font-bold text-purple-400">^</span> (紫)。<br>
+                每隔 20 秒會出現 <span class="font-bold text-pink-400">紅心幽靈💖</span>，<br>
+                一筆畫出<span class="font-bold text-red-500">封閉的圈或愛心</span>將其消滅並回血！
+            `;
+            
+            const btn = overlay.querySelector('button');
+            btn.textContent = "開始驅邪 ⚔️";
+            btn.setAttribute('onclick', 'startMugwortGame()');
+            
+            resizeMugwortCanvas();
+            drawMugwortScene(); 
+        }
+
+        function updateHealthUI() {
+            let healthStr = '';
+            for (let i = 0; i < 5; i++) {
+                healthStr += i < playerHealth ? '❤️' : '🤍';
+            }
+            document.getElementById('mugwort-health').textContent = healthStr;
+        }
+
+        function startMugwortGame() {
+            document.getElementById('mugwort-overlay').classList.add('hidden');
+            document.getElementById('mugwort-overlay').classList.remove('flex');
+            
+            mugwortState = 'playing';
+            timeLeft = 60;
+            playerHealth = 5;
+            updateHealthUI();
+            mugSpirits = [];
+            userStroke = [];
+            fadingStroke = null;
+            lastTickTime = performance.now();
+            spiritSpawnTimer = 0;
+            heartSpawned40 = false;
+            heartSpawned20 = false;
+            
+            cancelAnimationFrame(mugwortAnimId);
+            mugwortLoop(performance.now());
+        }
+
+        function resizeMugwortCanvas() {
+            if (mugwortCanvas.width !== mugwortCanvas.clientWidth || mugwortCanvas.height !== mugwortCanvas.clientHeight) {
+                mugwortCanvas.width = mugwortCanvas.clientWidth;
+                mugwortCanvas.height = mugwortCanvas.clientHeight;
+            }
+            playerPos.x = mugwortCanvas.width / 2;
+            playerPos.y = mugwortCanvas.height - 80;
+        }
+
+        function mugwortLoop(time) {
+            if (mugwortState !== 'playing') return;
+            
+            const deltaTime = (time - lastTickTime) / 1000;
+            lastTickTime = time;
+
+            resizeMugwortCanvas();
+
+            // 1. 更新時間
+            const oldTimeInt = Math.ceil(timeLeft);
+            timeLeft -= deltaTime;
+            const newTimeInt = Math.ceil(timeLeft);
+            if (newTimeInt !== oldTimeInt && newTimeInt >= 0) {
+                document.getElementById('mugwort-time').textContent = newTimeInt;
+            }
+
+            if (timeLeft <= 0) {
+                endMugwortGame(true); // 勝利
+                return;
+            }
+
+            // 特殊機制：20秒與40秒時生成紅心幽靈
+            if (timeLeft <= 40 && !heartSpawned40) {
+                spawnHeartSpirit();
+                heartSpawned40 = true;
+            }
+            if (timeLeft <= 20 && !heartSpawned20) {
+                spawnHeartSpirit();
+                heartSpawned20 = true;
+            }
+
+            // 難度曲線計算 (0.0 初學者 ~ 1.0 最難)
+            const difficulty = 1 - (Math.max(0, timeLeft) / 60);
+
+            // 2. 生成惡靈
+            spiritSpawnTimer -= deltaTime * 1000;
+            const spawnInterval = 2500 - (1700 * difficulty); // 越後面生成越快
+            
+            if (spiritSpawnTimer <= 0) {
+                spawnSpirit(difficulty);
+                spiritSpawnTimer = spawnInterval;
+            }
+
+            // 3. 更新惡靈位置
+            const spiritSpeed = 40 + (80 * difficulty); // 像素/秒，越後面越快
+            
+            for (let i = mugSpirits.length - 1; i >= 0; i--) {
+                const s = mugSpirits[i];
+                // 朝向玩家移動
+                const dx = playerPos.x - s.x;
+                const dy = playerPos.y - s.y;
+                const dist = Math.hypot(dx, dy);
+                
+                if (dist < 40) { // 撞到玩家
+                    mugSpirits.splice(i, 1); // 移除碰到的惡靈
+                    
+                    if (!s.isHeart) { // 被一般惡靈碰到扣血
+                        playerHealth--;
+                        updateHealthUI();
+                        
+                        // 受傷閃爍特效
+                        mugwortCanvas.style.boxShadow = "inset 0 0 50px rgba(239, 68, 68, 0.8)";
+                        setTimeout(() => mugwortCanvas.style.boxShadow = "none", 200);
+
+                        if (playerHealth <= 0) {
+                            endMugwortGame(false); // 失敗
+                            return;
+                        }
+                    }
+                    continue;
+                }
+                
+                // 移動
+                s.x += (dx / dist) * spiritSpeed * deltaTime;
+                s.y += (dy / dist) * spiritSpeed * deltaTime;
+            }
+
+            // 更新筆跡殘影的淡出效果
+            if (fadingStroke) {
+                fadingStroke.opacity -= deltaTime * 2; // 0.5秒淡出
+                if (fadingStroke.opacity <= 0) fadingStroke = null;
+            }
+
+            // 4. 繪製畫面
+            drawMugwortScene();
+            mugwortAnimId = requestAnimationFrame(mugwortLoop);
+        }
+
+        function spawnHeartSpirit() {
+            const w = mugwortCanvas.width;
+            const h = mugwortCanvas.height;
+            const edge = Math.floor(Math.random() * 3);
+            let x, y;
+            if (edge === 0) { x = Math.random() * w; y = -40; } // 上方
+            else if (edge === 1) { x = -40; y = Math.random() * (h/2); } // 左側
+            else { x = w + 40; y = Math.random() * (h/2); } // 右側
+
+            // 紅心幽靈專屬屬性
+            mugSpirits.push({ x, y, symbols: ['♥'], isHeart: true });
+        }
+
+        function spawnSpirit(difficulty) {
+            const w = mugwortCanvas.width;
+            const h = mugwortCanvas.height;
+            
+            // 從畫面上方、左側、右側隨機生成
+            const edge = Math.floor(Math.random() * 3);
+            let x, y;
+            if (edge === 0) { x = Math.random() * w; y = -40; } // 上方
+            else if (edge === 1) { x = -40; y = Math.random() * (h/2); } // 左側
+            else { x = w + 40; y = Math.random() * (h/2); } // 右側
+
+            // 決定符號數量 (隨難度增加)
+            let maxSymbols = 1;
+            if (difficulty > 0.3) maxSymbols = 2;
+            if (difficulty > 0.7) maxSymbols = 3;
+            if (difficulty > 0.9) maxSymbols = 4;
+            
+            const symCount = Math.floor(Math.random() * maxSymbols) + 1;
+            const symbols = [];
+            const pool = ['-', '|', 'v', '^'];
+            for (let i = 0; i < symCount; i++) {
+                symbols.push(pool[Math.floor(Math.random() * pool.length)]);
+            }
+
+            mugSpirits.push({ x, y, symbols });
+        }
+
+        // 觸控與滑鼠畫畫事件
+        function getPointerPos(e) {
+            const rect = mugwortCanvas.getBoundingClientRect();
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+
+        function handlePointerDown(e) {
+            if (mugwortState !== 'playing') return;
+            isDrawing = true;
+            userStroke = [getPointerPos(e)];
+        }
+
+        function handlePointerMove(e) {
+            if (!isDrawing || mugwortState !== 'playing') return;
+            // 防抖：距離夠遠才記錄點
+            const pos = getPointerPos(e);
+            const lastPos = userStroke[userStroke.length - 1];
+            if (Math.hypot(pos.x - lastPos.x, pos.y - lastPos.y) > 5) {
+                userStroke.push(pos);
+            }
+        }
+
+        function handlePointerUp(e) {
+            if (!isDrawing || mugwortState !== 'playing') return;
+            isDrawing = false;
+            
+            let recognizedColor = '#9ca3af'; // 預設為灰色 (無法辨識)
+            
+            if (userStroke.length > 5) {
+                const recognizedSymbol = recognizeGesture(userStroke);
+                if (recognizedSymbol) {
+                    // 根據辨識出的符號決定殘影顏色
+                    if (recognizedSymbol === '-') recognizedColor = '#fde047'; // 黃色
+                    else if (recognizedSymbol === '|') recognizedColor = '#60a5fa'; // 藍色
+                    else if (recognizedSymbol === 'v') recognizedColor = '#34d399'; // 綠色
+                    else if (recognizedSymbol === '^') recognizedColor = '#c084fc'; // 紫色
+                    else if (recognizedSymbol === '♥') recognizedColor = '#f87171'; // 紅色
+                    
+                    processRecognizedSymbol(recognizedSymbol);
+                }
+            }
+            
+            // 將畫完的筆跡轉換為殘影，顯示判定結果顏色讓玩家知道
+            if (userStroke.length > 0) {
+                fadingStroke = {
+                    points: [...userStroke],
+                    color: recognizedColor,
+                    opacity: 1.0
+                };
+            }
+            
+            userStroke = []; // 清空畫筆
+        }
+
+        // 簡單的手勢辨識
+        function recognizeGesture(points) {
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+            points.forEach(p => {
+                if (p.x < minX) minX = p.x;
+                if (p.x > maxX) maxX = p.x;
+                if (p.y < minY) minY = p.y;
+                if (p.y > maxY) maxY = p.y;
+            });
+
+            const width = maxX - minX;
+            const height = maxY - minY;
+
+            if (width < 20 && height < 20) return null; // 太小判定無效
+
+            // 判斷是否為封閉圖形 (愛心或圓形)
+            // 條件：起點與終點距離很近，且長寬具備一定大小
+            const startPoint = points[0];
+            const endPoint = points[points.length - 1];
+            const startToEndDist = Math.hypot(startPoint.x - endPoint.x, startPoint.y - endPoint.y);
+            const boundingDiag = Math.hypot(width, height);
+            
+            if (startToEndDist < boundingDiag * 0.4 && boundingDiag > 40 && points.length > 15) {
+                return '♥'; // 判定為愛心符號
+            }
+
+            if (width > height * 1.5) return '-'; // 橫線
+            if (height > width * 1.5) return '|'; // 直線
+
+            // 判斷 V 或 ^
+            let minYIdx = 0, maxYIdx = 0;
+            points.forEach((p, i) => {
+                if (p.y === minY) minYIdx = i; // 最高點 (Y最小)
+                if (p.y === maxY) maxYIdx = i; // 最低點 (Y最大)
+            });
+
+            const midRangeMin = points.length * 0.2;
+            const midRangeMax = points.length * 0.8;
+
+            // 如果最低點在中間段，且寬高差距不大，判定為 V
+            if (maxYIdx > midRangeMin && maxYIdx < midRangeMax) return 'v';
+            // 如果最高點在中間段，判定為 ^
+            if (minYIdx > midRangeMin && minYIdx < midRangeMax) return '^';
+
+            return null; // 無法辨識
+        }
+
+        // 比對符號並攻擊惡靈
+        function processRecognizedSymbol(symbol) {
+            let hitSpirits = [];
+
+            // 尋找所有首個符號吻合的惡靈 (群體攻擊判定)
+            mugSpirits.forEach(spirit => {
+                if (spirit.symbols.length > 0 && spirit.symbols[0] === symbol) {
+                    hitSpirits.push(spirit);
+                }
+            });
+
+            if (hitSpirits.length > 0) {
+                let healed = false;
+                let normalHit = false;
+
+                hitSpirits.forEach(targetSpirit => {
+                    // 成功消除一個符號
+                    targetSpirit.symbols.shift();
+                    
+                    if (symbol === '♥') {
+                        // 愛心幽靈回血機制 (每個愛心補一滴血)
+                        playerHealth = Math.min(5, playerHealth + 1);
+                        healed = true;
+                    } else {
+                        normalHit = true;
+                    }
+                });
+
+                // 如果有補到血，更新介面
+                if (healed) updateHealthUI();
+
+                // 視覺回饋：讓畫布閃爍一下光芒
+                if (healed) {
+                    mugwortCanvas.style.boxShadow = "inset 0 0 50px rgba(52, 211, 153, 0.8)"; // 綠色回血光芒
+                } else if (normalHit) {
+                    mugwortCanvas.style.boxShadow = "inset 0 0 30px rgba(253, 224, 71, 0.5)"; // 黃色攻擊光芒
+                }
+                
+                setTimeout(() => mugwortCanvas.style.boxShadow = "none", 150);
+
+                // 一次性清除所有符號被消滅殆盡的惡靈
+                mugSpirits = mugSpirits.filter(s => s.symbols.length > 0);
+            }
+        }
+
+        // 渲染遊戲畫面
+        function drawMugwortScene() {
+            if (!mugCtx) return;
+            const w = mugwortCanvas.width;
+            const h = mugwortCanvas.height;
+            
+            // 清空畫布
+            mugCtx.clearRect(0, 0, w, h);
+            
+            // 畫玩家 (艾草)
+            mugCtx.font = '50px sans-serif';
+            mugCtx.textAlign = 'center';
+            mugCtx.textBaseline = 'middle';
+            // 防護罩特效
+            if (mugwortState === 'playing') {
+                mugCtx.beginPath();
+                mugCtx.arc(playerPos.x, playerPos.y, 40 + Math.sin(Date.now()/200)*5, 0, Math.PI*2);
+                mugCtx.fillStyle = 'rgba(52, 211, 153, 0.2)'; // emerald-400
+                mugCtx.fill();
+                mugCtx.strokeStyle = 'rgba(52, 211, 153, 0.5)';
+                mugCtx.stroke();
+            }
+            mugCtx.fillText('🌿', playerPos.x, playerPos.y);
+
+            // 畫惡靈與符號
+            mugSpirits.forEach(spirit => {
+                mugCtx.font = '36px sans-serif';
+                mugCtx.fillText(spirit.isHeart ? '💖' : '👻', spirit.x, spirit.y);
+                
+                // 畫頭上的符號 (從左到右，左邊是第一個要消的)
+                const symSize = 16;
+                const spacing = 20;
+                const startX = spirit.x - ((spirit.symbols.length - 1) * spacing) / 2;
+                
+                spirit.symbols.forEach((sym, index) => {
+                    const symX = startX + index * spacing;
+                    const symY = spirit.y - 45; // 頭頂
+                    
+                    if (sym === '♥') {
+                        // 畫愛心符號
+                        mugCtx.font = '22px sans-serif';
+                        mugCtx.fillStyle = index === 0 ? '#f87171' : 'rgba(248, 113, 113, 0.4)'; // 紅色
+                        mugCtx.fillText('♥', symX, symY + 5);
+                        return; // 跳過畫線
+                    }
+
+                    // 畫圓底
+                    mugCtx.beginPath();
+                    mugCtx.arc(symX, symY, symSize/2 + 2, 0, Math.PI*2);
+                    mugCtx.fillStyle = index === 0 ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.4)'; // 第一個符號高亮
+                    mugCtx.fill();
+
+                    // 根據符號決定顏色
+                    let symbolColor = '#9ca3af'; // 預設灰色
+                    if (index === 0) {
+                        if (sym === '-') symbolColor = '#fde047'; // 黃色
+                        else if (sym === '|') symbolColor = '#60a5fa'; // 藍色
+                        else if (sym === 'v') symbolColor = '#34d399'; // 綠色
+                        else if (sym === '^') symbolColor = '#c084fc'; // 紫色
+                    }
+
+                    // 畫線條符號
+                    mugCtx.beginPath();
+                    mugCtx.strokeStyle = symbolColor;
+                    mugCtx.lineWidth = 3;
+                    mugCtx.lineCap = 'round';
+                    mugCtx.lineJoin = 'round';
+                    
+                    const s = symSize / 2;
+                    if (sym === '-') {
+                        mugCtx.moveTo(symX - s, symY); mugCtx.lineTo(symX + s, symY);
+                    } else if (sym === '|') {
+                        mugCtx.moveTo(symX, symY - s); mugCtx.lineTo(symX, symY + s);
+                    } else if (sym === 'v') {
+                        mugCtx.moveTo(symX - s, symY - s/2); mugCtx.lineTo(symX, symY + s); mugCtx.lineTo(symX + s, symY - s/2);
+                    } else if (sym === '^') {
+                        mugCtx.moveTo(symX - s, symY + s/2); mugCtx.lineTo(symX, symY - s); mugCtx.lineTo(symX + s, symY + s/2);
+                    }
+                    mugCtx.stroke();
+                });
+            });
+
+            // 畫判定結果殘影 (讓玩家知道偵測到什麼顏色/符號)
+            if (fadingStroke && fadingStroke.points.length > 0) {
+                mugCtx.beginPath();
+                mugCtx.globalAlpha = fadingStroke.opacity;
+                mugCtx.strokeStyle = fadingStroke.color;
+                mugCtx.lineWidth = 6;
+                mugCtx.lineCap = 'round';
+                mugCtx.lineJoin = 'round';
+                mugCtx.shadowColor = fadingStroke.color;
+                mugCtx.shadowBlur = 15;
+                
+                mugCtx.moveTo(fadingStroke.points[0].x, fadingStroke.points[0].y);
+                for (let i = 1; i < fadingStroke.points.length; i++) {
+                    mugCtx.lineTo(fadingStroke.points[i].x, fadingStroke.points[i].y);
+                }
+                mugCtx.stroke();
+                mugCtx.globalAlpha = 1.0; // 重置
+                mugCtx.shadowBlur = 0;
+            }
+
+            // 畫玩家正在畫的軌跡 (繪製中即時偵測並變色)
+            if (userStroke.length > 0) {
+                let liveColor = '#ffffff'; // 預設為純白發光
+                
+                // 如果畫了足夠長的距離，嘗試即時辨識形狀
+                if (userStroke.length > 5) {
+                    const liveSymbol = recognizeGesture(userStroke);
+                    if (liveSymbol === '-') liveColor = '#fde047'; // 黃色
+                    else if (liveSymbol === '|') liveColor = '#60a5fa'; // 藍色
+                    else if (liveSymbol === 'v') liveColor = '#34d399'; // 綠色
+                    else if (liveSymbol === '^') liveColor = '#c084fc'; // 紫色
+                    else if (liveSymbol === '♥') liveColor = '#f87171'; // 紅色
+                }
+
+                mugCtx.beginPath();
+                mugCtx.strokeStyle = liveColor; 
+                mugCtx.lineWidth = 5;
+                mugCtx.lineCap = 'round';
+                mugCtx.lineJoin = 'round';
+                mugCtx.shadowColor = liveColor;
+                mugCtx.shadowBlur = 8;
+                
+                mugCtx.moveTo(userStroke[0].x, userStroke[0].y);
+                for (let i = 1; i < userStroke.length; i++) {
+                    mugCtx.lineTo(userStroke[i].x, userStroke[i].y);
+                }
+                mugCtx.stroke();
+                mugCtx.shadowBlur = 0; // 重置
+            }
+        }
+
+        // 結束遊戲
+        function endMugwortGame(isWin) {
+            mugwortState = 'finished';
+            
+            const title = document.getElementById('mugwort-result-title');
+            const desc = document.getElementById('mugwort-result-desc');
+            const icon = document.getElementById('mugwort-result-icon');
+            
+            if (isWin) {
+                title.textContent = "🏆 驅邪大師 🏆";
+                title.className = "text-4xl font-bold text-amber-400 mb-4 animate-bounce";
+                desc.textContent = "太厲害了！你成功守護了艾草，平安度過端午節！";
+                icon.textContent = "🌿";
+            } else {
+                title.textContent = "💀 防線崩潰 💀";
+                title.className = "text-3xl font-bold text-red-500 mb-4";
+                desc.textContent = `只差一點點！你堅持了 ${60 - Math.ceil(timeLeft)} 秒，再挑戰一次吧！`;
+                icon.textContent = "👻";
+            }
+            
+            const overlay = document.getElementById('mugwort-overlay');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+            
+            const btn = overlay.querySelector('button');
+            btn.textContent = "再玩一次 🔄";
+            btn.setAttribute('onclick', 'resetMugwortGame()');
+        }
+    </script>
+</body>
+</html>
