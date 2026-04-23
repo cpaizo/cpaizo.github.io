@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>端午節學生網頁作品集</title>
+    <style>
+        :root {
+            --bg-color: #f1f8e9; /* 淡淡的竹綠色 */
+            --card-bg: #ffffff;
+            --primary-green: #388e3c; /* 粽葉深綠 */
+            --light-green: #a5d6a7; /* 艾草淺綠 */
+            --accent-yellow: #fdd835; /* 雄黃酒黃 */
+            --accent-red: #e53935; /* 香包紅 */
+            --text-color: #3e2723; /* 深棕色（像糯米或竹葉） */
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(var(--light-green) 1px, transparent 1px),
+                linear-gradient(0deg, rgba(255,255,255,0.1) 1px, transparent 1px); /* 淡淡的水波紋感覺 */
+            background-size: 30px 30px, 100% 5px;
+            font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: var(--primary-green);
+            font-size: 2.8rem;
+            text-shadow: 2px 2px 0px #fff, 4px 4px 0px rgba(56, 142, 60, 0.2);
+            margin-bottom: 50px;
+            text-align: center;
+            position: relative;
+            padding: 10px 20px;
+        }
+        
+        /* 標題上方的竹葉裝飾 */
+        h1::before, h1::after {
+            content: '🍃';
+            font-size: 1.5rem;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        h1::before { left: -30px; }
+        h1::after { right: -30px; }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .category-box {
+            background: var(--card-bg);
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 12px 25px rgba(56, 142, 60, 0.1); /* 帶點綠色的陰影 */
+            border: 4px dashed var(--light-green); /* 像粽子繩子的虛線邊框 */
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        /* 作品區塊角落的小粽子圖示 */
+        .category-box::after {
+            content: '🎋';
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.5rem;
+            opacity: 0.7;
+        }
+
+        .category-box:hover {
+            transform: translateY(-8px) scale(1.01);
+            box-shadow: 0 15px 30px rgba(56, 142, 60, 0.15);
+        }
+
+        .category-title {
+            font-size: 1.8rem;
+            margin-top: 0;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 3px solid var(--accent-yellow); /* 雄黃色底線 */
+            padding-bottom: 15px;
+            color: var(--primary-green);
+            position: relative;
+        }
+        
+        /* 標題左右的竹葉 */
+        .category-title::before, .category-title::after {
+            content: '';
+            display: block;
+            width: 30px;
+            height: 15px;
+            background: var(--light-green);
+            border-radius: 15px 15px 0 0;
+            position: absolute;
+            bottom: -3px;
+        }
+        .category-title::before { left: 20px; transform: rotate(-15deg); }
+        .category-title::after { right: 20px; transform: rotate(15deg); }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        li {
+            margin-bottom: 15px;
+        }
+
+        a {
+            text-decoration: none;
+            color: #5d4037; /* 深褐色，像糯米 */
+            background: #fff;
+            padding: 12px 20px;
+            border-radius: 20px;
+            display: block;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* 增加一點彈性的過場效果 */
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 連結 hover 時左側出現的香包 */
+        a::before {
+            content: '🧧';
+            position: absolute;
+            left: -30px;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        }
+
+        a:hover {
+            background: var(--accent-yellow); /* 滑鼠懸停變成雄黃色 */
+            color: var(--text-color);
+            border-color: var(--accent-yellow);
+            padding-left: 45px; /* 為香包騰出空間 */
+            transform: scale(1.03); /* 輕微放大 */
+            box-shadow: 0 5px 15px rgba(253, 216, 53, 0.3);
+        }
+        
+        a:hover::before {
+            left: 15px; /* 香包滑入 */
+        }
+
+        .icon {
+            margin-right: 12px;
+            font-size: 1.4rem;
+        }
+        
+        /* 作品內容描述文字 */
+        a::after {
+            content: ' (網頁作品)';
+            font-size: 0.85rem;
+            color: #8d6e63;
+            font-weight: normal;
+        }
+        a:hover::after {
+            color: #795548;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🏮 端午佳節 🌟 學生作品集</h1>
+
+    <div class="container">
+        
+        <div class="category-box">
+            <h2 class="category-title"><span class="icon">🐲</span><span class="icon">粽</span><span class="icon">香</span>端午學生作品</h2>
+            <ul>
+                <li><a href="https://cpaizo.github.io/students/game%20-%20廖曼心.html" target="_blank">廖曼心 - 互動遊戲</a></li>
+                <li><a href="https://cpaizo.github.io/students/端午節-林禹彤%20-%20林禹彤.html" target="_blank">林禹彤 - 端午節專題</a></li>
+                <li><a href="https://cpaizo.github.io/students/端午節%20-%20余品樂.html" target="_blank">余品樂 - 端午節專題</a></li>
+                <li><a href="https://cpaizo.github.io/students/端午節%20-%20林柄成.html" target="_blank">林柄成 - 端午節專題</a></li>
+                <li><a href="https://cpaizo.github.io/students/端午節%20-%20鐘以恆.html" target="_blank">鐘以恆 - 端午節專題</a></li>
+                <li><a href="https://cpaizo.github.io/students/端午節網頁張定城.html" target="_blank">張定城 - 端午節專題</a></li>
+            </ul>
+        </div>
+
+    </div>
+
+    <footer style="margin-top: 60px; color: #8d6e63; font-size: 0.95rem; text-align: center; background-color: rgba(255,255,255,0.5); padding: 10px 20px; border-radius: 20px;">
+        🍃 仲夏端午，品粽懷古 🍃<br>
+        點擊上方連結查看學生精心製作的作品
+    </footer>
+
+</body>
+</html>
