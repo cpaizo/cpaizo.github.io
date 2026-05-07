@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第一堂課：網頁背景控制 - 學生作品集</title>
+    <style>
+        /* 動態粉彩漸層背景 */
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+            background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fbc2eb, #a1c4fd, #c2e9fb);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        h1 {
+            color: #4a4a4a;
+            margin-top: 50px;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+        }
+
+        /* 作品列表容器 - 磨砂玻璃效果 */
+        .container {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            width: 80%;
+            max-width: 600px;
+        }
+
+        .student-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .student-list li {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .student-list li:hover {
+            transform: translateX(10px);
+        }
+
+        .student-list a {
+            text-decoration: none;
+            color: #333;
+            font-size: 1.2rem;
+            font-weight: 500;
+            display: block;
+        }
+
+        .student-list a:hover {
+            color: #5b73a8;
+        }
+
+        .icon {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>學生作品集：網頁背景控制</h1>
+
+    <div class="container">
+        <ul class="student-list">            
+            <li><a href="https://cpaizo.github.io/students/0507 - 盧晨希.html" target="_blank"><span class="icon">📄</span>盧晨希 - 背景控制</a></li>
+            <li><a href="https://cpaizo.github.io/students/0507吳寬 - 吳寬.html" target="_blank"><span class="icon">📄</span>吳寬 - 背景控制</a></li>
+            <li><a href="https://cpaizo.github.io/students/0507定睿 - 呂定睿.html" target="_blank"><span class="icon">📄</span>呂定睿 - 背景控制</a></li>
+            <li><a href="https://cpaizo.github.io/students/0507張芯嫙 - 張芯嫙.html" target="_blank"><span class="icon">📄</span>張芯嫙 - 背景控制</a></li>
+            <li><a href="https://cpaizo.github.io/students/0507陳玉婷 - 陳玉婷.html" target="_blank"><span class="icon">📄</span>陳玉婷 - 背景控制</a></li>
+            <li><a href="https://cpaizo.github.io/students/張倢鈞 - 張倢鈞.html" target="_blank"><span class="icon">📄</span>張倢鈞 - 背景控制</a></li>
+        </ul>
+    </div>
+
+</body>
+</html>
