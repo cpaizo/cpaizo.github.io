@@ -1,0 +1,23 @@
+<H1>你好!我是網頁小工程師</H1>
+<p>這是我用記事本親手寫出的第一個網頁。<p>
+<marquee>
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>馬卡龍漸層網頁</title>
+    <style>
+        body {
+    margin: 0;
+    min-height: 100vh;
+    /* 放大背景尺寸以供動畫位移 */
+    background: linear-gradient(-45deg, #FFB7B2, #FFDAC1, #E2F0CB, #B5EAD7, #C7CEEA);
+    background-size: 400% 400%;
+    animation: gradientFlow 10s ease infinite;
+}
+
+@keyframes gradientFlow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}

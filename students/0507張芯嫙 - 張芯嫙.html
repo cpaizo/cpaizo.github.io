@@ -1,0 +1,77 @@
+<h1>你好!我是網頁小工程師</h1>
+<p>這是我用記事本親手寫出的第一個網頁</p>
+<marquee>看我!我會像火車一樣跑過去</marquee>
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>水藍紫白動態網頁</title>
+    <style>
+        /* 1. 背景動態漸層設定 */
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: "Microsoft JhengHei", sans-serif;
+            
+            /* 三色漸層：水藍、淺紫、白 */
+            background: linear-gradient(-45deg, #87CEEB, #E6E6FA, #FFFFFF, #B0E0E6);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            overflow: hidden;
+        }
+
+        /* 背景流動動畫 */
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 2. 文字動態設定 */
+        .content {
+            text-align: center;
+        }
+
+        h1 {
+            color: #555;
+            font-size: 3rem;
+            letter-spacing: 5px;
+            /* 文字漂浮動畫 */
+            animation: floating 3s ease-in-out infinite;
+            text-shadow: 2px 2px 10px rgba(255,255,255,0.8);
+        }
+
+        p {
+            color: #777;
+            font-size: 1.2rem;
+            /* 文字淡入動畫 */
+            animation: fadeIn 5s forwards;
+        }
+
+        /* 文字上下漂浮效果 */
+        @keyframes floating {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* 文字由透明變顯現效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="content">
+        <h1>夢幻色彩</h1>
+        <p>這是一個結合水藍色、淺紫色與白色的動態網頁</p>
+    </div>
+
+</body>
+</html>
+

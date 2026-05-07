@@ -1,0 +1,40 @@
+<h1>你好!我是網頁工程師</h1>
+<p>這是我用記事本</p>
+<marquee>你好</marquee>
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>藍白淺色漸層背景</title>
+    <style>
+        body {
+            /* 設定背景為由上到下的藍白漸層 */
+            background: linear-gradient(180deg, #e3f2fd 0%, #ffffff 100%);
+            
+            /* 確保背景高度涵蓋整個視窗 */
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: "Microsoft JhengHei", sans-serif;
+            color: #37474f;
+        }
+
+        .content {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.5);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <h1>舒適的藍白漸層</h1>
+        <p>這是一個使用 CSS 線性漸層設計的淺色背景。</p>
+    </div>
+</body>
+</html>
