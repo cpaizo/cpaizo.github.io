@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>動態粉彩虹互動月曆</title>
+    <style>
+        :root {
+            --pink-rainbow: linear-gradient(120deg, #ff9a9e 0%, #fecfef 20%, #feada6 40%, #fbc2eb 60%, #a18cd1 80%, #fad0c4 100%);
+            --glass: rgba(255, 255, 255, 0.65);
+            --text-color: #6d4c41;
+            --holiday-red: #ff5252;
+            --today-grad: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+            background: var(--pink-rainbow);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 標題與按鈕區塊 */
+        .header-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: white;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            font-size: 2.8em;
+            margin: 0;
+        }
+
+        .nav-btn {
+            background: var(--glass);
+            border: 1px solid rgba(255,255,255,0.5);
+            color: var(--text-color);
+            font-size: 24px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .nav-btn:hover {
+            transform: scale(1.2);
+            background: white;
+            box-shadow: 0 6px 20px rgba(255, 117, 140, 0.3);
+        }
+
+        /* 月曆容器 */
+        .calendar-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .month-card {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            transition: transform 0.4s ease;
+        }
+
+        .month-title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--text-color);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed rgba(255,255,255,0.8);
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { font-size: 13px; color: #8d6e63; padding-bottom: 10px; }
+        
+        td {
+            text-align: center;
+            height: 42px;
+            font-size: 15px;
+            color: var(--text-color);
+            position: relative;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* 滑鼠移過去動一下 */
+        td:hover:not(:empty) {
+            transform: scale(1.4) translateY(-8px);
+            background: white;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            z-index: 10;
+            color: #ff758c;
+        }
+
+        /* 凸出的今日樣式 */
+        .is-today {
+            background: var(--today-grad) !important;
+            color: white !important;
+            font-weight: bold;
+            box-shadow: 0 10px 25px rgba(255, 117, 140, 0.6);
+            transform: scale(1.1);
+            z-index: 2;
+        }
+
+        .weekend { color: var(--holiday-red); }
+
+        /* 背景小圖示 */
+        .floating-icon {
+            position: fixed;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 24px;
+            z-index: -1;
+            pointer-events: none;
+            animation: fly linear infinite;
+        }
+
+        @keyframes fly {
+            from { transform: translate(-100px, 0) rotate(0deg); }
+            to { transform: translate(calc(100vw + 100px), calc(100vh * 0.4)) rotate(360deg); }
+        }
+
+        @media (max-width: 900px) { .calendar-container { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 600px) { .calendar-container { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <div class="header-controls">
+        <button class="nav-btn" onclick="changeYear(-1)">❮</button>
+        <h1 id="year-display">2026</h1>
+        <button class="nav-btn" onclick="changeYear(1)">❯</button>
+    </div>
+
+    <div id="calendar-grid" class="calendar-container"></div>
+
+    <script>
+        // 初始化日期資訊
+        const now = new Date();
+        let displayYear = now.getFullYear(); // 自動判斷今年
+        const realTodayYear = now.getFullYear();
+        const realTodayMonth = now.getMonth() + 1;
+        const realTodayDate = now.getDate();
+
+        function renderCalendar(year) {
+            document.getElementById('year-display').innerText = year;
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = ''; // 清空舊的
+
+            for (let m = 0; m < 12; m++) {
+                const card = document.createElement('div');
+                card.className = 'month-card';
+                
+                let html = `<div class="month-title">${m + 1}月</div>`;
+                html += `<table><thead><tr><th class="weekend">日</th><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th class="weekend">六</th></tr></thead><tbody><tr>`;
+                
+                const firstDay = new Date(year, m, 1).getDay();
+                const days = new Date(year, m + 1, 0).getDate();
+
+                for (let i = 0; i < firstDay; i++) html += '<td></td>';
+                
+                for (let d = 1; d <= days; d++) {
+                    const dayOfWeek = new Date(year, m, d).getDay();
+                    let classes = [];
+                    if (dayOfWeek === 0 || dayOfWeek === 6) classes.push('weekend');
+                    
+                    // 判斷是否為「真正的今天」
+                    if (year === realTodayYear && (m + 1) === realTodayMonth && d === realTodayDate) {
+                        classes.push('is-today');
+                    }
+
+                    html += `<td class="${classes.join(' ')}">${d}</td>`;
+                    if ((d + firstDay) % 7 === 0) html += '</tr><tr>';
+                }
+                html += '</tr></tbody></table>';
+                card.innerHTML = html;
+                grid.appendChild(card);
+            }
+        }
+
+        function changeYear(delta) {
+            displayYear += delta;
+            renderCalendar(displayYear);
+        }
+
+        // 背景圖示
+        const icons = ['☁️', '🌸', '✨', '💖', '🍭', '🌈'];
+        function createFloatingIcons() {
+            for (let i = 0; i < 15; i++) {
+                const span = document.createElement('span');
+                span.className = 'floating-icon';
+                span.innerText = icons[Math.floor(Math.random() * icons.length)];
+                span.style.top = Math.random() * 100 + 'vh';
+                span.style.left = '-60px';
+                span.style.animationDuration = (Math.random() * 12 + 10) + 's';
+                span.style.animationDelay = (Math.random() * 5) + 's';
+                document.body.appendChild(span);
+            }
+        }
+
+        // 初始啟動
+        renderCalendar(displayYear);
+        createFloatingIcons();
+    </script>
+</body>
+</html>
