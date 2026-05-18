@@ -4,7 +4,7 @@
 // ⚠️ 注意：網址最後面一定要有斜線 "/" 喔！
 // ⭕ 請換成這串全新活著的蔬果模型網址（包含：背景、有機小黃瓜、網室番茄）
 // ⭕ 請換成這串「絕對不會認錯字」的全新蔬果模型網址
-const URL = "https://teachablemachine.withgoogle.com/models/p-vS7nSca/";
+const URL = "https://teachablemachine.withgoogle.com/models/VMUHU47gA/";
 
 let model, webcam, labelContainer, maxPredictions;
 
