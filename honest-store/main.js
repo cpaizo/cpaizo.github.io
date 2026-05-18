@@ -3,7 +3,8 @@
 // 1. 填入你在【第零階段】複製的雲端模型網址
 // ⚠️ 注意：網址最後面一定要有斜線 "/" 喔！
 // ⭕ 請換成這串全新活著的蔬果模型網址（包含：背景、有機小黃瓜、網室番茄）
-const URL = "https://teachablemachine.withgoogle.com/models/VMUHU47gA/";
+// ⭕ 請換成這串「絕對不會認錯字」的全新蔬果模型網址
+const URL = "https://teachablemachine.withgoogle.com/models/p-vS7nSca/";
 
 let model, webcam, labelContainer, maxPredictions;
 
