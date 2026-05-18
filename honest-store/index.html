@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>無人誠實商店 - AI 偵測端</title>
+
+    <!-- 🔗 連結外觀檔案：引入與 index.html 放在同一個資料夾的 style.css -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- 💡 引入 Google 官方的 TensorFlow.js 與 Teachable Machine 運作引擎 -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+</head>
+<body>
+
+    <h1>🛒 無人誠實商店 - AI 偵測端</h1>
+    <p>第一階段：請點擊下方按鈕啟動 AI 鏡頭</p>
+
+    <!-- 點擊此按鈕時，會去執行 main.js 裡面的 init() 初始化功能 -->
+    <button type="button" onclick="init()">啟動 AI 攝影機</button>
+
+    <!-- 網路攝影機畫面會被動態塞進這個 <div> 框框中 -->
+    <div id="webcam-container"></div>
+    
+    <!-- AI 辨識的類別與分數結果會顯示在這裡 -->
+    <div id="label-container"></div>
+
+    <!-- 🔗 連結大腦檔案：引入與 index.html 放在同一個資料夾的 main.js -->
+    <script src="main.js"></script>
+
+</body>
+</html>
