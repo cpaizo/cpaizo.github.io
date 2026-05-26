@@ -90,7 +90,6 @@
             border-bottom: 1px solid #eee;
         }
 
-        /* 互動大按鈕樣式 */
         .btn {
             background-color: #27ae60;
             color: white;
@@ -177,7 +176,6 @@
 
         .total-price { color: #e74c3c; }
 
-        /* 結帳大卡片 */
         #esg-card {
             margin-top: 25px;
             background: linear-gradient(135deg, #eaf9f0 0%, #f4fbf7 100%);
@@ -209,13 +207,6 @@
             0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
             100% { transform: translateY(-150px) scale(1.5) rotate(360deg); opacity: 0; }
         }
-
-        /* 雙按鈕並排容器 */
-        .action-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
     </style>
 </head>
 <body>
@@ -242,16 +233,14 @@
                 <span class="total-price">NT$ <span id="total-amount">0</span> 元</span>
             </div>
             
-            <div class="action-group">
-                <button class="btn" style="background-color: #ffa64d; box-shadow:0 4px 6px rgba(255,166,77,0.2);" onclick="resetNewTransaction()">🔄 新的交易</button>
-                <button class="btn" style="background-color:#2f80ed; box-shadow:0 4px 6px rgba(47,128,237,0.2);" onclick="checkout()">🌱 低碳交易結帳</button>
-            </div>
+            <button class="btn" style="margin-top:15px; background-color:#2f80ed; box-shadow:0 4px 6px rgba(47,128,237,0.2);" onclick="checkout()">🌱 完成新北低碳交易</button>
         </div>
     </div>
 
     <div id="esg-card"></div>
 
     <script>
+        // 老師傳來的最新 Teachable Machine 模型網址
         const URL = "https://teachablemachine.withgoogle.com/models/V6Bl8_dTD/";
         
         const fruitDatabase = {
@@ -267,31 +256,9 @@
         let isCoolingDown = false;
         let animationFrameId;
 
-        // 👑 內建網頁電子合成音效函式（完全繞過防火牆限制，直接生成「嗶」聲音）
-        function playBeepSound() {
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-
-                oscillator.type = 'sine';       // 正弦波，聲音清脆
-                oscillator.frequency.value = 1000; // 1000Hz 高音嗶聲
-                gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime); // 控制音量
-
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-
-                oscillator.start();
-                // 響起 0.12 秒後自動切斷
-                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.12);
-                oscillator.stop(audioCtx.currentTime + 0.12);
-            } catch (e) {
-                console.log("瀏覽器音效初始化阻擋，等使用者互動後解鎖：", e);
-            }
-        }
-
-        // 核心鏡頭流程
+        // 核心鏡頭流程：改為點擊時當場檢查，最安全防呆
         async function initCameraFlow() {
+            // 雙重保險：萬一腳本被網路擋掉，自動切換至備用應急通道
             if (typeof tf === 'undefined' || typeof tmImage === 'undefined') {
                 document.getElementById("ai-status").innerText = "⏳ 正在啟用 Google 官方備用極速通道...";
                 await loadScriptSequentially("https://storage.googleapis.com/tfjs-models/tfjs/1.3.1/tf.min.js");
@@ -343,6 +310,7 @@
             }
         }
 
+        // 動態注入核心
         function loadScriptSequentially(src) {
             return new Promise((resolve, reject) => {
                 const script = document.createElement('script');
@@ -390,7 +358,6 @@
             animationFrameId = window.requestAnimationFrame(loop);
         }
 
-        // AI 辨識
         async function predict() {
             if (!model || !webcam) return;
 
@@ -411,8 +378,6 @@
 
             if (highestProbability > 0.85 && highestClass !== "背景" && !isCoolingDown) {
                 if (fruitDatabase[highestClass]) {
-                    // 🔔 辨識成功，立刻執行發聲
-                    playBeepSound(); 
                     addToCart(highestClass);
                     triggerCoolDown();
                 }
@@ -481,27 +446,6 @@
             document.getElementById("total-amount").innerText = total;
         }
 
-        // 🔄 徹底清空，重新開始新一輪交易
-        function resetNewTransaction() {
-            shoppingCart = {};
-            renderCart();
-            document.getElementById("esg-card").style.display = "none";
-            document.getElementById("esg-card").innerHTML = "";
-            
-            // 提醒文字重置
-            if(webcam) {
-                document.getElementById("ai-status").innerHTML = "🍏 偵測中...請把新北水果拿到鏡頭前！";
-                document.getElementById("ai-status").style.backgroundColor = "#e2f4e9";
-                document.getElementById("ai-status").style.color = "#27ae60";
-            } else {
-                document.getElementById("ai-status").innerHTML = "📢 請點擊左側綠色按鈕啟動無人商店系統！";
-            }
-            
-            // 撥放一聲雙重嗶聲提示重置成功
-            playBeepSound();
-            setTimeout(playBeepSound, 80);
-        }
-
         function createLeafEffect() {
             const icons = ['🌱', '🌿', '💚', '☘️'];
             for (let i = 0; i < 6; i++) {
@@ -543,7 +487,6 @@
                     </ul>
                 </p>
                 <h3 style="color:#219653; margin-bottom:0;">🌱 花仙子去味大師與 Coding101 聯名推薦：恭喜你成為新北減碳超人！ 🌱</h3>
-                <button class="btn" style="background-color: #ffa64d; margin-top:15px; width:auto; padding:10px 30px;" onclick="resetNewTransaction()">點此開始下一筆新交易 ↩</button>
             `;
             
             for(let i=0; i<15; i++) {
