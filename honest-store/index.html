@@ -44,7 +44,7 @@
             justify-content: center;
         }
 
-        /* 左側：AI 鏡頭區 */
+        /* 左側：AI 鏡頭與百分比即時顯示區 */
         .video-box {
             background: white;
             padding: 15px;
@@ -71,6 +71,23 @@
             height: 100% !important;
         }
 
+        #label-container {
+            width: 100%;
+            background: #fafafa;
+            padding: 10px;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .label-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            border-bottom: 1px solid #eee;
+        }
+
         /* 互動大按鈕：滑鼠移上去會放大發光，點擊會彈跳 */
         .btn {
             background-color: #27ae60;
@@ -83,12 +100,12 @@
             cursor: pointer;
             transition: all 0.2s ease;
             box-shadow: 0 4px 6px rgba(39, 174, 96, 0.2);
+            margin-bottom: 10px;
         }
 
         .btn:hover {
             background-color: #219653;
             transform: scale(1.05);
-            box-shadow: 0 6px 12px rgba(39, 174, 96, 0.3);
         }
 
         .btn:active {
@@ -115,6 +132,7 @@
             text-align: center;
             margin-bottom: 15px;
             font-size: 15px;
+            transition: background-color 0.3s ease;
         }
 
         .cart-title {
@@ -141,7 +159,7 @@
             border-bottom: 1px dashed #f1f1f1;
         }
 
-        /* 反悔按鈕：橘色溫和警告色 */
+        /* 橘色溫和警告色反悔按鈕 */
         .del-btn {
             background-color: #ffa64d;
             color: white;
@@ -168,7 +186,7 @@
             color: #e74c3c;
         }
 
-        /* 驚艷全場：過戰成功的綠色大勳章卡片 */
+        /* 結帳大卡片 */
         #esg-card {
             margin-top: 25px;
             background: linear-gradient(135deg, #eaf9f0 0%, #f4fbf7 100%);
@@ -188,7 +206,7 @@
             100% { transform: scale(1); opacity: 1; }
         }
 
-        /* 本地單機漂浮樹苗特效的粒子樣式 */
+        /* 特效粒子 */
         .leaf-particle {
             position: fixed;
             pointer-events: none;
@@ -212,6 +230,7 @@
         <div class="video-box">
             <div id="webcam-container"></div>
             <button class="btn" id="start-btn" onclick="init()">🔌 啟動 AI 綠色無人商店</button>
+            <div id="label-container">📢 AI 大腦數值區</div>
         </div>
 
         <div class="cart-box">
@@ -233,8 +252,10 @@
     <div id="esg-card"></div>
 
     <script>
-        // 營運長與技術長設定：您的 Teachable Machine 線上大腦網址與水果資料庫
+        // 核心連結：已加上最後的安全斜線
         const URL = "https://teachablemachine.withgoogle.com/models/V6Bl8_dTD/";
+        
+        // 營運長新北在地水果資料庫
         const fruitDatabase = {
             "香蕉": { name: "🍌 烏來山區泉水現採香蕉", price: 20, eco: "支持烏來泰雅部落小農，在地運送零污染！" },
             "紅蘋果": { name: "🍎 淡水在地現摘高山紅蘋果", price: 25, eco: "淡水就地取材，免除跨國坐船海運排碳！" },
@@ -243,35 +264,46 @@
             "楊桃": { name: "🌟 八里觀音山左岸黃金楊桃", price: 20, eco: "八里直送，減少大卡車環島運送的廢氣！" }
         };
 
-        let model, webcam, maxPredictions;
+        let model, webcam, labelContainer, maxPredictions;
         let shoppingCart = {};
-        let isCoolingDown = false; // 科技防暴走鎖定狀態
+        let isCoolingDown = false; // 科技防重複洗版鎖
 
-        // 初始化 AI 大腦與相機
+        // 初始化
         async function init() {
             document.getElementById("start-btn").innerText = "⏳ AI 正在開機連線中...";
             const modelURL = URL + "model.json";
             const metadataURL = URL + "metadata.json";
 
             try {
-                // 正確排隊加載模型
+                // 固定套件版本後，這裡就能穩穩載入，不再爆發 404
                 model = await tmImage.load(modelURL, metadataURL);
                 maxPredictions = model.getTotalClasses();
 
-                // 啟動相機設定
                 const flip = true; 
-                webcam = new tmImage.Webcam(320, 240, flip);
+                webcam = new tmImage.Webcam(320, 240, flip); // 加大解析度讓畫面漂亮
                 await webcam.setup(); 
                 await webcam.play();
                 window.requestAnimationFrame(loop);
 
+                // 將畫面丟進網頁中
+                document.getElementById("webcam-container").innerHTML = "";
                 document.getElementById("webcam-container").appendChild(webcam.canvas);
+                
+                // 初始化數值顯示區
+                labelContainer = document.getElementById("label-container");
+                labelContainer.innerHTML = "";
+                for (let i = 0; i < maxPredictions; i++) {
+                    const div = document.createElement("div");
+                    div.className = "label-row";
+                    labelContainer.appendChild(div);
+                }
+
                 document.getElementById("start-btn").style.display = "none";
                 document.getElementById("ai-status").innerText = "🍏 偵測中...請把新北水果拿到鏡頭前！";
             } catch (error) {
                 console.error(error);
                 document.getElementById("start-btn").innerText = "🔌 啟動 AI 綠色無人商店";
-                alert("相機或模型啟動失敗！請確認左上角有允許相機權限，且模型網址正確無誤。");
+                alert("相機或模型載入失敗！請確認網址列左側已允許相機權限。");
             }
         }
 
@@ -281,32 +313,36 @@
             window.requestAnimationFrame(loop);
         }
 
-        // AI 即時預測畫面
+        // 預測與辨識
         async function predict() {
             if (!model || !webcam) return;
-            
+
             const prediction = await model.predict(webcam.canvas);
             let highestClass = "";
             let highestProbability = 0;
 
-            // 抓出信心指數最高的類別
+            // 1. 同步刷新官方數值區，方便學生除錯
             for (let i = 0; i < maxPredictions; i++) {
+                const className = prediction[i].className;
+                const probValue = prediction[i].probability.toFixed(2);
+                labelContainer.childNodes[i].innerHTML = `<span>${className}</span> <b>${probValue}</b>`;
+
                 if (prediction[i].probability > highestProbability) {
                     highestProbability = prediction[i].probability;
-                    highestClass = prediction[i].className;
+                    highestClass = className;
                 }
             }
 
-            // 如果辨識度大於 85%、不是「背景」，且目前沒有處於冷卻鎖定狀態
+            // 2. 觸發無人商店購物車機制（信心大於 85%、不是背景、沒在冷卻）
             if (highestProbability > 0.85 && highestClass !== "背景" && !isCoolingDown) {
                 if (fruitDatabase[highestClass]) {
                     addToCart(highestClass);
-                    triggerCoolDown(); // 感應成功，立刻啟動防暴走冷卻
+                    triggerCoolDown(); // 感應成功，立刻鎖定防暴走
                 }
             }
         }
 
-        // 防暴走冷卻機制：刷讀成功後鎖定大腦 2.5 秒，不重複洗版加錢
+        // 防暴走冷卻機制
         function triggerCoolDown() {
             isCoolingDown = true;
             document.getElementById("ai-status").innerHTML = "⚡ 商品感應成功！大腦冷卻防呆中...";
@@ -321,7 +357,7 @@
             }, 2500); 
         }
 
-        // 將商品推入購物車
+        // 購物車與特效添加
         function addToCart(label) {
             if (shoppingCart[label]) {
                 shoppingCart[label].count++;
@@ -332,11 +368,11 @@
                     count: 1
                 };
             }
-            createLeafEffect(); // 噴散單機植物小樹苗
+            createLeafEffect(); // 特效長發功
             renderCart();
         }
 
-        // 反悔放回機制
+        // 扣除數量
         function decreaseItem(label) {
             if (shoppingCart[label]) {
                 shoppingCart[label].count--;
@@ -347,7 +383,7 @@
             renderCart();
         }
 
-        // 重新繪製購物車與金額
+        // 更新購物車顯示
         function renderCart() {
             const cartList = document.getElementById("cart-list");
             cartList.innerHTML = "";
@@ -369,39 +405,34 @@
                 `;
                 cartList.appendChild(row);
             }
-
             document.getElementById("total-amount").innerText = total;
         }
 
-        // 特效長大絕招：漂浮樹苗與愛心粒子動畫
+        // 特效粒子生成
         function createLeafEffect() {
             const icons = ['🌱', '🌿', '💚', '☘️'];
             for (let i = 0; i < 6; i++) {
                 const leaf = document.createElement('div');
                 leaf.className = 'leaf-particle';
                 leaf.innerText = icons[Math.floor(Math.random() * icons.length)];
-                
-                // 隨機在螢幕中中央區域噴散
                 leaf.style.left = (window.innerWidth / 2 + (Math.random() * 200 - 100)) + 'px';
                 leaf.style.top = (window.innerHeight / 2 + (Math.random() * 200 - 100)) + 'px';
-                
                 document.body.appendChild(leaf);
                 setTimeout(() => leaf.remove(), 1200);
             }
         }
 
-        // 完成低碳結帳：產出驚艷花仙子大長官的 ESG 證書卡片
+        // 結帳並印出永續大師證書
         function checkout() {
             const total = document.getElementById("total-amount").innerText;
             if (total == "0") {
-                alert("購物車還是空的，抓個新北水果來感應一下吧！");
+                alert("購物車還是空的，拿個水果感應一下吧！");
                 return;
             }
 
-            let pName = prompt("請輸入您的名字（展現個人化驚艷感）：", "花仙子長官");
+            let pName = prompt("請輸入您的名字（將列印在永續大師證書上）：", "花仙子長官");
             if (!pName) pName = "低碳生活實踐者";
 
-            // 動態撈出營運長的在地環保故事文案
             let ecoStory = "";
             for (let label in shoppingCart) {
                 ecoStory += `<li><b>${shoppingCart[label].name}</b>：${fruitDatabase[label].eco}</li>`;
@@ -422,11 +453,9 @@
                 <h3 style="color:#219653; margin-bottom:0;">🌱 花仙子去味大師與 Coding101 聯名推薦：恭喜你成為新北減碳超人！ 🌱</h3>
             `;
             
-            // 結帳大高潮：加碼連續爆發 15 次綠色特效
             for(let i=0; i<15; i++) {
                 setTimeout(createLeafEffect, i * 100);
             }
-            // 頁面流暢滾動到下方證書處
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }
     </script>
