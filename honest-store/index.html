@@ -71,28 +71,6 @@
             height: 100% !important;
         }
 
-        /* 👑 鏡頭選擇下拉選單樣式 */
-        .camera-selector-box {
-            width: 100%;
-            margin-bottom: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .camera-select {
-            width: 100%;
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 2px solid #27ae60;
-            background-color: white;
-            font-family: inherit;
-            font-size: 14px;
-            color: #2c3e50;
-            outline: none;
-            cursor: pointer;
-        }
-
         #label-container {
             width: 100%;
             background: #fafafa;
@@ -110,7 +88,6 @@
             border-bottom: 1px solid #eee;
         }
 
-        /* 互動大按鈕 */
         .btn {
             background-color: #27ae60;
             color: white;
@@ -127,7 +104,6 @@
         }
 
         .btn:hover { background-color: #219653; transform: scale(1.02); }
-        .btn:active { transform: scale(0.98); }
 
         /* 右側：低碳購物車區 */
         .cart-box {
@@ -199,7 +175,6 @@
 
         .total-price { color: #e74c3c; }
 
-        /* 成果大卡片 */
         #esg-card {
             margin-top: 25px;
             background: linear-gradient(135deg, #eaf9f0 0%, #f4fbf7 100%);
@@ -235,20 +210,15 @@
 
     <div class="container">
         <div class="video-box">
-            <div class="camera-selector-box">
-                <label for="videoSource" style="font-size: 13px; font-weight: bold; color: #27ae60;">📸 指定或切換相機鏡頭：</label>
-                <select id="videoSource" class="camera-select" onchange="switchCamera()">
-                    <option value="">-- 請先啟動相機以載入鏡頭清單 --</option>
-                </select>
+            <div id="webcam-container">
+                <div style="padding: 100px 0; color: #7f8c8d; text-align: center;">📷 等待相機選擇啟動...</div>
             </div>
-
-            <div id="webcam-container"></div>
-            <button class="btn" id="start-btn" onclick="init()">🔌 啟動 AI 綠色無人商店</button>
+            <button class="btn" id="start-btn" style="display: none;" onclick="initCameraFlow()">🔌 手動重試啟動 AI 店長</button>
             <div id="label-container">📢 AI 大腦數值區</div>
         </div>
 
         <div class="cart-box">
-            <div class="status-badge" id="ai-status">📢 請先點擊按鈕啟動攝影機</div>
+            <div class="status-badge" id="ai-status">📢 網頁載入中，請回應頂部的鏡頭選單...</div>
             <div class="cart-title">🛒 綠色消費低碳購物車</div>
             
             <div class="cart-items" id="cart-list"></div>
@@ -258,7 +228,7 @@
                 <span class="total-price">NT$ <span id="total-amount">0</span> 元</span>
             </div>
             
-            <button class="btn" style="margin-top:15px; background-color:#2f80ed; box-shadow:0 4px 6px rgba(47,128,237,0.2); width:100%;" onclick="checkout()">🌱 完成新北低碳交易</button>
+            <button class="btn" style="margin-top:15px; background-color:#2f80ed; box-shadow:0 4px 6px rgba(47,128,237,0.2);" onclick="checkout()">🌱 完成新北低碳交易</button>
         </div>
     </div>
 
@@ -278,40 +248,73 @@
         let model, webcam, labelContainer, maxPredictions;
         let shoppingCart = {};
         let isCoolingDown = false;
-        let animationFrameId; // 用於重新控制相機循環
+        let animationFrameId;
 
-        // 初始化
-        async function init() {
-            document.getElementById("start-btn").innerText = "⏳ AI 正在開機連線中...";
+        // 👑 絕招：當網頁一重新整理（載入完成）立刻執行
+        window.onload = function() {
+            // 給伺服器一點點緩衝時間後，自動執行鏡頭選擇流
+            setTimeout(initCameraFlow, 500);
+        };
+
+        // 👑 核心鏡頭流程：先要求權限，再彈出原生視窗供選擇
+        async function initCameraFlow() {
+            document.getElementById("ai-status").innerText = "⏳ 正在啟動 AI 雲端大腦...";
             const modelURL = URL + "model.json";
             const metadataURL = URL + "metadata.json";
 
             try {
+                // 1. 載入模型
                 model = await tmImage.load(modelURL, metadataURL);
                 maxPredictions = model.getTotalClasses();
 
-                // 👑 取得目前畫面上選定的相機 ID (若有)
-                const videoSelect = document.getElementById("videoSource");
-                const selectedDeviceId = videoSelect.value || undefined;
+                // 2. 先利用一組預設相機向瀏覽器「要權限」，要到權限後才能撈出真正的硬體清單
+                document.getElementById("ai-status").innerText = "🔑 請在瀏覽器左上方點選『允許』以使用相機...";
+                const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                
+                // 3. 成功拿到權限，立刻撈取這台電腦所有的視訊硬體
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
 
-                // 啟動相機並嘗試代入選定的鏡頭 ID
-                await startWebcamWithDevice(selectedDeviceId);
+                // 關閉暫存權限串流，準備開啟使用者指定的相機
+                tempStream.getTracks().forEach(track => track.stop());
 
-                // 👑 成功啟動後，自動去抓取這台電腦上所有的相機，塞進下拉選單
-                await getCameraDevices();
+                let targetDeviceId = undefined;
 
+                // 4. 👑 如果偵測到多個鏡頭，在重新整理時跳出原生 Prompt 視窗讓使用者選擇
+                if (videoDevices.length > 1) {
+                    let promptMessage = "系統偵測到多個視訊鏡頭，請輸入對應號碼切換：\n\n";
+                    videoDevices.forEach((device, index) => {
+                        promptMessage += `【${index}】 : ${device.label || '影像硬體鏡頭 ' + (index+1)}\n`;
+                    });
+                    promptMessage += "\n請輸入數字 (預設為 0) :";
+
+                    // 彈出原生 Prompt 視窗
+                    const userInput = prompt(promptMessage, "0");
+                    const selectedIndex = parseInt(userInput, 10);
+
+                    if (!isNaN(selectedIndex) && selectedIndex >= 0 && selectedIndex < videoDevices.length) {
+                        targetDeviceId = videoDevices[selectedIndex].deviceId;
+                    }
+                } else if (videoDevices.length === 1) {
+                    // 只有一個鏡頭就自動使用
+                    targetDeviceId = videoDevices[0].deviceId;
+                }
+
+                // 5. 正式啟動被指定的相機
+                await startWebcamWithDevice(targetDeviceId);
                 document.getElementById("start-btn").style.display = "none";
                 document.getElementById("ai-status").innerText = "🍏 偵測中...請把新北水果拿到鏡頭前！";
+
             } catch (error) {
                 console.error(error);
-                document.getElementById("start-btn").innerText = "🔌 啟動 AI 綠色無人商店";
-                alert("相機或模型載入失敗！請確認網址列左側已允許相機權限。");
+                document.getElementById("ai-status").innerText = "❌ 相機啟動失敗";
+                document.getElementById("start-btn").style.display = "block"; // 顯示備用按鈕
+                alert("啟動失敗！請確認有允許相機權限。若是第一次開啟，請允許權限後手動重新整理網頁。");
             }
         }
 
-        // 👑 核心控制函數：根據指定硬體 ID 啟動相機
+        // 啟動指定硬體
         async function startWebcamWithDevice(deviceId) {
-            // 如果之前已經有相機在跑，強迫先關閉釋放它
             if (webcam) {
                 await webcam.stop();
                 if (animationFrameId) cancelAnimationFrame(animationFrameId);
@@ -320,76 +323,25 @@
             const flip = true;
             webcam = new tmImage.Webcam(320, 240, flip);
 
-            // 如果有指定鏡頭 ID，利用傳入參數強制鎖定它
             if (deviceId) {
                 await webcam.setup({ deviceId: deviceId });
             } else {
-                await webcam.setup(); // 預設自動抓取
+                await webcam.setup();
             }
 
             await webcam.play();
             animationFrameId = window.requestAnimationFrame(loop);
 
-            // 更新畫面畫布
             const container = document.getElementById("webcam-container");
             container.innerHTML = "";
             container.appendChild(webcam.canvas);
 
-            // 初始化數值區
             labelContainer = document.getElementById("label-container");
             labelContainer.innerHTML = "";
             for (let i = 0; i < maxPredictions; i++) {
                 const div = document.createElement("div");
                 div.className = "label-row";
                 labelContainer.appendChild(div);
-            }
-        }
-
-        // 👑 核心控制函數：撈取電腦上的所有鏡頭裝置
-        async function getCameraDevices() {
-            const videoSelect = document.getElementById("videoSource");
-            const currentSelected = videoSelect.value; // 記住當前選的
-
-            // 撈取裝置列表
-            const devices = await navigator.mediaDevices.enumerateDevices();
-            const videoDevices = devices.filter(device => device.kind === 'videoinput');
-
-            videoSelect.innerHTML = "";
-
-            if (videoDevices.length === 0) {
-                const opt = document.createElement("option");
-                opt.text = "❌ 找不到任何相機鏡頭";
-                videoSelect.appendChild(opt);
-                return;
-            }
-
-            videoDevices.forEach((device, index) => {
-                const option = document.createElement("option");
-                option.value = device.deviceId;
-                // 有些鏡頭會因為隱私沒讀到名稱，自動用「鏡頭 1, 鏡頭 2」替代
-                option.text = device.label || `📷 影像硬體鏡頭 ${index + 1}`;
-                
-                // 如果是剛才正在用的，保持選取
-                if (device.deviceId === currentSelected) {
-                    option.selected = true;
-                }
-                videoSelect.appendChild(option);
-            });
-        }
-
-        // 👑 核心控制函數：當學生下拉切換選單時觸發
-        async function switchCamera() {
-            const videoSelect = document.getElementById("videoSource");
-            const targetDeviceId = videoSelect.value;
-            if (!targetDeviceId) return;
-
-            document.getElementById("ai-status").innerText = "🔄 正在切換硬體鏡頭中...";
-            try {
-                await startWebcamWithDevice(targetDeviceId);
-                document.getElementById("ai-status").innerText = "🍏 偵測中...請把新北水果拿到鏡頭前！";
-            } catch (e) {
-                console.error(e);
-                alert("切換鏡頭失敗！可能該鏡頭正被其他視訊軟體佔用。");
             }
         }
 
