@@ -1,0 +1,208 @@
+/* CSS 視覺裝潢：現代日式簡約與草樹綠森林風格 */
+body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background-color: #f4f9f4;
+    color: #2c3e50;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+}
+
+h1 {
+    color: #27ae60;
+    margin-bottom: 5px;
+    font-weight: 700;
+}
+
+.subtitle {
+    color: #7f8c8d;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.container {
+    display: flex;
+    gap: 20px;
+    max-width: 1000px;
+    width: 100%;
+    justify-content: center;
+}
+
+/* 左側：AI 鏡頭區 */
+.video-box {
+    background: white;
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 400px;
+}
+
+#webcam-container {
+    width: 320px;
+    height: 240px;
+    background: #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 15px;
+    border: 3px solid #27ae60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#webcam-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+#label-container {
+    width: 100%;
+    background: #fafafa;
+    padding: 10px;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 13px;
+    color: #555;
+}
+
+.label-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 0;
+    border-bottom: 1px solid #eee;
+}
+
+/* 互動大按鈕 */
+.btn {
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px rgba(39, 174, 96, 0.2);
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.btn:hover { background-color: #219653; transform: scale(1.02); }
+
+/* 右側：低碳購物車區 */
+.cart-box {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    width: 450px;
+    display: flex;
+    flex-direction: column;
+}
+
+.status-badge {
+    background-color: #e2f4e9;
+    color: #27ae60;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 15px;
+}
+
+.cart-title {
+    font-size: 18px;
+    font-weight: bold;
+    border-bottom: 2px solid #ecf0f1;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+    color: #34495e;
+}
+
+.cart-items {
+    flex-grow: 1;
+    min-height: 150px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px dashed #f1f1f1;
+}
+
+.del-btn {
+    background-color: #ffa64d;
+    color: white;
+    border: none;
+    padding: 3px 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+}
+.del-btn:hover { background-color: #e68a00; }
+
+.total-section {
+    border-top: 2px solid #ecf0f1;
+    padding-top: 15px;
+    margin-top: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.total-price { color: #e74c3c; }
+
+/* 按鈕群組區 */
+.btn-group {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* 結帳大卡片 */
+#esg-card {
+    margin-top: 25px;
+    background: linear-gradient(135deg, #eaf9f0 0%, #f4fbf7 100%);
+    border: 2px dashed #27ae60;
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    display: none;
+    animation: cardPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    width: 100%;
+    max-width: 880px;
+    box-sizing: border-box;
+}
+
+@keyframes cardPop {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.leaf-particle {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    font-size: 24px;
+    animation: floatUp 1.2s ease-out forwards;
+}
+
+@keyframes floatUp {
+    0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(-150px) scale(1.5) rotate(360deg); opacity: 0; }
+}
