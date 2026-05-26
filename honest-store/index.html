@@ -64,6 +64,9 @@
             overflow: hidden;
             margin-bottom: 15px;
             border: 3px solid #27ae60;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         #webcam-container canvas {
@@ -88,6 +91,7 @@
             border-bottom: 1px solid #eee;
         }
 
+        /* 互動大按鈕 */
         .btn {
             background-color: #27ae60;
             color: white;
@@ -151,6 +155,7 @@
             border-bottom: 1px dashed #f1f1f1;
         }
 
+        /* 橘色溫和反悔按鈕 */
         .del-btn {
             background-color: #ffa64d;
             color: white;
@@ -175,6 +180,7 @@
 
         .total-price { color: #e74c3c; }
 
+        /* 結帳大卡片 */
         #esg-card {
             margin-top: 25px;
             background: linear-gradient(135deg, #eaf9f0 0%, #f4fbf7 100%);
@@ -187,6 +193,11 @@
             width: 100%;
             max-width: 880px;
             box-sizing: border-box;
+        }
+
+        @keyframes cardPop {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
         }
 
         .leaf-particle {
@@ -211,14 +222,14 @@
     <div class="container">
         <div class="video-box">
             <div id="webcam-container">
-                <div style="padding: 100px 0; color: #7f8c8d; text-align: center;">📷 等待相機選擇啟動...</div>
+                <div style="padding: 20px; color: #7f8c8d; text-align: center; font-size: 14px;">📷 正在安全排隊下載 AI 大腦套件，請稍候...</div>
             </div>
-            <button class="btn" id="start-btn" style="display: none;" onclick="initCameraFlow()">🔌 手動重試啟動 AI 店長</button>
+            <button class="btn" id="start-btn" style="display: none; background-color: #ffa64d;" onclick="initCameraFlow()">🔌 手動喚醒鏡頭選單</button>
             <div id="label-container">📢 AI 大腦數值區</div>
         </div>
 
         <div class="cart-box">
-            <div class="status-badge" id="ai-status">📢 網頁載入中，請回應頂部的鏡頭選單...</div>
+            <div class="status-badge" id="ai-status">📢 網頁安全載入中，請準備回應瀏覽器頂部的鏡頭選單...</div>
             <div class="cart-title">🛒 綠色消費低碳購物車</div>
             
             <div class="cart-items" id="cart-list"></div>
@@ -235,8 +246,10 @@
     <div id="esg-card"></div>
 
     <script>
+        // 核心模型連結（已補上安全斜線）
         const URL = "https://teachablemachine.withgoogle.com/models/V6Bl8_dTD/";
         
+        // 營運長新北低碳水果資料庫
         const fruitDatabase = {
             "香蕉": { name: "🍌 烏來山區泉水現採香蕉", price: 20, eco: "支持烏來泰雅部落小農，在地運送零污染！" },
             "紅蘋果": { name: "🍎 淡水在地現摘高山紅蘋果", price: 25, eco: "淡水就地取材，免除跨國坐船海運排碳！" },
@@ -250,45 +263,53 @@
         let isCoolingDown = false;
         let animationFrameId;
 
-        // 👑 絕招：當網頁一重新整理（載入完成）立刻執行
+        // 👑 關鍵防搶跑機制：網頁完全開完後，刻意等 1.5 秒讓外部 TensorFlow 檔案安全就位
         window.onload = function() {
-            // 給伺服器一點點緩衝時間後，自動執行鏡頭選擇流
-            setTimeout(initCameraFlow, 500);
+            console.log("網頁主體完成。刻意預留 1.5 秒緩衝，確保第三方 AI 套件安全下載完畢...");
+            setTimeout(initCameraFlow, 1500);
         };
 
-        // 👑 核心鏡頭流程：先要求權限，再彈出原生視窗供選擇
+        // 核心鏡頭流程：確保載入完畢才彈窗
         async function initCameraFlow() {
-            document.getElementById("ai-status").innerText = "⏳ 正在啟動 AI 雲端大腦...";
+            // 安全雙重防護鎖：萬一網路太慢套件還沒來，自動再延遲一秒，絕不噴出 tf is not defined！
+            if (typeof tf === 'undefined' || typeof tmImage === 'undefined') {
+                console.log("⏳ 第三方 AI 檔案仍在網路排隊中，再度安全延遲 1 秒...");
+                setTimeout(initCameraFlow, 1000);
+                return;
+            }
+
+            document.getElementById("ai-status").innerText = "⏳ 正在與 Google 雲端 AI 大腦連線...";
+
             const modelURL = URL + "model.json";
             const metadataURL = URL + "metadata.json";
 
             try {
-                // 1. 載入模型
+                // 1. 下載雲端模型大腦
                 model = await tmImage.load(modelURL, metadataURL);
                 maxPredictions = model.getTotalClasses();
 
-                // 2. 先利用一組預設相機向瀏覽器「要權限」，要到權限後才能撈出真正的硬體清單
-                document.getElementById("ai-status").innerText = "🔑 請在瀏覽器左上方點選『允許』以使用相機...";
+                // 2. 向瀏覽器調用相機權限，此時左上角會彈出「允許」
+                document.getElementById("ai-status").innerText = "🔑 請點擊瀏覽器左上角的『允許』以釋放鏡頭硬體...";
                 const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
                 
-                // 3. 成功拿到權限，立刻撈取這台電腦所有的視訊硬體
+                // 3. 拿到權限後，立刻偵測此電腦上所有的視訊鏡頭
                 const devices = await navigator.mediaDevices.enumerateDevices();
                 const videoDevices = devices.filter(device => device.kind === 'videoinput');
 
-                // 關閉暫存權限串流，準備開啟使用者指定的相機
+                // 關閉臨時用來要權限的串流
                 tempStream.getTracks().forEach(track => track.stop());
 
                 let targetDeviceId = undefined;
 
-                // 4. 👑 如果偵測到多個鏡頭，在重新整理時跳出原生 Prompt 視窗讓使用者選擇
+                // 4. 👑 多鏡頭判斷：當電腦有 2 個以上相機，立刻跳出原生 Prompt 輸入視窗
                 if (videoDevices.length > 1) {
-                    let promptMessage = "系統偵測到多個視訊鏡頭，請輸入對應號碼切換：\n\n";
+                    let promptMessage = "【AI 商店鏡頭硬體管理中心】\n系統偵測到這台電腦接有多組鏡頭，請輸入號碼指定：\n\n";
                     videoDevices.forEach((device, index) => {
-                        promptMessage += `【${index}】 : ${device.label || '影像硬體鏡頭 ' + (index+1)}\n`;
+                        promptMessage += `【${index}】 : ${device.label || '影像硬體裝置 ' + (index+1)}\n`;
                     });
-                    promptMessage += "\n請輸入數字 (預設為 0) :";
+                    promptMessage += "\n請輸入數字號碼並按下確定 (預設為 0) :";
 
-                    // 彈出原生 Prompt 視窗
+                    // 跳出瀏覽器原生中央彈窗
                     const userInput = prompt(promptMessage, "0");
                     const selectedIndex = parseInt(userInput, 10);
 
@@ -296,24 +317,24 @@
                         targetDeviceId = videoDevices[selectedIndex].deviceId;
                     }
                 } else if (videoDevices.length === 1) {
-                    // 只有一個鏡頭就自動使用
+                    // 只有單一相機就直接指定
                     targetDeviceId = videoDevices[0].deviceId;
                 }
 
-                // 5. 正式啟動被指定的相機
+                // 5. 正式開啟 Webcam 畫布
                 await startWebcamWithDevice(targetDeviceId);
                 document.getElementById("start-btn").style.display = "none";
                 document.getElementById("ai-status").innerText = "🍏 偵測中...請把新北水果拿到鏡頭前！";
 
             } catch (error) {
-                console.error(error);
-                document.getElementById("ai-status").innerText = "❌ 相機啟動失敗";
-                document.getElementById("start-btn").style.display = "block"; // 顯示備用按鈕
-                alert("啟動失敗！請確認有允許相機權限。若是第一次開啟，請允許權限後手動重新整理網頁。");
+                console.error("相機初始化失敗原因:", error);
+                document.getElementById("ai-status").innerText = "❌ 相機硬體啟動失敗";
+                document.getElementById("webcam-container").innerHTML = "<div style='color:#e74c3c; padding:20px; font-weight:bold;'>❌ 權限遭拒或鏡頭被佔用！請點擊網址左側鎖頭允許相機，並點擊下方橘色按鈕手動重試。</div>";
+                document.getElementById("start-btn").style.display = "block"; // 浮現備用按鈕供手動點擊
             }
         }
 
-        // 啟動指定硬體
+        // 開啟指定硬體鏡頭
         async function startWebcamWithDevice(deviceId) {
             if (webcam) {
                 await webcam.stop();
@@ -336,6 +357,7 @@
             container.innerHTML = "";
             container.appendChild(webcam.canvas);
 
+            // 初始化 AI 條狀數值區
             labelContainer = document.getElementById("label-container");
             labelContainer.innerHTML = "";
             for (let i = 0; i < maxPredictions; i++) {
@@ -351,7 +373,7 @@
             animationFrameId = window.requestAnimationFrame(loop);
         }
 
-        // AI 辨識
+        // AI 即時預測辨識
         async function predict() {
             if (!model || !webcam) return;
 
@@ -370,15 +392,16 @@
                 }
             }
 
+            // 當信心大於 85%、不是背景、沒在冷卻鎖定狀態
             if (highestProbability > 0.85 && highestClass !== "背景" && !isCoolingDown) {
                 if (fruitDatabase[highestClass]) {
                     addToCart(highestClass);
-                    triggerCoolDown();
+                    triggerCoolDown(); // 感應成功，啟動防暴走機制
                 }
             }
         }
 
-        // 防重複刷讀鎖
+        // 智慧型防洗版冷卻鎖
         function triggerCoolDown() {
             isCoolingDown = true;
             document.getElementById("ai-status").innerHTML = "⚡ 商品感應成功！大腦冷卻防呆中...";
@@ -393,6 +416,7 @@
             }, 2500); 
         }
 
+        // 添加進購物車
         function addToCart(label) {
             if (shoppingCart[label]) {
                 shoppingCart[label].count++;
@@ -403,10 +427,11 @@
                     count: 1
                 };
             }
-            createLeafEffect();
+            createLeafEffect(); // 觸發綠色飄葉粒子特效
             renderCart();
         }
 
+        // 購物車放回去功能
         function decreaseItem(label) {
             if (shoppingCart[label]) {
                 shoppingCart[label].count--;
@@ -417,6 +442,7 @@
             renderCart();
         }
 
+        // 渲染購物車介面
         function renderCart() {
             const cartList = document.getElementById("cart-list");
             cartList.innerHTML = "";
@@ -441,6 +467,7 @@
             document.getElementById("total-amount").innerText = total;
         }
 
+        // 噴發綠色永續粒子動畫
         function createLeafEffect() {
             const icons = ['🌱', '🌿', '💚', '☘️'];
             for (let i = 0; i < 6; i++) {
@@ -454,6 +481,7 @@
             }
         }
 
+        // 交易完成並印出低碳證明書
         function checkout() {
             const total = document.getElementById("total-amount").innerText;
             if (total == "0") {
