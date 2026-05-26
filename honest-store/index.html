@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>花仙子綠色永續生活：AI 新北低碳無人商店</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tfjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.3/dist/teachablemachine-image.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght=400;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f4f9f4;
+            color: #2c3e50;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+        h1 { color: #27ae60; margin-bottom: 5px; font-weight: 700; }
+        .subtitle { color: #7f8c8d; margin-bottom: 20px; font-size: 14px; }
+        .container { display: flex; gap: 20px; max-width: 1000px; width: 100%; justify-content: center; }
+        .video-box {
+            background: white; padding: 15px; border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex;
+            flex-direction: column; align-items: center; width: 400px;
+        }
+        #webcam-container {
+            width: 320px; height: 240px; background: #e0e0e0;
+            border-radius: 10px; overflow: hidden; margin-bottom: 15px;
+            border: 3px solid #27ae60; display: flex; align-items: center; justify-content: center;
+        }
+        #webcam-container canvas { width: 100% !important; height: 100% !important; }
+        #label-container {
+            width: 100%; background: #fafafa; padding: 10px;
+            border-radius: 8px; box-sizing: border-box; font-size: 13px; color: #555;
+        }
+        .label-row { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid #eee; }
+        .btn {
+            background-color: #27ae60; color: white; border: none; padding: 12px 30px;
+            font-size: 16px; font-weight: bold; border-radius: 25px; cursor: pointer;
+            transition: all 0.2s ease; box-shadow: 0 4px 6px rgba(39, 174, 96, 0.2);
+            margin-bottom: 10px; width: 100%;
+        }
+        .btn:hover { background-color: #219653; transform: scale(1.02); }
+        .cart-box {
+            background: white; padding: 20px; border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 450px; display: flex; flex-direction: column;
+        }
+        .status-badge {
+            background-color: #e2f4e9; color: #27ae60; padding: 8px 15px;
+            border-radius: 20px; font-weight: bold; text-align: center; margin-bottom: 15px; font-size: 15px;
+        }
+        .cart-title { font-size: 18px; font-weight: bold; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; margin-bottom: 15px; color: #34495e; }
+        .cart-items { flex-grow: 1; min-height: 150px; max-height: 200px; overflow-y: auto; }
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed #f1f1f1; }
+        .del-btn { background-color: #ffa64d; color: white; border: none; padding: 3px 8px; border-radius: 5px; cursor: pointer; font-size: 12px; }
+        .del-btn:hover { background-color: #e68a00; }
+        .total-section { border-top: 2px solid #ecf0f1; padding-top: 15px; margin-top: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 20px; font-weight: bold; }
+        .total-price { color: #e74c3c; }
+        #esg-card {
+            margin-top: 25px; background: linear-gradient(135deg, #eaf9f0 0%, #f4fbf7 100%);
+            border: 2px dashed #27ae60; border-radius: 15px; padding: 20px;
+            text-align: center; display: none; width: 100%; max-width: 880px; box-sizing: border-box;
+        }
+        .leaf-particle { position: fixed; pointer-events: none; z-index: 9999; font-size: 24px; animation: floatUp 1.2s ease-out forwards; }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-150px) scale(1.5) rotate(360deg); opacity: 0; }
+        }
+        .action-group { display: flex; gap: 10px; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+    <h1>🌿 花仙子永續生活：AI 新北低碳無人商店 🌿</h1>
+    <div class="subtitle">新北在地就地取材 ｜ 零食物里程 ｜ 國小智慧科技綠色電商營隊</div>
+
+    <div class="container">
+        <div class="video-box">
+            <div id="webcam-container">
+                <button class="btn" id="start-btn" onclick="initCameraFlow()">🔌 啟動 AI 商店鏡頭</button>
+            </div>
+            <div id="label-container">📢 AI 大腦數值區</div>
+        </div>
+
+        <div class="cart-box">
+            <div class="status-badge" id="ai-status">📢 請點擊左側按鈕啟動無人商店鏡頭！</div>
+            <div class="cart-title">🛒 綠色消費低碳購物車</div>
+            <div class="cart-items" id="cart-list"></div>
+            <div class="total-section">
+                <span>合計總金額：</span>
+                <span class="total-price">NT$ <span id="total-amount">0</span> 元</span>
+            </div>
+            <div class="action-group">
+                <button class="btn" style="background-color: #ffa64d; box-shadow:0 4px 6px rgba(255,166,77,0.2);" onclick="resetNewTransaction()">🔄 新的交易</button>
+                <button class="btn" style="background-color:#2f80ed; box-shadow:0 4px 6px rgba(47,128,237,0.2);" onclick="checkout()">🌱 低碳交易結帳</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="esg-card"></div>
+
+    <script>
+        const URL = "https://teachablemachine.withgoogle.com/models/V6Bl8_dTD/";
+        
+        const fruitDatabase = {
+            "香蕉": { name: "🍌 烏來山區泉水現採香蕉", price: 20, eco: "支持烏來泰雅部落小農，在地運送零污染！" },
+            "紅蘋果": { name: "🍎 淡水在地現摘高山紅蘋果", price: 25, eco: "淡水就地取材，免除跨國坐船海運排碳！" },
+            "青蘋果": { name: "🍏 三芝海岸陽光脆甜青蘋果", price: 25, eco: "三芝海風灌溉，食物里程縮短 100 倍！" },
+            "奇異果": { name: "🥝 烏來山區有機友善奇異果", price: 30, eco: "保護烏來森林水源，吃得健康又環保！" },
+            "楊桃": { name: "🌟 八里觀音山左岸黃金楊桃", price: 20, eco: "八里直送，減少大卡車環島運送的廢氣！" }
+        };
+
+        let model, webcam, labelContainer, maxPredictions;
+        let shoppingCart = {};
+        let isCoolingDown = false;
+        let animationFrameId;
+
+        // 🎵 瀏覽器原生電子合成「嗶」音效（100% 穿透防火牆）
+        function playBeepSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.type = 'sine';
+                oscillator.frequency.value = 1000; 
+                gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.start();
+                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.12);
+                oscillator.stop(audioCtx.currentTime + 0.12);
+            } catch (e) {
+                console.log("音效撥放失敗：", e);
+            }
+        }
+
+        async function initCameraFlow() {
+            document.getElementById("ai-status").innerText = "⏳ 正在與 Google 雲端 AI 大腦連線...";
+            try {
+                model = await tmImage.load(URL + "model.json", URL + "metadata.json");
+                maxPredictions = model.getTotalClasses();
+
+                document.getElementById("ai-status").innerText = "🔑 請允許上方的相機存取權限...";
+                const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                tempStream.getTracks().forEach(track => track.stop());
+
+                let targetDeviceId = undefined;
+                if (videoDevices.length > 1) {
+                    let msg = "【AI 商店鏡頭管理中心】\n偵測到多組鏡頭，請輸入號碼指定：\n\n";
+                    videoDevices.forEach((d, i) => msg += `【${i}】 : ${d.label || '影像硬體 ' + (i+1)}\n`);
+                    const userInput = prompt(msg, "0");
+                    const idx = parseInt(userInput, 10);
+                    if (!isNaN(idx) && idx >= 0 && idx < videoDevices.length) targetDeviceId = videoDevices[idx].deviceId;
+                }
+
+                await startWebcamWithDevice(targetDeviceId);
+                document.getElementById("ai-status").innerText = "🍏 偵測中...請把新北水果拿到鏡頭前！";
+            } catch (error) {
+                document.getElementById("ai-status").innerText = "❌ 相機或模型加載失敗";
+                alert("啟動失敗！請確認相機權限已開啟。");
+            }
+        }
+
+        async function startWebcamWithDevice(deviceId) {
+            if (webcam) {
+                await webcam.stop();
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            }
+            webcam = new tmImage.Webcam(320, 240, true);
+            if (deviceId) await webcam.setup({ deviceId: deviceId }); else await webcam.setup();
+            await webcam.play();
+            animationFrameId = window.requestAnimationFrame(loop);
+
+            const container = document.getElementById("webcam-container");
+            container.innerHTML = ""; container.appendChild(webcam.canvas);
+
+            labelContainer = document.getElementById("label-container");
+            labelContainer.innerHTML = "";
+            for (let i = 0; i < maxPredictions; i++) {
+                const div = document.createElement("div"); div.className = "label-row"; labelContainer.appendChild(div);
+            }
+        }
+
+        async function loop() { webcam.update(); await predict(); animationFrameId = window.requestAnimationFrame(loop); }
+
+        async function predict() {
+            if (!model || !webcam) return;
+            const prediction = await model.predict(webcam.canvas);
+            let highestClass = ""; let highestProbability = 0;
+
+            for (let i = 0; i < maxPredictions; i++) {
+                const className = prediction[i].className;
+                const probValue = prediction[i].probability.toFixed(2);
+                labelContainer.childNodes[i].innerHTML = `<span>${className}</span> <b>${probValue}</b>`;
+                if (prediction[i].probability > highestProbability) { highestProbability = prediction[i].probability; highestClass = className; }
+            }
+
+            if (highestProbability > 0.85 && highestClass !== "背景" && !isCoolingDown) {
+                if (fruitDatabase[highestClass]) {
+                    playBeepSound(); // 🔔 刷讀成功發出嗶聲
+                    addToCart(highestClass);
+                    triggerCoolDown();
+                }
+            }
+        }
+
+        function triggerCoolDown() {
+            isCoolingDown = true;
+            document.getElementById("ai-status").innerHTML = "⚡ 商品感應成功！大腦冷卻防呆中...";
+            document.getElementById("ai-status").style.backgroundColor = "#ffeaa7"; document.getElementById("ai-status").style.color = "#d63031";
+            setTimeout(() => {
+                isCoolingDown = false;
+                document.getElementById("ai-status").innerHTML = "🍏 偵測中...請把新北水果拿到鏡頭前！";
+                document.getElementById("ai-status").style.backgroundColor = "#e2f4e9"; document.getElementById("ai-status").style.color = "#27ae60";
+            }, 2500); 
+        }
+
+        function addToCart(label) {
+            if (shoppingCart[label]) shoppingCart[label].count++;
+            else shoppingCart[label] = { name: fruitDatabase[label].name, price: fruitDatabase[label].price, count: 1 };
+            createLeafEffect(); renderCart();
+        }
+
+        function decreaseItem(label) {
+            if (shoppingCart[label]) { shoppingCart[label].count--; if (shoppingCart[label].count <= 0) delete shoppingCart[label]; }
+            renderCart();
+        }
+
+        function renderCart() {
+            const cartList = document.getElementById("cart-list"); cartList.innerHTML = ""; let total = 0;
+            for (let label in shoppingCart) {
+                const item = shoppingCart[label]; const rowTotal = item.price * item.count; total += rowTotal;
+                const row = document.createElement("div"); row.className = "item-row";
+                row.innerHTML = `<span>${item.name} <b>x${item.count}</b></span><div><span style="margin-right:10px;">$${rowTotal}</span><button class="del-btn" onclick="decreaseItem('${label}')">放回去 ↩</button></div>`;
+                cartList.appendChild(row);
+            }
+            document.getElementById("total-amount").innerText = total;
+        }
+
+        // 🔄 新的交易：徹底重置所有數值
+        function resetNewTransaction() {
+            shoppingCart = {};
+            renderCart();
+            document.getElementById("esg-card").style.display = "none";
+            document.getElementById("esg-card").innerHTML = "";
+            if (webcam) {
+                document.getElementById("ai-status").innerHTML = "🍏 偵測中...請把新北水果拿到鏡頭前！";
+                document.getElementById("ai-status").style.backgroundColor = "#e2f4e9"; document.getElementById("ai-status").style.color = "#27ae60";
+            }
+            playBeepSound(); setTimeout(playBeepSound, 80); // 嗶嗶兩聲代表重置成功
+        }
+
+        function createLeafEffect() {
+            const icons = ['🌱', '🌿', '💚', '☘️'];
+            for (let i = 0; i < 6; i++) {
+                const leaf = document.createElement('div'); leaf.className = 'leaf-particle';
+                leaf.innerText = icons[Math.floor(Math.random() * icons.length)];
+                leaf.style.left = (window.innerWidth / 2 + (Math.random() * 200 - 100)) + 'px';
+                leaf.style.top = (window.innerHeight / 2 + (Math.random() * 200 - 100)) + 'px';
+                document.body.appendChild(leaf); setTimeout(() => leaf.remove(), 1200);
+            }
+        }
+
+        function checkout() {
+            const total = document.getElementById("total-amount").innerText;
+            if (total == "0") { alert("購物車還是空的，拿個水果感應一下吧！"); return; }
+            let pName = prompt("請輸入您的名字（將列印在永續大師證書上）：", "花仙子長官");
+            if (!pName) pName = "低碳生活實踐者";
+
+            let ecoStory = "";
+            for (let label in shoppingCart) ecoStory += `<li><b>${shoppingCart[label].name}</b>：${fruitDatabase[label].eco}</li>`;
+
+            const card = document.getElementById("esg-card");
+            card.style.display = "block";
+            card.innerHTML = `
+                <h2 style="color:#27ae60; margin-top:0;">🏆 花仙子綠色永續生活大師證書 🏆</h2>
+                <p style="font-size:18px;">感謝 <b>【${pName}】</b> 長官參與新北市低碳在地消費！</p>
+                <div style="font-size:16px; background:white; padding:15px; border-radius:10px; text-align:left; line-height:1.6; color:#2c3e50;">
+                    本次消費總金額為 <b style="color:#e74c3c; font-size:20px;">$${total}</b> 元。<br>
+                    您今天購買的都是新北市在地特產，您達成的<b>【低碳減碳成就】</b>有：
+                    <ul style="text-align:left; padding-left:20px; margin-top:5px;">${ecoStory}</ul>
+                </div>
+                <h3 style="color:#219653; margin-bottom:15px; margin-top:15px;">🌱 恭喜你成為新北減碳超人！ 🌱</h3>
+                <button class="btn" style="background-color: #ffa64d; width:auto; padding:10px 30px;" onclick="resetNewTransaction()">點此開始下一筆新交易 ↩</button>
+            `;
+            for(let i=0; i<15; i++) setTimeout(createLeafEffect, i * 100);
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
