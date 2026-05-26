@@ -6,8 +6,9 @@
     <title>花仙子綠色永續生活：AI 新北低碳無人商店</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tfjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.3/dist/teachablemachine-image.min.js"></script>
 
     <style>
         /* CSS 視覺裝潢：現代日式簡約與草樹綠森林風格 */
@@ -63,6 +64,11 @@
             overflow: hidden;
             margin-bottom: 15px;
             border: 3px solid #27ae60;
+        }
+
+        #webcam-container canvas {
+            width: 100% !important;
+            height: 100% !important;
         }
 
         /* 互動大按鈕：滑鼠移上去會放大發光，點擊會彈跳 */
@@ -247,19 +253,25 @@
             const modelURL = URL + "model.json";
             const metadataURL = URL + "metadata.json";
 
-            model = await tmImage.load(modelURL, metadataURL);
-            maxPredictions = model.getTotalClasses();
+            try {
+                model = await tmImage.load(modelURL, metadataURL);
+                maxPredictions = model.getTotalClasses();
 
-            // 啟動單機網頁相機
-            const flip = true; 
-            webcam = new tmImage.Webcam(320, 240, flip);
-            await webcam.setup(); 
-            await webcam.play();
-            window.requestAnimationFrame(loop);
+                // 啟動相機
+                const flip = true; 
+                webcam = new tmImage.Webcam(320, 240, flip);
+                await webcam.setup(); 
+                await webcam.play();
+                window.requestAnimationFrame(loop);
 
-            document.getElementById("webcam-container").appendChild(webcam.canvas);
-            document.getElementById("start-btn").style.display = "none";
-            document.getElementById("ai-status").innerText = "🍏 偵測中...請把新北水果拿到鏡頭前！";
+                document.getElementById("webcam-container").appendChild(webcam.canvas);
+                document.getElementById("start-btn").style.display = "none";
+                document.getElementById("ai-status").innerText = "🍏 偵測中...請把新北水果拿到鏡頭前！";
+            } catch (error) {
+                console.error(error);
+                document.getElementById("start-btn").innerText = "🔌 啟動 AI 綠色無人商店";
+                alert("相機啟動失敗，請檢查瀏覽器左上角是否已允許相機權限！");
+            }
         }
 
         async function loop() {
@@ -317,12 +329,11 @@
                     count: 1
                 };
             }
-            // 每次刷成功都在滑鼠位置噴射綠色小樹苗
             createLeafEffect();
             renderCart();
         }
 
-        // 減少數量（客人的反悔權利）
+        // 減少數量
         function decreaseItem(label) {
             if (shoppingCart[label]) {
                 shoppingCart[label].count--;
@@ -367,7 +378,6 @@
                 leaf.className = 'leaf-particle';
                 leaf.innerText = icons[Math.floor(Math.random() * icons.length)];
                 
-                // 隨機在畫面上方散開
                 leaf.style.left = (window.innerWidth / 2 + (Math.random() * 200 - 100)) + 'px';
                 leaf.style.top = (window.innerHeight / 2 + (Math.random() * 200 - 100)) + 'px';
                 
@@ -376,7 +386,7 @@
             }
         }
 
-        // 營運長與美學長文案：完成結帳，大張 ESG 證書動態跳出
+        // 完成結帳
         function checkout() {
             const total = document.getElementById("total-amount").innerText;
             if (total == "0") {
@@ -387,7 +397,6 @@
             let pName = prompt("請輸入您的名字（例如：花仙子長官）：", "花仙子總監");
             if (!pName) pName = "綠色消費者";
 
-            // 統計這趟買了哪些新北水果的環保故事
             let ecoStory = "";
             for (let label in shoppingCart) {
                 ecoStory += `<li><b>${shoppingCart[label].name}</b>：${fruitDatabase[label].eco}</li>`;
@@ -408,7 +417,6 @@
                 <h3 style="color:#219653; margin-bottom:0;">🌱 花仙子去味大師與 Coding101 聯名推薦：恭喜你成為新北減碳超人！ 🌱</h3>
             `;
             
-            // 結帳成功加碼噴射全螢幕大紙屑特效
             for(let i=0; i<15; i++) {
                 setTimeout(createLeafEffect, i * 100);
             }
