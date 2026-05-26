@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>花仙子綠色永續生活：AI 新北低碳無人商店</title>
+    
+    <script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tfjs.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.3/dist/teachablemachine-image.min.js"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght=400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
 
     <style>
         /* CSS 視覺裝潢：現代日式簡約與草樹綠森林風格 */
@@ -152,7 +155,6 @@
             border-bottom: 1px dashed #f1f1f1;
         }
 
-        /* 溫和反悔按鈕 */
         .del-btn {
             background-color: #ffa64d;
             color: white;
@@ -219,14 +221,14 @@
     <div class="container">
         <div class="video-box">
             <div id="webcam-container">
-                <div id="loading-text" style="padding: 20px; color: #7f8c8d; text-align: center; font-size: 14px;">⏳ 正在安全排隊下載 AI 大腦套件...</div>
+                <div id="loading-text" style="padding: 20px; color: #7f8c8d; text-align: center; font-size: 14px;">📷 等待連線啟動相機選單...</div>
             </div>
             <button class="btn" id="start-btn" style="display: none; background-color: #ffa64d;" onclick="initCameraFlow()">🔌 手動喚醒鏡頭選單</button>
             <div id="label-container">📢 AI 大腦數值區</div>
         </div>
 
         <div class="cart-box">
-            <div class="status-badge" id="ai-status">📢 網頁安全載入中...</div>
+            <div class="status-badge" id="ai-status">📢 網頁安全載入中，請準備回應頂部的鏡頭選單...</div>
             <div class="cart-title">🛒 綠色消費低碳購物車</div>
             
             <div class="cart-items" id="cart-list"></div>
@@ -258,32 +260,22 @@
         let isCoolingDown = false;
         let animationFrameId;
 
-        // 👑 終極解法：動態鏈式加載核心，強迫外部套件乖乖排隊！
-        window.onload = function() {
-            console.log("第一步：開始下載 TensorFlow 核心...");
-            document.getElementById("ai-status").innerText = "⏳ 正在加載核心組件 (1/2)...";
-            
-            const scriptTF = document.createElement('script');
-            scriptTF.src = "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tfjs.min.js";
-            
-            // 當 TensorFlow 下載完畢，才觸發下載 Teachable Machine
-            scriptTF.onload = function() {
-                console.log("TensorFlow 載入完畢！第二步：開始下載 Teachable Machine 模組...");
-                document.getElementById("ai-status").innerText = "⏳ 正在加載 AI 大腦模組 (2/2)...";
-                
-                const scriptTM = document.createElement('script');
-                scriptTM.src = "https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.3/dist/teachablemachine-image.min.js";
-                
-                // 兩者都好了，才安全啟動鏡頭選擇流程！
-                scriptTM.onload = function() {
-                    console.log("所有 AI 套件安全就位，啟動相機選擇流程。");
-                    document.getElementById("loading-text").style.display = "none";
-                    initCameraFlow();
-                };
-                document.head.appendChild(scriptTM);
-            };
-            document.head.appendChild(scriptTF);
-        };
+        // 使用 DOMContentLoaded 確保在 HTML 畫面與安全排隊的 JS 套件都準備好後才啟動
+        document.addEventListener("DOMContentLoaded", function() {
+            console.log("網頁主體與排隊套件已就緒，緩衝 1 秒後開啟相機流程...");
+            setTimeout(checkAndInit, 1000);
+        });
+
+        // 定時檢查套件是否安全抵達大腦
+        function checkAndInit() {
+            if (typeof tf !== 'undefined' && typeof tmImage !== 'undefined') {
+                document.getElementById("loading-text").style.display = "none";
+                initCameraFlow();
+            } else {
+                console.log("⏳ AI 套件尚在加載中，再等待 0.5 秒...");
+                setTimeout(checkAndInit, 500);
+            }
+        }
 
         // 核心鏡頭流程
         async function initCameraFlow() {
@@ -296,8 +288,8 @@
                 model = await tmImage.load(modelURL, metadataURL);
                 maxPredictions = model.getTotalClasses();
 
-                // 2. 先跟瀏覽器索取權限
-                document.getElementById("ai-status").innerText = "🔑 請確認並允許上方的相機存取權限...";
+                // 2. 向瀏覽器索取相機權限
+                document.getElementById("ai-status").innerText = "🔑 請確認並允許瀏覽器上方的相機存取權限...";
                 const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
                 
                 // 3. 撈取目前電腦上所有的相機硬體
@@ -335,7 +327,7 @@
             } catch (error) {
                 console.error("相機初始化失敗:", error);
                 document.getElementById("ai-status").innerText = "❌ 相機硬體啟動失敗";
-                document.getElementById("webcam-container").innerHTML = "<div style='color:#e74c3c; padding:20px; font-weight:bold; font-size:14px; text-align:center;'>❌ 啟動失敗！請允許相機權限。<br>若已允許，請點擊下方橘色按鈕重試。</div>";
+                document.getElementById("webcam-container").innerHTML = "<div style='color:#e74c3c; padding:20px; font-weight:bold; font-size:14px; text-align:center;'>❌ 啟動失敗！請確認有允許相機權限。<br>若已允許，請點擊下方橘色按鈕手動喚醒選單。</div>";
                 document.getElementById("start-btn").style.display = "block";
             }
         }
