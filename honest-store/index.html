@@ -44,7 +44,7 @@
             justify-content: center;
         }
 
-        /* 左側：AI 鏡頭與百分比即時顯示區 */
+        /* 左側：AI 鏡頭區 */
         .video-box {
             background: white;
             padding: 15px;
@@ -71,6 +71,28 @@
             height: 100% !important;
         }
 
+        /* 👑 鏡頭選擇下拉選單樣式 */
+        .camera-selector-box {
+            width: 100%;
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .camera-select {
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 2px solid #27ae60;
+            background-color: white;
+            font-family: inherit;
+            font-size: 14px;
+            color: #2c3e50;
+            outline: none;
+            cursor: pointer;
+        }
+
         #label-container {
             width: 100%;
             background: #fafafa;
@@ -88,7 +110,7 @@
             border-bottom: 1px solid #eee;
         }
 
-        /* 互動大按鈕：滑鼠移上去會放大發光，點擊會彈跳 */
+        /* 互動大按鈕 */
         .btn {
             background-color: #27ae60;
             color: white;
@@ -101,16 +123,11 @@
             transition: all 0.2s ease;
             box-shadow: 0 4px 6px rgba(39, 174, 96, 0.2);
             margin-bottom: 10px;
+            width: 100%;
         }
 
-        .btn:hover {
-            background-color: #219653;
-            transform: scale(1.05);
-        }
-
-        .btn:active {
-            transform: scale(0.95);
-        }
+        .btn:hover { background-color: #219653; transform: scale(1.02); }
+        .btn:active { transform: scale(0.98); }
 
         /* 右側：低碳購物車區 */
         .cart-box {
@@ -132,7 +149,6 @@
             text-align: center;
             margin-bottom: 15px;
             font-size: 15px;
-            transition: background-color 0.3s ease;
         }
 
         .cart-title {
@@ -159,7 +175,6 @@
             border-bottom: 1px dashed #f1f1f1;
         }
 
-        /* 橘色溫和警告色反悔按鈕 */
         .del-btn {
             background-color: #ffa64d;
             color: white;
@@ -182,11 +197,9 @@
             font-weight: bold;
         }
 
-        .total-price {
-            color: #e74c3c;
-        }
+        .total-price { color: #e74c3c; }
 
-        /* 結帳大卡片 */
+        /* 成果大卡片 */
         #esg-card {
             margin-top: 25px;
             background: linear-gradient(135deg, #eaf9f0 0%, #f4fbf7 100%);
@@ -201,12 +214,6 @@
             box-sizing: border-box;
         }
 
-        @keyframes cardPop {
-            0% { transform: scale(0.8); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        /* 特效粒子 */
         .leaf-particle {
             position: fixed;
             pointer-events: none;
@@ -228,6 +235,13 @@
 
     <div class="container">
         <div class="video-box">
+            <div class="camera-selector-box">
+                <label for="videoSource" style="font-size: 13px; font-weight: bold; color: #27ae60;">📸 指定或切換相機鏡頭：</label>
+                <select id="videoSource" class="camera-select" onchange="switchCamera()">
+                    <option value="">-- 請先啟動相機以載入鏡頭清單 --</option>
+                </select>
+            </div>
+
             <div id="webcam-container"></div>
             <button class="btn" id="start-btn" onclick="init()">🔌 啟動 AI 綠色無人商店</button>
             <div id="label-container">📢 AI 大腦數值區</div>
@@ -237,25 +251,22 @@
             <div class="status-badge" id="ai-status">📢 請先點擊按鈕啟動攝影機</div>
             <div class="cart-title">🛒 綠色消費低碳購物車</div>
             
-            <div class="cart-items" id="cart-list">
-                </div>
+            <div class="cart-items" id="cart-list"></div>
 
             <div class="total-section">
                 <span>合計總金額：</span>
                 <span class="total-price">NT$ <span id="total-amount">0</span> 元</span>
             </div>
             
-            <button class="btn" style="margin-top:15px; background-color:#2f80ed; box-shadow:0 4px 6px rgba(47,128,237,0.2);" onclick="checkout()">🌱 完成新北低碳交易</button>
+            <button class="btn" style="margin-top:15px; background-color:#2f80ed; box-shadow:0 4px 6px rgba(47,128,237,0.2); width:100%;" onclick="checkout()">🌱 完成新北低碳交易</button>
         </div>
     </div>
 
     <div id="esg-card"></div>
 
     <script>
-        // 核心連結：已加上最後的安全斜線
         const URL = "https://teachablemachine.withgoogle.com/models/V6Bl8_dTD/";
         
-        // 營運長新北在地水果資料庫
         const fruitDatabase = {
             "香蕉": { name: "🍌 烏來山區泉水現採香蕉", price: 20, eco: "支持烏來泰雅部落小農，在地運送零污染！" },
             "紅蘋果": { name: "🍎 淡水在地現摘高山紅蘋果", price: 25, eco: "淡水就地取材，免除跨國坐船海運排碳！" },
@@ -266,7 +277,8 @@
 
         let model, webcam, labelContainer, maxPredictions;
         let shoppingCart = {};
-        let isCoolingDown = false; // 科技防重複洗版鎖
+        let isCoolingDown = false;
+        let animationFrameId; // 用於重新控制相機循環
 
         // 初始化
         async function init() {
@@ -275,28 +287,18 @@
             const metadataURL = URL + "metadata.json";
 
             try {
-                // 固定套件版本後，這裡就能穩穩載入，不再爆發 404
                 model = await tmImage.load(modelURL, metadataURL);
                 maxPredictions = model.getTotalClasses();
 
-                const flip = true; 
-                webcam = new tmImage.Webcam(320, 240, flip); // 加大解析度讓畫面漂亮
-                await webcam.setup(); 
-                await webcam.play();
-                window.requestAnimationFrame(loop);
+                // 👑 取得目前畫面上選定的相機 ID (若有)
+                const videoSelect = document.getElementById("videoSource");
+                const selectedDeviceId = videoSelect.value || undefined;
 
-                // 將畫面丟進網頁中
-                document.getElementById("webcam-container").innerHTML = "";
-                document.getElementById("webcam-container").appendChild(webcam.canvas);
-                
-                // 初始化數值顯示區
-                labelContainer = document.getElementById("label-container");
-                labelContainer.innerHTML = "";
-                for (let i = 0; i < maxPredictions; i++) {
-                    const div = document.createElement("div");
-                    div.className = "label-row";
-                    labelContainer.appendChild(div);
-                }
+                // 啟動相機並嘗試代入選定的鏡頭 ID
+                await startWebcamWithDevice(selectedDeviceId);
+
+                // 👑 成功啟動後，自動去抓取這台電腦上所有的相機，塞進下拉選單
+                await getCameraDevices();
 
                 document.getElementById("start-btn").style.display = "none";
                 document.getElementById("ai-status").innerText = "🍏 偵測中...請把新北水果拿到鏡頭前！";
@@ -307,13 +309,97 @@
             }
         }
 
+        // 👑 核心控制函數：根據指定硬體 ID 啟動相機
+        async function startWebcamWithDevice(deviceId) {
+            // 如果之前已經有相機在跑，強迫先關閉釋放它
+            if (webcam) {
+                await webcam.stop();
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            }
+
+            const flip = true;
+            webcam = new tmImage.Webcam(320, 240, flip);
+
+            // 如果有指定鏡頭 ID，利用傳入參數強制鎖定它
+            if (deviceId) {
+                await webcam.setup({ deviceId: deviceId });
+            } else {
+                await webcam.setup(); // 預設自動抓取
+            }
+
+            await webcam.play();
+            animationFrameId = window.requestAnimationFrame(loop);
+
+            // 更新畫面畫布
+            const container = document.getElementById("webcam-container");
+            container.innerHTML = "";
+            container.appendChild(webcam.canvas);
+
+            // 初始化數值區
+            labelContainer = document.getElementById("label-container");
+            labelContainer.innerHTML = "";
+            for (let i = 0; i < maxPredictions; i++) {
+                const div = document.createElement("div");
+                div.className = "label-row";
+                labelContainer.appendChild(div);
+            }
+        }
+
+        // 👑 核心控制函數：撈取電腦上的所有鏡頭裝置
+        async function getCameraDevices() {
+            const videoSelect = document.getElementById("videoSource");
+            const currentSelected = videoSelect.value; // 記住當前選的
+
+            // 撈取裝置列表
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = devices.filter(device => device.kind === 'videoinput');
+
+            videoSelect.innerHTML = "";
+
+            if (videoDevices.length === 0) {
+                const opt = document.createElement("option");
+                opt.text = "❌ 找不到任何相機鏡頭";
+                videoSelect.appendChild(opt);
+                return;
+            }
+
+            videoDevices.forEach((device, index) => {
+                const option = document.createElement("option");
+                option.value = device.deviceId;
+                // 有些鏡頭會因為隱私沒讀到名稱，自動用「鏡頭 1, 鏡頭 2」替代
+                option.text = device.label || `📷 影像硬體鏡頭 ${index + 1}`;
+                
+                // 如果是剛才正在用的，保持選取
+                if (device.deviceId === currentSelected) {
+                    option.selected = true;
+                }
+                videoSelect.appendChild(option);
+            });
+        }
+
+        // 👑 核心控制函數：當學生下拉切換選單時觸發
+        async function switchCamera() {
+            const videoSelect = document.getElementById("videoSource");
+            const targetDeviceId = videoSelect.value;
+            if (!targetDeviceId) return;
+
+            document.getElementById("ai-status").innerText = "🔄 正在切換硬體鏡頭中...";
+            try {
+                await startWebcamWithDevice(targetDeviceId);
+                document.getElementById("ai-status").innerText = "🍏 偵測中...請把新北水果拿到鏡頭前！";
+            } catch (e) {
+                console.error(e);
+                alert("切換鏡頭失敗！可能該鏡頭正被其他視訊軟體佔用。");
+            }
+        }
+
         async function loop() {
             webcam.update(); 
             await predict();
-            window.requestAnimationFrame(loop);
+            animationFrameId = window.requestAnimationFrame(loop);
         }
 
-        // 預測與辨識
+        // AI 辨識
         async function predict() {
             if (!model || !webcam) return;
 
@@ -321,7 +407,6 @@
             let highestClass = "";
             let highestProbability = 0;
 
-            // 1. 同步刷新官方數值區，方便學生除錯
             for (let i = 0; i < maxPredictions; i++) {
                 const className = prediction[i].className;
                 const probValue = prediction[i].probability.toFixed(2);
@@ -333,16 +418,15 @@
                 }
             }
 
-            // 2. 觸發無人商店購物車機制（信心大於 85%、不是背景、沒在冷卻）
             if (highestProbability > 0.85 && highestClass !== "背景" && !isCoolingDown) {
                 if (fruitDatabase[highestClass]) {
                     addToCart(highestClass);
-                    triggerCoolDown(); // 感應成功，立刻鎖定防暴走
+                    triggerCoolDown();
                 }
             }
         }
 
-        // 防暴走冷卻機制
+        // 防重複刷讀鎖
         function triggerCoolDown() {
             isCoolingDown = true;
             document.getElementById("ai-status").innerHTML = "⚡ 商品感應成功！大腦冷卻防呆中...";
@@ -357,7 +441,6 @@
             }, 2500); 
         }
 
-        // 購物車與特效添加
         function addToCart(label) {
             if (shoppingCart[label]) {
                 shoppingCart[label].count++;
@@ -368,11 +451,10 @@
                     count: 1
                 };
             }
-            createLeafEffect(); // 特效長發功
+            createLeafEffect();
             renderCart();
         }
 
-        // 扣除數量
         function decreaseItem(label) {
             if (shoppingCart[label]) {
                 shoppingCart[label].count--;
@@ -383,7 +465,6 @@
             renderCart();
         }
 
-        // 更新購物車顯示
         function renderCart() {
             const cartList = document.getElementById("cart-list");
             cartList.innerHTML = "";
@@ -408,7 +489,6 @@
             document.getElementById("total-amount").innerText = total;
         }
 
-        // 特效粒子生成
         function createLeafEffect() {
             const icons = ['🌱', '🌿', '💚', '☘️'];
             for (let i = 0; i < 6; i++) {
@@ -422,7 +502,6 @@
             }
         }
 
-        // 結帳並印出永續大師證書
         function checkout() {
             const total = document.getElementById("total-amount").innerText;
             if (total == "0") {
