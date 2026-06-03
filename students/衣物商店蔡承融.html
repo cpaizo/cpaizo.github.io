@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>線上衣物商城 - 帳單絕對不消失版</title>
+    <style>
+        /* 整體樣式與天空藍背景 */
+        body {
+            background-color: #87CEEB; /* 天空藍 */
+            font-family: 'Microsoft JhengHei', sans-serif;
+            margin: 0;
+            padding: 20px;
+            padding-bottom: 120px; 
+            box-sizing: border-box;
+            position: relative;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 頂部淺紫色標語 */
+        .slogan {
+            color: #DDA0DD; /* 淺紫色 */
+            text-align: center;
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #333;
+            font-size: 26px;
+            margin-bottom: 40px;
+            font-weight: bold;
+        }
+
+        /* 商品購買區佈局 */
+        .shop-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* 單個商品卡片 - 尺寸放大 */
+        .product-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            width: 260px; 
+            text-align: center;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            cursor: pointer;
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        .product-card:hover {
+            transform: scale(1.05);
+        }
+
+        /* 模擬實拍畫面的區塊 - 尺寸放大 */
+        .product-image {
+            width: 100%;
+            height: 240px; 
+            border-radius: 12px;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px; 
+            box-sizing: border-box;
+            border: 2px solid #ddd;
+        }
+
+        /* 各別衣物顏色與圖案設定 */
+        .p1-img { background-color: #FFFFFF; position: relative; } /* 貓咪白衣 */
+        .p1-img::after { content: "🐱"; } 
+        .p2-img { background-color: #4682B4; } /* 藍色牛仔褲 */
+        .p2-img::after { content: "👖"; }
+        .p3-img { background-color: #800080; } /* 紫色外套 */
+        .p3-img::after { content: "🧥"; }
+        .p4-img { background-color: #FFC0CB; } /* 粉色連身裙 */
+        .p4-img::after { content: "👗"; }
+        .p5-img { background-color: #808080; } /* 灰色運動鞋 */
+        .p5-img::after { content: "👟"; }
+
+        .product-name {
+            font-weight: bold;
+            font-size: 22px; 
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .product-price {
+            color: #e4393c;
+            font-size: 20px; 
+            font-weight: bold;
+        }
+
+        .product-count {
+            background: #ff9800;
+            color: white;
+            border-radius: 50%;
+            padding: 4px 12px;
+            font-size: 16px;
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: none;
+            font-weight: bold;
+            z-index: 10;
+        }
+
+        /* 右下角固定購物車 */
+        .cart-fixed {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #fff;
+            border: 3px solid #333;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 38px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+
+        /* 左下角點我購買按鈕 (方形紅色按鈕，白色字) */
+        .buy-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 18px 35px;
+            font-size: 22px;
+            font-weight: bold;
+            border-radius: 4px; 
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 1000;
+        }
+
+        .buy-btn:hover {
+            background-color: #cc0000;
+        }
+
+        /* 動態飛入購物車的複製品樣式 (慢速) */
+        .flying-item {
+            position: fixed;
+            font-size: 60px; 
+            z-index: 9999;
+            pointer-events: none;
+            transition: all 1.6s cubic-bezier(0.1, 0.8, 0.3, 1);
+        }
+
+        /* 彈出視窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.4);
+            max-height: 85vh;
+            overflow-y: auto; /* 防止內容太多塞不下 */
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            color: #333;
+            font-size: 24px;
+        }
+
+        /* 帳單明細盒子 */
+        .bill-list {
+            text-align: left;
+            margin: 15px 0;
+            font-size: 18px;
+            line-height: 1.8;
+            background: #fdfdfd;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            padding: 15px;
+        }
+
+        .modal-btn {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        /* 抽獎區 */
+        .lottery-box {
+            margin: 15px 0;
+            padding: 15px;
+            background: #fff3cd;
+            border: 2px dashed #ffc107;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 20px;
+            min-height: 30px;
+        }
+
+        /* 最終折抵與總價錢顯示區 */
+        .final-price-box {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f1f8e9;
+            border: 2px solid #8bc34a;
+            border-radius: 6px;
+            font-size: 20px;
+            color: #2e7d32;
+            font-weight: bold;
+            text-align: left;
+            display: none;
+            line-height: 1.6;
+        }
+
+        /* 煙火畫布 */
+        #fireworksCanvas {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="slogan">買兩件衣物即可參加一次抽獎！</div>
+    <div class="subtitle">衣服購買區</div>
+
+    <div class="shop-container">
+        <div class="product-card" onclick="addToCart(0, this, '🐱')">
+            <div class="product-count" id="count-0">0</div>
+            <div class="product-image p1-img"></div>
+            <div class="product-name">貓咪白色T恤</div>
+            <div class="product-price">99元</div>
+        </div>
+        <div class="product-card" onclick="addToCart(1, this, '👖')">
+            <div class="product-count" id="count-1">0</div>
+            <div class="product-image p2-img"></div>
+            <div class="product-name">藍色牛仔褲</div>
+            <div class="product-price">89元</div>
+        </div>
+        <div class="product-card" onclick="addToCart(2, this, '🧥')">
+            <div class="product-count" id="count-2">0</div>
+            <div class="product-image p3-img"></div>
+            <div class="product-name">紫色外套</div>
+            <div class="product-price">59元</div>
+        </div>
+        <div class="product-card" onclick="addToCart(3, this, '👗')">
+            <div class="product-count" id="count-3">0</div>
+            <div class="product-image p4-img"></div>
+            <div class="product-name">粉色連身裙</div>
+            <div class="product-price">149元</div>
+        </div>
+        <div class="product-card" onclick="addToCart(4, this, '👟')">
+            <div class="product-count" id="count-4">0</div>
+            <div class="product-image p5-img"></div>
+            <div class="product-name">灰色運動鞋</div>
+            <div class="product-price">59元</div>
+        </div>
+    </div>
+
+    <button class="buy-btn" id="buyBtn" onclick="showBill()">點我購買</button>
+
+    <div class="cart-fixed" id="cartIcon">🛒</div>
+
+    <div class="modal" id="billModal">
+        <div class="modal-content">
+            <h3>購物結帳單</h3>
+            
+            <div class="bill-list" id="billList"></div>
+            
+            <div id="lotterySection" style="display:none;">
+                <hr>
+                <p style="color: green; font-weight: bold; font-size: 18px;">🎉 恭喜獲得抽獎機會！</p>
+                <div class="lottery-box" id="lotteryResult">點擊下方按鈕開始抽獎</div>
+                <button class="modal-btn" style="background:#ff9800;" id="spinBtn" onclick="startLottery()">開始抽獎</button>
+                
+                <div class="final-price-box" id="finalPriceBox"></div>
+            </div>
+            <br>
+            <button class="modal-btn" onclick="closeModal()">關閉頁面並重置</button>
+        </div>
+    </div>
+
+    <canvas id="fireworksCanvas"></canvas>
+
+    <script>
+        // 商品資料庫
+        const products = [
+            { name: "貓咪白色T恤", price: 99 },
+            { name: "藍色牛仔褲", price: 89 },
+            { name: "紫色外套", price: 59 },
+            { name: "粉色連身裙", price: 149 },
+            { name: "灰色運動鞋", price: 59 }
+        ];
+
+        // 購物車紀錄各商品購買數量
+        let cart = [0, 0, 0, 0, 0];
+        let currentTotalPrice = 0; // 紀錄原始總價
+
+        // 點擊商品：增加數量 + 觸發旋轉飛入動畫
+        function addToCart(index, element, emoji) {
+            cart[index]++;
+            
+            // 更新商品卡片右上角數量顯示
+            const countBadge = document.getElementById(`count-${index}`);
+            countBadge.innerText = cart[index];
+            countBadge.style.display = "block";
+
+            // 觸發飛入購物車動畫
+            const rect = element.getBoundingClientRect();
+            const cartRect = document.getElementById('cartIcon').getBoundingClientRect();
+
+            const flyer = document.createElement('div');
+            flyer.className = 'flying-item';
+            flyer.innerText = emoji;
+            
+            // 設定初始位置在商品中心
+            flyer.style.left = `${rect.left + rect.width/2 - 30}px`;
+            flyer.style.top = `${rect.top + rect.height/2 - 30}px`;
+            document.body.appendChild(flyer);
+
+            // 慢速飛向購物車
+            setTimeout(() => {
+                flyer.style.transform = 'rotate(1080deg) scale(0.2)';
+                flyer.style.left = `${cartRect.left + 10}px`;
+                flyer.style.top = `${cartRect.top + 10}px`;
+                flyer.style.opacity = '0.3';
+            }, 50);
+
+            setTimeout(() => {
+                flyer.remove();
+            }, 1600);
+
+            // 檢查是否需要顯示左下角的「點我購買」按鈕
+            checkBuyButton();
+        }
+
+        // 檢查總購買件數
+        function checkBuyButton() {
+            const totalItems = cart.reduce((sum, count) => sum + count, 0);
+            const buyBtn = document.getElementById('buyBtn');
+            if (totalItems > 0) {
+                buyBtn.style.display = 'block';
+            } else {
+                buyBtn.style.display = 'none';
+            }
+        }
+
+        // 顯示初始帳單
+        function showBill() {
+            const billList = document.getElementById('billList');
+            const lotterySection = document.getElementById('lotterySection');
+            const finalPriceBox = document.getElementById('finalPriceBox');
+            
+            billList.innerHTML = ''; 
+            finalPriceBox.style.display = 'none'; 
+            
+            let totalItems = 0;
+            currentTotalPrice = 0;
+
+            // 遍歷五個商品，生成精確帳單，印在畫面上
+            products.forEach((prod, i) => {
+                if (cart[i] > 0) {
+                    let itemTotal = prod.price * cart[i];
+                    totalItems += cart[i];
+                    currentTotalPrice += itemTotal;
+                    billList.innerHTML += `<div>🛍️ ${prod.name} × ${cart[i]} 件 = ${itemTotal} 元</div>`;
+                }
+            });
+
+            // 明確寫出原始總價
+            billList.innerHTML += `<div style="margin-top:10px; border-top:1px dashed #ccc; padding-top:5px;">` +
+                                  `<strong>商品總計原價：${currentTotalPrice} 元</strong> (共 ${totalItems} 件)</div>`;
+
+            // 判斷是否滿 2 件解鎖抽獎區
+            if (totalItems >= 2) {
+                lotterySection.style.display = 'block';
+                document.getElementById('lotteryResult').innerText = "點擊下方按鈕開始抽獎";
+                document.getElementById('spinBtn').style.display = 'inline-block';
+            } else {
+                lotterySection.style.display = 'none';
+            }
+
+            document.getElementById('billModal').style.display = 'flex';
+        }
+
+        // 開始抽獎功能
+        function startLottery() {
+            const spinBtn = document.getElementById('spinBtn');
+            spinBtn.style.display = 'none'; 
+            
+            const prizes = ["商品全部打七折", "商品全部打二折", "商品全部不用錢", "獎勵200元"];
+            const resBox = document.getElementById('lotteryResult');
+            
+            let counter = 0;
+            const interval = setInterval(() => {
+                resBox.innerText = prizes[counter % prizes.length];
+                counter++;
+            }, 100);
+
+            // 2秒後開獎
+            setTimeout(() => {
+                clearInterval(interval);
+                
+                const randomIndex = Math.floor(Math.random() * prizes.length);
+                const finalPrize = prizes[randomIndex];
+                resBox.innerText = `🎁 中獎結果：${finalPrize}！`;
+                
+                // 【關鍵】在這裡計算最終折扣，並且絕對不會動到最上面的 billList 內容！
+                calculateFinalPrice(randomIndex);
+
+                // 觸發煙火
+                startFireworks();
+            }, 2000);
+        }
+
+        // 根據抽獎結果計算最終帳單與價錢並顯示
+        function calculateFinalPrice(prizeIndex) {
+            const finalPriceBox = document.getElementById('finalPriceBox');
+            let finalPrice = currentTotalPrice;
+            let discountDetail = "";
+
+            if (prizeIndex === 0) { // 打七折
+                finalPrice = Math.round(currentTotalPrice * 0.7);
+                discountDetail = `▪️ 抽中優惠：全館打七折<br>` +
+                                 `▪️ 折抵金額：-${currentTotalPrice - finalPrice} 元<br>` +
+                                 `<hr style="border:0; border-top:1px solid #8bc34a;">` +
+                                 `<strong style="font-size:22px; color:#d32f2f;">🔥 抽獎後最終應付金額：${finalPrice} 元</strong>`;
+            } else if (prizeIndex === 1) { // 打二折
+                finalPrice = Math.round(currentTotalPrice * 0.2);
+                discountDetail = `▪️ 抽中優惠：全館打二折<br>` +
+                                 `▪️ 折抵金額：-${currentTotalPrice - finalPrice} 元<br>` +
+                                 `<hr style="border:0; border-top:1px solid #8bc34a;">` +
+                                 `<strong style="font-size:22px; color:#d32f2f;">🔥 抽獎後最終應付金額：${finalPrice} 元</strong>`;
+            } else if (prizeIndex === 2) { // 不用錢
+                finalPrice = 0;
+                discountDetail = `▪️ 抽中優惠：全館不用錢！老闆請客！<br>` +
+                                 `▪️ 折抵金額：-${currentTotalPrice} 元<br>` +
+                                 `<hr style="border:0; border-top:1px solid #8bc34a;">` +
+                                 `<strong style="font-size:22px; color:#d32f2f;">🔥 抽獎後最終應付金額：0 元 (免費)</strong>`;
+            } else if (prizeIndex === 3) { // 獎勵200元
+                finalPrice = currentTotalPrice - 200;
+                let actualDiscount = 200;
+                if(finalPrice < 0) {
+                    actualDiscount = currentTotalPrice; 
+                    finalPrice = 0;
+                }
+                discountDetail = `▪️ 抽中優惠：現場獎勵減免 200 元<br>` +
+                                 `▪️ 折抵金額：-${actualDiscount} 元<br>` +
+                                 `<hr style="border:0; border-top:1px solid #8bc34a;">` +
+                                 `<strong style="font-size:22px; color:#d32f2f;">🔥 抽獎後最終應付金額：${finalPrice} 元</strong>`;
+            }
+
+            // 把最終折抵帳單顯示在最下面
+            finalPriceBox.innerHTML = discountDetail;
+            finalPriceBox.style.display = 'block';
+        }
+
+        // 關閉視窗並重置商城
+        function closeModal() {
+            document.getElementById('billModal').style.display = 'none';
+            cart = [0, 0, 0, 0, 0];
+            for(let i=0; i<5; i++) {
+                const badge = document.getElementById(`count-${i}`);
+                if(badge) {
+                    badge.innerText = "0";
+                    badge.style.display = 'none';
+                }
+            }
+            checkBuyButton();
+            stopFireworks();
+        }
+
+        // ================= 煙火特效程式碼 =================
+        const canvas = document.getElementById('fireworksCanvas');
+        const ctx = canvas.getContext('2d');
+        let animationFrameId;
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.radius = Math.random() * 3 + 1;
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 6 + 2;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.alpha = 1;
+                this.decay = Math.random() * 0.015 + 0.015;
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.restore();
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += 0.05; 
+                this.alpha -= this.decay;
+            }
+        }
+
+        function createFirework() {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * (canvas.height * 0.6);
+            const colors = ['#FF1493', '#00FFFF', '#FFD700', '#00FF00', '#FF4500', '#FFFFFF'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            for (let i = 0; i < 60; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        function updateFireworks() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            if (Math.random() < 0.05) {
+                createFirework();
+            }
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.update();
+                p.draw();
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+            animationFrameId = requestAnimationFrame(updateFireworks);
+        }
+
+        function startFireworks() {
+            resizeCanvas();
+            canvas.style.display = 'block';
+            particles = [];
+            updateFireworks();
+        }
+
+        function stopFireworks() {
+            canvas.style.display = 'none';
+            cancelAnimationFrame(animationFrameId);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    </script>
+</body>
+</html>
