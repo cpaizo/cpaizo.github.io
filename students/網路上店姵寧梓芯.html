@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>大小孩天堂</title>
+<style>
+body {
+    font-family: Arial;
+    margin: 0;
+    background: linear-gradient(135deg, #cceeff, #ffd6e7);
+}
+
+h1 {
+    text-align: center;
+}
+
+.recommend {
+    text-align: center;
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #ff4da6;
+}
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.card {
+    background: white;
+    width: 180px;
+    margin: 10px;
+    padding: 10px;
+    text-align: center;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.card img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+}
+
+button {
+    margin-top: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.cart {
+    margin: 20px;
+    padding: 10px;
+    background: white;
+    border-radius: 10px;
+}
+
+.drop {
+    position: absolute;
+    width: 80px;
+    animation: fall 1s ease;
+}
+
+@keyframes fall {
+    from { top: 0; opacity: 1; }
+    to { top: 300px; opacity: 0; }
+}
+
+.checkoutPage {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #ccfff2;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+</style>
+</head>
+
+<body>
+
+<h1>大小孩天堂</h1>
+<div class="recommend">🔥 推薦商品：IDLE 女團專輯</div>
+
+<div class="container" id="shop"></div>
+
+<div class="cart">
+    <h3>購物清單</h3>
+    <div id="cartList"></div>
+    <p>總價：<span id="total">0</span> 元</p>
+    <button onclick="resetAll()">全部重製</button>
+    <button onclick="checkout()">結帳</button>
+</div>
+
+<div class="checkoutPage" id="checkoutPage">
+    <h2 id="finalPrice"></h2>
+    <button onclick="confirmBuy()">確認</button>
+</div>
+
+<script>
+const products = [
+    {name:"咖啡", price:50, img:"https://picsum.photos/200?1"},
+    {name:"珍珠奶茶", price:70, img:"https://picsum.photos/200?2"},
+    {name:"糖葫蘆綜合", price:60, img:"https://picsum.photos/200?3"},
+    {name:"IDLE專輯(5人)", price:500, img:"https://picsum.photos/200?4"},
+    {name:"TWS專輯(6人)", price:500, img:"https://picsum.photos/200?5"}
+];
+
+let cart = {};
+
+const shop = document.getElementById("shop");
+
+products.forEach((p, index)=>{
+    let div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `
+        <img src="${p.img}">
+        <h4>${p.name}</h4>
+        <p>${p.price} 元</p>
+        <button onclick="buy(${index})">購買</button>
+    `;
+    shop.appendChild(div);
+});
+
+function buy(index){
+    let p = products[index];
+
+    alert(`${p.name} 價錢是 ${p.price} 元`);
+
+    // 加入購物車
+    if(!cart[p.name]) cart[p.name] = {price:p.price, qty:0};
+    cart[p.name].qty++;
+
+    updateCart();
+
+    // 掉落圖片效果
+    let img = document.createElement("img");
+    img.src = p.img;
+    img.className = "drop";
+    img.style.left = Math.random()*80 + "%";
+    document.body.appendChild(img);
+
+    setTimeout(()=>img.remove(),1000);
+}
+
+function updateCart(){
+    let list = document.getElementById("cartList");
+    list.innerHTML = "";
+    let total = 0;
+
+    for(let item in cart){
+        let data = cart[item];
+        list.innerHTML += `<p>${item} x ${data.qty}</p>`;
+        total += data.price * data.qty;
+    }
+
+    document.getElementById("total").innerText = total;
+}
+
+function resetAll(){
+    cart = {};
+    updateCart();
+}
+
+function checkout(){
+    let total = document.getElementById("total").innerText;
+    document.getElementById("finalPrice").innerText = "總金額：" + total + " 元";
+    document.getElementById("checkoutPage").style.display = "flex";
+}
+
+function confirmBuy(){
+    alert("購買成功！");
+    document.getElementById("checkoutPage").style.display = "none";
+    resetAll();
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌶️ 禁忌辣味研究所 - 解鎖你的狂熱味蕾！ 🌶️</title>
+    <style>
+        /* 深邃神祕的暗黑魔幻風格 */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #0a0a0a;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        header {
+            background: linear-gradient(180deg, #200000, #0a0a0a);
+            text-align: center;
+            padding: 3rem 1rem;
+            border-bottom: 3px solid #ff2a2a;
+            box-shadow: 0 0 30px rgba(255, 42, 42, 0.4);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 3.2rem;
+            color: #ff2a2a;
+            text-shadow: 0 0 10px #ff2a2a, 0 0 30px #ff0000;
+            letter-spacing: 3px;
+        }
+
+        header p {
+            margin: 1rem 0 0 0;
+            font-size: 1.3rem;
+            color: #ffea00;
+            text-shadow: 0 0 8px rgba(255, 234, 0, 0.6);
+            font-weight: bold;
+        }
+
+        .secret-banner {
+            background: #ff2a2a;
+            color: #fff;
+            text-align: center;
+            padding: 0.7rem;
+            font-weight: bold;
+            font-size: 1.05rem;
+            letter-spacing: 2px;
+            box-shadow: inset 0 0 15px #000;
+            animation: pulseBanner 2s infinite alternate;
+        }
+
+        @keyframes pulseBanner {
+            from { background-color: #cc0000; } to { background-color: #ff2a2a; }
+        }
+
+        .main-layout {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .left-column { flex: 2; min-width: 320px; }
+        .right-column { flex: 1; min-width: 320px; display: flex; flex-direction: column; gap: 2rem; }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* 神祕包裹風格的商品卡片 */
+        .product-card {
+            background: #141414;
+            border-radius: 20px;
+            border: 2px solid #262626;
+            padding: 1.5rem;
+            text-align: center;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px) scale(1.03);
+            border-color: #ff2a2a;
+            box-shadow: 0 0 30px rgba(255, 42, 42, 0.5);
+            background: #1f0d0d;
+        }
+
+        .discount-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: linear-gradient(45deg, #ffea00, #ff2a2a);
+            color: #000;
+            padding: 0.4rem 0.9rem;
+            font-size: 0.85rem;
+            font-weight: bold;
+            border-radius: 20px;
+            box-shadow: 0 0 10px #ffea00;
+        }
+
+        .product-image { 
+            font-size: 4rem; 
+            margin-bottom: 0.5rem;
+            transition: transform 0.3s;
+        }
+        .product-card:hover .product-image {
+            transform: rotate(15deg) scale(1.15);
+        }
+
+        .product-name { font-size: 1.3rem; font-weight: bold; margin: 0.5rem 0; }
+        .product-price { font-size: 1.5rem; color: #ff5252; font-weight: bold; margin: 0.5rem 0; }
+        .original-price { font-size: 0.9rem; color: #555; text-decoration: line-through; margin-right: 0.5rem; }
+
+        /* 霓虹發光按鈕 */
+        .btn {
+            background: transparent;
+            color: #ff2a2a;
+            border: 2px solid #ff2a2a;
+            padding: 0.7rem 1.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+            text-shadow: 0 0 5px #ff2a2a;
+        }
+        .product-card:hover .btn { 
+            background-color: #ff2a2a; 
+            color: white;
+            box-shadow: 0 0 15px #ff2a2a;
+        }
+
+        .checkout-btn { 
+            color: #00ff66; border-color: #00ff66; text-shadow: 0 0 5px #00ff66; 
+            margin-top: 1rem;
+        }
+        .checkout-btn:hover { 
+            background-color: #00ff66; color: black; box-shadow: 0 0 20px #00ff66; font-weight: bold;
+        }
+
+        /* 右側面板 */
+        .card-box {
+            background: #111;
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 2px solid #ffea00;
+            box-shadow: 0 0 15px rgba(255, 234, 0, 0.1);
+        }
+
+        .box-title {
+            margin-top: 0;
+            color: #ffea00;
+            border-bottom: 2px solid #ffea00;
+            padding-bottom: 0.6rem;
+            text-align: center;
+            text-shadow: 0 0 5px #ffea00;
+            letter-spacing: 1px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #222;
+        }
+
+        .qty-btn {
+            background-color: #222;
+            color: #fff;
+            border: 1px solid #444;
+            width: 28px;
+            height: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .qty-btn:hover { background-color: #ff2a2a; color: white; border-color: #ff2a2a; }
+
+        .total-box {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: right;
+            margin-top: 1.5rem;
+            color: #ffea00;
+            text-shadow: 0 0 5px #ffea00;
+        }
+
+        /* 🎡 命運之輪大轉盤 🎡 */
+        .wheel-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            margin-top: 1.5rem;
+        }
+
+        .wheel-wrapper {
+            position: relative;
+            width: 260px;
+            height: 260px;
+        }
+
+        .pointer {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid #ffea00;
+            z-index: 10;
+            filter: drop-shadow(0 0 8px #ffea00);
+        }
+
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 6px solid #ffea00;
+            box-shadow: 0 0 25px rgba(255, 234, 0, 0.3);
+            background: conic-gradient(
+                #ff2a2a 0deg 72deg,
+                #1a1a1a 72deg 144deg,
+                #ff6a00 144deg 216deg,
+                #1a1a1a 216deg 288deg,
+                #ffc400 288deg 360deg
+            );
+            position: relative;
+            overflow: hidden;
+            transition: transform 4s cubic-bezier(0.1, 0.8, 0.1, 1);
+        }
+
+        .segment-label {
+            position: absolute;
+            width: 50%;
+            height: 30px;
+            top: 50%;
+            left: 50%;
+            transform-origin: 0% 50%;
+            margin-top: -15px;
+            padding-left: 45px;
+            box-sizing: border-box;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #fff;
+            white-space: nowrap;
+        }
+        .label1 { transform: rotate(36deg); }
+        .label2 { transform: rotate(108deg); }
+        .label3 { transform: rotate(180deg); }
+        .label4 { transform: rotate(252deg); }
+        .label5 { transform: rotate(324deg); }
+
+        .lottery-btn {
+            background-color: #222;
+            color: #555;
+            border: 2px solid #333;
+            margin-top: 1.5rem;
+            cursor: not-allowed;
+            text-shadow: none;
+        }
+        .lottery-btn.active {
+            color: #ffea00;
+            border-color: #ffea00;
+            cursor: pointer;
+            text-shadow: 0 0 8px #ffea00;
+            animation: pulseBtn 1s infinite alternate;
+        }
+
+        @keyframes pulseBtn {
+            from { transform: scale(1); box-shadow: 0 0 5px rgba(255,234,0,0.4); }
+            to { transform: scale(1.04); box-shadow: 0 0 20px rgba(255,234,0,0.8); }
+        }
+
+        footer { text-align: center; padding: 2rem; color: #444; font-size: 0.9rem; margin-top: 3rem; border-top: 1px solid #111; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🌶️ 禁忌辣味研究所 🌶️</h1>
+        <p>點擊未知封印... 大人心跳加速、小孩驚呼連連的瘋狂美味！</p>
+    </header>
+
+    <div class="secret-banner">
+        ⚠️ 絕密異常：觀測到【大麵筋】核心能量塌陷至 7 折（特價35元）！滿 500 元將激活命運之輪！
+    </div>
+
+    <div class="main-layout">
+        
+        <div class="left-column">
+            <div class="product-grid">
+                
+                <div class="product-card" onclick="addToCart('大麵筋', 35)">
+                    <div class="discount-badge">⚠️ 7 折崩裂</div>
+                    <div class="product-image">🥢</div>
+                    <div class="product-name">大麵筋</div>
+                    <div class="product-price"><span class="original-price">原價$50</span>NT$ 35</div>
+                    <button class="btn">解鎖密封</button>
+                </div>
+
+                <div class="product-card" onclick="addToCart('小麵筋', 30)">
+                    <div class="product-image">🥖</div>
+                    <div class="product-name">小麵筋</div>
+                    <div class="product-price">NT$ 30</div>
+                    <button class="btn">解鎖密封</button>
+                </div>
+
+                <div class="product-card" onclick="addToCart('魔芋爽 (一盒5包)', 60)">
+                    <div class="product-image">📦</div>
+                    <div class="product-name">魔芋爽 (一盒5包)</div>
+                    <div class="product-price">NT$ 60</div>
+                    <button class="btn">解鎖密封</button>
+                </div>
+
+                <div class="product-card" onclick="addToCart('麻辣王子', 20)">
+                    <div class="product-image">👑</div>
+                    <div class="product-name">麻辣王子</div>
+                    <div class="product-price">NT$ 20</div>
+                    <button class="btn">解鎖密封</button>
+                </div>
+
+                <div class="product-card" onclick="addToCart('霸王絲 (一盒5包)', 60)">
+                    <div class="product-image">🔥</div>
+                    <div class="product-name">霸王絲 (一盒5包)</div>
+                    <div class="product-price">NT$ 60</div>
+                    <button class="btn">解鎖密封</button>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="right-column">
+            
+            <div class="card-box">
+                <h3 class="box-title">🛒 實驗性收納袋</h3>
+                <div id="cart-items-container">
+                    <p style="color:#555; text-align:center; font-size:0.9rem;">收納袋空無一物，等待未知能量...</p>
+                </div>
+                <div class="total-box">
+                    所需代價: NT$ <span id="total-amount">0</span>
+                </div>
+                <button class="btn checkout-btn" onclick="checkout(event)">傳送至味蕾終點 (結帳)</button>
+            </div>
+
+            <div class="card-box" style="border-color: #ff2a2a; box-shadow: 0 0 15px rgba(255, 42, 42, 0.1);">
+                <h3 class="box-title" style="color: #ff2a2a; border-color: #ff2a2a; text-shadow: 0 0 5px #ff2a2a;">🎡 命運之輪轉盤</h3>
+                <p id="lottery-hint" style="font-size:0.9rem; text-align:center; color:#888; margin:0;">
+                    匯聚 500 元美味能量以解鎖轉盤
+                </p>
+                
+                <div class="wheel-container">
+                    <div class="wheel-wrapper">
+                        <div class="pointer"></div>
+                        <div id="wheel" class="wheel">
+                            <div class="wheel-text">
+                                <div class="segment-label label1">大麵筋 包</div>
+                                <div class="segment-label label2">小麵筋 包</div>
+                                <div class="segment-label label3">魔芋爽 盒</div>
+                                <div class="segment-label label4">麻辣王子</div>
+                                <div class="segment-label label5">霸王絲 盒</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button id="lottery-btn" class="btn lottery-btn" disabled onclick="spinWheel(event)">
+                        🔒 能量不足
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <footer>
+        <p>© 2026 禁忌辣味研究所 - 好奇心出路，唯有香辣</p>
+    </footer>
+
+    <script>
+        let cart = {};
+        let isSpinning = false;
+
+        // 建立網頁即時電子音效產生器 (無需外建音效檔)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        // 播放購買清脆啾聲
+        function playClickSound() {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.15);
+            
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.15);
+        }
+
+        // 播放中獎歡樂慶祝叮叮聲
+        function playWinSound() {
+            const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6 歡樂和弦
+            notes.forEach((freq, index) => {
+                setTimeout(() => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+                    
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.3);
+                }, index * 100);
+            });
+        }
+
+        const prizes = [
+            { name: "大麵筋一包", minDeg: 289, maxDeg: 360 },
+            { name: "霸王絲一盒(5包)", minDeg: 217, maxDeg: 288 },
+            { name: "麻辣王子一包", minDeg: 145, maxDeg: 216 },
+            { name: "魔芋爽一盒(5包)", minDeg: 73, maxDeg: 144 },
+            { name: "小麵筋一包", minDeg: 1, maxDeg: 72 }
+        ];
+
+        // 加入購物車
+        function addToCart(name, price) {
+            // 觸發解鎖聲音
+            playClickSound();
+
+            // 核心功能：彈出視窗提示
+            alert("您購買了 " + name + "，共 " + price + " 元。");
+
+            if (cart[name]) {
+                cart[name].qty += 1;
+            } else {
+                cart[name] = { price: price, qty: 1 };
+            }
+            updateCartUI();
+        }
+
+        function changeQty(name, amount, event) {
+            event.stopPropagation(); // 防止點擊加減按鈕觸發卡片點擊
+            playClickSound();
+            if (!cart[name]) return;
+            cart[name].qty += amount;
+            if (cart[name].qty <= 0) delete cart[name];
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const container = document.getElementById("cart-items-container");
+            let total = 0;
+            container.innerHTML = "";
+
+            const keys = Object.keys(cart);
+
+            if (keys.length === 0) {
+                container.innerHTML = '<p style="color:#555; text-align:center; font-size:0.9rem;">收納袋空無一物，等待未知能量...</p>';
+            } else {
+                keys.forEach(name => {
+                    const item = cart[name];
+                    const itemTotal = item.price * item.qty;
+                    total += itemTotal;
+
+                    container.innerHTML += `
+                        <div class="cart-item" onclick="event.stopPropagation()">
+                            <div>
+                                <span style="font-weight:bold; color:#ffea00;">${name}</span><br>
+                                <span style="color:#ff5252; font-size:0.85rem;">$${item.price} / 件</span>
+                            </div>
+                            <div>
+                                <button class="qty-btn" onclick="changeQty('${name}', -1, event)">-</button>
+                                <span style="margin:0 5px; font-weight:bold;">${item.qty}</span>
+                                <button class="qty-btn" onclick="changeQty('${name}', 1, event)">+</button>
+                                <span style="margin-left:10px; font-weight:bold; color:#ffea00;">$${itemTotal}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            document.getElementById("total-amount").innerText = total;
+
+            if (!isSpinning) {
+                const lotteryBtn = document.getElementById("lottery-btn");
+                const lotteryHint = document.getElementById("lottery-hint");
+
+                if (total >= 500) {
+                    lotteryBtn.disabled = false;
+                    lotteryBtn.classList.add("active");
+                    lotteryBtn.innerText = "🔮 轉動命運之輪！";
+                    lotteryHint.innerHTML = "<span style='color:#00ff66; font-weight:bold; text-shadow:0 0 5px #00ff66;'>🎉 臨界能量已滿！命運轉盤就緒！</span>";
+                } else {
+                    lotteryBtn.disabled = true;
+                    lotteryBtn.classList.remove("active");
+                    lotteryBtn.innerText = "🔒 能量不足";
+                    let shortage = 500 - total;
+                    lotteryHint.innerText = "再收集價值 " + shortage + " 元的物資即可啟動輪盤";
+                }
+            }
+        }
+
+        // 啟動大轉盤
+        function spinWheel(event) {
+            event.stopPropagation();
+            if (isSpinning) return;
+            isSpinning = true;
+
+            // 確保網頁音樂上下文已啟動 (部分瀏覽器安全性限制)
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const wheel = document.getElementById("wheel");
+            const lotteryBtn = document.getElementById("lottery-btn");
+
+            lotteryBtn.disabled = true;
+            lotteryBtn.classList.remove("active");
+            lotteryBtn.innerText = "⚡ 正在預測未來...";
+
+            const prizeIndex = Math.floor(Math.random() * prizes.length);
+            const targetPrize = prizes[prizeIndex];
+
+            const targetAngle = Math.floor((targetPrize.minDeg + targetPrize.maxDeg) / 2);
+            const finalRotation = 2160 + (360 - targetAngle); // 狂轉 6 圈增加期待感
+
+            wheel.style.transform = `rotate(${finalRotation}deg)`;
+
+            // 每隔一段時間發出轉動微聲，增加緊張感
+            let ticks = 0;
+            const tickInterval = setInterval(() => {
+                if (ticks < 15) {
+                    playClickSound();
+                    ticks++;
+                } else {
+                    clearInterval(tickInterval);
+                }
+            }, 200);
+
+            // 4秒旋轉結束，華麗揭曉
+            setTimeout(() => {
+                // 1. 播放高興的慶祝音效
+                playWinSound();
+
+                // 2. 高興、充滿親切感地大聲恭喜客人
+                alert("🤩 🎉 🌟 恭喜你！！！ 🌟 🎉 🤩\n\n命運之輪在全場歡呼中停下了！\n【研究所】懷著無比高興的心情宣布：\n您免費抽中了超強追加物資：【 " + targetPrize.name + " 】！\n\n這份超級好運將隨同您的訂單一起寄出，大人小孩一起嗨起來吧！✨");
+                
+                // 還原輪盤位置以便下次抽
+                wheel.style.transition = "none";
+                wheel.style.transform = `rotate(${360 - targetAngle}deg)`;
+                void wheel.offsetHeight; 
+                wheel.style.transition = "transform 4s cubic-bezier(0.1, 0.8, 0.1, 1)";
+
+                isSpinning = false;
+                updateCartUI();
+            }, 4000);
+        }
+
+        // 結帳功能
+        function checkout(event) {
+            event.stopPropagation();
+            let total = parseInt(document.getElementById("total-amount").innerText);
+
+            if (total === 0) {
+                alert("收納袋空空的，無法發射傳送電波！");
+                return;
+            }
+
+            alert("🛸 傳送門開啟！\n這趟香辣探險之旅總計花費 " + total + " 元。\n高級物資和你的抽獎贈品即將穿越時空送達，敬請期待！🌶️");
+            cart = {};
+            updateCartUI();
+        }
+    </script>
+</body>
+</html>

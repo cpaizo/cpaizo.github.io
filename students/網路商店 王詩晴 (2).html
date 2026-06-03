@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>哈基米[漫]波 - 學生專屬小天地</title>
+    <style>
+        :root {
+            --bg-color: #FDFBF7;
+            --main-color: #F4EBE1;
+            --accent-color: #D9C3B0;
+            --text-color: #5A4B41;
+            --button-color: #E6BAA3;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, "Microsoft JhengHei";
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px 40px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(217, 195, 176, 0.3);
+            border: 2px solid var(--main-color);
+        }
+
+        header h1 {
+            margin: 0 0 10px 0;
+            font-size: 2.5rem;
+            color: #4A3E3D;
+        }
+
+        header p {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #8C766B;
+        }
+
+        .shop-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            max-width: 1200px;
+            width: 100%;
+            margin-bottom: 40px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.05);
+            border: 2px solid #F0E6DF;
+            transition: transform 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .product-img {
+            width: 90px;
+            height: 90px;
+            background: #F9F6F0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+        }
+
+        .product-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .product-price {
+            font-size: 1.1rem;
+            color: #B58A63;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        /* 貓咪形狀按鈕 */
+        .cat-btn {
+            width: 75px;
+            height: 65px;
+            background-color: var(--button-color);
+            position: relative;
+            border: none;
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.1s;
+        }
+
+        .cat-btn:active {
+            transform: scale(0.95);
+        }
+
+        .cat-btn::before, .cat-btn::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-bottom: 18px solid var(--button-color);
+        }
+        .cat-btn::before { left: 6px; transform: rotate(-20deg); }
+        .cat-btn::after { right: 6px; transform: rotate(20deg); }
+
+        .cat-btn span {
+            color: white;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: block;
+            margin-top: 8px;
+            line-height: 1.2;
+        }
+
+        /* 購物車與結帳區域 */
+        .cart-section {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.05);
+            border: 2px solid var(--main-color);
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #E0D5CB;
+        }
+
+        .total-price {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #4A3E3D;
+        }
+
+        .checkout-btn {
+            background-color: #A9C2A6;
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            font-size: 1.2rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(169, 194, 166, 0.4);
+            transition: all 0.2s;
+        }
+
+        .checkout-btn:hover {
+            background-color: #93AB90;
+            transform: scale(1.05);
+        }
+
+        /* 雨特效容器 */
+        #effect-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .coin {
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            background-color: #FFD700;
+            border-radius: 50%;
+            border: 2px solid #DAA520;
+            animation: fall linear forwards;
+        }
+
+        .packet {
+            position: absolute;
+            width: 20px;
+            height: 32px;
+            background-color: #E74C3C;
+            border-radius: 3px;
+            border: 1px solid #C0392B;
+            animation: fall linear forwards;
+        }
+        .packet::after {
+            content: '¥';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: #F1C40F;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-50px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(105vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* 抽籤彈窗樣式 */
+        .draw-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .draw-container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 350px;
+            width: 100%;
+        }
+
+        /* 抽籤筒 */
+        .lucky-box {
+            width: 120px;
+            height: 180px;
+            background: #E6BAA3;
+            margin: 20px auto;
+            border-radius: 15px 15px 5px 5px;
+            position: relative;
+            border: 4px solid #D9C3B0;
+            box-shadow: inset 0 8px 0 #C8A28D;
+        }
+        .lucky-box::before {
+            content: '哈基米籤筒';
+            position: absolute;
+            top: 40%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+            writing-mode: vertical-lr;
+            letter-spacing: 4px;
+        }
+
+        /* 籤條 */
+        .stick {
+            width: 12px;
+            height: 60px;
+            background: #F4EBE1;
+            border: 2px solid #D9C3B0;
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 3px 3px 0 0;
+            display: none;
+        }
+
+        .shake-animation {
+            animation: shakeBox 0.5s ease-in-out infinite;
+        }
+
+        @keyframes shakeBox {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(-10deg); }
+            50% { transform: rotate(10deg); }
+            75% { transform: rotate(-5deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        .draw-btn {
+            background: #A9C2A6;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .draw-btn:disabled {
+            background: #CCC;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>哈基米[漫]波 🐾</h1>
+        <p>學生專屬小天地 ✨ 漫畫、吧唧便宜賣！</p>
+    </header>
+
+    <div class="shop-container">
+        <div class="product-card">
+            <div class="product-img">📚</div>
+            <div class="product-title">1. 鬼滅之刃 漫畫</div>
+            <div class="product-price">$100 元</div>
+            <button class="cat-btn" onclick="addToCart('鬼滅之刃 漫畫', 100)"><span>加購物車<br>🐾</span></button>
+        </div>
+        <div class="product-card">
+            <div class="product-img">📚</div>
+            <div class="product-title">2. 名偵探柯南 漫畫</div>
+            <div class="product-price">$110 元</div>
+            <button class="cat-btn" onclick="addToCart('名偵探柯南 漫畫', 110)"><span>加購物車<br>🐾</span></button>
+        </div>
+        <div class="product-card">
+            <div class="product-img">📚</div>
+            <div class="product-title">3. 咒術迴戰 漫畫</div>
+            <div class="product-price">$120 元</div>
+            <button class="cat-btn" onclick="addToCart('咒術迴戰 漫畫', 120)"><span>加購物車<br>🐾</span></button>
+        </div>
+        <div class="product-card">
+            <div class="product-img">🛍️</div>
+            <div class="product-title">4. 鬼滅之刃吧唧 盲袋</div>
+            <div class="product-price">$150 元 / 套</div>
+            <button class="cat-btn" onclick="addToCart('鬼滅之刃吧唧 盲袋', 150)"><span>加購物車<br>🐾</span></button>
+        </div>
+        <div class="product-card">
+            <div class="product-img">🛍️</div>
+            <div class="product-title">5. 咒術迴戰吧唧 盲袋</div>
+            <div class="product-price">$150 元 / 套</div>
+            <button class="cat-btn" onclick="addToCart('咒術迴戰吧唧 盲袋', 150)"><span>加購物車<br>🐾</span></button>
+        </div>
+    </div>
+
+    <div class="cart-section">
+        <h3>🛒 我的購物車</h3>
+        <div id="cart-items-list">
+            <p style="color: #A09085;">購物車空空如也 🐾</p>
+        </div>
+        <div class="total-price">總金額: $<span id="total-amount">0</span> 元</div>
+        <button class="checkout-btn" onclick="checkout()">確認結帳 🐾</button>
+    </div>
+
+    <div id="effect-container"></div>
+
+    <div class="draw-overlay" id="drawOverlay">
+        <div class="draw-container">
+            <h3>🎉 滿500元幸運抽籤活動 🎉</h3>
+            <p style="color:#8C766B; font-size:0.9rem;">誠心搖晃籤筒，抽取專屬折扣！</p>
+            <div class="lucky-box" id="luckyBox">
+                <div class="stick" id="luckyStick"></div>
+            </div>
+            <button class="draw-btn" id="drawBtn" onclick="startDraw()">搖筒抽籤！</button>
+        </div>
+    </div>
+
+    <script>
+        let cart = [];
+        let total = 0;
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        // 內建合成音效：清脆的貓咪「喵～」叫聲
+        function playMeow() {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'triangle';
+            // 模擬貓叫的頻率上升與下降
+            osc.frequency.setValueAtTime(850, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1250, audioCtx.currentTime + 0.12);
+            osc.frequency.exponentialRampToValueAtTime(950, audioCtx.currentTime + 0.35);
+            
+            gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.35);
+        }
+
+        // 可愛結帳提示音
+        function playChime() {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); 
+            osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); 
+            osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2); 
+            
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        }
+
+        // 購物車功能
+        function addToCart(name, price) {
+            playMeow(); // 按下去會發出貓叫聲「喵～」
+            cart.push({ name, price });
+            updateCart();
+        }
+
+        function updateCart() {
+            const list = document.getElementById('cart-items-list');
+            const totalSpan = document.getElementById('total-amount');
+            
+            if(cart.length === 0) {
+                list.innerHTML = `<p style="color: #A09085;">購物車空空如也 🐾</p>`;
+                total = 0;
+                totalSpan.innerText = total;
+                return;
+            }
+
+            list.innerHTML = '';
+            total = 0;
+            cart.forEach((item) => {
+                total += item.price;
+                list.innerHTML += `
+                    <div class="cart-item">
+                        <span>${item.name}</span>
+                        <span>$${item.price} 元</span>
+                    </div>
+                `;
+            });
+            totalSpan.innerText = total;
+        }
+
+        // 結帳邏輯
+        function checkout() {
+            if (cart.length === 0) {
+                alert("購物車裡面還沒有東西喔！🐾");
+                return;
+            }
+
+            playChime(); 
+
+            if (total >= 500) {
+                alert(`您的消費金額為 $${total} 元，已滿500元！即將進入幸運抽籤活動！ 🐾`);
+                openDrawModal();
+            } 
+            else if (total >= 300) {
+                let finalPrice = Math.round(total * 0.95);
+                alert(`🎉 恭喜觸發滿300元福利！享有95折優惠！\n折抵後金額為：$${finalPrice} 元！`);
+                startRain('coin'); 
+                resetCart();       
+            } 
+            else {
+                alert(`結帳成功！總共是 $${total} 元，謝謝光臨哈基米[漫]波！🐾`);
+                resetCart();       
+            }
+        }
+
+        function resetCart() {
+            cart = [];
+            updateCart();
+        }
+
+        // 落下特效 (固定6秒)
+        function startRain(type) {
+            const container = document.getElementById('effect-container');
+            const endTime = Date.now() + 6000;
+
+            const interval = setInterval(() => {
+                if (Date.now() > endTime) {
+                    clearInterval(interval);
+                    return;
+                }
+                const element = document.createElement('div');
+                element.classList.add(type); 
+                element.style.left = Math.random() * 100 + 'vw';
+                element.style.animationDuration = (Math.random() * 2 + 1) + 's';
+                container.appendChild(element);
+
+                setTimeout(() => element.remove(), 3000);
+            }, 80);
+        }
+
+        // --- 抽籤活動設定 ---
+        const prizes = ["打七折", "打五折", "打八五折", "打三折", "打九折", "原價付", "免費"];
+        
+        function openDrawModal() {
+            document.getElementById('drawOverlay').style.display = 'flex';
+            document.getElementById('luckyStick').style.display = 'none';
+            document.getElementById('drawBtn').disabled = false;
+        }
+
+        function startDraw() {
+            const drawBtn = document.getElementById('drawBtn');
+            const luckyBox = document.getElementById('luckyBox');
+            const luckyStick = document.getElementById('luckyStick');
+            
+            drawBtn.disabled = true;
+            luckyBox.classList.add('shake-animation');
+            
+            setTimeout(() => {
+                luckyBox.classList.remove('shake-animation');
+                luckyStick.style.display = 'block';
+                
+                const prizeIndex = Math.floor(Math.random() * prizes.length);
+                const finalPrize = prizes[prizeIndex];
+
+                setTimeout(() => {
+                    alert(`恭喜你抽到 ${finalPrize}！🐾`);
+                    document.getElementById('drawOverlay').style.display = 'none';
+                    
+                    startRain('packet'); // 下6秒紅包雨
+                    resetCart();         // 清空購物車紀錄，重新開始
+                }, 600);
+
+            }, 1500); 
+        }
+    </script>
+</body>
+</html>
