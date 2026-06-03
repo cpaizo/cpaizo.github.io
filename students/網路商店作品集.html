@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ 魔法學園 - 學生網路商店成果展 ⚡</title>
+    <style>
+        /* 🎨 延續極致大改版：遊戲關卡島嶼風格，告別死板表格超連結 */
+        body {
+            font-family: "Comic Sans MS", "Microsoft JhengHei", sans-serif;
+            background-color: #fff0f3; /* 溫柔的草莓牛奶粉色 */
+            background-image: radial-gradient(#ffccd5 2px, transparent 2px);
+            background-size: 30px 30px;
+            margin: 0;
+            padding: 30px 20px;
+            font-size: 26px;
+            color: #2b2d42;
+        }
+
+        /* 遊戲風大招牌 */
+        header {
+            text-align: center;
+            background-color: #ffde59; /* 亮黃色 */
+            border: 5px solid #000000;
+            border-radius: 35px;
+            padding: 25px;
+            max-width: 900px;
+            margin: 0 auto 40px auto;
+            transform: rotate(-1.5deg); /* 故意歪斜的漫畫風 */
+            box-shadow: 10px 10px 0px #000000;
+        }
+        
+        h1 {
+            font-size: 48px;
+            color: #7209b7; /* 魔法深紫 */
+            margin: 0 0 10px 0;
+            text-shadow: 3px 3px 0px #ffffff;
+        }
+
+        .subtitle {
+            font-size: 28px;
+            color: #f72585;
+            font-weight: bold;
+        }
+
+        /* 便利貼佈告欄 */
+        .notice-board {
+            background-color: #ffffff;
+            border: 4px solid #000000;
+            border-radius: 20px;
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto 50px auto;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 6px 6px 0px #4cc9f0;
+            transform: rotate(1deg);
+        }
+
+        /* 🗺️ 冒險關卡網格（拋棄傳統一條一條的超連結） */
+        .map-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* 📦 魔法寶箱/冒險島嶼卡片 */
+        .quest-card {
+            background-color: #ffffff;
+            border: 5px solid #000000;
+            border-radius: 30px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 8px 8px 0px #000000;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none; /* 拔掉傳統超連結的醜底線 */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        /* 每個島嶼給他不同的亮麗陰影，看起來更繽紛 */
+        .card-1 { box-shadow: 8px 8px 0px #4cc9f0; } /* 水藍 */
+        .card-2 { box-shadow: 8px 8px 0px #ff9f1c; transform: rotate(1deg); } /* 活力橘 */
+        .card-3 { box-shadow: 8px 8px 0px #52b788; transform: rotate(-1deg); } /* 草綠 */
+        .card-4 { box-shadow: 8px 8px 0px #7209b7; } /* 魔法紫 */
+
+        /* 滑鼠滑過去的動態噴發效果 */
+        .quest-card:hover {
+            transform: scale(1.05) translateY(-5px);
+        }
+        .card-1:hover { box-shadow: 12px 12px 0px #4cc9f0; }
+        .card-2:hover { box-shadow: 12px 12px 0px #ff9f1c; }
+        .card-3:hover { box-shadow: 12px 12px 0px #52b788; }
+        .card-4:hover { box-shadow: 12px 12px 0px #7209b7; }
+
+        /* 卡片內部的童趣徽章 */
+        .stage-badge {
+            background-color: #ffa64d; /* 規定的好看橘色 */
+            color: white;
+            font-size: 20px;
+            padding: 4px 15px;
+            border-radius: 12px;
+            border: 2px solid #000000;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .student-name {
+            font-size: 36px;
+            font-weight: 900;
+            color: #1a1a2e;
+            margin-bottom: 10px;
+        }
+
+        .shop-type {
+            font-size: 24px;
+            color: #6c757d;
+            margin-bottom: 25px;
+        }
+
+        /* 進入冒險的遊戲風按鈕 */
+        .btn-enter {
+            background-color: #ffde59;
+            color: #000;
+            border: 3px solid #000000;
+            border-radius: 15px;
+            padding: 10px 25px;
+            font-size: 26px;
+            font-weight: bold;
+            box-shadow: 4px 4px 0px #000000;
+            width: 80%;
+        }
+        .quest-card:hover .btn-enter {
+            background-color: #ff1493;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🚀 魔法小小創業家 🚀</h1>
+        <div class="subtitle">✨ 國小部．創意網路商店成果發表展 ✨</div>
+    </header>
+
+    <div class="notice-board">
+        🎈 點擊下方的【冒險島嶼】，一秒傳送到同學們自己設計的魔法網路商店唷！
+    </div>
+
+    <!-- 🎮 關卡地圖排列 -->
+    <div class="map-container">
+
+        <!-- 作品 1 -->
+        <a class="quest-card card-1" href="https://cpaizo.github.io/students/網路上店姵寧梓芯.html" target="_blank">
+            <div>
+                <span class="stage-badge">STAGE 01</span>
+                <div class="student-name">👑 姵寧 ＆ 梓芯</div>
+                <div class="shop-type">✨ 歡樂夢幻網路商店</div>
+            </div>
+            <button class="btn-enter">出發逛逛 ➔</button>
+        </a>
+
+        <!-- 作品 2 -->
+        <a class="quest-card card-2" href="https://cpaizo.github.io/students/網路商店--姵嫻-威宇.html" target="_blank">
+            <div>
+                <span class="stage-badge">STAGE 02</span>
+                <div class="student-name">⚡ 姵嫻 ＆ 威宇</div>
+                <div class="shop-type">🛠️ 超酷炫創意網路商店</div>
+            </div>
+            <button class="btn-enter">出發逛逛 ➔</button>
+        </a>
+
+        <!-- 作品 3 -->
+        <a class="quest-card card-3" href="https://cpaizo.github.io/students/網路商店-王詩晴.html" target="_blank">
+            <div>
+                <span class="stage-badge">STAGE 03</span>
+                <div class="student-name">🎨 王詩晴</div>
+                <div class="shop-type">🦄 繽紛色彩專賣店</div>
+            </div>
+            <button class="btn-enter">出發逛逛 ➔</button>
+        </a>
+
+        <!-- 作品 4 -->
+        <a class="quest-card card-4" href="https://cpaizo.github.io/students/衣物商店蔡承融.html" target="_blank">
+            <div>
+                <span class="stage-badge">STAGE 04</span>
+                <div class="student-name">👕 蔡承融</div>
+                <div class="shop-type">🎒 潮流衣物時尚商店</div>
+            </div>
+            <button class="btn-enter">出發逛逛 ➔</button>
+        </a>
+
+    </div>
+
+</body>
+</html>
