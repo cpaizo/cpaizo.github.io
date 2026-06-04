@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ぴょんぴょん 萌兔專賣店 🐰</title>
+    <style>
+        /* 全域可愛風字體與背景 */
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Microsoft JhengHei', sans-serif;
+            background-color: #fff5f5;
+            color: #5a4b41;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            color: #ff8b94;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px #ffe3e3;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            background-color: #ffe3e3;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            color: #ff6f6f;
+            display: inline-block;
+        }
+
+        /* 主要區塊佈局 */
+        .container {
+            display: flex;
+            max-width: 1100px;
+            width: 100%;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* 兔子商品列表 */
+        .shop-floor {
+            flex: 2;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+            min-width: 300px;
+        }
+
+        .rabbit-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 8px 16px rgba(255, 139, 148, 0.1);
+            border: 2px solid #ffe3e3;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .rabbit-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(255, 139, 148, 0.2);
+        }
+
+        .rabbit-avatar {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            background: #fff0f0;
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            line-height: 80px;
+            border-radius: 50%;
+        }
+
+        .rabbit-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #6d5c52;
+        }
+
+        .rabbit-price {
+            color: #ff6f6f;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        /* 療癒系按鈕 */
+        .btn {
+            background-color: #ffaaa5;
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #ff8b94;
+        }
+
+        /* 購物車區塊 */
+        .cart-section {
+            flex: 1;
+            background: white;
+            border-radius: 25px;
+            padding: 25px;
+            box-shadow: 0 8px 16px rgba(255, 139, 148, 0.1);
+            border: 3px dashed #ffd3b6;
+            min-width: 300px;
+            height: fit-content;
+        }
+
+        .cart-section h2 {
+            margin-top: 0;
+            color: #ff8b94;
+            border-bottom: 2px solid #ffe3e3;
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .empty-tips {
+            text-align: center;
+            color: #b5a499;
+            padding: 30px 0;
+            font-style: italic;
+        }
+
+        /* 結帳明細與優惠提示 */
+        .summary-box {
+            margin-top: 20px;
+            background-color: #fff9f9;
+            padding: 15px;
+            border-radius: 15px;
+        }
+
+        .summary-line {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 0.95rem;
+        }
+
+        .discount-text {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .gift-text {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+
+        .total-line {
+            font-size: 1.3rem;
+            color: #ff6f6f;
+            font-weight: bold;
+            border-top: 2px solid #ffe3e3;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+
+        /* 購物車控制鈕 */
+        .cart-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-clear {
+            background-color: #d5cabd;
+            flex: 1;
+        }
+        .btn-clear:hover {
+            background-color: #b5a499;
+        }
+
+        .btn-checkout {
+            background-color: #ff8b94;
+            flex: 2;
+            font-size: 1.1rem;
+        }
+        .btn-checkout:hover {
+            background-color: #ff6f6f;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🐰 ぴょんぴょん 萌兔專賣店 ✨</h1>
+        <div class="subtitle">💖 全店限時好康：滿 $4,000 直接打 5 折！買任意 2 隻兔兔就送可愛小碗！</div>
+    </header>
+
+    <div class="container">
+        <main class="shop-floor" id="shopFloor"></main>
+
+        <aside class="cart-section">
+            <h2>🛒 我的胡蘿蔔購物車</h2>
+            <div id="cartItems">
+                </div>
+            
+            <div class="summary-box">
+                <div class="summary-line">
+                    <span>總隻數：</span>
+                    <span id="totalCount">0 隻</span>
+                </div>
+                <div class="summary-line">
+                    <span>原始總額：</span>
+                    <span id="originalSubtotal">$0</span>
+                </div>
+                <div class="summary-line" id="discountRow" style="display: none;">
+                    <span>滿額優惠 (5折)：</span>
+                    <span class="discount-text" id="discountAmount">-$0</span>
+                </div>
+                <div class="summary-line" id="giftRow" style="display: none;">
+                    <span>滿隻贈品：</span>
+                    <span class="gift-text">🎁 可愛小碗 x1</span>
+                </div>
+                <div class="summary-line total-line">
+                    <span>結帳總金額：</span>
+                    <span id="finalTotal">$0</span>
+                </div>
+            </div>
+
+            <div class="cart-controls">
+                <button class="btn btn-clear" onclick="clearCart()">清空購物車</button>
+                <button class="btn btn-checkout" onclick="checkout()">立即結帳 ✨</button>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        // 兔子商品資料庫
+        const rabbits = [
+            { id: 1, name: "侏儒兔", price: 2000, emoji: "🐇" },
+            { id: 2, name: "海棠兔", price: 2000, emoji: "🐼" },
+            { id: 3, name: "安哥拉兔", price: 2000, emoji: "☁️" },
+            { id: 4, name: "迷你垂耳兔", price: 2500, emoji: "🐰" },
+            { id: 5, name: "雷克斯兔", price: 3800, emoji: "🤎" }
+        ];
+
+        // 購物車狀態 (格式: { 商品ID: 數量 })
+        let cart = {};
+
+        // 初始化：渲染商品卡片
+        function initShop() {
+            const shopFloor = document.getElementById('shopFloor');
+            shopFloor.innerHTML = rabbits.map(rabbit => `
+                <div class="rabbit-card">
+                    <div class="rabbit-avatar">${rabbit.emoji}</div>
+                    <div class="rabbit-name">${rabbit.name}</div>
+                    <div class="rabbit-price">$${rabbit.price.toLocaleString()}</div>
+                    <button class="btn" onclick="addToCart(${rabbit.id})">帶我回家 🐾</button>
+                </div>
+            `).join('');
+            updateCartUI();
+        }
+
+        // 加入購物車
+        function addToCart(id) {
+            cart[id] = (cart[id] || 0) + 1;
+            updateCartUI();
+        }
+
+        // 清空購物車
+        function clearCart() {
+            if (Object.keys(cart).length === 0) return;
+            cart = {};
+            updateCartUI();
+        }
+
+        // 更新購物車畫面與計算邏輯
+        function updateCartUI() {
+            const cartItemsContainer = document.getElementById('cartItems');
+            let totalCount = 0;
+            let originalSubtotal = 0;
+            let htmlContent = '';
+
+            // 遍歷購物車內容
+            for (let id in cart) {
+                const rabbit = rabbits.find(r => r.id == id);
+                const count = cart[id];
+                if (count > 0) {
+                    totalCount += count;
+                    originalSubtotal += rabbit.price * count;
+                    htmlContent += `
+                        <div class="cart-item">
+                            <span>${rabbit.emoji} ${rabbit.name} x ${count}</span>
+                            <span>$${(rabbit.price * count).toLocaleString()}</span>
+                        </div>
+                    `;
+                }
+            }
+
+            // 若購物車為空
+            if (totalCount === 0) {
+                cartItemsContainer.innerHTML = '<div class="empty-tips">購物車空空的，快帶隻兔兔回家陪伴你吧！🥺</div>';
+                document.getElementById('discountRow').style.display = 'none';
+                document.getElementById('giftRow').style.display = 'none';
+                document.getElementById('totalCount').innerText = '0 隻';
+                document.getElementById('originalSubtotal').innerText = '$0';
+                document.getElementById('finalTotal').innerText = '$0';
+                return;
+            }
+
+            cartItemsContainer.innerHTML = htmlContent;
+
+            // 優惠邏輯計算
+            // 1. 滿 4000 打 5 折
+            let finalTotal = originalSubtotal;
+            if (originalSubtotal >= 4000) {
+                finalTotal = originalSubtotal * 0.5;
+                document.getElementById('discountRow').style.display = 'flex';
+                document.getElementById('discountAmount').innerText = `-$${(originalSubtotal * 0.5).toLocaleString()}`;
+            } else {
+                document.getElementById('discountRow').style.display = 'none';
+            }
+
+            // 2. 買 2 隻送小碗
+            if (totalCount >= 2) {
+                document.getElementById('giftRow').style.display = 'flex';
+            } else {
+                document.getElementById('giftRow').style.display = 'none';
+            }
+
+            // 更新介面數字
+            document.getElementById('totalCount').innerText = `${totalCount} 隻`;
+            document.getElementById('originalSubtotal').innerText = `$${originalSubtotal.toLocaleString()}`;
+            document.getElementById('finalTotal').innerText = `$${finalTotal.toLocaleString()}`;
+        }
+
+        // 結帳按鈕點擊
+        function checkout() {
+            const totalCount = Object.values(cart).reduce((a, b) => a + b, 0);
+            if (totalCount === 0) {
+                alert("您的購物車還是空的唷！🐰");
+                return;
+            }
+
+            let message = "🎉 感謝您的購買！\n\n您的訂單明細：\n";
+            let originalSubtotal = 0;
+
+            for (let id in cart) {
+                const rabbit = rabbits.find(r => r.id == id);
+                message += `• ${rabbit.name} x ${cart[id]}\n`;
+                originalSubtotal += rabbit.price * cart[id];
+            }
+
+            let finalTotal = originalSubtotal;
+            if (originalSubtotal >= 4000) {
+                finalTotal = originalSubtotal * 0.5;
+                message += `\n🎁 已享有滿 $4,000 打 5 折優惠！`;
+            }
+            if (totalCount >= 2) {
+                message += `\n🎁 已獲得加贈贈品：可愛小碗 x1 ！`;
+            }
+
+            message += `\n\n實付總金額：$${finalTotal.toLocaleString()} 元`;
+            message += `\n\n我們將儘速為您安排與兔兔的見面會！❤`;
+
+            alert(message);
+            clearCart(); // 結帳成功後自動清空
+        }
+
+        // 網頁載入完成後啟動
+        window.onload = initShop;
+    </script>
+</body>
+</html>
