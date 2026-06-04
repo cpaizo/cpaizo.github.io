@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐹 萌萌倉鼠遊戲專賣店 v4.0 🐹</title>
+    <style>
+        /* 夢幻馬卡龍配色核心 */
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Microsoft JhengHei', sans-serif;
+            background-color: #fff0f5; /* 淺粉色背景 */
+            color: #4a3728;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* 成就系統頂部列 */
+        .achievement-bar {
+            background-color: #ffffff;
+            border: 3px solid #fbcfe8;
+            border-radius: 15px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 0 #fbcfe8;
+        }
+        .achievement-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #db2777;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .badges-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            background-color: #e2e8f0;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .badge.unlocked {
+            background-color: #f472b6;
+            color: white;
+            box-shadow: 0 3px 0 #db2777;
+            animation: pop 0.3s ease-out;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px;
+            background-color: #e0f2fe; /* 淺藍色標頭 */
+            border-radius: 20px;
+            box-shadow: 0 8px 0 #bae6fd;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            margin: 0;
+            color: #0284c7;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 0px #fff;
+        }
+
+        /* 遊戲大廳佈局 */
+        .game-layout {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 25px;
+        }
+        @media (max-width: 850px) {
+            .game-layout { grid-template-columns: 1fr; }
+        }
+
+        /* 商品列表區塊 */
+        .shop-floor {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .product-card {
+            background-color: #ffffff;
+            border: 3px solid #fbcfe8;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 6px 0 #fbcfe8;
+            transition: transform 0.2s;
+            position: relative;
+        }
+        .product-card:hover { transform: translateY(-5px); }
+
+        /* 倉鼠對話氣泡 */
+        .bubble {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4a3728;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 5px 5px 0;
+            border-style: solid;
+            border-color: #4a3728 transparent;
+        }
+
+        .product-emoji {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            display: inline-block;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        /* 滾輪旋轉動畫類別 */
+        .spin-wheel {
+            animation: spin 1s linear infinite;
+        }
+
+        .product-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .product-price {
+            color: #db2777;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .limit-info {
+            font-size: 0.8rem;
+            color: #f43f5e;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        /* 按鈕與計數器 */
+        .quantity-control {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn {
+            background-color: #38bdf8;
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #0284c7;
+            font-weight: bold;
+        }
+        .btn:active {
+            box-shadow: 0 1px 0 #0284c7;
+            transform: translateY(3px);
+        }
+        .btn-qty { width: 35px; height: 35px; padding: 0; border-radius: 50%; }
+        .qty-display { font-size: 1.2rem; font-weight: bold; min-width: 25px; }
+
+        /* 右側遊戲區（轉盤） */
+        .side-games {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .wheel-box {
+            background-color: #ffffff;
+            border: 3px solid #bae6fd;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 6px 0 #bae6fd;
+        }
+        .wheel-container {
+            width: 160px;
+            height: 160px;
+            margin: 15px auto;
+            border-radius: 50%;
+            border: 5px solid #38bdf8;
+            position: relative;
+            overflow: hidden;
+            transition: transform 3s cubic-bezier(0.1, 0.8, 0.3, 1);
+            background: conic-gradient(
+                #ff8a80 0deg 90deg, 
+                #ffd54f 90deg 180deg, 
+                #4dd0e1 180deg 270deg, 
+                #a78bfa 270deg 360deg
+            );
+        }
+        /* 轉盤指針 */
+        .pointer {
+            width: 0; height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 20px solid #ef4444;
+            position: absolute;
+            top: 65px; left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+        .wheel-text {
+            position: absolute;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 1px #000;
+        }
+
+        /* 購物車區塊 */
+        .cart-section {
+            background-color: #e0f2fe;
+            border: 3px solid #7dd3fc;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 6px 0 #7dd3fc;
+            transition: transform 0.2s;
+            grid-column: 1 / -1;
+        }
+        .cart-section.bump { animation: cartBump 0.3s ease-in-out; }
+        .cart-title {
+            font-size: 1.6rem;
+            color: #0369a1;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #bae6fd;
+            font-weight: bold;
+        }
+        .gift-item { color: #db2777; }
+
+        .coupon-box {
+            margin: 15px 0;
+            padding: 12px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            border: 2px dashed #7dd3fc;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .coupon-input {
+            border: 2px solid #bae6fd;
+            padding: 6px 12px;
+            border-radius: 20px;
+            flex-grow: 1;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        .btn-coupon { background-color: #0284c7; box-shadow: 0 3px 0 #0369a1; padding: 6px 15px; font-size: 0.95rem; }
+        .coupon-msg { font-size: 0.85rem; font-weight: bold; margin-top: 5px; display: none; }
+
+        .summary-box { text-align: right; font-size: 1.2rem; margin-top: 15px;}
+        .original-price { text-decoration: line-through; color: #78716c; font-size: 1rem; }
+        .final-price { color: #e11d48; font-size: 1.8rem; font-weight: bold; }
+        .cart-actions { display: flex; justify-content: flex-end; gap: 15px; margin-top: 20px; }
+        .btn-checkout { background-color: #f43f5e; box-shadow: 0 4px 0 #be123c; }
+        .btn-clear { background-color: #94a3b8; box-shadow: 0 4px 0 #64748b; }
+
+        /* 拋物線特效 */
+        .flying-emoji {
+            position: fixed;
+            font-size: 2.5rem;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.6s;
+        }
+
+        /* 滿天彩帶慶祝特效紙屑 */
+        .confetti {
+            position: fixed;
+            width: 10px; height: 10px;
+            background-color: #f472b6;
+            z-index: 9999;
+            top: -10px;
+            animation: fall 3s linear infinite;
+        }
+
+        /* 所有動畫集錦 */
+        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        @keyframes cartBump { 0% { transform: scale(1); } 30% { transform: scale(1.02) translateY(2px); } 50% { transform: scale(0.99) translateY(-2px); } 100% { transform: scale(1) translateY(0); } }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes fall {
+            0% { transform: translateY(0) rotate(0deg); left: var(--x); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); left: var(--y); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="achievement-bar">
+        <div class="achievement-title">🏆 養成與消費成就系統 <span id="achievement-count">0/4</span></div>
+        <div class="badges-container">
+            <span class="badge" id="ach-1">🔰 實習飼主 (任買一件)</span>
+            <span class="badge" id="ach-2">❤️ 愛鼠狂熱 (點擊互動5次)</span>
+            <span class="badge" id="ach-3">🎡 倉鼠樂園 (有鼠又有輪)</span>
+            <span class="badge" id="ach-4">👑 終極大富豪 (消費滿$1000)</span>
+        </div>
+    </div>
+
+    <header>
+        <h1>實裝全套功能！🐹 萌萌倉鼠遊戲專賣店</h1>
+        <div class="discount-banner">🎉 滿 650 打 5 折！買兩隻鼠送小碗！右側抽獎可得神祕折扣碼！ 🎉</div>
+    </header>
+
+    <div class="game-layout">
+        <div>
+            <div class="shop-floor">
+                <div class="product-card">
+                    <div class="bubble" id="bubble-p1">好癢唷～</div>
+                    <div class="product-emoji" id="emoji-p1" onclick="petHamster('p1')">🐹</div>
+                    <div class="product-name">老公公鼠</div>
+                    <div class="product-price">$200</div>
+                    <div class="limit-info">⚠️ 限購 5 隻</div>
+                    <div class="quantity-control">
+                        <button class="btn btn-qty" onclick="changeQty('p1', -1)">-</button>
+                        <span class="qty-display" id="qty-p1">0</span>
+                        <button class="btn btn-qty" onclick="changeQty('p1', 1, this)">+</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="bubble" id="bubble-p2">給點吃的嘛！</div>
+                    <div class="product-emoji" id="emoji-p2" onclick="petHamster('p2')">🐹</div>
+                    <div class="product-name">黃倉鼠</div>
+                    <div class="product-price">$100</div>
+                    <div class="limit-info">⚠️ 限購 5 隻</div>
+                    <div class="quantity-control">
+                        <button class="btn btn-qty" onclick="changeQty('p2', -1)">-</button>
+                        <span class="qty-display" id="qty-p2">0</span>
+                        <button class="btn btn-qty" onclick="changeQty('p2', 1, this)">+</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-emoji">🏠</div>
+                    <div class="product-name">豪華籠子</div>
+                    <div class="product-price">$300</div>
+                    <div class="limit-info">&nbsp;</div>
+                    <div class="quantity-control">
+                        <button class="btn btn-qty" onclick="changeQty('p3', -1)">-</button>
+                        <span class="qty-display" id="qty-p3">0</span>
+                        <button class="btn btn-qty" onclick="changeQty('p3', 1, this)">+</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-emoji">🌻</div>
+                    <div class="product-name">美味倉鼠飼料</div>
+                    <div class="product-price">$500</div>
+                    <div class="limit-info">&nbsp;</div>
+                    <div class="quantity-control">
+                        <button class="btn btn-qty" onclick="changeQty('p4', -1)">-</button>
+                        <span class="qty-display" id="qty-p4">0</span>
+                        <button class="btn btn-qty" onclick="changeQty('p4', 1, this)">+</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-emoji" id="wheel-emoji">🎡</div>
+                    <div class="product-name">靜音跑滾輪</div>
+                    <div class="product-price">$450</div>
+                    <div class="limit-info">&nbsp;</div>
+                    <div class="quantity-control">
+                        <button class="btn btn-qty" onclick="changeQty('p5', -1)">-</button>
+                        <span class="qty-display" id="qty-p5">0</span>
+                        <button class="btn btn-qty" onclick="changeQty('p5', 1, this)">+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="side-games">
+            <div class="wheel-box">
+                <h4 style="margin:0; color:#0284c7;">🎯 幸運試手氣轉盤</h4>
+                <div style="position:relative; width:160px; height:160px; margin:0 auto;">
+                    <div class="pointer"></div>
+                    <div class="wheel-container" id="lucky-wheel">
+                        <span class="wheel-text" style="top:20px; left:65px;">折50</span>
+                        <span class="wheel-text" style="top:70px; left:110px;">再接厲</span>
+                        <span class="wheel-text" style="top:110px; left:55px;">送磨牙</span>
+                        <span class="wheel-text" style="top:70px; left:15px;">銘謝</span>
+                    </div>
+                </div>
+                <button class="btn" id="btn-spin" onclick="spinWheel()" style="font-size:0.9rem; padding:5px 15px; margin-top:10px;">開始抽獎</button>
+                <p id="wheel-result" style="font-size:0.8rem; font-weight:bold; margin:8px 0 0 0; color:#db2777;"></p>
+            </div>
+        </div>
+
+        <div class="cart-section" id="cart-container">
+            <h3 class="cart-title">🛒 您的購物車明細</h3>
+            <div id="cart-items-list">
+                <p style="color: #888;">購物車空空如也，快去挑選可愛的商品吧！</p>
+            </div>
+            
+            <div class="coupon-box">
+                🔑 <input type="text" id="coupon-code" class="coupon-input" placeholder="請手動輸入或使用轉盤抽出的折扣碼">
+                <button class="btn btn-coupon" onclick="applyCoupon()">套用</button>
+            </div>
+            <div id="coupon-message" class="coupon-msg"></div>
+
+            <div class="summary-box">
+                <div id="original-total-display" class="original-price" style="display:none;">總計: $0</div>
+                <div id="coupon-discount-display" class="gift-item" style="display:none; font-size:1rem; font-weight:bold;">折扣碼優惠: -$0</div>
+                <div>目前總金額: <span class="final-price" id="total-price">$0</span></div>
+            </div>
+
+            <div class="cart-actions">
+                <button class="btn btn-clear" onclick="clearCart()">🧹 清空購物車</button>
+                <button class="btn btn-checkout" onclick="checkout()">💰 確認結帳</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const products = {
+        p1: { name: "老公公鼠", price: 200, qty: 0, limit: 5, emoji: "🐹" },
+        p2: { name: "黃倉鼠", price: 100, qty: 0, limit: 5, emoji: "🐹" },
+        p3: { name: "豪華籠子", price: 300, qty: 0, limit: Infinity, emoji: "🏠" },
+        p4: { name: "美味倉鼠飼料(一袋)", price: 500, qty: 0, limit: Infinity, emoji: "🌻" },
+        p5: { name: "靜音跑滾輪", price: 450, qty: 0, limit: Infinity, emoji: "🎡" }
+    };
+
+    let activeCoupon = ""; 
+    let petCount = 0; // 摸倉鼠次數計數
+    let isWheelSpun = false; // 限制只能轉一次轉盤
+    let unlockedAchievements = { ach1: false, ach2: false, ach3: false, ach4: false };
+
+    // 1. 摸摸倉鼠互動功能 (隨機變表情 + 泡泡對話)
+    const hamsterPhrases = ["啾啾！❤", "好舒服唷～", "別摸了快餵我！", "你是好主人！", "最喜歡你惹🥰"];
+    const hamsterEmojis = ["😍", "🥰", "😋", "🐹", "😗"];
+
+    function petHamster(id) {
+        petCount++;
+        const emojiEl = document.getElementById(`emoji-${id}`);
+        const bubbleEl = document.getElementById(`bubble-${id}`);
+        
+        // 隨機換表情與話語
+        emojiEl.innerText = hamsterEmojis[Math.floor(Math.random() * hamsterEmojis.length)];
+        bubbleEl.innerText = hamsterPhrases[Math.floor(Math.random() * hamsterPhrases.length)];
+        
+        bubbleEl.style.opacity = '1';
+        
+        // 1.5秒後還原
+        setTimeout(() => {
+            bubbleEl.style.opacity = '0';
+            emojiEl.innerText = "🐹";
+        }, 1500);
+
+        // 成就檢查：摸滿5次
+        if (petCount >= 5) {
+            unlockAchievement('ach-2', 'ach2');
+        }
+    }
+
+    // 2. 變更數量與拋物線動畫
+    function changeQty(id, change, buttonElement) {
+        let product = products[id];
+        let newQty = product.qty + change;
+
+        if (newQty < 0) return;
+        if (newQty > product.limit) {
+            alert(`抱歉！${product.name} 每人最多購買 ${product.limit} 隻唷！`);
+            return;
+        }
+
+        if (change > 0 && buttonElement) {
+            createFlyingEmoji(id, buttonElement);
+        }
+
+        product.qty = newQty;
+        document.getElementById(`qty-${id}`).innerText = newQty;
+        
+        // 核心動態結合：檢查是否有「鼠」又有「輪子」
+        const totalHamsters = products.p1.qty + products.p2.qty;
+        const wheelEmoji = document.getElementById('wheel-emoji');
+        if (totalHamsters > 0 && products.p5.qty > 0) {
+            wheelEmoji.classList.add('spin-wheel'); // 滾輪真正動起來！
+            unlockAchievement('ach-3', 'ach3');
+        } else {
+            wheelEmoji.classList.remove('spin-wheel');
+        }
+
+        updateCart();
+    }
+
+    // 拋物線飛入軌跡
+    function createFlyingEmoji(id, btn) {
+        const pEmoji = products[id].emoji;
+        const startRect = btn.getBoundingClientRect();
+        const cartElement = document.getElementById('cart-container');
+        const endRect = cartElement.getBoundingClientRect();
+
+        const flyer = document.createElement('div');
+        flyer.className = 'flying-emoji';
+        flyer.innerText = pEmoji;
+        flyer.style.left = `${startRect.left + window.scrollX}px`;
+        flyer.style.top = `${startRect.top + window.scrollY}px`;
+        document.body.appendChild(flyer);
+
+        setTimeout(() => {
+            const targetX = endRect.left + (endRect.width / 2) - 20;
+            const targetY = endRect.top + window.scrollY + 10;
+            flyer.style.transform = `translate(${targetX - startRect.left}px, ${targetY - startRect.top}px) scale(0.5)`;
+            flyer.style.opacity = '0.3';
+        }, 10);
+
+        setTimeout(() => {
+            flyer.remove();
+            cartElement.classList.remove('bump');
+            void cartElement.offsetWidth; 
+            cartElement.classList.add('bump');
+        }, 600);
+    }
+
+    // 3. 幸運大轉盤小遊戲
+    function spinWheel() {
+        if (isWheelSpun) {
+            document.getElementById('wheel-result').innerText = "❌ 每天只能抽獎一次唷！";
+            return;
+        }
+        isWheelSpun = true;
+        document.getElementById('btn-spin').disabled = true;
+
+        const wheel = document.getElementById('lucky-wheel');
+        // 隨機決定落點 (隨機旋轉 1440度以上 + 特定的四大區域角度)
+        // 0-90:折50元, 90-180:銘謝惠顧, 180-270:送磨牙棒, 270-360:再接再厲
+        const prizeOptions = [
+            { angle: 45, code: "HAMSTER888", text: "🎁 中獎！獲得折50折扣碼：HAMSTER888" },
+            { angle: 135, code: "", text: "😢 銘謝惠顧，下次會更好！" },
+            { angle: 225, code: "LOVEHAM", text: "🎁 中獎！獲得磨牙棒折扣碼：LOVEHAM" },
+            { angle: 315, code: "", text: "🐹 再接再厲！摸摸小鼠轉好運！" }
+        ];
+
+        const randomPrize = prizeOptions[Math.floor(Math.random() * prizeOptions.length)];
+        const totalRotation = 1800 + (360 - randomPrize.angle); // 至少轉5圈
+
+        wheel.style.transform = `rotate(${totalRotation}deg)`;
+
+        // 轉盤動畫結束 (3秒後) 顯示答案
+        setTimeout(() => {
+            document.getElementById('wheel-result').innerText = randomPrize.text;
+            if (randomPrize.code) {
+                document.getElementById('coupon-code').value = randomPrize.code;
+            }
+        }, 3000);
+    }
+
+    // 4. 成就解鎖系統與噴紙屑特效
+    function unlockAchievement(elementId, key) {
+        if (unlockedAchievements[key]) return; // 已解鎖就跳過
+        unlockedAchievements[key] = true;
+        
+        const badge = document.getElementById(elementId);
+        badge.classList.add('unlocked');
+        
+        // 更新計數
+        let count = 0;
+        for (let k in unlockedAchievements) { if (unlockedAchievements[k]) count++; }
+        document.getElementById('achievement-count').innerText = `${count}/4`;
+
+        // 噴發慶祝彩帶
+        triggerConfetti();
+    }
+
+    function triggerConfetti() {
+        for (let i = 0; i < 40; i++) {
+            const conf = document.createElement('div');
+            conf.className = 'confetti';
+            conf.style.setProperty('--x', `${Math.random() * 100}vw`);
+            conf.style.setProperty('--y', `${Math.random() * 100}vw`);
+            conf.style.backgroundColor = `hsl(${Math.random() * 360}deg, 100%, 70%)`;
+            conf.style.left = `${Math.random() * 100}vw`;
+            conf.style.animationDelay = `${Math.random() * 0.5}s`;
+            document.body.appendChild(conf);
+            
+            // 動態結束後清除，免得卡網頁
+            setTimeout(() => conf.remove(), 3000);
+        }
+    }
+
+    // 折扣碼核心邏輯
+    function applyCoupon() {
+        const input = document.getElementById('coupon-code').value.trim();
+        const msg = document.getElementById('coupon-message');
+
+        if (input === 'HAMSTER888') {
+            activeCoupon = 'CASH50';
+            msg.style.display = 'block';
+            msg.style.color = '#0369a1';
+            msg.innerText = '✅ 折扣碼成功套用：全單現折 $50 元！';
+        } else if (input === 'LOVEHAM') {
+            activeCoupon = 'GIFT';
+            msg.style.display = 'block';
+            msg.style.color = '#0369a1';
+            msg.innerText = '✅ 折扣碼成功套用：免費加贈【點心磨牙棒 x 1】！';
+        } else if (input === '') {
+            activeCoupon = '';
+            msg.style.display = 'none';
+        } else {
+            activeCoupon = '';
+            msg.style.display = 'block';
+            msg.style.color = '#e11d48';
+            msg.innerText = '❌ 哎呀，這個折扣碼不正確唷！';
+        }
+        updateCart();
+    }
+
+    // 更新購物車顯示與金額計算
+    function updateCart() {
+        const listContainer = document.getElementById('cart-items-list');
+        const totalDisplay = document.getElementById('total-price');
+        const originalDisplay = document.getElementById('original-total-display');
+        const couponDisplay = document.getElementById('coupon-discount-display');
+        
+        listContainer.innerHTML = '';
+        let subtotal = 0;
+        let totalHamsters = 0;
+        let hasItems = false;
+
+        for (let id in products) {
+            let p = products[id];
+            if (p.qty > 0) {
+                hasItems = true;
+                subtotal += p.price * p.qty;
+                if (id === 'p1' || id === 'p2') totalHamsters += p.qty;
+
+                listContainer.innerHTML += `
+                    <div class="cart-item">
+                        <span>${p.name} x ${p.qty}</span>
+                        <span>$${p.price * p.qty}</span>
+                    </div>
+                `;
+            }
+        }
+
+        // 成就檢查：實習飼主 (買任一商品)
+        if (hasItems) unlockAchievement('ach-1', 'ach1');
+
+        let finalTotal = subtotal;
+        if (subtotal >= 650) {
+            finalTotal = subtotal * 0.5;
+            originalDisplay.style.display = 'block';
+            originalDisplay.innerText = `原價總計: $${subtotal} (已享5折優惠!)`;
+        } else {
+            originalDisplay.style.display = 'none';
+        }
+
+        if (hasItems && activeCoupon === 'CASH50') {
+            finalTotal = Math.max(0, finalTotal - 50);
+            couponDisplay.style.display = 'block';
+            couponDisplay.innerText = `折扣碼優惠: 現折 -$50 元`;
+        } else {
+            couponDisplay.style.display = 'none';
+        }
+
+        // 買兩隻倉鼠送小碗
+        if (totalHamsters >= 2) {
+            let giftCount = Math.floor(totalHamsters / 2);
+            listContainer.innerHTML += `
+                <div class="cart-item gift-item">
+                    <span>🎁 滿額贈品：精美小碗 x ${giftCount}</span>
+                    <span>$0 (免費!)</span>
+                </div>
+            `;
+        }
+
+        if (hasItems && activeCoupon === 'GIFT') {
+            listContainer.innerHTML += `
+                <div class="cart-item gift-item">
+                    <span>🎁 折扣贈品：點心磨牙棒 x 1</span>
+                    <span>$0 (免費!)</span>
+                </div>
+            `;
+        }
+
+        // 成就檢查：終極大富豪 (折扣後滿 1000)
+        if (finalTotal >= 1000) {
+            unlockAchievement('ach-4', 'ach4');
+        }
+
+        if (!hasItems) {
+            listContainer.innerHTML = `<p style="color: #888;">購物車空空如也，快去挑選可愛的商品吧！</p>`;
+            couponDisplay.style.display = 'none';
+            originalDisplay.style.display = 'none';
+            finalTotal = 0;
+        }
+
+        totalDisplay.innerText = `$${finalTotal}`;
+    }
+
+    function clearCart() {
+        if (confirm("確定要清空購物車嗎？")) {
+            for (let id in products) {
+                products[id].qty = 0;
+                document.getElementById(`qty-${id}`).innerText = 0;
+            }
+            document.getElementById('coupon-code').value = '';
+            document.getElementById('coupon-message').style.display = 'none';
+            document.getElementById('wheel-emoji').classList.remove('spin-wheel');
+            activeCoupon = '';
+            updateCart();
+        }
+    }
+
+    function checkout() {
+        let hasItems = false;
+        for (let id in products) { if (products[id].qty > 0) hasItems = true; }
+
+        if (!hasItems) {
+            alert("您的購物車裡還沒有東西可以結帳唷！");
+            return;
+        }
+
+        alert("🎉 感謝您的購買！新夥伴與倉鼠用品很快就會送到您手上囉！ 🐹✨");
+        clearCart();
+    }
+</script>
+
+</body>
+</html>
