@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ 魔法學園 - 國小文具大冒險 ⚡</title>
+    <style>
+        /* 🎨 全新大改版：三欄手繪漫畫風 */
+        body {
+            font-family: "Comic Sans MS", "Microsoft JhengHei", sans-serif;
+            background-color: #f0fbfc; /* 冰天雪地粉藍色 */
+            background-image: radial-gradient(#e0f2fe 2px, transparent 2px);
+            background-size: 32px 32px;
+            margin: 0;
+            padding: 20px;
+            font-size: 24px;
+            color: #1a1a2e;
+        }
+
+        header {
+            text-align: center;
+            background-color: #ffde59;
+            border: 5px solid #000000;
+            border-radius: 30px;
+            padding: 15px;
+            max-width: 1500px;
+            margin: 0 auto 30px auto;
+            transform: rotate(-0.5deg);
+            box-shadow: 10px 10px 0px #000000;
+        }
+        
+        h1 {
+            font-size: 42px;
+            color: #ff1493;
+            margin: 0;
+            text-shadow: 3px 3px 0px #ffffff;
+        }
+
+        .promo-sticky {
+            background-color: #ff9f1c;
+            color: white;
+            padding: 15px 25px;
+            border: 4px solid #000000;
+            border-radius: 15px;
+            max-width: 1500px;
+            margin: 0 auto 30px auto;
+            font-weight: bold;
+            box-shadow: 6px 6px 0px #000000;
+            font-size: 26px;
+        }
+
+        /* 🏆 核心大翻轉：三欄式配置（左：AI視訊、中：商店、右：書包） */
+        .main-adventure-layout {
+            display: grid;
+            grid-template-columns: 4fr 5fr 4fr; /* 三欄黃金比例 */
+            gap: 25px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 1200px) {
+            .main-adventure-layout { grid-template-columns: 1fr; } /* 螢幕太小自動變單欄 */
+        }
+
+        /* 👁️ 左縱欄：AI 魔法鏡鏡頭區 */
+        .ai-zone {
+            background-color: #ffffff;
+            border: 5px solid #000000;
+            border-radius: 35px;
+            padding: 25px;
+            box-shadow: 12px 12px 0px #4361ee;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+        .ai-header {
+            font-size: 34px;
+            font-weight: 900;
+            color: #4361ee;
+            text-align: center;
+            border-bottom: 5px dashed #000;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        #webcam-container {
+            width: 100%;
+            border: 4px solid #000;
+            border-radius: 20px;
+            overflow: hidden;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            aspect-ratio: 4/3;
+        }
+        #webcam-container canvas {
+            width: 100% !important;
+            height: auto !important;
+        }
+        .ai-status-board {
+            margin-top: 20px;
+            background: #f4f7fe;
+            border: 3px solid #000;
+            border-radius: 15px;
+            padding: 15px;
+        }
+        .ai-detected-name {
+            font-size: 32px;
+            font-weight: 900;
+            color: #ff1493;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .ai-confidence-bar-container {
+            background: #ddd;
+            border: 2px solid #000;
+            border-radius: 10px;
+            height: 16px;
+            overflow: hidden;
+        }
+        .ai-confidence-bar {
+            background: #52b788;
+            width: 0%;
+            height: 100%;
+            transition: width 0.1s;
+        }
+
+        /* 中縱欄：魔法商店區 */
+        .shop-zone {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .stationery-card {
+            background: #ffffff;
+            border: 4px solid #000000;
+            border-radius: 24px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 8px 8px 0px #000000;
+            transition: all 0.2s;
+        }
+        .stationery-card:hover {
+            transform: scale(1.01);
+        }
+
+        .info-box { flex: 1; padding-right: 15px; }
+        .item-tag {
+            display: inline-block;
+            background-color: #ffa64d;
+            color: white;
+            font-size: 18px;
+            padding: 2px 10px;
+            border-radius: 10px;
+            border: 2px solid #000;
+            font-weight: bold;
+        }
+        .item-title { font-size: 32px; font-weight: 900; margin: 5px 0; color: #2b2d42; }
+        .item-desc { font-size: 20px; color: #6c757d; }
+        .item-price { font-size: 30px; color: #f72585; font-weight: 900; }
+
+        .btn-collect {
+            background-color: #4cc9f0;
+            color: black;
+            border: 3px solid #000;
+            border-radius: 50px;
+            font-size: 24px;
+            font-weight: bold;
+            padding: 12px 20px;
+            cursor: pointer;
+            box-shadow: 4px 4px 0px #000;
+            white-space: nowrap;
+        }
+        .btn-collect:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px #000; }
+
+        /* 右縱欄：🎒 隨身魔法大書包 */
+        .backpack-island {
+            background-color: #ffffff;
+            border: 5px solid #000000;
+            border-radius: 35px;
+            padding: 25px;
+            box-shadow: 12px 12px 0px #7209b7;
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+        }
+
+        .backpack-header {
+            font-size: 34px;
+            font-weight: 900;
+            color: #7209b7;
+            text-align: center;
+            border-bottom: 5px dashed #000;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .hud-board {
+            background-color: #fffdf0;
+            border: 3px solid #000;
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 4px 4px 0px #000;
+        }
+        .progress-container {
+            background-color: #eee;
+            border: 3px solid #000;
+            border-radius: 20px;
+            height: 25px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-bar {
+            background-color: #ff9f1c;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .backpack-item {
+            background: #f8f9fa;
+            border: 3px solid #000;
+            border-radius: 16px;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 3px 3px 0px #000;
+        }
+        
+        .quantity-controller {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-math {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: 2px solid #000;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 2px 2px 0px #000;
+        }
+        .btn-minus { background-color: #ff4d6d; color: white; }
+        .btn-plus { background-color: #52b788; color: white; }
+        
+        .item-qty-display {
+            font-size: 26px;
+            font-weight: bold;
+            background: #fff;
+            padding: 2px 12px;
+            border: 2px solid #000;
+            border-radius: 8px;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .island-buttons { display: flex; flex-direction: column; gap: 15px; margin-top: 25px; }
+        .btn-island-action {
+            font-size: 28px;
+            font-weight: bold;
+            padding: 12px;
+            border: 3px solid #000;
+            border-radius: 16px;
+            cursor: pointer;
+            box-shadow: 4px 4px 0px #000;
+            text-align: center;
+        }
+        .btn-island-clear { background-color: #f72585; color: white; }
+        .btn-island-go { background-color: #ff9f1c; color: black; font-size: 30px; font-weight: 900; }
+
+        /* 彈窗與輪盤系統 */
+        .receipt-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5); backdrop-filter: blur(5px);
+            justify-content: center; align-items: center; z-index: 1000;
+        }
+        .receipt-content {
+            background-color: white; border: 5px solid #000; border-radius: 30px;
+            padding: 40px; width: 90%; max-width: 650px; box-shadow: 12px 12px 0px #000;
+            position: relative;
+        }
+        .wheel-box { position: relative; width: 260px; height: 260px; margin: 20px auto; }
+        .wheel-pointer {
+            position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent;
+            border-top: 30px solid #f72585; z-index: 10;
+        }
+        .wheel {
+            width: 100%; height: 100%; border-radius: 50%; border: 5px solid #000;
+            background: conic-gradient(#ff4d6d 0deg 60deg, #ff9f1c 60deg 120deg, #4cc9f0 120deg 180deg, #4361ee 180deg 240deg, #7209b7 240deg 300deg, #f72585 300deg 360deg);
+            transition: transform 4s cubic-bezier(0.1, 0.8, 0.3, 1);
+        }
+        .wheel-label { position: absolute; width: 100%; height: 100%; text-align: center; font-size: 20px; font-weight: bold; color: #fff; text-shadow: 2px 2px 0px #000; }
+        .wl-0 { transform: rotate(30deg); } .wl-1 { transform: rotate(90deg); } .wl-2 { transform: rotate(150deg); }
+        .wl-3 { transform: rotate(210deg); } .wl-4 { transform: rotate(270deg); } .wl-5 { transform: rotate(330deg); }
+        .discount-badge { background-color: #ffa64d; color: white; font-size: 16px; padding: 2px 8px; border-radius: 6px; border: 1px solid #000; margin-left: 5px; }
+        .firework-canvas { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+        
+        .btn-ai-start {
+            width: 100%;
+            background-color: #52b788;
+            color: white;
+            font-size: 26px;
+            padding: 12px;
+            border: 3px solid #000;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 4px 4px 0px #000;
+            margin-bottom: 15px;
+        }
+        .btn-ai-start:active { transform: translate(2px, 2px); box-shadow: 0px 0px 0px #000; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+</head>
+<body>
+
+    <header>
+        <h1>⚡ 魔法學園 學生文具大冒險 ⚡</h1>
+    </header>
+
+    <div class="promo-sticky">
+        📢 <b>冒險指南：</b> 同品項買滿 <b>3 件直接打 8 折</b>！全書包滿 <span style="color:#ffde59; font-size:32px;">200 元</span> 就能解鎖「結帳幸運大輪盤」抽全單免費！可以使用左邊的 <b>AI 魔法鏡</b> 自動掃描文具喔！
+    </div>
+
+    <div class="main-adventure-layout">
+        
+        <div class="ai-zone">
+            <div class="ai-header">👁️ AI 魔法顯像鏡</div>
+            <button class="btn-ai-start" id="ai-btn" onclick="initAI()">開啟 AI 鏡頭 📷</button>
+            <div id="webcam-container"></div>
+            <div class="ai-status-board">
+                <div style="font-size: 20px; color: #666; text-align: center;">現在看見的文具是：</div>
+                <div id="ai-result-name" class="ai-detected-name">尚未啟動</div>
+                <div class="ai-confidence-bar-container">
+                    <div id="ai-confidence-bar" class="ai-confidence-bar"></div>
+                </div>
+                <div id="ai-result-conf" style="font-size: 18px; text-align: right; margin-top: 5px; font-weight: bold;">0%</div>
+            </div>
+        </div>
+        
+        <div class="shop-zone">
+            <div class="stationery-card">
+                <div class="info-box">
+                    <span class="item-tag">美勞必備</span>
+                    <div class="item-title">💄 口紅膠</div>
+                    <div class="item-desc">黏性強不沾手，美勞手作好幫手</div>
+                    <div class="item-price">35 元 / 枝</div>
+                </div>
+                <button class="btn-collect" onclick="modifyQty('口紅膠', 1, 35, '枝')">放入書包 🎒</button>
+            </div>
+
+            <div class="stationery-card">
+                <div class="info-box">
+                    <span class="item-tag">乾淨俐落</span>
+                    <div class="item-title">修正帶</div>
+                    <div class="item-desc">立可帶滑順好推，寫錯字一秒隱形</div>
+                    <div class="item-price">30 元 / 個</div>
+                </div>
+                <button class="btn-collect" onclick="modifyQty('立可帶', 1, 30, '個')">放入書包 🎒</button>
+            </div>
+
+            <div class="stationery-card">
+                <div class="info-box">
+                    <span class="item-tag">精準切割</span>
+                    <div class="item-title">🛠️ 美工刀</div>
+                    <div class="item-desc">鋒利好割好收納，美工勞作不可少</div>
+                    <div class="item-price">25 元 / 把</div>
+                </div>
+                <button class="btn-collect" onclick="modifyQty('美工刀', 1, 25, '把')">放入書包 🎒</button>
+            </div>
+
+            <div class="stationery-card">
+                <div class="info-box">
+                    <span class="item-tag">書寫流暢</span>
+                    <div class="item-title">🖋️ 原子筆</div>
+                    <div class="item-desc">滑順好寫不漏墨，做筆記最速配</div>
+                    <div class="item-price">20 元 / 枝</div>
+                </div>
+                <button class="btn-collect" onclick="modifyQty('原子筆', 1, 20, '枝')">放入書包 🎒</button>
+            </div>
+        </div>
+
+        <div class="backpack-island">
+            <div class="backpack-header">🎒 我的魔法書包</div>
+            
+            <div class="hud-board">
+                <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                    <span>目前累積金額：</span>
+                    <span id="hud-price" style="color:#7209b7; font-size:30px; font-weight:900;">0 元</span>
+                </div>
+                <div class="progress-container">
+                    <div id="hud-progress" class="progress-bar"></div>
+                </div>
+                <div id="hud-tip" style="font-size:20px; color:#ff4d6d; font-weight:bold; text-align:center;">
+                    還差 200 元，就能解鎖幸運大輪盤！
+                </div>
+            </div>
+
+            <div id="backpack-list" style="max-height: 350px; overflow-y: auto;">
+                <div style="text-align:center; color:#999; padding:20px;">書包空空的，快把文具裝進來！</div>
+            </div>
+
+            <div class="island-buttons">
+                <button class="btn-island-action btn-island-clear" onclick="clearBackpack()">🗑️ 全部倒出來</button>
+                <button class="btn-island-action btn-island-go" onclick="triggerCheckout()">💰 提著書包結帳去</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="receiptModal" class="receipt-modal">
+        <div class="receipt-content">
+            <canvas id="fireworkCanvas" class="firework-canvas"></canvas>
+            <div style="font-size:34px; font-weight:900; text-align:center; color:#ff9f1c; border-bottom:4px dashed #000; padding-bottom:10px; margin-bottom:20px;">🧾 文具結帳單</div>
+            
+            <div id="receipt-items-list" style="margin-bottom:20px;"></div>
+            
+            <div id="modal-wheel-zone" style="display:none; flex-direction:column; align-items:center; background:#fffdf0; border:3px solid #000; border-radius:20px; padding:15px; margin-bottom:20px;">
+                <div style="font-weight:bold; color:#ff9f1c; font-size:26px;">🌟 恭喜滿200元！啟動魔法大輪盤：</div>
+                <div class="wheel-box">
+                    <div class="wheel-pointer"></div>
+                    <div id="wheel" class="wheel">
+                        <div class="wheel-label wl-0" style="padding-top:12px;">免費</div>
+                        <div class="wheel-label wl-1" style="padding-top:12px;">3折</div>
+                        <div class="wheel-label wl-2" style="padding-top:12px;">5折</div>
+                        <div class="wheel-label wl-3" style="padding-top:12px;">6折</div>
+                        <div class="wheel-label wl-4" style="padding-top:12px;">7折</div>
+                        <div class="wheel-label wl-5" style="padding-top:12px;">2折</div>
+                    </div>
+                </div>
+                <button id="spin-btn" class="btn-collect" style="width:80%; background:#ff9f1c;" onclick="startSpinning()">點我瘋狂大轉盤！</button>
+                <div id="wheel-result-msg" style="margin-top:10px; font-weight:bold; font-size:32px; color:#2a9d8f;"></div>
+            </div>
+
+            <div id="receipt-final-price" style="text-align:right; font-size:34px; font-weight:900; color:#ff1493; border-top:4px dashed #000; padding-top:15px;"></div>
+            
+            <button id="close-modal-btn" class="btn-island-action btn-island-go" style="width:100%; margin-top:20px; background:#4361ee; color:white;" onclick="closeAndReset()">檢查完畢，背書包回家</button>
+        </div>
+    </div>
+
+    <script>
+        // Teachable Machine 模型網址
+        const URL = "https://teachablemachine.withgoogle.com/models/srGU6vVvw/";
+        let model, webcam, maxPredictions;
+        let isAiActive = false;
+
+        // 用於控制 AI 重複觸發自動塞購物車的防滑閥 (Cool Down) 機制
+        let lastDetectedItem = "";
+        let lastDetectedTime = 0;
+
+        let backpack = {};
+        let voicePlayed = {};
+        let finalCalculateTotal = 0;
+        let wheelDiscount = { text: "無折扣", factor: 1 };
+
+        const wheelPrizes = [
+            { text: "【全單免費大宇宙獎！】", factor: 0, minDeg: 0, maxDeg: 60 },
+            { text: "【幸運爆發：3折】", factor: 0.3, minDeg: 60, maxDeg: 120 },
+            { text: "【好運連連：5折】", factor: 0.5, minDeg: 120, maxDeg: 180 },
+            { text: "【天天開心：6折】", factor: 0.6, minDeg: 180, maxDeg: 240 },
+            { text: "【再接再厲：7折】", factor: 0.7, minDeg: 240, maxDeg: 300 },
+            { text: "【驚喜大藏寶：2折】", factor: 0.2, minDeg: 300, maxDeg: 360 }
+        ];
+
+        const speechData = {
+            '口紅膠': "口紅膠，一枝三十五元。", '立可帶': "立可帶，一個三十 Debbie 元。",        
+            '美工刀': "美工刀，一把二十五元。", '原子筆': "原子筆，一枝二十元。"
+        };
+        
+        // 商品屬性對照表，供 AI 自動加進購物車時取用
+        const itemDetails = {
+            '口紅膠': { price: 35, unit: '枝' },
+            '立可帶': { price: 30, unit: '個' },
+            '美工刀': { price: 25, unit: '把' },
+            '原子筆': { price: 20, unit: '枝' }
+        };
+
+        // 🧠 初始化 AI 模型的函式
+        async function initAI() {
+            if(isAiActive) return;
+            const btn = document.getElementById('ai-btn');
+            btn.innerText = "正在召喚 AI 魔法中...";
+            btn.disabled = true;
+
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
+
+            try {
+                model = await tmImage.load(modelURL, metadataURL);
+                maxPredictions = model.getTotalClasses();
+
+                // 設定 Web Cam (寬 400, 高 300，支援前/後鏡頭翻轉)
+                const flip = true; 
+                webcam = new tmImage.Webcam(400, 300, flip);
+                await webcam.setup(); 
+                await webcam.play();
+                
+                document.getElementById("webcam-container").appendChild(webcam.canvas);
+                btn.innerText = "AI 魔法鏡已啟動 ✨";
+                isAiActive = true;
+                
+                // 啟動影像更新迴圈
+                window.requestAnimationFrame(loop);
+            } catch (e) {
+                alert("無法啟動攝影機，請檢查瀏覽器是否封鎖了權限喔！");
+                btn.innerText = "啟動失敗，再試一次";
+                btn.disabled = false;
+            }
+        }
+
+        async function loop() {
+            if(isAiActive) {
+                webcam.update(); 
+                await predict();
+                window.requestAnimationFrame(loop);
+            }
+        }
+
+        // 🔮 即時進行影像辨識預測
+        async function predict() {
+            const prediction = await model.predict(webcam.canvas);
+            
+            let highestClass = "";
+            let highestProbability = 0;
+
+            // 尋找當下辨識信心度最高的分類
+            for (let i = 0; i < maxPredictions; i++) {
+                if(prediction[i].probability > highestProbability) {
+                    highestProbability = prediction[i].probability;
+                    highestClass = prediction[i].className;
+                }
+            }
+
+            // 更新左側的介面板
+            const displayBar = document.getElementById("ai-confidence-bar");
+            const displayName = document.getElementById("ai-result-name");
+            const displayConf = document.getElementById("ai-result-conf");
+
+            let percentage = Math.round(highestProbability * 100);
+            displayBar.style.width = percentage + "%";
+            displayConf.innerText = percentage + "%";
+
+            // 如果辨識出來的是背景，就顯示尋找中
+            if(highestClass === "背景" || highestClass === "Background") {
+                displayName.innerText = "👀 尋找文具中...";
+                displayName.style.color = "#6c757d";
+                displayBar.style.backgroundColor = "#95a5a6";
+                lastDetectedItem = ""; // 清空，離開鏡頭後可以再次放同個物品
+            } else {
+                displayName.innerText = "🎯 發現：" + highestClass;
+                displayName.style.color = "#ff1493";
+                displayBar.style.backgroundColor = "#52b788";
+
+                // 🔥 核心自動化：當信心指數大於 85%，且在 2 秒內沒有重置或重複觸發，就自動加入書包！
+                if(highestProbability > 0.85) {
+                    let now = Date.now();
+                    if(highestClass !== lastDetectedItem || (now - lastDetectedTime > 2000)) {
+                        if(itemDetails[highestClass]) {
+                            modifyQty(highestClass, 1, itemDetails[highestClass].price, itemDetails[highestClass].unit);
+                            lastDetectedItem = highestClass;
+                            lastDetectedTime = now;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 💡 核心加減功能與即時更新
+        function modifyQty(name, amount, price, unit) {
+            if (!backpack[name]) {
+                if (amount < 0) return;
+                backpack[name] = { price: price, count: 0, unit: unit };
+            }
+            
+            backpack[name].count += amount;
+            
+            if (amount > 0 && !voicePlayed[name]) {
+                playVoice(name);
+                voicePlayed[name] = true;
+            }
+
+            if (backpack[name].count <= 0) {
+                delete backpack[name];
+            }
+            
+            renderBackpack();
+        }
+
+        function renderBackpack() {
+            const listDiv = document.getElementById('backpack-list');
+            let html = '';
+            let currentSum = 0;
+            let hasItem = false;
+
+            for (let name in backpack) {
+                hasItem = true;
+                let item = backpack[name];
+                let itemCost = item.price * item.count;
+                let discountLabel = '';
+
+                if (item.count >= 3) {
+                    itemCost = Math.round(itemCost * 0.8);
+                    discountLabel = `<span class="discount-badge">滿3件8折</span>`;
+                }
+                currentSum += itemCost;
+
+                html += `
+                    <div class="backpack-item">
+                        <div style="flex:1;">
+                            <div style="font-weight:bold; font-size:24px;">${name}${discountLabel}</div>
+                            <div style="font-size:20px; color:#555;">${item.price}元 / ${item.unit}</div>
+                        </div>
+                        <div class="quantity-controller">
+                            <button class="btn-math btn-minus" onclick="modifyQty('${name}', -1, ${item.price}, '${item.unit}')">➖</button>
+                            <span class="item-qty-display">${item.count}</span>
+                            <button class="btn-math btn-plus" onclick="modifyQty('${name}', 1, ${item.price}, '${item.unit}')">➕</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            listDiv.innerHTML = hasItem ? html : '<div style="text-align:center; color:#999; padding:20px;">書包空空的，快把文具裝進來！</div>';
+            
+            document.getElementById('hud-price').innerText = currentSum + " 元";
+            let percentage = (currentSum / 200) * 100;
+            document.getElementById('hud-progress').style.width = Math.min(percentage, 100) + "%";
+
+            const tipDiv = document.getElementById('hud-tip');
+            if (currentSum >= 200) {
+                tipDiv.innerHTML = "🎉 太棒了！已突破 200 元！結帳可以抽大獎囉！";
+                tipDiv.style.color = "#52b788";
+            } else {
+                let short = 200 - currentSum;
+                tipDiv.innerHTML = `還差 <span style="font-size:24px;">${short}</span> 元，就能解鎖幸運大輪盤！`;
+                tipDiv.style.color = "#ff4d6d";
+            }
+            finalCalculateTotal = currentSum;
+        }
+
+        function playVoice(name) {
+            try {
+                window.speechSynthesis.cancel();
+                let u = new SpeechSynthesisUtterance(speechData[name]);
+                u.lang = "zh-TW"; u.rate = 0.9;
+                window.speechSynthesis.speak(u);
+            } catch(e){}
+        }
+
+        function clearBackpack() {
+            backpack = {}; voicePlayed = {}; renderBackpack(); stopFireworks();
+        }
+
+        function triggerCheckout() {
+            if (Object.keys(backpack).length === 0) { alert("書包還是空的，裝點文具再走吧！"); return; }
+            stopFireworks();
+            
+            let listHtml = '';
+            for (let name in backpack) {
+                let item = backpack[name];
+                let origCost = item.price * item.count;
+                let finalCost = origCost;
+                let promo = '';
+                if (item.count >= 3) { finalCost = Math.round(origCost * 0.8); promo = '<span style="color:#ff1493; font-size:18px;">(滿3件打8折)</span>'; }
+                listHtml += `<div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:22px;"><span>${name} x ${item.count} ${promo}</span><span>${finalCost} 元</span></div>`;
+            }
+            document.getElementById('receipt-items-list').innerHTML = listHtml;
+
+            wheelDiscount = { text: "無折扣", factor: 1 };
+            document.getElementById('wheel-result-msg').innerText = '';
+            document.getElementById('wheel').style.transform = 'rotate(0deg)';
+
+            const wheelZone = document.getElementById('modal-wheel-zone');
+            const closeBtn = document.getElementById('close-modal-btn');
+            const spinBtn = document.getElementById('spin-btn');
+
+            if (finalCalculateTotal >= 200) {
+                wheelZone.style.display = 'flex';
+                spinBtn.style.display = 'block';
+                closeBtn.style.display = 'none';
+                updateModalPriceText(true);
+            } else {
+                wheelZone.style.display = 'none';
+                closeBtn.style.display = 'block';
+                updateModalPriceText(false);
+            }
+
+            document.getElementById('receiptModal').style.display = 'flex';
+        }
+
+        function startSpinning() {
+            document.getElementById('spin-btn').style.display = 'none';
+            const rIdx = Math.floor(Math.random() * wheelPrizes.length);
+            const prize = wheelPrizes[rIdx];
+            wheelDiscount = prize;
+
+            const targetAngle = 360 - (prize.minDeg + 30);
+            const totalRotation = 1800 + targetAngle;
+            document.getElementById('wheel').style.transform = `rotate(${totalRotation}deg)`;
+
+            setTimeout(() => {
+                document.getElementById('wheel-result-msg').innerHTML = `🎉 抽中：<span style="color:#ff1493;">${prize.text}</span>`;
+                updateModalPriceText(true);
+                document.getElementById('close-modal-btn').style.display = 'block';
+                if (prize.factor === 0) startFireworks();
+            }, 4100);
+        }
+
+        function updateModalPriceText(hasWheel) {
+            const priceDiv = document.getElementById('receipt-final-price');
+            if (hasWheel) {
+                if (wheelDiscount.text !== "無折扣") {
+                    let total = Math.round(finalCalculateTotal * wheelDiscount.factor);
+                    priceDiv.innerHTML = `<div style="font-size:18px; color:#888;">原小計：${finalCalculateTotal} 元</div><div style="font-size:20px; color:#ff9f1c;">輪盤加碼：${wheelDiscount.text}</div><div style="font-size:32px; margin-top:5px;">應付總金額：${total} 元</div>`;
+                } else {
+                    priceDiv.innerHTML = `<div style="font-size:18px; color:#888;">原小計：${finalCalculateTotal} 元</div><div style="font-size:22px; color:#ff9f1c; margin-top:5px;">快點上方按鈕試手氣！</div>`;
+                }
+            } else {
+                priceDiv.innerHTML = `應付總金額：${finalCalculateTotal} 元`;
+            }
+        }
+
+        function closeAndReset() {
+            document.getElementById('receiptModal').style.display = 'none';
+            stopFireworks();
+            clearBackpack();
+        }
+
+        /* 🎆 煙火效果 */
+        let animId;
+        function startFireworks() {
+            const canvas = document.getElementById('fireworkCanvas'); const ctx = canvas.getContext('2d');
+            canvas.style.display = 'block'; canvas.width = canvas.parentElement.offsetWidth; canvas.height = canvas.parentElement.offsetHeight;
+            let particles = [];
+            class Particle {
+                constructor(x, y, color) {
+                    this.x = x; this.y = y; this.color = color; this.radius = Math.random() * 3 + 2;
+                    this.v = { x: (Math.random() - 0.5) * 8, y: (Math.random() - 0.5) * 8 }; this.alpha = 1;
+                }
+                draw() { ctx.save(); ctx.globalAlpha = this.alpha; ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fillStyle = this.color; ctx.fill(); ctx.restore(); }
+                update() { this.v.y += 0.05; this.x += this.v.x; this.y += this.v.y; this.alpha -= 0.015; }
+            }
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                if (Math.random() < 0.05) {
+                    const colors = ['#ff1493', '#4cc9f0', '#ff9f1c', '#7209b7']; const color = colors[Math.floor(Math.random() * colors.length)];
+                    for (let i = 0; i < 40; i++) particles.push(new Particle(Math.random() * canvas.width, Math.random() * (canvas.height * 0.5), color));
+                }
+                particles.forEach((p, i) => { if (p.alpha <= 0) particles.splice(i, 1); else { p.update(); p.draw(); } });
+                animId = requestAnimationFrame(animate);
+            }
+            animate();
+        }
+        function stopFireworks() { cancelAnimationFrame(animId); const canvas = document.getElementById('fireworkCanvas'); if(canvas) { canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); canvas.style.display = 'none'; } }
+    </script>
+</body>
+</html>
