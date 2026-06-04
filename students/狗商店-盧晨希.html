@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>萌寵家族 - 狗狗專賣店 (含完整送出訂單功能)</title>
+    <title>萌寵家族 - 狗狗專賣店 (100分史詩級遊戲挑戰版)</title>
     <style>
         /* 基礎樣式重設 */
         * {
@@ -105,7 +105,7 @@
             margin-bottom: 12px;
         }
 
-        /* 產品區塊標題 */
+        /* 產品區塊與標題 */
         .section-title {
             text-align: center;
             margin-bottom: 40px;
@@ -124,7 +124,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 30px;
-            margin-bottom: 60px;
+            margin-bottom: 50px;
         }
 
         .product-card {
@@ -176,7 +176,6 @@
             display: inline-block;
         }
 
-        /* 按鈕 */
         .btn-add-cart {
             display: block;
             width: 100%;
@@ -196,6 +195,93 @@
             background-color: #d35400;
         }
 
+        /* 🐶 狗狗小遊戲專屬樣式區 🐶 */
+        .game-section {
+            background-color: #fff5f0;
+            border: 2px dashed #e59866;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        #game-board {
+            width: 100%;
+            max-width: 500px;
+            height: 350px;
+            background-color: #fcf6f2;
+            border: 3px solid #5d4037;
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            cursor: none; /* 隱藏滑鼠指針，用狗碗代替 */
+        }
+
+        #game-basket {
+            width: 90px; /* 稍微加大一點點，方便衝刺100分 */
+            height: 35px;
+            background-color: #de6b48;
+            position: absolute;
+            bottom: 5px;
+            left: 205px;
+            border-radius: 5px 5px 20px 20px;
+            color: white;
+            font-size: 13px;
+            font-weight: bold;
+            line-height: 35px;
+            text-align: center;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+        }
+
+        .falling-bone {
+            position: absolute;
+            font-size: 28px;
+            user-select: none;
+        }
+
+        .game-status-bar {
+            display: flex;
+            justify-content: space-around;
+            max-width: 500px;
+            margin: 0 auto;
+            font-weight: bold;
+            font-size: 16px;
+            color: #5d4037;
+        }
+
+        .btn-game-ctrl {
+            background-color: #5d4037;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            font-size: 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .btn-game-ctrl:hover {
+            background-color: #422c26;
+        }
+
+        .coupon-badge {
+            display: inline-block;
+            background-color: #2ecc71;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-top: 10px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
         /* 側邊購物車彈出視窗 */
         .cart-modal {
             position: fixed;
@@ -212,11 +298,8 @@
             flex-direction: column;
         }
 
-        .cart-modal.open {
-            right: 0;
-        }
+        .cart-modal.open { right: 0; }
 
-        /* 購物車遮罩背景 */
         .cart-overlay {
             position: fixed;
             top: 0;
@@ -228,9 +311,7 @@
             display: none;
         }
 
-        .cart-overlay.open {
-            display: block;
-        }
+        .cart-overlay.open { display: block; }
 
         .cart-header {
             padding: 20px;
@@ -249,7 +330,6 @@
             cursor: pointer;
         }
 
-        /* 購物車內容物清單 */
         .cart-body {
             padding: 20px;
             flex-grow: 1;
@@ -304,14 +384,9 @@
             margin-left: 10px;
         }
 
-        /* 結帳表單樣式 */
-        .checkout-form {
-            display: none;
-        }
+        .checkout-form { display: none; }
 
-        .form-group {
-            margin-bottom: 15px;
-        }
+        .form-group { margin-bottom: 15px; }
 
         .form-group label {
             display: block;
@@ -340,7 +415,6 @@
             font-size: 13px;
         }
 
-        /* 成功收據樣式 */
         .receipt-view {
             display: none;
             text-align: center;
@@ -376,7 +450,6 @@
             margin-bottom: 6px;
         }
 
-        /* 購物車底部結帳區 */
         .cart-footer {
             padding: 20px;
             border-top: 1px solid #eee;
@@ -388,8 +461,17 @@
             justify-content: space-between;
             font-size: 18px;
             font-weight: bold;
-            margin-bottom: 15px;
+            margin-bottom: 5px;
             color: #333;
+        }
+
+        .discount-line {
+            display: flex;
+            justify-content: space-between;
+            font-size: 15px;
+            color: #2ecc71;
+            font-weight: bold;
+            margin-bottom: 15px;
         }
 
         .btn-checkout, .btn-submit-order, .btn-copy {
@@ -411,25 +493,12 @@
             background-color: #2ecc71;
             transition: background-color 0.2s;
         }
+        .btn-submit-order:hover { background-color: #27ae60; }
+        .btn-submit-order:disabled { background-color: #bdc3c7; cursor: not-allowed; }
 
-        .btn-submit-order:hover {
-            background-color: #27ae60;
-        }
+        .btn-copy { background-color: #3498db; margin-top: 15px; }
+        .btn-copy:hover { background-color: #2980b9; }
 
-        .btn-submit-order:disabled {
-            background-color: #bdc3c7;
-            cursor: not-allowed;
-        }
-
-        .btn-copy {
-            background-color: #3498db;
-            margin-top: 15px;
-        }
-        .btn-copy:hover {
-            background-color: #2980b9;
-        }
-
-        /* 頁尾 */
         footer {
             background-color: #5d4037;
             color: #fdfbf7;
@@ -443,9 +512,9 @@
 
     <header>
         <div class="container header-content">
-            <a href="file:///D:/%E7%9B%A7%E6%99%A8%E6%9B%A6/%E7%8B%97.html#" class="logo">🐾 萌寵角落專賣店</a>
+            <a href="#" class="logo">🐾 萌寵角落專賣店</a>
             <nav>
-                <a href="file:///D:/%E7%9B%A7%E6%99%A8%E6%9B%A6/%E7%8B%97.html#">首頁</a>
+                <a href="#">首頁</a>
                 <a href="#">熱門幼犬</a>
                 <button class="cart-icon-btn" id="cart-toggle-btn">
                     🛒 購物車 <span class="cart-count" id="cart-count">0</span>
@@ -502,6 +571,26 @@
                 </div>
             </div>
         </div>
+
+        <section class="game-section">
+            <div class="section-title" style="margin-bottom: 10px;">
+                <h2>🐾 挑戰 100 分接骨頭大作戰</h2>
+                <p style="color: #7f8c8d; font-size: 14px; margin-top: 5px;">左右移動滑鼠控制狗碗，挑戰極限接滿 100 根骨頭，即可獲得 1000 元購犬折價券！</p>
+                <div id="coupon-status-container"></div>
+            </div>
+
+            <div class="game-status-bar">
+                <div>得分: <span id="game-score" style="color:#de6b48;">0</span> / 100</div>
+                <div>生命值: <span id="game-lives" style="color:#c0392b;">❤️❤️❤️</span></div>
+            </div>
+
+            <div id="game-board">
+                <div id="game-basket">🦴 狗碗</div>
+            </div>
+
+            <button class="btn-game-ctrl" id="btn-start-game" onclick="startGame()">開始 100 分魔王挑戰</button>
+        </section>
+
     </main>
 
     <div class="cart-overlay" id="cart-overlay"></div>
@@ -546,6 +635,10 @@
         </div>
 
         <div class="cart-footer" id="cart-footer-actions">
+            <div class="discount-line" id="cart-discount-row" style="display: none;">
+                <span>小遊戲折價券:</span>
+                <span>- NT$ 1,000</span>
+            </div>
             <div class="cart-total">
                 <span>總計金額:</span>
                 <span id="cart-total-amount">NT$ 0</span>
@@ -562,8 +655,10 @@
     </footer>
 
     <script>
+        // --- 購物車與結帳核心變數 ---
         let cart = [];
-        let globalRawText = ""; // 用來暫存要複製的純文字訂單明細
+        let globalRawText = ""; 
+        let hasCoupon = false; 
 
         const cartModal = document.getElementById('cart-modal');
         const cartOverlay = document.getElementById('cart-overlay');
@@ -573,6 +668,7 @@
         const cartCount = document.getElementById('cart-count');
         const cartTotalAmount = document.getElementById('cart-total-amount');
         const addToCartButtons = document.querySelectorAll('.btn-add-cart');
+        const cartDiscountRow = document.getElementById('cart-discount-row');
 
         const modalTitle = document.getElementById('modal-title');
         const cartListView = document.getElementById('cart-list-view');
@@ -582,6 +678,143 @@
         const btnSubmitOrder = document.getElementById('btn-submit-order');
         const cartFooterActions = document.getElementById('cart-footer-actions');
 
+        // --- 🐶 狗狗小遊戲邏輯引擎（100分大挑戰版） 🐶 ---
+        const gameBoard = document.getElementById('game-board');
+        const gameBasket = document.getElementById('game-basket');
+        const gameScoreText = document.getElementById('game-score');
+        const gameLivesText = document.getElementById('game-lives');
+        const btnStartGame = document.getElementById('btn-start-game');
+        const couponStatusContainer = document.getElementById('coupon-status-container');
+
+        let gameScore = 0;
+        let gameLives = 3;
+        let gameActive = false;
+        let boneSpawnInterval;
+        let boneMoveTimeout;
+        let activeBones = [];
+
+        // 狗碗隨滑鼠移動
+        gameBoard.addEventListener('mousemove', (e) => {
+            if (!gameActive) return;
+            const boardRect = gameBoard.getBoundingClientRect();
+            let relativeX = e.clientX - boardRect.left - (gameBasket.offsetWidth / 2);
+            
+            if (relativeX < 0) relativeX = 0;
+            if (relativeX > boardRect.width - gameBasket.offsetWidth) {
+                relativeX = boardRect.width - gameBasket.offsetWidth;
+            }
+            gameBasket.style.left = relativeX + 'px';
+        });
+
+        function startGame() {
+            if (gameActive) return;
+            
+            gameScore = 0;
+            gameLives = 3;
+            gameActive = true;
+            activeBones.forEach(b => b.remove());
+            activeBones = [];
+            
+            gameScoreText.innerText = gameScore;
+            gameLivesText.innerText = "❤️❤️❤️";
+            btnStartGame.innerText = "全力衝刺中...";
+            btnStartGame.disabled = true;
+
+            // 加快生成速度至 500ms 一根骨頭，讓 100 分拿得更流暢、更過癮
+            boneSpawnInterval = setInterval(spawnBone, 500);
+            gameLoop();
+        }
+
+        function spawnBone() {
+            if (!gameActive) return;
+            const bone = document.createElement('div');
+            bone.className = 'falling-bone';
+            bone.innerText = '🦴';
+            bone.style.top = '0px';
+            
+            const boardWidth = gameBoard.offsetWidth;
+            const randomX = Math.floor(Math.random() * (boardWidth - 30));
+            bone.style.left = randomX + 'px';
+            
+            gameBoard.appendChild(bone);
+            activeBones.push(bone);
+        }
+
+        function gameLoop() {
+            if (!gameActive) return;
+
+            const boardHeight = gameBoard.offsetHeight;
+            const basketTop = gameBasket.offsetTop;
+            const basketLeft = gameBasket.offsetLeft;
+            const basketRight = basketLeft + gameBasket.offsetWidth;
+
+            for (let i = activeBones.length - 1; i >= 0; i--) {
+                const bone = activeBones[i];
+                let currentTop = parseInt(bone.style.top);
+                currentTop += 5.5; // 稍微提升落下的速度，增加刺激感
+                bone.style.top = currentTop + 'px';
+
+                // 碰撞偵測（是否被狗碗接住）
+                if (currentTop >= basketTop - 20 && currentTop <= basketTop + 10) {
+                    const boneLeft = bone.offsetLeft;
+                    if (boneLeft >= basketLeft - 15 && boneLeft <= basketRight) {
+                        gameScore++;
+                        gameScoreText.innerText = gameScore;
+                        bone.remove();
+                        activeBones.splice(i, 1);
+
+                        // 歷史性的時刻：改為需要 100 分才能獲勝！
+                        if (gameScore >= 100) {
+                            endGame(true);
+                            return;
+                        }
+                        continue;
+                    }
+                }
+
+                // 落地沒接住
+                if (currentTop >= boardHeight - 30) {
+                    gameLives--;
+                    updateLivesUI();
+                    bone.remove();
+                    activeBones.splice(i, 1);
+
+                    if (gameLives <= 0) {
+                        endGame(false);
+                        return;
+                    }
+                }
+            }
+
+            boneMoveTimeout = setTimeout(gameLoop, 20);
+        }
+
+        function updateLivesUI() {
+            let hearts = "";
+            for(let i=0; i<gameLives; i++) hearts += "❤️";
+            if(hearts === "") hearts = "❌ 挑戰失敗";
+            gameLivesText.innerText = hearts;
+        }
+
+        function endGame(isWin) {
+            gameActive = false;
+            clearInterval(boneSpawnInterval);
+            clearTimeout(boneMoveTimeout);
+            btnStartGame.disabled = false;
+            btnStartGame.innerText = "再次挑戰100分大關";
+
+            if (isWin) {
+                hasCoupon = true;
+                alert('🏆 太強了！！你竟然成功突破 100 分魔王關卡！\n1,000 元購犬折價券已自動套用到您的購物車！');
+                couponStatusContainer.innerHTML = `<span class="coupon-badge">🎉 榮獲 100分終極大獎：1,000元折價券 ✓</span>`;
+                updateCartUI(); 
+            } else {
+                alert('😭 差一點點！接滿 100 根骨頭確實不容易。擦乾眼淚，再按一次按鈕發起挑戰吧！');
+            }
+        }
+
+
+        // --- 購物車與視窗切換邏輯區 ---
         function toggleCart() {
             cartModal.classList.toggle('open');
             cartOverlay.classList.toggle('open');
@@ -646,6 +879,7 @@
                 cartItemsContainer.innerHTML = '<p class="cart-empty-msg">購物車目前是空的 🐾</p>';
                 cartCount.innerText = '0';
                 cartTotalAmount.innerText = 'NT$ 0';
+                cartDiscountRow.style.display = "none";
                 return;
             }
 
@@ -673,6 +907,14 @@
                 cartItemsContainer.insertAdjacentHTML('beforeend', itemHTML);
             });
 
+            if (hasCoupon) {
+                cartDiscountRow.style.display = "flex";
+                totalPrice = totalPrice - 1000;
+                if (totalPrice < 0) totalPrice = 0; 
+            } else {
+                cartDiscountRow.style.display = "none";
+            }
+
             cartCount.innerText = totalQuantity;
             cartTotalAmount.innerText = `NT$ ${totalPrice.toLocaleString()}`;
         }
@@ -698,7 +940,6 @@
             switchView('checkout');
         }
 
-        // 送出訂單（含網頁動態載入模擬功能）
         function submitOrder() {
             const name = document.getElementById('cust-name').value.trim();
             const phone = document.getElementById('cust-phone').value.trim();
@@ -709,15 +950,13 @@
                 return;
             }
 
-            // 1. 進入傳送中狀態，停用按鈕並顯示動畫
             btnSubmitOrder.disabled = true;
             btnSubmitOrder.innerText = '⏳ 訂單傳送中，請稍候...';
 
-            // 2. 模擬非同步傳送延遲 1.5 秒
             setTimeout(() => {
                 let totalPrice = 0;
                 let itemsDetailsHTML = '';
-                let rawTextItems = ''; // 用於剪貼簿的純文字明細
+                let rawTextItems = ''; 
 
                 cart.forEach(item => {
                     totalPrice += item.price * item.quantity;
@@ -730,9 +969,16 @@
                     rawTextItems += `• ${item.name} x ${item.quantity} (NT$ ${(item.price * item.quantity).toLocaleString()})\n`;
                 });
 
+                let finalPrice = totalPrice;
+                let couponText = "無";
+                if (hasCoupon) {
+                    finalPrice = totalPrice - 1000;
+                    if (finalPrice < 0) finalPrice = 0;
+                    couponText = "- NT$ 1,000 (已折抵)";
+                }
+
                 const orderId = 'DOG' + Date.now().toString().slice(-8);
 
-                // 儲存文字格式供複製
                 globalRawText = `【🐾 萌寵角落專賣店 - 新預約訂單】\n`;
                 globalRawText += `訂單編號：${orderId}\n`;
                 globalRawText += `訂購人：${name}\n`;
@@ -740,10 +986,10 @@
                 globalRawText += `預約賞犬日：${date}\n`;
                 globalRawText += `-----------------------\n`;
                 globalRawText += rawTextItems;
+                if (hasCoupon) globalRawText += `100分挑戰折價券：${couponText}\n`;
                 globalRawText += `-----------------------\n`;
-                globalRawText += `總計金額：NT$ ${totalPrice.toLocaleString()} 元`;
+                globalRawText += `總計金額：NT$ ${finalPrice.toLocaleString()} 元`;
 
-                // 渲染收據畫面
                 const receiptContent = document.getElementById('receipt-content');
                 receiptContent.innerHTML = `
                     <h4>訂單明細 (編號：${orderId})</h4>
@@ -752,14 +998,14 @@
                     <div class="receipt-line"><strong>預約賞犬日：</strong><span>${date}</span></div>
                     <hr style="border: none; border-top: 1px dashed #ddd; margin: 10px 0;">
                     ${itemsDetailsHTML}
+                    ${hasCoupon ? `<div class="receipt-line" style="color:#2ecc71;"><strong>100分挑戰折價：</strong><span>- NT$ 1,000</span></div>` : ''}
                     <hr style="border: none; border-top: 1px dashed #ddd; margin: 10px 0;">
                     <div class="receipt-line" style="font-weight: bold; color: #de6b48; font-size: 16px;">
                         <span>總計金額：</span>
-                        <span>NT$ ${totalPrice.toLocaleString()}</span>
+                        <span>NT$ ${finalPrice.toLocaleString()}</span>
                     </div>
                 `;
 
-                // 3. 還原按鈕狀態並切換到完成頁面
                 btnSubmitOrder.disabled = false;
                 btnSubmitOrder.innerText = '確認送出訂單';
                 switchView('receipt');
@@ -767,7 +1013,6 @@
             }, 1500);
         }
 
-        // 一鍵複製到系統剪貼簿
         function copyOrderText() {
             if (!globalRawText) return;
             navigator.clipboard.writeText(globalRawText).then(() => {
