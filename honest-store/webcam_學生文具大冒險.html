@@ -461,6 +461,9 @@
         let lastDetectedItem = "";
         let lastDetectedTime = 0;
 
+        // 🆕 用於紀錄每個品項被 AI 成功識別加入的次數計數器
+        let itemDetectionCounts = {};
+
         let backpack = {};
         let voicePlayed = {};
         let finalCalculateTotal = 0;
@@ -469,14 +472,14 @@
         const wheelPrizes = [
             { text: "【全單免費大宇宙獎！】", factor: 0, minDeg: 0, maxDeg: 60 },
             { text: "【幸運爆發：3折】", factor: 0.3, minDeg: 60, maxDeg: 120 },
-            { text: "【好運連連：5折】", factor: 0.5, minDeg: 120, maxDeg: 180 },
+            { text: "【好運連连：5折】", factor: 0.5, minDeg: 120, maxDeg: 180 },
             { text: "【天天開心：6折】", factor: 0.6, minDeg: 180, maxDeg: 240 },
             { text: "【再接再厲：7折】", factor: 0.7, minDeg: 240, maxDeg: 300 },
             { text: "【驚喜大藏寶：2折】", factor: 0.2, minDeg: 300, maxDeg: 360 }
         ];
 
         const speechData = {
-            '口紅膠': "口紅膠，一枝三十五元。", '立可帶': "立可帶，一個三十 Debbie 元。",        
+            '口紅膠': "口紅膠，一枝三十五元。", '立可帶': "立可帶，一個三十元。",        
             '美工刀': "美工刀，一把二十五元。", '原子筆': "原子筆，一枝二十元。"
         };
         
@@ -487,6 +490,30 @@
             '美工刀': { price: 25, unit: '把' },
             '原子筆': { price: 20, unit: '枝' }
         };
+
+        // 🔊 利用 Web Audio API 實時合成超商條碼槍「嗶」短音的函式
+        function playBeepSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(1200, audioCtx.currentTime); // 1200Hz 的清脆高音
+                gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime); // 設置合適的音量大小
+
+                // 聲音播放 0.1 秒後快速成指數型衰減淡出
+                gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.1);
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.1);
+            } catch (e) {
+                console.log("Audio Error: 瀏覽器音訊受限或尚未與使用者互動");
+            }
+        }
 
         // 🧠 初始化 AI 模型的函式
         async function initAI() {
@@ -569,6 +596,19 @@
                     let now = Date.now();
                     if(highestClass !== lastDetectedItem || (now - lastDetectedTime > 2000)) {
                         if(itemDetails[highestClass]) {
+                            
+                            // 🆕 累加該商品被偵測加入的次數
+                            if (!itemDetectionCounts[highestClass]) {
+                                itemDetectionCounts[highestClass] = 1;
+                            } else {
+                                itemDetectionCounts[highestClass]++;
+                            }
+
+                            // 🆕 核心邏輯修改：只要次數大於等於 2 (第 2 次開始)，每次增加都要嗶一聲
+                            if (itemDetectionCounts[highestClass] >= 2) {
+                                playBeepSound();
+                            }
+
                             modifyQty(highestClass, 1, itemDetails[highestClass].price, itemDetails[highestClass].unit);
                             lastDetectedItem = highestClass;
                             lastDetectedTime = now;
@@ -587,6 +627,7 @@
             
             backpack[name].count += amount;
             
+            // 只有在第一次加入該物品（且不是手動加減產生的語音干擾）時播放語音讀報
             if (amount > 0 && !voicePlayed[name]) {
                 playVoice(name);
                 voicePlayed[name] = true;
@@ -644,7 +685,7 @@
                 tipDiv.style.color = "#52b788";
             } else {
                 let short = 200 - currentSum;
-                tipDiv.innerHTML = `還差 <span style="font-size:24px;">${short}</span> 元，就能解鎖幸運大輪盤！`;
+                tipDiv.innerHTML = `還差 <span style="font-size:24px;">${short}</span> 元，就能解鎖幸幸大輪盤！`;
                 tipDiv.style.color = "#ff4d6d";
             }
             finalCalculateTotal = currentSum;
@@ -660,7 +701,11 @@
         }
 
         function clearBackpack() {
-            backpack = {}; voicePlayed = {}; renderBackpack(); stopFireworks();
+            backpack = {}; 
+            voicePlayed = {}; 
+            itemDetectionCounts = {}; // 清空全部倒出來時的商品偵測計數器
+            renderBackpack(); 
+            stopFireworks();
         }
 
         function triggerCheckout() {
