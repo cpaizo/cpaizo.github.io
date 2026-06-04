@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>誠實商店 | 學生網路商店成果展</title>
+    <style>
+        /* 全域樣式：清爽、溫柔的日系微甜風格 */
+        :root {
+            --bg-color: #faf7f2;      /* 舒服的淺米色背景 */
+            --card-bg: #ffffff;       /* 純白卡片 */
+            --text-color: #52463e;     /* 柔和的深茶色文字 */
+            --primary-orange: #ffa64d; /* 溫暖橘 */
+            --primary-green: #7bc0a3;  /* 療癒綠 */
+            --primary-purple: #a3a1f7; /* 魔法紫 */
+            --hover-border: #fbc4b6;   /* 腮紅粉 */
+        }
+
+        body {
+            font-family: 'PingFang TC', 'Heiti TC', 'Microsoft JhengHei', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 45px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            color: var(--primary-orange);
+            letter-spacing: 2px;
+        }
+
+        header p {
+            margin: 0;
+            font-size: 1.1rem;
+            opacity: 0.85;
+            background: #fff;
+            padding: 10px 24px;
+            border-radius: 30px;
+            box-shadow: 0 4px 15px rgba(82, 70, 62, 0.03);
+            display: inline-block;
+        }
+
+        /* 導航卡片網格佈局 */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 25px;
+            max-width: 1100px;
+            width: 100%;
+        }
+
+        /* 連結卡片基礎樣式 */
+        .store-card {
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            padding: 35px 20px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(82, 70, 62, 0.04);
+            transition: all 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+            text-decoration: none; /* 移除超連結底線 */
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        /* 滑鼠懸停效果：卡片浮起、陰影變溫柔 */
+        .store-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(82, 70, 62, 0.08);
+            border-color: var(--hover-border);
+        }
+
+        /* 商店大圖標 */
+        .store-icon {
+            font-size: 3.8rem;
+            margin-bottom: 18px;
+            transition: transform 0.3s ease;
+        }
+
+        /* 滑鼠懸停時 Icon 微放大旋轉 */
+        .store-card:hover .store-icon {
+            transform: scale(1.15) rotate(4deg);
+        }
+
+        /* 商店名稱 */
+        .store-name {
+            font-size: 1.25rem;
+            font-weight: bold;
+            line-height: 1.4;
+            margin-bottom: 15px;
+            height: 54px; /* 固定高度讓卡片對齊 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 商店類型標籤基礎樣式 */
+        .store-tag {
+            padding: 6px 16px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s;
+        }
+
+        /* 各別標籤的專屬粉嫩配色 */
+        .tag-veggie {
+            background-color: #edf7f2;
+            color: var(--primary-green);
+        }
+        .store-card:hover .tag-veggie {
+            background-color: var(--primary-green);
+            color: white;
+        }
+
+        .tag-hamster {
+            background-color: #fff3e6;
+            color: var(--primary-orange);
+        }
+        .store-card:hover .tag-hamster {
+            background-color: var(--primary-orange);
+            color: white;
+        }
+
+        .tag-magic {
+            background-color: #f0f0ff;
+            color: var(--primary-purple);
+        }
+        .store-card:hover .tag-magic {
+            background-color: var(--primary-purple);
+            color: white;
+        }
+
+        /* 頁尾資訊 */
+        footer {
+            margin-top: 70px;
+            font-size: 0.9rem;
+            color: #b0a49e;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🛍️ 誠實商店・成果發表</h1>
+        <p>✨ 歡迎光臨｜點擊下方卡片踏入學生的創意市集 ✨</p>
+    </header>
+
+    <div class="grid-container">
+
+        <a href="https://cpaizo.github.io/honest-store/%E9%98%BF%E5%85%AC%E9%98%BF%E5%AC%A4%E5%BF%AB%E6%A8%82%E8%94%AC%E6%9E%9C%E5%BA%97.html" class="store-card" target="_blank">
+            <div class="store-icon">🥬</div>
+            <div class="store-name">阿公阿嬤快樂蔬果店</div>
+            <div class="store-tag tag-veggie">產地直銷</div>
+        </a>
+
+        <a href="https://cpaizo.github.io/honest-store/%E6%A8%82%E6%B4%BB%E5%B8%B8%E9%9D%92%E5%B0%8A%E6%A6%AE%E8%94%AC%E6%9E%9C%E4%BE%BF%E5%88%A9%E5%BA%97.html" class="store-card" target="_blank">
+            <div class="store-icon">🍎</div>
+            <div class="store-name">樂活常青尊榮蔬果便利店</div>
+            <div class="store-tag tag-veggie">健康生活</div>
+        </a>
+
+        <a href="https://cpaizo.github.io/honest-store/%E8%90%8C%E5%8B%95%E5%B0%8F%E7%AA%A9.html" class="store-card" target="_blank">
+            <div class="store-icon">🐹</div>
+            <div class="store-name">萌動小窩</div>
+            <div class="store-tag tag-hamster">倉鼠專賣</div>
+        </a>
+
+        <a href="https://cpaizo.github.io/honest-store/%E9%AD%94%E6%B3%95%E5%AD%B8%E5%9C%92%E5%AD%B8%E7%94%9F%E6%96%87%E5%85%B7%E5%A4%A7%E5%86%92%E9%9A%AA.html" class="store-card" target="_blank">
+            <div class="store-icon">🔮</div>
+            <div class="store-name">魔法學院學生文具大冒險</div>
+            <div class="store-tag tag-magic">奇幻文具</div>
+        </a>
+
+    </div>
+
+    <footer>
+        <p>© 誠實商店系列作品展｜所有連結均會於新分頁安全開啟</p>
+    </footer>
+
+</body>
+</html>
