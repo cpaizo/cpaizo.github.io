@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>萌動小窩 | 學生網路商店成果展</title>
+    <style>
+        /* 全域樣式：延續可愛、舒服的日系風格 */
+        :root {
+            --bg-color: #fcf9f2;      /* 舒服的淺燕麥色 */
+            --card-bg: #ffffff;       /* 純白卡片 */
+            --primary-color: #ffa64d;  /* 溫暖的淡橘色 */
+            --primary-hover: #e68a33;  /* 深一點的橘色 */
+            --text-color: #5c4b43;     /* 溫和的深茶色文字 */
+            --accent-pink: #fbc4b6;   /* 溫柔腮紅粉 */
+        }
+
+        body {
+            font-family: 'PingFang TC', 'Heiti TC', 'Microsoft JhengHei', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 2.4rem;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+            letter-spacing: 2px;
+        }
+
+        header p {
+            margin: 0;
+            font-size: 1.1rem;
+            opacity: 0.8;
+            background: #fff;
+            padding: 8px 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+            display: inline-block;
+        }
+
+        /* 導航卡片佈局 */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 25px;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        /* 連結卡片樣式 */
+        .store-card {
+            background-color: var(--card-bg);
+            border-radius: 18px;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(92, 75, 67, 0.04);
+            transition: all 0.3s ease;
+            text-decoration: none; /* 移除超連結底線 */
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid transparent;
+        }
+
+        /* 滑鼠懸停效果：卡片微微浮起、邊框變色 */
+        .store-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 30px rgba(255, 166, 77, 0.15);
+            border-color: var(--accent-pink);
+        }
+
+        /* 商店圖標 */
+        .store-icon {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+            transition: transform 0.3s;
+        }
+
+        .store-card:hover .store-icon {
+            transform: scale(1.15) rotate(5deg);
+        }
+
+        /* 學生姓名 */
+        .student-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--text-color);
+        }
+
+        /* 商店類型標籤 */
+        .store-tag {
+            background-color: var(--bg-color);
+            color: var(--primary-color);
+            padding: 5px 14px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .store-card:hover .store-tag {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        /* 頁尾溫馨字樣 */
+        footer {
+            margin-top: 60px;
+            font-size: 0.9rem;
+            color: #aaa;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🐾 萌動小窩首頁</h1>
+        <p>✨ 歡迎光臨・學生網路商店成果展 ✨</p>
+    </header>
+
+    <div class="grid-container">
+
+        <a href="https://cpaizo.github.io/students/%E7%8B%97%E5%95%86%E5%BA%97-%E7%9B%A7%E6%99%A8%E5%B8%8C.html" class="store-card" target="_blank">
+            <div class="store-icon">🐶</div>
+            <div class="student-name">盧晨希</div>
+            <div class="store-tag">狗商店</div>
+        </a>
+
+        <a href="https://cpaizo.github.io/students/%E7%B6%B2%E8%B7%AF%E5%95%86%E5%BA%97-%E5%BC%B5%E5%80%A2%E9%88%9E.html" class="store-card" target="_blank">
+            <div class="store-icon">🛍️</div>
+            <div class="student-name">張倢鈞</div>
+            <div class="store-tag">網路商店</div>
+        </a>
+
+        <a href="https://cpaizo.github.io/students/%E7%B6%B2%E8%B7%AF%E5%95%86%E5%BA%97-%E5%BC%B5%E8%8A%AF%E5%AB%99.html" class="store-card" target="_blank">
+            <div class="store-icon">✨</div>
+            <div class="student-name">張芯嫙</div>
+            <div class="store-tag">網路商店</div>
+        </a>
+
+        <a href="https://cpaizo.github.io/students/%E7%B6%B2%E8%B7%AF%E5%95%86%E5%BA%97-%E9%99%B3%E7%8E%89%E5%A9%B7.html" class="store-card" target="_blank">
+            <div class="store-icon">🎀</div>
+            <div class="student-name">陳玉婷</div>
+            <div class="store-tag">網路商店</div>
+        </a>
+
+    </div>
+
+    <footer>
+        <p>© 萌動小窩全體學生作品集｜點擊卡片將於新分頁開啟商店</p>
+    </footer>
+
+</body>
+</html>
