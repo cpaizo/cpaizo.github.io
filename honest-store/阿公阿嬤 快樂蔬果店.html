@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>阿公阿嬤作伙來買菜 - 蔬果便利店</title>
+    <style>
+        /* 專為銀髮族設計的超大字體與高對比顏色 */
+        body {
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            background-color: #f7f9f6;
+            margin: 0;
+            padding: 20px;
+            font-size: 28px;
+            color: #222;
+        }
+        h1 {
+            text-align: center;
+            color: #2e7d32;
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .promo-banner {
+            background-color: #ffeb3b;
+            color: #d32f2f;
+            text-align: center;
+            padding: 20px;
+            font-weight: bold;
+            font-size: 36px;
+            border: 5px dashed #d32f2f;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        /* 商品列表 */
+        .product-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        .product-card {
+            background-color: #fff;
+            border: 4px solid #4caf50;
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+        .product-name {
+            font-size: 38px;
+            font-weight: bold;
+            color: #1b5e20;
+            margin-bottom: 10px;
+        }
+        .product-price {
+            font-size: 32px;
+            color: #e65100;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        /* 超大加粗按鈕 */
+        .btn {
+            font-size: 32px;
+            font-weight: bold;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .btn-add { background-color: #4caf50; color: white; width: 100%; }
+        .btn-add:hover { background-color: #388e3c; }
+        
+        /* 購物車區 */
+        .cart-section {
+            background-color: #fff;
+            border: 4px solid #1565c0;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+        .cart-title {
+            font-size: 40px;
+            color: #1565c0;
+            font-weight: bold;
+            border-bottom: 3px solid #1565c0;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .cart-buttons {
+            display: flex;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .btn-clear { background-color: #f44336; color: white; flex: 1; }
+        .btn-checkout { background-color: #ff9800; color: white; flex: 2; font-size: 36px; }
+
+        /* 結帳明細彈窗 */
+        .receipt-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .receipt-content {
+            background-color: white;
+            border: 6px solid #2e7d32;
+            border-radius: 25px;
+            padding: 40px;
+            width: 90%;
+            max-width: 650px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        .receipt-header {
+            text-align: center;
+            font-size: 42px;
+            font-weight: bold;
+            color: #2e7d32;
+            margin-bottom: 20px;
+            border-bottom: 4px dashed #ccc;
+            padding-bottom: 10px;
+        }
+        .receipt-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 30px;
+        }
+        .discount-text { color: #d32f2f; font-size: 26px; padding-left: 20px; }
+        .total-price {
+            text-align: right;
+            font-size: 40px;
+            font-weight: bold;
+            color: #d32f2f;
+            border-top: 4px dashed #ccc;
+            padding-top: 15px;
+            margin-top: 25px;
+        }
+
+        /* 🎡 輪盤外觀設計 🎡 */
+        .wheel-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+            background-color: #fff9c4;
+            border: 3px solid #fbc02d;
+            border-radius: 15px;
+            padding: 20px;
+        }
+        .wheel-box {
+            position: relative;
+            width: 260px;
+            height: 260px;
+            margin-bottom: 15px;
+        }
+        .wheel-pointer {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 30px solid #d32f2f;
+            z-index: 10;
+        }
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 8px solid #3e2723;
+            background: conic-gradient(
+                #ff5722 0deg 60deg, 
+                #ff9800 60deg 120deg, 
+                #ffeb3b 120deg 180deg, 
+                #4caf50 180deg 240deg, 
+                #00bcd4 240deg 300deg, 
+                #9c27b0 300deg 360deg
+            );
+            transition: transform 4s cubic-bezier(0.1, 0.8, 0.3, 1);
+            position: relative;
+        }
+        .wheel-label {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 1px 1px 4px #000;
+        }
+        .wl-0 { transform: rotate(30deg); }
+        .wl-1 { transform: rotate(90deg); }
+        .wl-2 { transform: rotate(150deg); }
+        .wl-3 { transform: rotate(210deg); }
+        .wl-4 { transform: rotate(270deg); }
+        .wl-5 { transform: rotate(330deg); }
+
+        /* 🎆 煙火特效 CSS 🎆 */
+        .firework-canvas {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🥬 阿公阿嬤 快樂蔬果店 🍎</h1>
+
+    <div class="promo-banner">
+        🔥 大好康：同一樣菜買滿 3 件，單項現打 8 折！<br>
+        💰 只要買超過 200 元，結帳就能玩【幸運大輪盤】直接用原價抽折扣！<br>
+        🎉 抽中【免費】看漂亮煙火喔！
+    </div>
+
+    <div class="product-container">
+        <div class="product-card">
+            <div class="product-name">🍎 蘋果</div>
+            <div class="product-price">15 元 / 個</div>
+            <button class="btn btn-add" onclick="addToCart('蘋果', 15)">點我買蘋果</button>
+        </div>
+        <div class="product-card">
+            <div class="product-name">🍌 香蕉</div>
+            <div class="product-price">10 元 / 根</div>
+            <button class="btn btn-add" onclick="addToCart('香蕉', 10)">點我買香蕉</button>
+        </div>
+        <div class="product-card">
+            <div class="product-name">🥬 高麗菜</div>
+            <div class="product-price">50 元 / 顆</div>
+            <button class="btn btn-add" onclick="addToCart('高麗菜', 50)">點我買高麗菜</button>
+        </div>
+        <div class="product-card">
+            <div class="product-name">🥕 胡蘿蔔</div>
+            <div class="product-price">12 元 / 條</div>
+            <button class="btn btn-add" onclick="addToCart('胡蘿蔔', 12)">點我買胡蘿蔔</button>
+        </div>
+        <div class="product-card">
+            <div class="product-name">🍅 番茄</div>
+            <div class="product-price">20 元 / 顆</div>
+            <button class="btn btn-add" onclick="addToCart('番茄', 20)">點我買番茄</button>
+        </div>
+    </div>
+
+    <div class="cart-section">
+        <div class="cart-title">🛒 您目前選購的菜：</div>
+        <div id="cart-list">（目前肚子空空，還沒選商品喔！）</div>
+        
+        <div class="cart-buttons">
+            <button class="btn btn-clear" onclick="clearCart()">🗑️ 全部不要了</button>
+            <button class="btn btn-checkout" onclick="checkout()">💰 算錢（結帳）</button>
+        </div>
+    </div>
+
+    <div id="receiptModal" class="receipt-modal">
+        <div class="receipt-content">
+            <!-- 煙火畫布 -->
+            <canvas id="fireworkCanvas" class="firework-canvas"></canvas>
+
+            <div class="receipt-header">🧾 您的買菜明細表</div>
+            <div id="receipt-body"></div>
+            
+            <div id="wheel-area" class="wheel-container" style="display:none;">
+                <div style="font-weight:bold; margin-bottom:10px; color:#d32f2f;">滿200元了好棒！來抽原價折扣：</div>
+                <div class="wheel-box">
+                    <div class="wheel-pointer"></div>
+                    <div id="wheel" class="wheel">
+                        <div class="wheel-label wl-0" style="padding-top:15px;">免費</div>
+                        <div class="wheel-label wl-1" style="padding-top:15px;">3折</div>
+                        <div class="wheel-label wl-2" style="padding-top:15px;">5折</div>
+                        <div class="wheel-label wl-3" style="padding-top:15px; color:#222;">6折</div>
+                        <div class="wheel-label wl-4" style="padding-top:15px;">7折</div>
+                        <div class="wheel-label wl-5" style="padding-top:15px;">2折</div>
+                    </div>
+                </div>
+                <button id="spin-btn" class="btn" style="background-color:#e65100; color:white;" onclick="spinWheel()">👉 按我抽獎 👈</button>
+                <div id="wheel-msg" style="margin-top:10px; font-weight:bold; font-size:32px; color:#2e7d32;"></div>
+            </div>
+
+            <div id="receipt-total" class="total-price"></div>
+            <button id="close-modal-btn" class="btn btn-add" style="margin-top:25px; background-color:#1565c0;" onclick="closeModal()">看好了，謝謝</button>
+        </div>
+    </div>
+
+    <script>
+        let cart = {};
+        let voicePlayed = {'蘋果': false, '香蕉': false, '高麗菜': false, '胡蘿蔔': false, '番茄': false};
+        
+        let originalTotal = 0; // 購買的原始總金額
+        let discountTotal = 0; // 滿3件8折後的金額
+        let chosenDiscount = { text: "無折扣", factor: 1 };
+
+        // 🎡 輪盤獎項配置 (免費、3折、5折、6折、7折、2折)
+        const wheelOptions = [
+            { text: "【🎉 免費 🎉】", factor: 0, minDeg: 0, maxDeg: 60 },
+            { text: "【3折】", factor: 0.3, minDeg: 60, maxDeg: 120 },
+            { text: "【5折】", factor: 0.5, minDeg: 120, maxDeg: 180 },
+            { text: "【6折】", factor: 0.6, minDeg: 180, maxDeg: 240 },
+            { text: "【7折】", factor: 0.7, minDeg: 240, maxDeg: 300 },
+            { text: "【2折】", factor: 0.2, minDeg: 300, maxDeg: 360 }
+        ];
+
+        // 🗣️ 語音發音文本：純國語(zh-TW)
+        const speechData = {
+            '蘋果': "新鮮蘋果，一個十五元。",
+            '香蕉': "新鮮香蕉，一根十元。",
+            '高麗菜': "脆甜高麗菜，一顆五十元。",
+            '胡蘿蔔': "營養胡蘿蔔，一條十二元。",
+            '番茄': "紅番茄，一顆二十元。"
+        };
+
+        function resetVoiceCount() {
+            for (let key in voicePlayed) { voicePlayed[key] = false; }
+        }
+
+        function addToCart(name, price) {
+            if (cart[name]) { cart[name].count++; } else { cart[name] = { price: price, count: 1 }; }
+            updateCartDisplay();
+            
+            if (!voicePlayed[name]) {
+                speakChinese(name);
+                voicePlayed[name] = true;
+            }
+        }
+
+        // 播放純國語（設定稍慢的語速語調，體貼長輩聽力）
+        function speakChinese(name) {
+            const text = speechData[name];
+            if (!text) return;
+            window.speechSynthesis.cancel(); // 停止上一段，避免重疊
+            
+            let utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = "zh-TW";
+            utterance.rate = 0.8; // 語速調慢至 0.8，聽起來更清楚
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function updateCartDisplay() {
+            const cartList = document.getElementById('cart-list');
+            let html = ''; let hasItem = false;
+            for (let name in cart) {
+                hasItem = true;
+                html += `<div>• <b>${name}</b> ： ${cart[name].count} 件 </div>`;
+            }
+            cartList.innerHTML = hasItem ? html : '（目前肚子空空，還沒選商品喔！）';
+        }
+
+        function clearCart() {
+            cart = {}; updateCartDisplay(); resetVoiceCount(); stopFireworks();
+            alert("購物車已經幫您清空囉！下次點商品會再跟您報價。");
+        }
+
+        function checkout() {
+            if (Object.keys(cart).length === 0) { alert("您的購物車是空的，請先挑選商品喔！"); return; }
+
+            let receiptBody = document.getElementById('receipt-body');
+            let html = '';
+            originalTotal = 0;
+            discountTotal = 0;
+            chosenDiscount = { text: "無折扣", factor: 1 }; 
+            stopFireworks(); 
+
+            for (let name in cart) {
+                let item = cart[name];
+                let origCost = item.price * item.count;
+                let finalCost = origCost;
+                let promoHtml = '';
+
+                if (item.count >= 3) {
+                    finalCost = Math.round(origCost * 0.8);
+                    promoHtml = `<span class="discount-text">(滿3件打8折)</span>`;
+                }
+
+                originalTotal += origCost;
+                discountTotal += finalCost;
+
+                html += `
+                    <div style="margin-bottom: 10px; border-bottom: 1px solid #eee;">
+                        <div class="receipt-item">
+                            <span>${name} x ${item.count} ${promoHtml}</span>
+                            <span>${origCost} 元</span>
+                        </div>
+                    </div>`;
+            }
+            receiptBody.innerHTML = html;
+
+            const wheelArea = document.getElementById('wheel-area');
+            const spinBtn = document.getElementById('spin-btn');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            document.getElementById('wheel-msg').innerText = '';
+            document.getElementById('wheel').style.transform = 'rotate(0deg)'; 
+
+            // 💡 規則：以「原始金額」是否超過 200 元來決定要不要啟動輪盤
+            if (originalTotal > 200) {
+                wheelArea.style.display = 'flex';
+                spinBtn.style.display = 'block';
+                closeModalBtn.style.display = 'none'; 
+                updateFinalTotal(true);
+            } else {
+                wheelArea.style.display = 'none';
+                closeModalBtn.style.display = 'block';
+                updateFinalTotal(false);
+            }
+
+            document.getElementById('receiptModal').style.display = 'flex';
+        }
+
+        function spinWheel() {
+            const spinBtn = document.getElementById('spin-btn');
+            spinBtn.style.display = 'none'; 
+
+            const randomIndex = Math.floor(Math.random() * wheelOptions.length);
+            const prize = wheelOptions[randomIndex];
+            chosenDiscount = prize;
+
+            const targetAngle = 360 - (prize.minDeg + 30); 
+            const totalRotation = 1800 + targetAngle; 
+
+            const wheel = document.getElementById('wheel');
+            wheel.style.transform = `rotate(${totalRotation}deg)`;
+
+            setTimeout(() => {
+                document.getElementById('wheel-msg').innerHTML = `🎉 抽中了：<span style="color:#d32f2f;">${prize.text}</span>`;
+                updateFinalTotal(true);
+                document.getElementById('close-modal-btn').style.display = 'block'; 
+
+                // 如果抽到「免費」，觸發煙火動畫
+                if (prize.factor === 0) {
+                    startFireworks();
+                }
+            }, 4100);
+        }
+
+        function updateFinalTotal(hasWheel) {
+            let receiptTotal = document.getElementById('receipt-total');
+            
+            if (hasWheel) {
+                if (chosenDiscount.text !== "無折扣") {
+                    // 直接用「原始金額」去乘輪盤折數
+                    let finalTotal = Math.round(originalTotal * chosenDiscount.factor);
+                    receiptTotal.innerHTML = `
+                        <div style="font-size:24px;">商品原始總金額：${originalTotal} 元</div>
+                        <div style="font-size:24px; color:#e65100;">輪盤大抽獎結果：${chosenDiscount.text}</div>
+                        <div style="font-size: 44px; color: #d32f2f; margin-top:10px;">最後應付：${finalTotal} 元</div>
+                    `;
+                } else {
+                    receiptTotal.innerHTML = `
+                        <div style="font-size:24px;">商品原始總金額：${originalTotal} 元</div>
+                        <div style="font-size:30px; color:#e65100; margin-top:5px;">請按上方按鈕抽輪盤折扣！</div>
+                    `;
+                }
+            } else {
+                // 未滿200元，依舊使用滿3件8折後的優待金額
+                receiptTotal.innerHTML = `
+                    <div style="font-size: 44px; color: #d32f2f; margin-top:10px;">最後應付：${discountTotal} 元</div>
+                `;
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('receiptModal').style.display = 'none';
+            stopFireworks();
+            cart = {};
+            updateCartDisplay();
+            resetVoiceCount(); 
+        }
+
+        /* 🎆 Canvas 煙火動畫主程式 🎆 */
+        let animationId;
+        function startFireworks() {
+            const canvas = document.getElementById('fireworkCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.style.display = 'block';
+            canvas.width = canvas.parentElement.offsetWidth;
+            canvas.height = canvas.parentElement.offsetHeight;
+
+            let particles = [];
+
+            class Particle {
+                constructor(x, y, color) {
+                    this.x = x; this.y = y; this.color = color;
+                    this.radius = Math.random() * 3 + 2;
+                    this.velocity = {
+                        x: (Math.random() - 0.5) * 8,
+                        y: (Math.random() - 0.5) * 8
+                    };
+                    this.alpha = 1;
+                }
+                draw() {
+                    ctx.save();
+                    ctx.globalAlpha = this.alpha;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                    ctx.restore();
+                }
+                update() {
+                    this.velocity.y += 0.05; 
+                    this.x += this.velocity.x;
+                    this.y += this.velocity.y;
+                    this.alpha -= 0.015;
+                }
+            }
+
+            function createFirework() {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * (canvas.height * 0.6);
+                const colors = ['#FF1493', '#00FFFF', '#FFD700', '#FF4500', '#7FFF00', '#9400D3'];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                for (let i = 0; i < 40; i++) {
+                    particles.push(new Particle(x, y, color));
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                if (Math.random() < 0.05) createFirework(); 
+                
+                particles.forEach((particle, index) => {
+                    if (particle.alpha <= 0) {
+                        particles.splice(index, 1);
+                    } else {
+                        particle.update();
+                        particle.draw();
+                    }
+                });
+                animationId = requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        function stopFireworks() {
+            cancelAnimationFrame(animationId);
+            const canvas = document.getElementById('fireworkCanvas');
+            if(canvas) {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                canvas.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

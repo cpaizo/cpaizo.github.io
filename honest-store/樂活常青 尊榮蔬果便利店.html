@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>常青生活 - 樂活精緻蔬果便利店</title>
+    <style>
+        /* 高級常青風：大字體、高對比、典雅墨綠與暖金 */
+        body {
+            font-family: "Microsoft JhengHei", -apple-system, sans-serif;
+            background-color: #f8faf7;
+            margin: 0;
+            padding: 24px;
+            font-size: 28px;
+            color: #2d3748;
+            line-height: 1.6;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 35px;
+            padding-bottom: 25px;
+            border-bottom: 3px solid #cbd5e0;
+        }
+        
+        h1 {
+            color: #1a4331;
+            font-size: 56px;
+            margin: 0 0 10px 0;
+            letter-spacing: 3px;
+            font-weight: 800;
+        }
+        
+        .subtitle {
+            font-size: 34px;
+            color: #40916c;
+            margin: 0;
+            font-weight: bold;
+        }
+
+        /* 頂級活動看板 */
+        .promo-banner {
+            background-color: #fffbeb;
+            color: #b7791f;
+            text-align: left;
+            padding: 30px 40px;
+            font-weight: bold;
+            font-size: 32px;
+            border: 2px solid #fef3c7;
+            border-radius: 20px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 25px rgba(245, 158, 11, 0.15);
+        }
+        .promo-banner ul { margin: 12px 0 0 0; padding-left: 35px; }
+        .promo-banner li { margin-bottom: 10px; }
+
+        /* 💡 完整保留：動態滿額進度條區 */
+        .progress-container {
+            background-color: #edf2f7;
+            border-radius: 50px;
+            height: 35px;
+            width: 100%;
+            margin-top: 15px;
+            overflow: hidden;
+            border: 1px solid #cbd5e0;
+        }
+        .progress-bar {
+            background-color: #38a169;
+            height: 100%;
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+        .progress-text {
+            font-size: 30px;
+            font-weight: bold;
+            color: #2f855a;
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        /* 商品網格 */
+        .product-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 35px;
+            margin-bottom: 50px;
+        }
+
+        /* 商品卡片 */
+        .product-card {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 24px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.03);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 本日限定推薦卡片 */
+        .product-card.featured {
+            border: 4px solid #d69e2e;
+            background-color: #fffaf0;
+            box-shadow: 0 15px 30px rgba(214, 158, 46, 0.2);
+        }
+        .badge-featured {
+            position: absolute;
+            top: 0; left: 0;
+            background-color: #d69e2e;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            padding: 6px 20px;
+            border-bottom-right-radius: 16px;
+        }
+
+        /* 產地直送小標籤 */
+        .origin-tag {
+            display: inline-block;
+            background-color: #e6fffa;
+            color: #234e52;
+            font-size: 24px;
+            font-weight: bold;
+            padding: 4px 14px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #b2f5ea;
+        }
+        .product-name {
+            font-size: 44px;
+            font-weight: 800;
+            color: #1a4331;
+            margin: 5px 0 5px 0;
+        }
+        .nutrition-tip {
+            font-size: 26px;
+            color: #718096;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+        .product-price {
+            font-size: 36px;
+            color: #dd6b20;
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+
+        /* 按鈕 */
+        .btn {
+            font-size: 32px;
+            font-weight: bold;
+            padding: 18px 32px;
+            border: none;
+            border-radius: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        .btn-add { background-color: #2d6a4f; color: white; width: 100%; }
+        .btn-add:hover { background-color: #1a4331; }
+        .product-card.featured .btn-add { background-color: #d69e2e; }
+        .product-card.featured .btn-add:hover { background-color: #b7791f; }
+        
+        /* 購物清單區 */
+        .cart-section {
+            background-color: #ffffff;
+            border: 3px solid #2b6cb0;
+            border-radius: 24px;
+            padding: 40px;
+            margin-bottom: 50px;
+            box-shadow: 0 12px 28px rgba(43, 108, 176, 0.08);
+        }
+        .cart-title {
+            font-size: 44px;
+            color: #2b6cb0;
+            font-weight: bold;
+            border-bottom: 3px solid #bee3f8;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        /* 購物車上方即時統計區 */
+        .cart-summary-box {
+            background-color: #f7fafc;
+            border: 2px solid #cbd5e0;
+            border-radius: 16px;
+            padding: 20px 30px;
+            margin-bottom: 25px;
+            font-size: 32px;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .summary-row:last-child { margin-bottom: 0; }
+        .text-price-large { font-size: 40px; font-weight: 900; color: #2b6cb0; }
+        .text-tip-red { color: #e53e3e; font-weight: bold; }
+        .text-tip-green { color: #2f855a; font-weight: bold; }
+
+        /* 購物車明細橫列 */
+        .cart-item-row {
+            padding: 15px 10px;
+            border-bottom: 1px dashed #cbd5e0;
+            font-size: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .cart-item-detail {
+            color: #4a5568;
+            font-size: 30px;
+        }
+        .cart-item-subtotal {
+            font-weight: bold;
+            color: #2d3748;
+        }
+        .discount-badge {
+            background-color: #fed7d7;
+            color: #c53030;
+            font-size: 24px;
+            padding: 2px 10px;
+            border-radius: 6px;
+            margin-left: 10px;
+            font-weight: bold;
+        }
+
+        .cart-buttons { display: flex; gap: 25px; margin-top: 35px; }
+        .btn-clear { background-color: #e53e3e; color: white; flex: 1; }
+        .btn-clear:hover { background-color: #9b2c2c; }
+        .btn-checkout { background-color: #dd6b20; color: white; flex: 2; font-size: 38px; }
+        .btn-checkout:hover { background-color: #9c4221; }
+
+        /* 結帳彈窗 */
+        .receipt-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .receipt-content {
+            background-color: white;
+            border: 4px solid #2d6a4f;
+            border-radius: 28px;
+            padding: 45px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        .receipt-header {
+            text-align: center;
+            font-size: 46px;
+            font-weight: bold;
+            color: #2d6a4f;
+            margin-bottom: 25px;
+            border-bottom: 4px dashed #cbd5e0;
+            padding-bottom: 15px;
+        }
+        .receipt-item { display: flex; justify-content: space-between; margin-bottom: 18px; font-size: 32px; }
+        .discount-text { color: #e53e3e; font-size: 28px; padding-left: 20px; font-weight: bold; }
+        .total-price {
+            text-align: right;
+            font-size: 44px;
+            font-weight: bold;
+            color: #e53e3e;
+            border-top: 4px dashed #cbd5e0;
+            padding-top: 20px;
+            margin-top: 30px;
+        }
+
+        /* 🎡 輪盤 */
+        .wheel-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 25px 0;
+            background-color: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 25px;
+        }
+        .wheel-box { position: relative; width: 280px; height: 280px; margin-bottom: 20px; }
+        .wheel-pointer {
+            position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0; border-left: 22px solid transparent; border-right: 22px solid transparent;
+            border-top: 32px solid #e53e3e; z-index: 10;
+        }
+        .wheel {
+            width: 100%; height: 100%; border-radius: 50%; border: 8px solid #2d3748;
+            background: conic-gradient(#ed8936 0deg 60deg, #ecc94b 60deg 120deg, #48bb78 120deg 180deg, #38b2ac 180deg 240deg, #4299e1 240deg 300deg, #9f7aea 300deg 360deg);
+            transition: transform 4s cubic-bezier(0.1, 0.8, 0.3, 1); position: relative;
+        }
+        .wheel-label { position: absolute; width: 100%; height: 100%; text-align: center; font-size: 22px; font-weight: bold; color: #fff; text-shadow: 1px 1px 4px rgba(0,0,0,0.6); }
+        .wl-0 { transform: rotate(30deg); } .wl-1 { transform: rotate(90deg); } .wl-2 { transform: rotate(150deg); }
+        .wl-3 { transform: rotate(210deg); } .wl-4 { transform: rotate(270deg); } .wl-5 { transform: rotate(330deg); }
+
+        .firework-canvas { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>樂活常青 尊榮蔬果便利店</h1>
+        <div class="subtitle">天然、新鮮、當季採收的健康生活提案</div>
+    </header>
+
+    <div class="promo-banner">
+        💡 <b>本日限定健康禮遇：</b>
+        <ul>
+            <li>同一品項選購滿 3 件，該品項即享 <b>8 折優惠</b>。</li>
+            <li>消費滿 200 元，即可啟動「幸運大輪盤」，有機會獲得<b>全單免費</b>等感恩好禮！</li>
+        </ul>
+        
+        <!-- 完整保留：動態加購提示區 -->
+        <div id="progress-area">
+            <div class="progress-container">
+                <div id="myProgressBar" class="progress-bar"></div>
+            </div>
+            <div id="progressText" class="progress-text">目前消費：0 元（歡迎挑選優質蔬果）</div>
+        </div>
+    </div>
+
+    <!-- 商品展示區 -->
+    <div class="product-container">
+        <div class="product-card featured">
+            <div class="badge-featured">本日強推</div>
+            <div class="origin-tag">梨山產地直送</div>
+            <div class="product-name">🍎 富士蘋果</div>
+            <div class="nutrition-tip">富有膳食纖維，維持每日元氣</div>
+            <div class="product-price">15 元 / 個</div>
+            <button class="btn btn-add" onclick="addToCart('富士蘋果', 15, '個')">選購富士蘋果</button>
+        </div>
+        
+        <div class="product-card">
+            <div class="origin-tag">旗山老農契作</div>
+            <div class="product-name">🍌 熟成香蕉</div>
+            <div class="nutrition-tip">質地香甜質軟，富含天然鉀離子</div>
+            <div class="product-price">10 元 / 根</div>
+            <button class="btn btn-add" onclick="addToCart('熟成香蕉', 10, '根')">選購熟成香蕉</button>
+        </div>
+        
+        <div class="product-card">
+            <div class="origin-tag">埔里高山契作</div>
+            <div class="product-name">🥬 有機高麗菜</div>
+            <div class="nutrition-tip">口感鮮甜清脆，富含維生素Ｕ</div>
+            <div class="product-price">50 元 / 顆</div>
+            <button class="btn btn-add" onclick="addToCart('有機高麗菜', 50, '顆')">選購有機高麗菜</button>
+        </div>
+        
+        <div class="product-card">
+            <div class="origin-tag">彰化在地嚴選</div>
+            <div class="product-name">🥕 在地胡蘿蔔</div>
+            <div class="nutrition-tip">豐富胡蘿蔔素，守護您的明亮雙眼</div>
+            <div class="product-price">12 元 / 條</div>
+            <button class="btn btn-add" onclick="addToCart('在地胡蘿蔔', 12, '條')">選購在地胡蘿蔔</button>
+        </div>
+        
+        <div class="product-card">
+            <div class="origin-tag">美濃溫室栽培</div>
+            <div class="product-name">🍅 溫室番茄</div>
+            <div class="nutrition-tip">茄紅素滿滿，生食熟烹皆宜</div>
+            <div class="product-price">20 元 / 顆</div>
+            <button class="btn btn-add" onclick="addToCart('溫室番茄', 20, '顆')">選購溫室番茄</button>
+        </div>
+    </div>
+
+    <!-- 購物清單 -->
+    <div class="cart-section">
+        <div class="cart-title">🛒 目前已選購的品項：</div>
+        
+        <!-- 完整保留：購物車正上方的即時金額統計看板 -->
+        <div class="cart-summary-box">
+            <div class="summary-row">
+                <span>目前累計金額：</span>
+                <span id="cartSummaryPrice" class="text-price-large">0 元</span>
+            </div>
+            <div class="summary-row">
+                <span>輪盤抽獎資格：</span>
+                <span id="cartSummaryTip" class="text-tip-red">尚未達標（再買 200 元即可啟動）</span>
+            </div>
+        </div>
+
+        <!-- 這裡會動態生成類似：香蕉 10元 * 3 根 = 30 元 的明細 -->
+        <div id="cart-list">（目前尚未選購商品，歡迎點選上方按鈕試聽與選購）</div>
+        
+        <div class="cart-buttons">
+            <button class="btn btn-clear" onclick="clearCart()">🗑️ 重新選購</button>
+            <button class="btn btn-checkout" onclick="checkout()">💰 確認結帳</button>
+        </div>
+    </div>
+
+    <!-- 結帳視窗 -->
+    <div id="receiptModal" class="receipt-modal">
+        <div class="receipt-content">
+            <canvas id="fireworkCanvas" class="firework-canvas"></canvas>
+            <div class="receipt-header">🧾 您的消費明細</div>
+            <div id="receipt-body"></div>
+            
+            <div id="wheel-area" class="wheel-container" style="display:none;">
+                <div style="font-weight:bold; margin-bottom:15px; color:#dd6b20; font-size:32px;">恭喜消費滿200元！請抽取您的專屬折扣：</div>
+                <div class="wheel-box">
+                    <div class="wheel-pointer"></div>
+                    <div id="wheel" class="wheel">
+                        <div class="wheel-label wl-0" style="padding-top:15px;">免費</div>
+                        <div class="wheel-label wl-1" style="padding-top:15px;">3折</div>
+                        <div class="wheel-label wl-2" style="padding-top:15px;">5折</div>
+                        <div class="wheel-label wl-3" style="padding-top:15px;">6折</div>
+                        <div class="wheel-label wl-4" style="padding-top:15px;">7折</div>
+                        <div class="wheel-label wl-5" style="padding-top:15px;">2折</div>
+                    </div>
+                </div>
+                <button id="spin-btn" class="btn" style="background-color:#dd6b20; color:white; width: 80%;" onclick="spinWheel()">點擊啟動輪盤</button>
+                <div id="wheel-msg" style="margin-top:15px; font-weight:bold; font-size:36px; color:#2d6a4f;"></div>
+            </div>
+
+            <div id="receipt-total" class="total-price"></div>
+            <button id="close-modal-btn" class="btn btn-add" style="margin-top:30px; background-color:#2b6cb0;" onclick="closeModal()">確認無誤，關閉視窗</button>
+        </div>
+    </div>
+
+    <script>
+        let cart = {};
+        let voicePlayed = {'富士蘋果': false, '熟成香蕉': false, '有機高麗菜': false, '在地胡蘿蔔': false, '溫室番茄': false};
+        let originalTotal = 0; let discountTotal = 0; let chosenDiscount = { text: "無折扣", factor: 1 };
+
+        const wheelOptions = [
+            { text: "【尊榮禮遇：全單免費！】", factor: 0, minDeg: 0, maxDeg: 60 },
+            { text: "【極致優待：3折】", factor: 0.3, minDeg: 60, maxDeg: 120 },
+            { text: "【溫馨回饋：5折】", factor: 0.5, minDeg: 120, maxDeg: 180 },
+            { text: "【幸福回饋：6折】", factor: 0.6, minDeg: 180, maxDeg: 240 },
+            { text: "【感恩回饋：7折】", factor: 0.7, minDeg: 240, maxDeg: 300 },
+            { text: "【超值特惠：2折】", factor: 0.2, minDeg: 300, maxDeg: 360 }
+        ];
+
+        const speechDataMandarin = {
+            '富士蘋果': "富士蘋果，每個十五元。", '熟成香蕉': "熟成香蕉，一根十元。",        
+            '有機高麗菜': "有機高麗菜，一顆五十元。", '在地胡蘿蔔': "在地胡蘿蔔，一條十二元。",
+            '溫室番茄': "溫室番茄，一顆二十元。"     
+        };
+
+        function addToCart(name, price, unit) {
+            if (cart[name]) { 
+                cart[name].count++; 
+            } else { 
+                cart[name] = { price: price, count: 1, unit: unit }; 
+            }
+            updateCartDisplay();
+            calculateRealtimeTotal(); 
+            
+            if (!voicePlayed[name]) {
+                speakMandarin(name);
+                voicePlayed[name] = true;
+            }
+        }
+
+        // 📊 計算並更新進度條與上方看板金額
+        function calculateRealtimeTotal() {
+            let currentSum = 0;
+            for (let name in cart) {
+                let item = cart[name];
+                let cost = item.price * item.count;
+                if (item.count >= 3) { cost = Math.round(cost * 0.8); } // 滿3件享8折
+                currentSum += cost;
+            }
+            
+            // 頂部進度條更新
+            const progressBar = document.getElementById('myProgressBar');
+            const progressText = document.getElementById('progressText');
+            let percentage = (currentSum / 200) * 100;
+            if (percentage > 100) percentage = 100;
+            progressBar.style.width = percentage + "%";
+            
+            // 看板金額更新
+            const summaryPrice = document.getElementById('cartSummaryPrice');
+            const summaryTip = document.getElementById('cartSummaryTip');
+            
+            summaryPrice.innerText = `${currentSum} 元`;
+
+            if (currentSum >= 200) {
+                progressText.innerHTML = `🎉 已達 200 元！結帳立享「幸運大輪盤」抽獎資格！`;
+                progressText.style.color = "#2f855a";
+                summaryTip.innerHTML = `✅ 已達標！結帳即可轉動幸運大輪盤！`;
+                summaryTip.className = "text-tip-green";
+            } else {
+                let short = 200 - currentSum;
+                progressText.innerHTML = `目前消費：${currentSum} 元，再買 <span style="color:#e53e3e; font-size:34px;">${short}</span> 元，即可啟動免費輪盤抽獎！`;
+                progressText.style.color = "#718096";
+                summaryTip.innerHTML = `還差 <span style="font-size:36px;">${short}</span> 元，即可獲得輪盤大獎資格！`;
+                summaryTip.className = "text-tip-red";
+            }
+        }
+
+        function speakMandarin(name) {
+            try {
+                window.speechSynthesis.cancel(); 
+                let utterance = new SpeechSynthesisUtterance(speechDataMandarin[name]);
+                utterance.lang = "zh-TW";
+                utterance.rate = 0.85; 
+                window.speechSynthesis.speak(utterance);
+            } catch (error) { console.error(error); }
+        }
+
+        // 💡 核心修改：購物車清單加上「單價 * 數量 = 小計」的精細排版
+        function updateCartDisplay() {
+            const cartList = document.getElementById('cart-list');
+            let html = ''; let hasItem = false;
+            
+            for (let name in cart) {
+                hasItem = true;
+                let item = cart[name];
+                let itemCost = item.price * item.count;
+                let discountHtml = '';
+                
+                // 如果滿 3 件，即時算出打折後的小計，並加上紅標籤提醒
+                if (item.count >= 3) {
+                    itemCost = Math.round(itemCost * 0.8);
+                    discountHtml = `<span class="discount-badge">已享8折</span>`;
+                }
+                
+                html += `
+                    <div class="cart-item-row">
+                        <div>
+                            <b>${name}</b> ${discountHtml}
+                            <div class="cart-item-detail">${item.price} 元 × ${item.count} ${item.unit}</div>
+                        </div>
+                        <div class="cart-item-subtotal">＝ ${itemCost} 元</div>
+                    </div>`;
+            }
+            cartList.innerHTML = hasItem ? html : '（目前尚未選購商品，歡迎點選上方按鈕試聽與選購）';
+        }
+
+        function clearCart() {
+            cart = {}; updateCartDisplay(); calculateRealtimeTotal();
+            for (let key in voicePlayed) { voicePlayed[key] = false; }
+            stopFireworks();
+            alert("已為您清空購物車，歡迎重新挑選新鮮蔬果。");
+        }
+
+        function checkout() {
+            if (Object.keys(cart).length === 0) { alert("目前購物車尚未加入商品。"); return; }
+            let receiptBody = document.getElementById('receipt-body');
+            let html = ''; originalTotal = 0; discountTotal = 0; chosenDiscount = { text: "無折扣", factor: 1 }; 
+            stopFireworks(); 
+
+            for (let name in cart) {
+                let item = cart[name];
+                let origCost = item.price * item.count;
+                let finalCost = origCost;
+                let promoHtml = '';
+                if (item.count >= 3) { finalCost = Math.round(origCost * 0.8); promoHtml = `<span class="discount-text">(滿3件享8折)</span>`; }
+                originalTotal += origCost; discountTotal += finalCost;
+
+                html += `<div style="margin-bottom: 12px; border-bottom: 1px solid #edf2f7;"><div class="receipt-item"><span>${name} x ${item.count} ${promoHtml}</span><span>${finalCost} 元</span></div></div>`;
+            }
+            receiptBody.innerHTML = html;
+
+            const wheelArea = document.getElementById('wheel-area');
+            const spinBtn = document.getElementById('spin-btn');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            document.getElementById('wheel-msg').innerText = '';
+            document.getElementById('wheel').style.transform = 'rotate(0deg)'; 
+
+            if (discountTotal >= 200) { 
+                wheelArea.style.display = 'flex'; spinBtn.style.display = 'block'; closeModalBtn.style.display = 'none'; updateFinalTotal(true);
+            } else {
+                wheelArea.style.display = 'none'; closeModalBtn.style.display = 'block'; updateFinalTotal(false);
+            }
+            document.getElementById('receiptModal').style.display = 'flex';
+        }
+
+        function spinWheel() {
+            document.getElementById('spin-btn').style.display = 'none'; 
+            const randomIndex = Math.floor(Math.random() * wheelOptions.length);
+            const prize = wheelOptions[randomIndex]; chosenDiscount = prize;
+            const targetAngle = 360 - (prize.minDeg + 30); const totalRotation = 1800 + targetAngle; 
+            document.getElementById('wheel').style.transform = `rotate(${totalRotation}deg)`;
+
+            setTimeout(() => {
+                document.getElementById('wheel-msg').innerHTML = `🎉 抽取結果：<span style="color:#e53e3e;">${prize.text}</span>`;
+                updateFinalTotal(true);
+                document.getElementById('close-modal-btn').style.display = 'block'; 
+                if (prize.factor === 0) startFireworks();
+            }, 4100);
+        }
+
+        function updateFinalTotal(hasWheel) {
+            let receiptTotal = document.getElementById('receipt-total');
+            if (hasWheel) {
+                if (chosenDiscount.text !== "無折扣") {
+                    let finalTotal = Math.round(discountTotal * chosenDiscount.factor);
+                    receiptTotal.innerHTML = `<div style="font-size:24px; color:#718096;">商品小計：${discountTotal} 元</div><div style="font-size:24px; color:#dd6b20;">輪盤活動：${chosenDiscount.text}</div><div style="font-size: 46px; color: #e53e3e; margin-top:12px;">結帳總金額：${finalTotal} 元</div>`;
+                } else {
+                    receiptTotal.innerHTML = `<div style="font-size:24px; color:#718096;">商品小計：${discountTotal} 元</div><div style="font-size:28px; color:#dd6b20; margin-top:5px;">請點擊上方按鈕抽取您的幸運折扣</div>`;
+                }
+            } else {
+                receiptTotal.innerHTML = `<div style="font-size: 46px; color: #e53e3e; margin-top:12px;">結帳總金額：${discountTotal} 元</div>`;
+            }
+        }
+
+        function closeModal() { document.getElementById('receiptModal').style.display = 'none'; stopFireworks(); cart = {}; updateCartDisplay(); calculateRealtimeTotal(); }
+
+        /* 🎆 煙火動畫 */
+        let animationId;
+        function startFireworks() {
+            const canvas = document.getElementById('fireworkCanvas'); const ctx = canvas.getContext('2d');
+            canvas.style.display = 'block'; canvas.width = canvas.parentElement.offsetWidth; canvas.height = canvas.parentElement.offsetHeight;
+            let particles = [];
+            class Particle {
+                constructor(x, y, color) {
+                    this.x = x; this.y = y; this.color = color; this.radius = Math.random() * 3 + 2;
+                    this.velocity = { x: (Math.random() - 0.5) * 8, y: (Math.random() - 0.5) * 8 }; this.alpha = 1;
+                }
+                draw() { ctx.save(); ctx.globalAlpha = this.alpha; ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false); ctx.fillStyle = this.color; ctx.fill(); ctx.restore(); }
+                update() { this.velocity.y += 0.05; this.x += this.velocity.x; this.y += this.velocity.y; this.alpha -= 0.015; }
+            }
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                if (Math.random() < 0.05) {
+                    const colors = ['#FF1493', '#00FFFF', '#FFD700', '#FF4500']; const color = colors[Math.floor(Math.random() * colors.length)];
+                    for (let i = 0; i < 40; i++) particles.push(new Particle(Math.random() * canvas.width, Math.random() * (canvas.height * 0.6), color));
+                }
+                particles.forEach((p, i) => { if (p.alpha <= 0) particles.splice(i, 1); else { p.update(); p.draw(); } });
+                animationId = requestAnimationFrame(animate);
+            }
+            animate();
+        }
+        function stopFireworks() { cancelAnimationFrame(animationId); const canvas = document.getElementById('fireworkCanvas'); if(canvas) { canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); canvas.style.display = 'none'; } }
+    </script>
+</body>
+</html>

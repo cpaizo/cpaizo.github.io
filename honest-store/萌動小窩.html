@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>萌動小窩 | 倉鼠專賣店</title>
+    <style>
+        /* 全域樣式與舒服的色調 */
+        :root {
+            --bg-color: #fcf9f2;      /* 舒服的淺燕麥色 */
+            --card-bg: #ffffff;       /* 純白卡片 */
+            --primary-color: #ffa64d;  /* 溫暖的淡橘色 */
+            --primary-hover: #e68a33;  /* 深一點的橘色 */
+            --text-color: #5c4b43;     /* 溫和的深茶色文字 */
+            --accent-pink: #fbc4b6;   /* 腮紅粉 */
+            --danger-color: #e74c3c;   /* 警告紅 */
+        }
+
+        body {
+            font-family: 'PingFang TC', 'Heiti TC', 'Microsoft JhengHei', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 5px;
+            color: var(--primary-color);
+            letter-spacing: 2px;
+        }
+
+        header p {
+            margin: 0;
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* 優惠公告欄 */
+        .promo-banner {
+            background-color: var(--card-bg);
+            border-left: 5px solid var(--primary-color);
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            margin-bottom: 30px;
+            max-width: 1000px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .promo-banner h3 {
+            margin: 0 0 8px 0;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        .promo-banner ul {
+            margin: 0;
+            padding-left: 20px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* 主佈局：左邊產品，右邊結帳 */
+        .container {
+            display: flex;
+            gap: 30px;
+            max-width: 1000px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .products-grid {
+            flex: 2;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            min-width: 300px;
+        }
+
+        /* 產品卡片 */
+        .product-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(92, 75, 67, 0.04);
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(92, 75, 67, 0.08);
+        }
+
+        /* 倉鼠與籠子的可愛簡約Icon */
+        .product-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        .product-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .product-price {
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+
+        /* 數量選擇器 */
+        .quantity-control {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-qty {
+            background-color: var(--bg-color);
+            border: none;
+            color: var(--text-color);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .btn-qty:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .qty-display {
+            font-size: 1.1rem;
+            min-width: 24px;
+            font-weight: bold;
+        }
+
+        /* 右側購物車與結帳 */
+        .cart-panel {
+            flex: 1;
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 8px 20px rgba(92, 75, 67, 0.04);
+            min-width: 280px;
+            height: fit-content;
+        }
+
+        .cart-panel h2 {
+            margin-top: 0;
+            font-size: 1.4rem;
+            border-bottom: 2px solid var(--bg-color);
+            padding-bottom: 10px;
+            color: var(--text-color);
+        }
+
+        .cart-item-summary {
+            font-size: 0.95rem;
+            margin: 12px 0;
+            display: flex;
+            justify-content: space-between;
+            opacity: 0.9;
+        }
+
+        .divider {
+            height: 1px;
+            background-color: var(--bg-color);
+            margin: 15px 0;
+        }
+
+        /* 計算詳情 */
+        .calc-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 1rem;
+        }
+
+        .discount-text {
+            color: #e67e22;
+            font-weight: bold;
+        }
+
+        .gift-badge {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: normal;
+        }
+
+        .total-row {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--text-color);
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .total-price {
+            color: #d35400;
+        }
+
+        /* 功能按鈕樣式 */
+        .cart-actions {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 12px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-checkout {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 12px rgba(255, 166, 77, 0.3);
+        }
+
+        .btn-checkout:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-checkout:disabled {
+            background-color: #ccc;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-clear {
+            background-color: transparent;
+            color: #aaa;
+            font-size: 0.9rem;
+            padding: 5px;
+        }
+
+        .btn-clear:hover {
+            color: var(--danger-color);
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🐹 萌動小窩</h1>
+        <p>為您與毛孩帶來最溫柔的陪伴</p>
+    </header>
+
+    <div class="promo-banner">
+        <h3>✨ 限時溫馨回饋中 ✨</h3>
+        <ul>
+            <li>滿額好康：全店消費滿 <b>$300</b> 元，即享 <b>8 折</b> 優惠！</li>
+            <li>萌寵加碼：凡購買任意 <b>2 隻（含）以上</b> 倉鼠，即贈送 <b>【精緻小碗】</b> 一個！</li>
+        </ul>
+    </div>
+
+    <div class="container">
+        <div class="products-grid" id="products-container">
+            </div>
+
+        <div class="cart-panel">
+            <h2>購物清單</h2>
+            <div id="cart-items">
+                <p style="color: #999; text-align: center;">尚未挑選商品：）</p>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div id="calc-details">
+                <div class="calc-row"><span>小計</span><span id="subtotal">$0</span></div>
+                <div class="calc-row"><span>折扣好康</span><span id="discount">-$0</span></div>
+                <div class="calc-row"><span>滿額贈品</span><span id="gift">無</span></div>
+                <div class="total-row"><span>總金額</span><span id="total-price" class="total-price">$0</span></div>
+            </div>
+
+            <div class="cart-actions">
+                <button class="btn-action btn-checkout" id="checkout-btn" onclick="checkout()" disabled>前往結帳</button>
+                <button class="btn-action btn-clear" id="clear-btn" onclick="clearCart()" style="display: none;">清空購物車</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 產品資料配置
+        const products = [
+            { id: 1, name: '黃金鼠', price: 100, icon: '🐹', type: 'hamster' },
+            { id: 2, name: '三線鼠', price: 100, icon: '🐭', type: 'hamster' },
+            { id: 3, name: '老公公鼠', price: 200, icon: '🦫', type: 'hamster' },
+            { id: 4, name: '熊貓鼠', price: 100, icon: '🐼', type: 'hamster' },
+            { id: 5, name: '壓克力籠子', price: 500, icon: '🏠', type: 'item' }
+        ];
+
+        // 紀錄購物車內各品項的數量
+        let cart = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+        
+        // 全域變數儲存當前計算結果，便於結帳彈窗讀取
+        let currentTotal = 0;
+        let currentGift = false;
+
+        // 初始化網頁產品卡片
+        function initProducts() {
+            const container = document.getElementById('products-container');
+            container.innerHTML = '';
+            
+            products.forEach(prod => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <div class="product-icon">${prod.icon}</div>
+                    <div class="product-name">${prod.name}</div>
+                    <div class="product-price">$${prod.price}</div>
+                    <div class="quantity-control">
+                        <button class="btn-qty" onclick="updateQty(${prod.id}, -1)">-</button>
+                        <span class="qty-display" id="qty-${prod.id}">0</span>
+                        <button class="btn-qty" onclick="updateQty(${prod.id}, 1)">+</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // 更新數量與即時計算金額
+        function updateQty(id, change) {
+            let newQty = cart[id] + change;
+            if (newQty < 0) return; 
+            
+            cart[id] = newQty;
+            document.getElementById(`qty-${id}`).innerText = newQty;
+            
+            calculateCart();
+        }
+
+        // 核心邏輯：計算折扣與贈品
+        function calculateCart() {
+            let rawSubtotal = 0;
+            let hamsterCount = 0;
+            let hasItems = false;
+            let itemsSummaryHtml = '';
+
+            products.forEach(prod => {
+                const qty = cart[prod.id];
+                if (qty > 0) {
+                    hasItems = true;
+                    rawSubtotal += prod.price * qty;
+                    if (prod.type === 'hamster') {
+                        hamsterCount += qty;
+                    }
+                    itemsSummaryHtml += `
+                        <div class="cart-item-summary">
+                            <span>${prod.name} x ${qty}</span>
+                            <span>$${prod.price * qty}</span>
+                        </div>
+                    `;
+                }
+            });
+
+            // 處理購物車空白狀態
+            if (!hasItems) {
+                document.getElementById('cart-items').innerHTML = '<p style="color: #999; text-align: center;">尚未挑選商品：）</p>';
+                document.getElementById('subtotal').innerText = '$0';
+                document.getElementById('discount').innerText = '-$0';
+                document.getElementById('gift').innerHTML = '無';
+                document.getElementById('total-price').innerText = '$0';
+                
+                // 按鈕狀態控制
+                document.getElementById('checkout-btn').disabled = true;
+                document.getElementById('clear-btn').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('cart-items').innerHTML = itemsSummaryHtml;
+            document.getElementById('checkout-btn').disabled = false;
+            document.getElementById('clear-btn').style.display = 'block';
+
+            // 判斷折扣：滿300元打8折
+            let discount = 0;
+            let finalTotal = rawSubtotal;
+            let discountText = '-$0';
+
+            if (rawSubtotal >= 300) {
+                finalTotal = rawSubtotal * 0.8;
+                discount = rawSubtotal - finalTotal;
+                discountText = `-$${Math.round(discount)} (享8折)`;
+            }
+
+            // 判斷贈品：買2隻倉鼠送小碗
+            let giftText = '無';
+            currentGift = false;
+            if (hamsterCount >= 2) {
+                giftText = '<span class="gift-badge">🎁 贈送精緻小碗</span>';
+                currentGift = true;
+            }
+
+            currentTotal = Math.round(finalTotal);
+
+            // 更新前端畫面
+            document.getElementById('subtotal').innerText = `$${rawSubtotal}`;
+            document.getElementById('discount').className = discount > 0 ? 'discount-text' : '';
+            document.getElementById('discount').innerText = discountText;
+            document.getElementById('gift').innerHTML = giftText;
+            document.getElementById('total-price').innerText = `$${currentTotal}`;
+        }
+
+        // 新增功能 1：清空購物車
+        function clearCart() {
+            // 所有資料歸零
+            for (let id in cart) {
+                cart[id] = 0;
+                const qtyElement = document.getElementById(`qty-${id}`);
+                if (qtyElement) qtyElement.innerText = 0;
+            }
+            calculateCart();
+        }
+
+        // 新增功能 2：模擬結帳功能
+        function checkout() {
+            let message = `🎉 感謝您的購買！\n\n您的結帳總金額為：$${currentTotal} 元`;
+            if (currentGift) {
+                message += `\n🎁 好康不漏接：已為您打包贈品【精緻小碗】一個！`;
+            }
+            message += `\n\n我們將儘速為您安排出貨，祝您與小倉鼠有美好的一天！✨`;
+            
+            alert(message);
+            clearCart(); // 結帳成功後自動清空購物車
+        }
+
+        // 頁面載入完成後執行
+        window.onload = initProducts;
+    </script>
+</body>
+</html>
