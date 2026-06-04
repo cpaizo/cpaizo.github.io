@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>萌寵家族 - 狗狗專賣店 (含完整送出訂單功能)</title>
+    <style>
+        /* 基礎樣式重設 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Helvetica Neue", Arial, "Noto Sans TC", sans-serif;
+        }
+
+        body {
+            background-color: #fdfbf7;
+            color: #4a4a4a;
+            line-height: 1.6;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 導覽列 */
+        header {
+            background-color: #ffffff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e59866;
+            text-decoration: none;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #666;
+            margin-left: 20px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #e59866;
+        }
+
+        /* 購物車按鈕樣式 */
+        .cart-icon-btn {
+            background: #fff5f0;
+            border: 1px solid #e59866;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: bold;
+            color: #e59866;
+            margin-left: 20px;
+        }
+
+        .cart-count {
+            background-color: #de6b48;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 7px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* 主視覺區 */
+        .hero {
+            background: linear-gradient(rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0.65)), 
+                        url('https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=1200') no-repeat center/cover;
+            padding: 60px 0;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .hero h1 {
+            font-size: 36px;
+            color: #5d4037;
+            margin-bottom: 12px;
+        }
+
+        /* 產品區塊標題 */
+        .section-title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .section-title h2 {
+            font-size: 28px;
+            color: #5d4037;
+            position: relative;
+            display: inline-block;
+            padding-bottom: 12px;
+        }
+
+        /* 產品卡片網格 */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .product-card {
+            background-color: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid #f0e6df;
+        }
+
+        .product-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 25px rgba(229, 152, 102, 0.15);
+        }
+
+        .product-img {
+            width: 100%;
+            height: 220px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* 圖片網址 */
+        .img-shiba { background-image: url('https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&q=80&w=500'); }
+        .img-poodle { background-image: url('https://images.unsplash.com/photo-1598133894004-71f9967362ee?auto=format&fit=crop&q=80&w=500'); }
+        .img-maltese { background-image: url('https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?auto=format&fit=crop&q=80&w=500'); }
+        .img-pomeranian { background-image: url('https://images.unsplash.com/photo-1529429617329-8ae10e708437?auto=format&fit=crop&q=80&w=500'); }
+
+        .product-info {
+            padding: 24px;
+        }
+
+        .product-name {
+            font-size: 19px;
+            font-weight: bold;
+            color: #4a3728;
+            margin-bottom: 10px;
+        }
+
+        .product-price {
+            font-size: 16px;
+            color: #de6b48;
+            font-weight: 600;
+            margin-bottom: 20px;
+            background-color: #fff5f0;
+            padding: 6px 12px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+
+        /* 按鈕 */
+        .btn-add-cart {
+            display: block;
+            width: 100%;
+            text-align: center;
+            background-color: #e59866;
+            color: #ffffff;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-add-cart:hover {
+            background-color: #d35400;
+        }
+
+        /* 側邊購物車彈出視窗 */
+        .cart-modal {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 100%;
+            max-width: 400px;
+            height: 100%;
+            background-color: #ffffff;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.15);
+            z-index: 200;
+            transition: right 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cart-modal.open {
+            right: 0;
+        }
+
+        /* 購物車遮罩背景 */
+        .cart-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+            z-index: 150;
+            display: none;
+        }
+
+        .cart-overlay.open {
+            display: block;
+        }
+
+        .cart-header {
+            padding: 20px;
+            background-color: #5d4037;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-close-cart {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        /* 購物車內容物清單 */
+        .cart-body {
+            padding: 20px;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .cart-empty-msg {
+            text-align: center;
+            color: #999;
+            margin-top: 40px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .item-details h4 {
+            font-size: 15px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .item-details p {
+            font-size: 14px;
+            color: #de6b48;
+            font-weight: bold;
+        }
+
+        .item-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .item-control button {
+            background-color: #f0e6df;
+            border: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-delete {
+            background-color: #ffeb3b !important;
+            color: #c0392b;
+            margin-left: 10px;
+        }
+
+        /* 結帳表單樣式 */
+        .checkout-form {
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 14px;
+            color: #5d4037;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .btn-back {
+            background-color: #95a5a6;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+
+        /* 成功收據樣式 */
+        .receipt-view {
+            display: none;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .receipt-success-icon {
+            font-size: 50px;
+            color: #2ecc71;
+            margin-bottom: 10px;
+        }
+
+        .receipt-card {
+            background: #fdfaf7;
+            border: 1px dashed #e59866;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: left;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .receipt-card h4 {
+            border-bottom: 1px solid #e59866;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+            color: #5d4037;
+        }
+
+        .receipt-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        /* 購物車底部結帳區 */
+        .cart-footer {
+            padding: 20px;
+            border-top: 1px solid #eee;
+            background-color: #fafafa;
+        }
+
+        .cart-total {
+            display: flex;
+            justify-content: space-between;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .btn-checkout, .btn-submit-order, .btn-copy {
+            display: block;
+            width: 100%;
+            background-color: #de6b48;
+            color: white;
+            text-align: center;
+            padding: 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .btn-submit-order {
+            background-color: #2ecc71;
+            transition: background-color 0.2s;
+        }
+
+        .btn-submit-order:hover {
+            background-color: #27ae60;
+        }
+
+        .btn-submit-order:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .btn-copy {
+            background-color: #3498db;
+            margin-top: 15px;
+        }
+        .btn-copy:hover {
+            background-color: #2980b9;
+        }
+
+        /* 頁尾 */
+        footer {
+            background-color: #5d4037;
+            color: #fdfbf7;
+            text-align: center;
+            padding: 40px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container header-content">
+            <a href="file:///D:/%E7%9B%A7%E6%99%A8%E6%9B%A6/%E7%8B%97.html#" class="logo">🐾 萌寵角落專賣店</a>
+            <nav>
+                <a href="file:///D:/%E7%9B%A7%E6%99%A8%E6%9B%A6/%E7%8B%97.html#">首頁</a>
+                <a href="#">熱門幼犬</a>
+                <button class="cart-icon-btn" id="cart-toggle-btn">
+                    🛒 購物車 <span class="cart-count" id="cart-count">0</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>預約您的命定毛孩</h1>
+        </div>
+    </section>
+
+    <main class="container">
+        <div class="section-title">
+            <h2>本期熱門品種</h2>
+        </div>
+
+        <div class="product-grid">
+            <div class="product-card">
+                <div class="product-img img-shiba"></div>
+                <div class="product-info">
+                    <div class="product-name">柴犬</div>
+                    <div class="product-price">NT$ 12,000 元 起</div>
+                    <button class="btn-add-cart" data-name="柴犬" data-price="12000">加入購物車</button>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="product-img img-poodle"></div>
+                <div class="product-info">
+                    <div class="product-name">貴賓犬 (玩具貴賓)</div>
+                    <div class="product-price">NT$ 18,000 元 起</div>
+                    <button class="btn-add-cart" data-name="貴賓犬 (玩具貴賓)" data-price="18000">加入購物車</button>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="product-img img-maltese"></div>
+                <div class="product-info">
+                    <div class="product-name">馬爾濟斯 / 比熊犬</div>
+                    <div class="product-price">NT$ 20,000 元 起</div>
+                    <button class="btn-add-cart" data-name="馬爾濟斯 / 比熊犬" data-price="20000">加入購物車</button>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="product-img img-pomeranian"></div>
+                <div class="product-info">
+                    <div class="product-name">博美犬</div>
+                    <div class="product-price">NT$ 30,000 元 起</div>
+                    <button class="btn-add-cart" data-name="博美犬" data-price="30000">加入購物車</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="cart-overlay" id="cart-overlay"></div>
+    <div class="cart-modal" id="cart-modal">
+        <div class="cart-header">
+            <h3 id="modal-title">您的預約清單</h3>
+            <button class="btn-close-cart" id="cart-close-btn">&times;</button>
+        </div>
+        
+        <div class="cart-body" id="cart-list-view">
+            <div id="cart-items-container">
+                <p class="cart-empty-msg">購物車目前是空的 🐾</p>
+            </div>
+        </div>
+
+        <div class="cart-body checkout-form" id="checkout-form-view">
+            <button class="btn-back" onclick="switchView('cart')">← 返回修改清單</button>
+            <div class="form-group">
+                <label for="cust-name">姓名 *</label>
+                <input type="text" id="cust-name" placeholder="請輸入您的姓名" required>
+            </div>
+            <div class="form-group">
+                <label for="cust-phone">聯絡電話 *</label>
+                <input type="tel" id="cust-phone" placeholder="請輸入手機號碼" required>
+            </div>
+            <div class="form-group">
+                <label for="cust-date">預約賞犬日期 *</label>
+                <input type="date" id="cust-date" required>
+            </div>
+        </div>
+
+        <div class="cart-body receipt-view" id="receipt-view">
+            <div class="receipt-success-icon">🚀</div>
+            <h3>訂單已成功送出！</h3>
+            <p style="font-size: 13px; color: #7f8c8d; margin-bottom: 10px;">資料已格式化，建議點擊下方按鈕複製明細傳給店家 LINE。</p>
+            
+            <button class="btn-copy" onclick="copyOrderText()">📋 複製訂單文字明細</button>
+
+            <div class="receipt-card" id="receipt-content">
+                </div>
+            <button class="btn-checkout" style="margin-top: 15px; background-color: #5d4037;" onclick="closeAndResetCart()">關閉並清空購物車</button>
+        </div>
+
+        <div class="cart-footer" id="cart-footer-actions">
+            <div class="cart-total">
+                <span>總計金額:</span>
+                <span id="cart-total-amount">NT$ 0</span>
+            </div>
+            <button class="btn-checkout" id="btn-go-checkout" onclick="goToCheckout()">前往預約結帳</button>
+            <button class="btn-submit-order" id="btn-submit-order" style="display: none;" onclick="submitOrder()">確認送出訂單</button>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>© 2026 萌寵角落專賣店 版權所有</p>
+        </div>
+    </footer>
+
+    <script>
+        let cart = [];
+        let globalRawText = ""; // 用來暫存要複製的純文字訂單明細
+
+        const cartModal = document.getElementById('cart-modal');
+        const cartOverlay = document.getElementById('cart-overlay');
+        const cartToggleBtn = document.getElementById('cart-toggle-btn');
+        const cartCloseBtn = document.getElementById('cart-close-btn');
+        const cartItemsContainer = document.getElementById('cart-items-container');
+        const cartCount = document.getElementById('cart-count');
+        const cartTotalAmount = document.getElementById('cart-total-amount');
+        const addToCartButtons = document.querySelectorAll('.btn-add-cart');
+
+        const modalTitle = document.getElementById('modal-title');
+        const cartListView = document.getElementById('cart-list-view');
+        const checkoutFormView = document.getElementById('checkout-form-view');
+        const receiptView = document.getElementById('receipt-view');
+        const btnGoCheckout = document.getElementById('btn-go-checkout');
+        const btnSubmitOrder = document.getElementById('btn-submit-order');
+        const cartFooterActions = document.getElementById('cart-footer-actions');
+
+        function toggleCart() {
+            cartModal.classList.toggle('open');
+            cartOverlay.classList.toggle('open');
+            if (receiptView.style.display !== 'block') {
+                switchView('cart');
+            }
+        }
+
+        cartToggleBtn.addEventListener('click', toggleCart);
+        cartCloseBtn.addEventListener('click', toggleCart);
+        cartOverlay.addEventListener('click', toggleCart);
+
+        function switchView(view) {
+            if (view === 'cart') {
+                modalTitle.innerText = "您的預約清單";
+                cartListView.style.display = "block";
+                checkoutFormView.style.display = "none";
+                receiptView.style.display = "none";
+                btnGoCheckout.style.display = "block";
+                btnSubmitOrder.style.display = "none";
+                cartFooterActions.style.display = "block";
+            } else if (view === 'checkout') {
+                modalTitle.innerText = "填寫預約資料";
+                cartListView.style.display = "none";
+                checkoutFormView.style.display = "block";
+                receiptView.style.display = "none";
+                btnGoCheckout.style.display = "none";
+                btnSubmitOrder.style.display = "block";
+                cartFooterActions.style.display = "block";
+            } else if (view === 'receipt') {
+                modalTitle.innerText = "送出成功";
+                cartListView.style.display = "none";
+                checkoutFormView.style.display = "none";
+                receiptView.style.display = "block";
+                cartFooterActions.style.display = "none"; 
+            }
+        }
+
+        addToCartButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const name = button.getAttribute('data-name');
+                const price = parseInt(button.getAttribute('data-price'));
+
+                const existingItem = cart.find(item => item.name === name);
+                if (existingItem) {
+                    existingItem.quantity += 1;
+                } else {
+                    cart.push({ name, price, quantity: 1 });
+                }
+
+                updateCartUI();
+                switchView('cart');
+                cartModal.classList.add('open');
+                cartOverlay.classList.add('open');
+            });
+        });
+
+        function updateCartUI() {
+            cartItemsContainer.innerHTML = '';
+
+            if (cart.length === 0) {
+                cartItemsContainer.innerHTML = '<p class="cart-empty-msg">購物車目前是空的 🐾</p>';
+                cartCount.innerText = '0';
+                cartTotalAmount.innerText = 'NT$ 0';
+                return;
+            }
+
+            let totalQuantity = 0;
+            let totalPrice = 0;
+
+            cart.forEach((item, index) => {
+                totalQuantity += item.quantity;
+                totalPrice += item.price * item.quantity;
+
+                const itemHTML = `
+                    <div class="cart-item">
+                        <div class="item-details">
+                            <h4>${item.name}</h4>
+                            <p>NT$ ${item.price.toLocaleString()}</p>
+                        </div>
+                        <div class="item-control">
+                            <button onclick="changeQuantity(${index}, -1)">-</button>
+                            <span>${item.quantity}</span>
+                            <button onclick="changeQuantity(${index}, 1)">+</button>
+                            <button class="btn-delete" onclick="deleteItem(${index})">🗑️</button>
+                        </div>
+                    </div>
+                `;
+                cartItemsContainer.insertAdjacentHTML('beforeend', itemHTML);
+            });
+
+            cartCount.innerText = totalQuantity;
+            cartTotalAmount.innerText = `NT$ ${totalPrice.toLocaleString()}`;
+        }
+
+        window.changeQuantity = function(index, change) {
+            cart[index].quantity += change;
+            if (cart[index].quantity <= 0) {
+                cart.splice(index, 1);
+            }
+            updateCartUI();
+        }
+
+        window.deleteItem = function(index) {
+            cart.splice(index, 1);
+            updateCartUI();
+        }
+
+        function goToCheckout() {
+            if (cart.length === 0) {
+                alert('您的購物車是空的，請先挑選喜愛的狗狗喔！');
+                return;
+            }
+            switchView('checkout');
+        }
+
+        // 送出訂單（含網頁動態載入模擬功能）
+        function submitOrder() {
+            const name = document.getElementById('cust-name').value.trim();
+            const phone = document.getElementById('cust-phone').value.trim();
+            const date = document.getElementById('cust-date').value;
+
+            if (!name || !phone || !date) {
+                alert('請填寫所有必填欄位 (*)');
+                return;
+            }
+
+            // 1. 進入傳送中狀態，停用按鈕並顯示動畫
+            btnSubmitOrder.disabled = true;
+            btnSubmitOrder.innerText = '⏳ 訂單傳送中，請稍候...';
+
+            // 2. 模擬非同步傳送延遲 1.5 秒
+            setTimeout(() => {
+                let totalPrice = 0;
+                let itemsDetailsHTML = '';
+                let rawTextItems = ''; // 用於剪貼簿的純文字明細
+
+                cart.forEach(item => {
+                    totalPrice += item.price * item.quantity;
+                    itemsDetailsHTML += `
+                        <div class="receipt-line">
+                            <span>${item.name} x ${item.quantity}</span>
+                            <span>NT$ ${(item.price * item.quantity).toLocaleString()}</span>
+                        </div>
+                    `;
+                    rawTextItems += `• ${item.name} x ${item.quantity} (NT$ ${(item.price * item.quantity).toLocaleString()})\n`;
+                });
+
+                const orderId = 'DOG' + Date.now().toString().slice(-8);
+
+                // 儲存文字格式供複製
+                globalRawText = `【🐾 萌寵角落專賣店 - 新預約訂單】\n`;
+                globalRawText += `訂單編號：${orderId}\n`;
+                globalRawText += `訂購人：${name}\n`;
+                globalRawText += `聯絡電話：${phone}\n`;
+                globalRawText += `預約賞犬日：${date}\n`;
+                globalRawText += `-----------------------\n`;
+                globalRawText += rawTextItems;
+                globalRawText += `-----------------------\n`;
+                globalRawText += `總計金額：NT$ ${totalPrice.toLocaleString()} 元`;
+
+                // 渲染收據畫面
+                const receiptContent = document.getElementById('receipt-content');
+                receiptContent.innerHTML = `
+                    <h4>訂單明細 (編號：${orderId})</h4>
+                    <div class="receipt-line"><strong>訂購人：</strong><span>${name}</span></div>
+                    <div class="receipt-line"><strong>聯絡電話：</strong><span>${phone}</span></div>
+                    <div class="receipt-line"><strong>預約賞犬日：</strong><span>${date}</span></div>
+                    <hr style="border: none; border-top: 1px dashed #ddd; margin: 10px 0;">
+                    ${itemsDetailsHTML}
+                    <hr style="border: none; border-top: 1px dashed #ddd; margin: 10px 0;">
+                    <div class="receipt-line" style="font-weight: bold; color: #de6b48; font-size: 16px;">
+                        <span>總計金額：</span>
+                        <span>NT$ ${totalPrice.toLocaleString()}</span>
+                    </div>
+                `;
+
+                // 3. 還原按鈕狀態並切換到完成頁面
+                btnSubmitOrder.disabled = false;
+                btnSubmitOrder.innerText = '確認送出訂單';
+                switchView('receipt');
+                
+            }, 1500);
+        }
+
+        // 一鍵複製到系統剪貼簿
+        function copyOrderText() {
+            if (!globalRawText) return;
+            navigator.clipboard.writeText(globalRawText).then(() => {
+                alert('📋 訂單明細已複製到剪貼簿！您可以直接到 LINE 貼上傳送給店家。');
+            }).catch(err => {
+                alert('複製失敗，請手動選取下方卡片內容複製。');
+            });
+        }
+
+        function closeAndResetCart() {
+            cart = [];
+            updateCartUI();
+            
+            document.getElementById('cust-name').value = '';
+            document.getElementById('cust-phone').value = '';
+            document.getElementById('cust-date').value = '';
+            globalRawText = "";
+
+            cartModal.classList.remove('open');
+            cartOverlay.classList.remove('open');
+        }
+    </script>
+</body>
+</html>
