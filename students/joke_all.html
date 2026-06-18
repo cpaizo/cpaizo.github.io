@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 歡樂派對！學生休閒娛樂作品展 🎈</title>
+    <style>
+        body {
+            background-color: #f7f9fa;
+            /* 輕快活潑的點點娛樂風背景 */
+            background-image: radial-gradient(#dfe6e9 15%, transparent 15%);
+            background-size: 24px 24px;
+            font-family: "Microsoft JhengHei", sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ==== 🚀 新增：休閒娛樂類動態背景 ==== */
+        /* 1. 漂浮的娛樂圖標（爆米花、手把、氣球） */
+        .floating-item {
+            position: absolute;
+            bottom: -60px;
+            font-size: 35px;
+            user-select: none;
+            animation: floatUp 8s linear infinite;
+            opacity: 0.6;
+            z-index: 1;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* 粗黑美式卡通風格框 */
+        .comic-border {
+            border: 4px solid #2d3436;
+            border-radius: 20px;
+        }
+
+        /* 主展覽盒 */
+        .stage {
+            background-color: #ffffff;
+            padding: 40px 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+            max-width: 600px;
+            width: 90%;
+            position: relative;
+            box-shadow: 10px 10px 0px #2d3436;
+            z-index: 10;
+        }
+
+        /* 頂部霓虹緞帶 */
+        .stage::before {
+            content: "🎬 FUN！休閒娛樂作品線上展 🎮";
+            position: absolute;
+            top: -18px;
+            background: #fd79a8; /* 活力粉紅 */
+            color: white;
+            border: 3px solid #2d3436;
+            padding: 4px 20px;
+            font-weight: bold;
+            font-size: 18px;
+            letter-spacing: 1px;
+            border-radius: 8px;
+        }
+
+        .title-desc {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2d3436;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        /* 作品排版區 */
+        .student-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            width: 100%;
+        }
+
+        /* 學生休閒娛樂卡片 */
+        .student-card {
+            background-color: #ffeaa7; /* 糖果黃 */
+            color: #2d3436;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 22px;
+            font-size: 22px;
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #2d3436;
+            transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.2s ease;
+        }
+
+        /* 滑鼠移上去的娛樂彩蛋色 */
+        .student-card:nth-child(1):hover { background-color: #74b9ff; } /* 遊戲藍 */
+        .student-card:nth-child(2):hover { background-color: #55efc4; } /* 戶外綠 */
+        .student-card:nth-child(3):hover { background-color: #a29bfe; } /* 電影紫 */
+        .student-card:nth-child(4):hover { background-color: #ff8282; } /* 派對紅 */
+
+        .student-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 11px 0 #2d3436;
+        }
+
+        .student-card:active {
+            transform: translateY(6px);
+            box-shadow: 0 0px 0 #2d3436;
+        }
+
+        /* 娛樂類小圖標 */
+        .fun-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+            animation: bounce 1.2s infinite alternate;
+        }
+
+        @keyframes bounce {
+            0% { transform: scale(0.9) translateY(0); }
+            100% { transform: scale(1.1) translateY(-6px); }
+        }
+
+        /* ✨ 卡片點擊噴發粒子 */
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            animation: burst 0.8s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+            font-size: 22px;
+            z-index: 20;
+        }
+        @keyframes burst {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(0); opacity: 0; }
+        }
+
+        /* 手機版適配 */
+        @media (max-width: 480px) {
+            .student-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="bgContainer"></div>
+
+    <div class="stage comic-border">
+        <div class="title-desc">✨ 點擊下方卡片，進入各位同學的休閒娛樂精采作品！</div>
+        
+        <div class="student-list">
+            <a href="https://cpaizo.github.io/students/joke盧晨希.html" target="_blank" class="student-card comic-border">
+                <div class="fun-icon">🎮</div>
+                <div>盧晨希 作品</div>
+            </a>
+
+            <a href="https://cpaizo.github.io/students/joke張芯嫙.html" target="_blank" class="student-card comic-border">
+                <div class="fun-icon">🍿</div>
+                <div>張芯嫙 作品</div>
+            </a>
+
+            <a href="https://cpaizo.github.io/students/joke陳玉婷.html" target="_blank" class="student-card comic-border">
+                <div class="fun-icon">🎈</div>
+                <div>陳玉婷 作品</div>
+            </a>
+
+            <a href="https://cpaizo.github.io/students/joke張倢鈞.html" target="_blank" class="student-card comic-border">
+                <div class="fun-icon">🎲</div>
+                <div>張倢鈞 作品</div>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // 1. 自動初始化背景飄浮物效果（遊戲手把、爆米花、氣球、耳機、星星）
+        const bgContainer = document.getElementById('bgContainer');
+        const entertainmentIcons = ['🎮', '🍿', '🎈', '🎲', '🎧', '✨', '🎤', '🎪'];
+        
+        function initBgEffects() {
+            for (let i = 0; i < 15; i++) {
+                const item = document.createElement('div');
+                item.classList.add('floating-item');
+                item.innerText = entertainmentIcons[Math.floor(Math.random() * entertainmentIcons.length)];
+                item.style.left = Math.random() * 100 + 'vw';
+                item.style.animationDelay = Math.random() * 8 + 's';
+                item.style.fontSize = Math.random() * 15 + 25 + 'px';
+                bgContainer.appendChild(item);
+            }
+        }
+        initBgEffects();
+
+        // 2. 幫所有卡片加上點擊時噴發彩帶星星的音效回饋視覺特效
+        const cards = document.querySelectorAll('.student-card');
+        const colors = ['#74b9ff', '#55efc4', '#a29bfe', '#ff8282', '#ffeaa7'];
+        const burstEmojis = ['✨', '⭐', '🎉', '💥', '🎈'];
+
+        cards.forEach(card => {
+            card.addEventListener('click', (e) => {
+                const startX = e.clientX;
+                const startY = e.clientY;
+
+                for (let i = 0; i < 20; i++) {
+                    const part = document.createElement('div');
+                    part.classList.add('particle');
+                    
+                    if (Math.random() > 0.4) {
+                        part.innerText = burstEmojis[Math.floor(Math.random() * burstEmojis.length)];
+                    } else {
+                        part.style.width = '12px';
+                        part.style.height = '12px';
+                        part.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                        part.style.borderRadius = '50%';
+                    }
+
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = Math.random() * 120 + 30; 
+                    const tx = Math.cos(angle) * distance + 'px';
+                    const ty = Math.sin(angle) * distance + 'px';
+                    const rot = Math.random() * 360 + 'deg';
+
+                    part.style.setProperty('--tx', tx);
+                    part.style.setProperty('--ty', ty);
+                    part.style.setProperty('--rot', rot);
+
+                    part.style.left = startX + 'px';
+                    part.style.top = startY + 'px';
+                    part.style.position = 'fixed';
+
+                    document.body.appendChild(part);
+                    part.addEventListener('animationend', () => part.remove());
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
