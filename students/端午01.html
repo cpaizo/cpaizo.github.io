@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚣‍♂️ 慶端午！動態龍舟神祕謎題機 🔺</title>
+    <style>
+        body {
+            background-color: #f1f8f5; 
+            background-image: 
+                linear-gradient(45deg, #e2efe9 25%, transparent 25%, transparent 75%, #e2efe9 75%, #e2efe9),
+                linear-gradient(45deg, #e2efe9 25%, transparent 25%, transparent 75%, #e2efe9 75%, #e2efe9);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            font-family: "Microsoft JhengHei", sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ==== 背景動畫元件 ==== */
+        /* 來回划動的純龍舟圖案 */
+        .moving-boat {
+            position: absolute;
+            bottom: 8%;
+            font-size: 50px;
+            user-select: none;
+            animation: rowAcross 12s linear infinite alternate;
+            z-index: 1;
+        }
+        @keyframes rowAcross {
+            0% { left: -10%; transform: scaleX(1) translateY(0); }
+            50% { translateY: -10px; } 
+            100% { left: 110%; transform: scaleX(-1) translateY(0); } 
+        }
+
+        /* 飄落的粽子 */
+        .falling-zongzi {
+            position: absolute;
+            top: -50px;
+            font-size: 30px;
+            user-select: none;
+            animation: fallDown 7s linear infinite;
+            opacity: 0.8;
+            z-index: 1;
+        }
+        @keyframes fallDown {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* 靜態背景塗鴉 */
+        .doodle {
+            position: absolute;
+            font-size: 32px;
+            color: #8caba0;
+            user-select: none;
+            font-weight: bold;
+            opacity: 0.4;
+            z-index: 1;
+        }
+        .doodle-1 { top: 8%; left: 12%; transform: rotate(-10deg); }
+        .doodle-2 { top: 12%; right: 10%; transform: rotate(20deg); }
+
+        /* 粗黑復古漫畫框 */
+        .hand-drawn-border {
+            border: 4px solid #2c3e50;
+            border-radius: 255px 20px 225px 20px/20px 225px 20px 255px;
+        }
+
+        /* 主舞台 */
+        .stage {
+            background-color: #ffffff;
+            padding: 35px;
+            display: flex;
+            flex-direction: row;
+            gap: 25px;
+            align-items: center;
+            max-width: 700px;
+            width: 90%;
+            position: relative;
+            box-shadow: 10px 10px 0px #2c3e50;
+            z-index: 10; 
+        }
+
+        .stage::before {
+            content: "🛶 奪標！端午特企 🛶";
+            position: absolute;
+            top: -18px;
+            left: 30px;
+            background: #ff7675; 
+            color: white;
+            border: 3px solid #2c3e50;
+            padding: 2px 14px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        /* 左邊盒子 */
+        .left-box {
+            background-color: #10ac84; 
+            padding: 20px;
+            flex: 1;
+            text-align: center;
+            box-shadow: inset 0 -6px 0 rgba(0,0,0,0.15);
+        }
+
+        .joke-btn {
+            background-color: #feca57; 
+            color: #2c3e50;
+            border: 4px solid #2c3e50;
+            padding: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 125px;
+            height: 125px;
+            box-shadow: 0 6px 0 #2c3e50;
+            transition: transform 0.05s ease, box-shadow 0.05s ease;
+        }
+
+        .joke-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #2c3e50;
+        }
+
+        /* 右邊盒子 */
+        .right-box {
+            background-color: #ffeaa7; 
+            padding: 25px;
+            flex: 2;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            text-align: center;
+            position: relative;
+        }
+
+        /* 看答案按鈕 */
+        .ans-btn {
+            display: none;
+            background-color: #ff7675; 
+            color: white;
+            border: 3px solid #2c3e50;
+            padding: 8px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #2c3e50;
+            animation: bounce 0.6s infinite alternate;
+        }
+        .ans-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #2c3e50;
+        }
+
+        @keyframes bounce {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-6px); }
+        }
+
+        /* 答案文字框 */
+        .answer-text {
+            color: #ffffff;
+            background-color: #10ac84; 
+            border: 3px solid #2c3e50;
+            padding: 8px 16px;
+            margin-top: 18px;
+            font-size: 22px;
+            transform: rotate(-1deg);
+            display: inline-block;
+            box-shadow: 4px 4px 0px #2c3e50;
+        }
+
+        /* 衝刺效果 */
+        .shuffling {
+            animation: rowBoat 0.08s infinite alternate;
+        }
+        @keyframes rowBoat {
+            0% { transform: translate(-2px, 0) scale(0.97); opacity: 0.7; }
+            100% { transform: translate(2px, -2px) scale(1.03); opacity: 0.9; }
+        }
+
+        /* 噴發粒子 */
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            animation: burst 0.8s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+            font-size: 22px;
+            z-index: 20;
+        }
+        @keyframes burst {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(0); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="moving-boat">🚣‍♂️🛶</div>
+
+    <div id="zongziContainer"></div>
+
+    <div class="doodle doodle-1">🍃 ✨</div>
+    <div class="doodle doodle-2">🌾 ⚡</div>
+
+    <div class="stage hand-drawn-border">
+        <div class="left-box hand-drawn-border">
+            <button class="joke-btn hand-drawn-border" id="jokeBtn">🛶<br>隨機抽<br>端午題</button>
+        </div>
+        
+        <div class="right-box hand-drawn-border" id="jokeBox">
+            <div id="jokeContent">🌾 歡迎來到端午動態慶典！<br>按下按鈕看看有什麼應景考題吧！</div>
+            <button class="ans-btn" id="ansBtn">揭曉答案 🔺</button>
+        </div>
+    </div>
+
+    <script>
+        const duanwuJokes = [
+            { q: "端午節包粽子，哪一種米最容易迷路？", a: "糯米！因為牠是「路迷」。" },
+            { q: "肉粽和鹼粽打架，誰會搬救兵？", a: "鹼粽！因為鹼粽常沾糖（幫忙）。" },
+            { q: "屈原的老婆生氣時會變什麼？", a: "包子！因為屈原投江（投醬）。" },
+            { q: "端午節划龍舟，哪一隊最不想贏？", a: "划得慢那一隊。" },
+            { q: "肉粽、水餃、包子一起去游泳，誰最容易沉下去？", a: "肉粽！因為裡面綁了滿滿的豬肉和蛋黃，太重啦！" },
+            { q: "端午節中午，小明把蛋立起來了，那誰把蛋吃掉了？", a: "肚子餓的小明！" },
+            { q: "哪一種粽子最會唱歌？", a: "麥克粽！" },
+            { q: "屈原要寫詩的時候，最怕遇到什麼事？", a: "忘記帶毛筆。" },
+            { q: "端午節掛在門口的艾草，最討厭什麼動物？", a: "害蟲與蚊子！因為艾草超驅蟲！" },
+            { q: "為什麼端午節一定要划龍舟，不划狗舟？", a: "因為狗舟在水裡會變成「狗爬式」，划不動！" },
+            { q: "肉粽裡面的香菇，最常跟誰打招呼？", a: "栗子！因為牠們總是在粽子裡「相遇」。" },
+            { q: "雄黃酒和高粱酒誰比較怕蛇？", a: "高粱酒！因為雄黃酒是專門用來趕白娘子和蛇的！" },
+            { q: "什麼粽子全身長滿刺，卻不能吃？", a: "仙人掌粽！好孩子千萬別包這個。" },
+            { q: "端午節去海邊，除了看龍舟還能看什麼？", a: "看海浪呀！" },
+            { q: "粽子脫掉外衣（粽葉）之後，會變成什麼？", a: "光溜溜的白糯米團！" },
+            { q: "端午節全班一起包粽子，誰包得最快？", a: "手腳最快的那個人。" },
+            { q: "為什麼屈原不吃巧克力粽？", a: "因為古代沒有巧克力呀！" },
+            { q: "龍舟上的鼓手為什麼要一直敲鼓？", a: "因為他不敲鼓，大家就會睡著划不動！" },
+            { q: "哪一種水果最喜歡跟肉粽包在一起？", a: "沒有這種水果，包進去會變黑暗料理！" },
+            { q: "端午節過後，粽子們最想去哪裡旅行？", a: "冰箱冷凍庫！因為外面太熱會壞掉！" }
+        ];
+
+        const dwColors = ['#55efc4', '#ffeaa7', '#ffeaa7', '#a29bfe', '#ff7675', '#feca57'];
+        const dwEmojis = ['🔺', '🍃', '🛶', '✨', '❤️', '🤣', '🌾'];
+
+        const jokeBtn = document.getElementById('jokeBtn');
+        const ansBtn = document.getElementById('ansBtn');
+        const jokeBox = document.getElementById('jokeBox');
+        const jokeContent = document.getElementById('jokeContent');
+        const zongziContainer = document.getElementById('zongziContainer');
+
+        let currentJoke = null;
+
+        // 建立背景下粽子雨的效果
+        function initZongziRain() {
+            const zongziTypes = ['🔺', '🍃', '🌾'];
+            for (let i = 0; i < 12; i++) {
+                const zongzi = document.createElement('div');
+                zongzi.classList.add('falling-zongzi');
+                zongzi.innerText = zongziTypes[Math.floor(Math.random() * zongziTypes.length)];
+                zongzi.style.left = Math.random() * 100 + 'vw';
+                zongzi.style.animationDelay = Math.random() * 7 + 's';
+                zongzi.style.fontSize = Math.random() * 20 + 20 + 'px';
+                zongziContainer.appendChild(zongzi);
+            }
+        }
+        initZongziRain();
+
+        // 點擊「隨機抽端午題」
+        jokeBtn.addEventListener('click', () => {
+            if(jokeBox.classList.contains('shuffling')) return;
+
+            window.speechSynthesis.cancel();
+            ansBtn.style.display = 'none';
+
+            jokeBox.classList.add('shuffling');
+            jokeContent.innerHTML = "<div>🛶 咚咚隆咚鏘！龍舟衝刺前進中... 🥁</div>";
+
+            setTimeout(() => {
+                jokeBox.classList.remove('shuffling');
+
+                currentJoke = duanwuJokes[Math.floor(Math.random() * duanwuJokes.length)];
+                const randomColor = dwColors[Math.floor(Math.random() * dwColors.length)];
+
+                jokeBox.style.backgroundColor = randomColor;
+                
+                jokeContent.innerHTML = `<div>🎋 端午挑戰題：<br>${currentJoke.q}</div>`;
+                ansBtn.style.display = 'inline-block';
+
+                // 語音不說提示字眼
+                speakText(`${currentJoke.q}…… 猜猜看答案是什麼？`);
+
+            }, 600);
+        });
+
+        // 點擊「揭曉答案 🔺」
+        ansBtn.addEventListener('click', () => {
+            if(!currentJoke) return;
+
+            ansBtn.style.display = 'none';
+            jokeContent.innerHTML = `
+                <div>🎋 端午挑戰題：<br>${currentJoke.q}</div>
+                <div class="answer-text">😋 妙解：${currentJoke.a}</div>
+            `;
+
+            burstParticles(ansBtn);
+
+            // 語音不說提示字眼
+            speakText(currentJoke.a);
+        });
+
+        function speakText(text) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-TW';
+            utterance.rate = 1.12; 
+            utterance.pitch = 1.25; 
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function burstParticles(targetBtn) {
+            const btnRect = targetBtn.getBoundingClientRect();
+            const startX = btnRect.left + btnRect.width / 2;
+            const startY = btnRect.top + btnRect.height / 2;
+
+            for (let i = 0; i < 35; i++) {
+                const part = document.createElement('div');
+                part.classList.add('particle');
+                
+                if (Math.random() > 0.3) {
+                    part.innerText = dwEmojis[Math.floor(Math.random() * dwEmojis.length)];
+                } else {
+                    part.style.width = '14px';
+                    part.style.height = '14px';
+                    part.style.backgroundColor = dwColors[Math.floor(Math.random() * dwColors.length)];
+                    part.style.borderRadius = '30%';
+                }
+
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 170 + 40; 
+                const tx = Math.cos(angle) * distance + 'px';
+                const ty = Math.sin(angle) * distance + 'px';
+                const rot = Math.random() * 360 + 'deg';
+
+                part.style.setProperty('--tx', tx);
+                part.style.setProperty('--ty', ty);
+                part.style.setProperty('--rot', rot);
+
+                part.style.left = startX + 'px';
+                part.style.top = startY + 'px';
+                part.style.position = 'fixed';
+
+                document.body.appendChild(part);
+                part.addEventListener('animationend', () => part.remove());
+            }
+        }
+    </script>
+
+</body>
+</html>
