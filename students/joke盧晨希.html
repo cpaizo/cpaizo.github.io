@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>笑話產生器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f2f5;
+            margin: 0;
+        }
+        /* 這是顯示笑話的盒子 */
+        .joke-box {
+            width: 300px;
+            min-height: 100px;
+            border: 2px solid #3498db;
+            border-radius: 10px;
+            background-color: #ffffff;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 18px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        /* 按鈕樣式 */
+        .btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="joke-box" id="jokeBox">點擊下方按鈕聽笑話！</div>
+
+    <button class="btn" onclick="tellJoke()">講笑話</button>
+
+    <script>
+        // 準備一些笑話庫
+        const jokes = [
+            "什麼包子最寂寞？豆沙包。因為：豆沙包（都撒謊）。",
+            "小明理髮理到一半，護士進來說：恭喜你，生了個兒子！小明高興得連頭髮都沒理完，就變成了：理髮師。",
+            "楓葉的媽媽是誰？是：張惠妹。因為：楓葉（豐滿）的女人，張惠妹（張回美）。",
+            "為什麼吸血鬼不吃大蒜？因為大蒜有：口臭。"
+        ];
+
+        function tellJoke() {
+            // 隨機選一個笑話
+            const randomIndex = Math.floor(Math.random() * jokes.length);
+            const selectedJoke = jokes[randomIndex];
+
+            // 更新盒子內的文字
+            document.getElementById('jokeBox').innerText = selectedJoke;
+
+            // 呼叫語音功能（使用瀏覽器內建的 SpeechSynthesis）
+            // 注意：有些瀏覽器需要使用者先與網頁互動（如點擊）才允許發聲
+            window.speechSynthesis.cancel(); // 先停止正在說的話
+            
+            const utterance = new SpeechSynthesisUtterance(selectedJoke);
+            utterance.lang = 'zh-TW'; // 設定語言為台灣中文
+            utterance.rate = 1.0;     // 速度（0.1 ~ 10）
+            utterance.pitch = 1.0;    // 音調（0 ~ 2）
+
+            window.speechSynthesis.speak(utterance);
+        }
+    </script>
+
+</body>
+</html>

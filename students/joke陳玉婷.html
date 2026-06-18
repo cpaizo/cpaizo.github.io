@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>笑話與猜拳小盒子</title>
+    <style>
+        body {
+            font-family: 'Microsoft JhengHei', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #e0f2fe; 
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+        .display-box {
+            min-height: 180px;
+            border: 2px solid #7dd3fc;
+            border-radius: 15px;
+            background-color: #ffffff;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.15);
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            line-height: 1.6;
+            color: #0369a1;
+            box-sizing: border-box;
+        }
+        .section-title {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin: 10px 0;
+            text-align: left;
+            font-weight: bold;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.1s, background-color 0.2s;
+            flex: 1;
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+        .btn-joke {
+            background-color: #0284c7;
+        }
+        .btn-joke:hover {
+            background-color: #0369a1;
+        }
+        .btn-ans {
+            background-color: #38bdf8;
+        }
+        .btn-ans:hover {
+            background-color: #0ea5e9;
+        }
+        .btn-game {
+            background-color: #f43f5e;
+        }
+        .btn-game:hover {
+            background-color: #e11d48;
+        }
+        button:disabled {
+            background-color: #cbd5e1;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="display-box" id="displayBox">
+            歡迎！你想聽個冷笑話，<br>還是來場剪刀石頭布？
+        </div>
+
+        <div class="section-title">⊙ 幽默定時炸彈</div>
+        <div class="button-group">
+            <button class="btn-joke" onclick="getNewJoke()">來個笑話！</button>
+            <button class="btn-ans" id="ansBtn" onclick="showAnswer()" disabled>顯示答案</button>
+        </div>
+
+        <div class="section-title">⊙ 命運猜拳對決</div>
+        <div class="button-group">
+            <button class="btn-game" onclick="playRPS('石頭')">✊ 石頭</button>
+            <button class="btn-game" onclick="playRPS('剪刀')">✌️ 剪刀</button>
+            <button class="btn-game" onclick="playRPS('布')">✋ 布</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 語音播放輔助函式 ---
+        function speakText(text) {
+            window.speechSynthesis.cancel(); 
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-TW';
+            utterance.rate = 1.0;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // --- 笑話資料庫與邏輯 ---
+        const jokes = [
+            { q: "Q：請問放煙火的時候為什麼不會射到星星？", a: "A：因為星星會「閃」。" },
+            { q: "Q：哪一種布最不能剪？", a: "A：瀑布（因為剪不斷）。" },
+            { q: "Q：阿拉丁有幾個哥哥？", a: "A：三個（阿拉甲、阿拉乙、阿拉丙）。" },
+            { q: "Q：哪一種水果最容易迷路？", a: "A：榴槤（流連忘返）。" },
+            { q: "Q：哪一種車子最長？", a: "A：塞車。" },
+            { q: "Q：豬肉、牛肉、羊肉等紅綠燈，綠燈亮了誰先走？", a: "A：羊肉（揚長而去）。" }
+        ];
+
+        let currentJoke = null;
+        let lastIndex = -1;
+
+        function getNewJoke() {
+            let randomIndex;
+            do {
+                randomIndex = Math.floor(Math.random() * jokes.length);
+            } while (randomIndex === lastIndex && jokes.length > 1);
+            
+            lastIndex = randomIndex;
+            currentJoke = jokes[randomIndex];
+
+            document.getElementById('displayBox').innerHTML = currentJoke.q;
+            document.getElementById('ansBtn').disabled = false;
+
+            speakText(currentJoke.q.replace('Q：', ''));
+        }
+
+        function showAnswer() {
+            if (!currentJoke) return;
+            document.getElementById('displayBox').innerHTML = `${currentJoke.q}<br><br><strong>${currentJoke.a}</strong>`;
+            document.getElementById('ansBtn').disabled = true;
+            speakText(currentJoke.a.replace('A：', ''));
+        }
+
+        // --- 剪刀石頭布邏輯 ---
+        function playRPS(userChoice) {
+            // 玩遊戲時，將笑話答案按鈕重設為禁用
+            document.getElementById('ansBtn').disabled = true;
+            currentJoke = null;
+
+            const choices = ['石頭', '剪刀', '布'];
+            const computerChoice = choices[Math.floor(Math.random() * 3)];
+            let result = '';
+
+            if (userChoice === computerChoice) {
+                result = '平手！再試一次！';
+            } else if (
+                (userChoice === '石頭' && computerChoice === '剪刀') ||
+                (userChoice === '剪刀' && computerChoice === '布') ||
+                (userChoice === '布' && computerChoice === '石頭')
+            ) {
+                result = '恭喜你！你贏了！🎉';
+            } else {
+                result = '哈哈，你輸了！再接再厲！';
+            }
+
+            // 更新顯示內容
+            document.getElementById('displayBox').innerHTML = `
+                你出了：<strong>${userChoice}</strong><br>
+                電腦出：<strong>${computerChoice}</strong><br><br>
+                結果：<strong>${result}</strong>
+            `;
+
+            // 語音播報
+            speakText(`你出${userChoice}，電腦出${computerChoice}。結果：${result}`);
+        }
+    </script>
+
+</body>
+</html>
