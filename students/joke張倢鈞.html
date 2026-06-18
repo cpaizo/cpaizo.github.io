@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ 賽博 15合一雙人對戰街機大廳 ⚡</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #050510; margin: 0; padding: 20px; box-sizing: border-box; }
+        .arcade-container { display: flex; flex-wrap: wrap; gap: 20px; max-width: 1200px; width: 100%; justify-content: center; }
+        .cabinet { background: #121225; padding: 20px; border-radius: 20px; border: 2px solid #333; flex: 1; min-width: 320px; max-width: 580px; display: flex; flex-direction: column; box-shadow: 0 0 30px rgba(0,242,254,0.15); }
+        h2 { color: #fff; font-size: 1.3rem; text-shadow: 0 0 10px #00f2fe; margin: 0 0 15px 0; text-align: center; }
+        .screen { height: 280px; background: #000; border: 2px solid #222; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #00ffcc; font-size: 1.1rem; text-align: center; position: relative; overflow: hidden; padding: 10px; box-sizing: border-box; }
+        
+        /* 笑話機樣式 */
+        .joke-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+        .joke-btn { background: #222; color: #ff007f; border: 1px solid #ff007f; padding: 8px; font-size: 0.85rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .joke-btn:hover { background: #ff007f; color: #fff; }
+        .ans-btn { background: #00f2fe; color: #000; border: none; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 10px; cursor: pointer; width: 100%; margin-top: auto; }
+        
+        /* 15選單樣式 (3列5欄) */
+        .game-tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 12px; width: 100%; }
+        .tab-btn { background: #222; color: #888; border: 1px solid #444; padding: 5px 1px; font-size: 0.65rem; border-radius: 6px; cursor: pointer; font-weight: bold; text-align: center; white-space: nowrap; overflow: hidden; }
+        .tab-btn.active { background: #7f00ff; color: white; border-color: #e100ff; }
+        .start-btn { background: #00f2fe; color: #000; border: none; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 10px; cursor: pointer; width: 100%; margin-top: auto; }
+        
+        canvas { background: #000; display: none; }
+        #textUI { display: none; flex-direction: column; align-items: center; width: 100%; }
+    </style>
+</head>
+<body>
+
+<div class="arcade-container">
+    
+    <div class="cabinet">
+        <h2>🎙️ CYBER JOKE CENTER 🎙️</h2>
+        <div class="joke-list">
+            <button class="joke-btn" onclick="selectJoke(1)">🎵 1.音樂題</button>
+            <button class="joke-btn" onclick="selectJoke(2)">🥦 2.蔬菜題</button>
+            <button class="joke-btn" onclick="selectJoke(3)">🦐 3.海鮮題</button>
+            <button class="joke-btn" onclick="selectJoke(4)">🧮 4.數學題</button>
+        </div>
+        <button class="joke-btn" style="width:100%; margin-bottom:12px;" onclick="selectJoke(5)">🥛 5.飲料題</button>
+        
+        <div class="screen" style="color: #ff007f;">
+            <div id="jokeQ" style="font-weight: bold; line-height: 1.6;">🤖 點擊按鈕，對旁邊的對手發射精神干擾冷笑話！</div>
+            <div id="jokeA" style="margin-top: 15px; color: #fff; background: #222; padding: 6px 12px; border-radius: 6px; display: none;"></div>
+        </div>
+        <button class="ans-btn" onclick="showJokeAnswer()">💡 揭曉冷笑話答案</button>
+    </div>
+
+    <div class="cabinet">
+        <h2>⚔️ 15-PLAYER GAME HUB ⚔️</h2>
+        <div class="game-tabs">
+            <button class="tab-btn active" onclick="switchGame(1, '賽車')">1.賽車</button>
+            <button class="tab-btn" onclick="switchGame(2, '攻防')">2.攻防</button>
+            <button class="tab-btn" onclick="switchGame(3, '乒乓')">3.乒乓</button>
+            <button class="tab-btn" onclick="switchGame(4, '坦克')">4.坦克</button>
+            <button class="tab-btn" onclick="switchGame(5, '連打')">5.連打</button>
+            <button class="tab-btn" onclick="switchGame(6, '飛鏢')">6.飛鏢</button>
+            <button class="tab-btn" onclick="switchGame(7, '領地')">7.領地</button>
+            <button class="tab-btn" onclick="switchGame(8, '引力')">8.引力</button>
+            <button class="tab-btn" onclick="switchGame(9, '拆彈')">9.拆彈</button>
+            <button class="tab-btn" onclick="switchGame(10, '爬山')">10.爬山</button>
+            <button class="tab-btn" onclick="switchGame(11, '格鬥')">💥11.格鬥</button>
+            <button class="tab-btn" onclick="switchGame(12, '盾牌')">🛡️12.盾牌</button>
+            <button class="tab-btn" onclick="switchGame(13, '空戰')">🌌13.空戰</button>
+            <button class="tab-btn" onclick="switchGame(14, '蓋磚')">🧱14.蓋磚</button>
+            <button class="tab-btn" onclick="switchGame(15, '左輪')">🎰15.左輪</button>
+        </div>
+
+        <div class="screen" id="gameScreen">
+            <div id="gamePrompt" style="line-height: 1.6;">
+                歡迎來到超級雙人對戰大廳！<br><br>
+                請點選上方切換 1~15 號遊戲，<br>並點擊下方<b>「🚀 啟動對戰」</b>！
+            </div>
+            <canvas id="mainCanvas" width="510" height="250"></canvas>
+            <div id="textUI"></div>
+        </div>
+        <button class="start-btn" id="startBtn" onclick="startGame()">🚀 啟動對戰</button>
+    </div>
+</div>
+
+<script>
+// ==================== 笑話系統 ====================
+const jokes = {
+    1: { q: "請問小明把張惠妹的 CD 放進微波爐裡加熱，會變成什麼？", a: "🔥 熱歌勁舞！" },
+    2: { q: "有一天綠豆跟紅豆去爬山。綠豆爬到山頂的時候突然大喊一聲，你猜他變成了什麼？", a: "🍎 變成了紅豆！因為他「綠到發紅」了。" },
+    3: { q: "蝦子跟蚌殼精在海裡比賽跑步，為什麼蝦子每次都跑第一名？", a: "🤪 因為蚌殼精一邊跑一邊開合，是在「瞎（蝦）忙」。" },
+    4: { q: "數字 1 到 9 裡面，哪一個數字最容易迷路？", a: "⛰️ 3！因為「三（山）路十八彎」。" },
+    5: { q: "有一瓶牛奶放在冰箱裡，結果它自己跟自己講話，變成了什麼？", a: "🗣️ 話匣子（話匣子牛奶）！" }
+};
+let currentJokeId = 0;
+function selectJoke(id) { currentJokeId = id; document.getElementById('jokeQ').innerText = `【題目】：${jokes[id].q}`; document.getElementById('jokeA').style.display = 'none'; }
+function showJokeAnswer() { if(currentJokeId === 0) return; document.getElementById('jokeA').innerText = jokes[currentJokeId].a; document.getElementById('jokeA').style.display = 'block'; }
+
+// ==================== 15合一遊戲系統 ====================
+let gameId = 1, gameInterval = null, keys = {};
+const canvas = document.getElementById('mainCanvas'), ctx = canvas.getContext('2d');
+const textUI = document.getElementById('textUI'), promptEl = document.getElementById('gamePrompt');
+
+document.addEventListener('keydown', e => { 
+    keys[e.key.toLowerCase()] = true; 
+    if(gameId===4 && e.key===' ') p1.shoot(); if(gameId===4 && e.key==='Enter') p2.shoot(); 
+    if(gameId===13 && e.key===' ') p1.shoot(); if(gameId===13 && e.key==='Enter') p2.shoot(); 
+});
+document.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+
+document.addEventListener('keydown', e => {
+    let k = e.key.toLowerCase();
+    if (promptEl.style.display === 'none') {
+        if (gameId === 5) { if(k==='w') p1.score++; if(k==='arrowup') p2.score++; }
+        if (gameId === 9) { if(k === gVar.p1Target) { p1.score++; gVar.resetCode(1); } if(k === gVar.p2Target) { p2.score++; gVar.resetCode(2); } }
+        if (gameId === 10) {
+            if(k==='a' && gVar.p1Last=='d') { p1.score+=5; gVar.p1Last='a'; } if(k==='d' && gVar.p1Last=='a') { p1.score+=5; gVar.p1Last='d'; }
+            if(k==='arrowleft' && gVar.p2Last=='arrowright') { p2.score+=5; gVar.p2Last='arrowleft'; } if(k==='arrowright' && gVar.p2Last=='arrowleft') { p2.score+=5; gVar.p2Last='arrowright'; }
+        }
+        if (gameId === 14) { if(k==='s') gVar.weight += 12; if(k==='arrowdown') gVar.weight -= 12; }
+        if (gameId === 15) {
+            if(k==='a' && gVar.turn===1) gVar.trigger(1);
+            if(k==='arrowleft' && gVar.turn===2) gVar.trigger(2);
+        }
+    }
+});
+
+function switchGame(id, name) {
+    gameId = id; clearInterval(gameInterval);
+    document.querySelectorAll('.tab-btn').forEach((b,idx) => b.classList.toggle('active', idx === id-1));
+    canvas.style.display = 'none'; textUI.style.display = 'none'; promptEl.style.display = 'block';
+    promptEl.innerHTML = `已切換至：<b>${id}. ${name}對決</b><br><br>請雙方玩家手放好，點擊下方啟動！`;
+    document.getElementById('startBtn').style.display = 'block';
+}
+
+let p1, p2, gVar = {};
+function startGame() {
+    promptEl.style.display = 'none'; document.getElementById('startBtn').style.display = 'none';
+    clearInterval(gameInterval); canvas.style.display = 'block'; textUI.style.display = 'none';
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    
+    p1 = { x: 60, y: 125, score: 0, w: 16, h: 16, color: '#00f2fe', hp: 100 };
+    p2 = { x: 450, y: 125, score: 0, w: 16, h: 16, color: '#ff007f', hp: 100 };
+    gVar = {};
+
+    if (gameId === 1) gameInterval = setInterval(runCar, 30);
+    else if (gameId === 2) { gVar = { troops:[], c1:0, c2:0 }; gameInterval = setInterval(runWar, 30); }
+    else if (gameId === 3) { p1.y=100; p2.y=100; gVar = { bx:250, by:125, vx:4, vy:2 }; gameInterval = setInterval(runPong, 30); }
+    else if (gameId === 4) {
+        p1.b = null; p2.b = null;
+        p1.shoot = function() { if(!this.b) this.b={x:this.x+20, y:this.y, vx:6}; };
+        p2.shoot = function() { if(!this.b) this.b={x:this.x-20, y:this.y, vx:-6}; };
+        gameInterval = setInterval(runTank, 30);
+    }
+    else if (gameId === 5) { canvas.style.display = 'none'; textUI.style.display = 'flex'; gVar = { time: 500 }; gameInterval = setInterval(runClick, 10); }
+    else if (gameId === 6) { gVar = { bx:250, by:20, bvy:3, p1f:false, p1x:40, p2f:false, p2x:470 }; gameInterval = setInterval(runDart, 30); }
+    else if (gameId === 7) { gVar = { dots:[] }; for(let i=0;i<15;i++) gVar.dots.push({x:Math.random()*440+30, y:Math.random()*180+40}); gameInterval = setInterval(runZone, 30); }
+    else if (gameId === 8) { gameInterval = setInterval(runGravity, 30); }
+    else if (gameId === 9) {
+        canvas.style.display = 'none'; textUI.style.display = 'flex'; gVar.opts = ['a','s','d']; gVar.opts2 = ['arrowleft','arrowdown','arrowright'];
+        gVar.resetCode = function(p) { if(p===1) gVar.p1Target = gVar.opts[Math.floor(Math.random()*3)]; if(p===2) gVar.p2Target = gVar.opts2[Math.floor(Math.random()*3)]; };
+        gVar.resetCode(1); gVar.resetCode(2); gameInterval = setInterval(runBomb, 100);
+    }
+    else if (gameId === 10) { canvas.style.display = 'none'; textUI.style.display = 'flex'; gVar = { p1Last:'a', p2Last:'arrowleft' }; gameInterval = setInterval(runClimb, 50); }
+    else if (gameId === 11) { p1.x=150; p2.x=360; p1.y=160; p2.y=160; p1.state='idle'; p2.state='idle'; p1.cooldown=0; p2.cooldown=0; gameInterval = setInterval(runBrawl, 30); }
+    else if (gameId === 12) { gVar = { bx:250, by:125, vx:5, vy:0, p1S:false, p2S:false }; gameInterval = setInterval(runShield, 30); }
+    else if (gameId === 13) {
+        p1.b = null; p2.b = null; p1.y = 60; p2.y = 180;
+        p1.shoot = function() { if(!this.b) this.b={x:this.x, y:this.y, vy:5}; };
+        p2.shoot = function() { if(!this.b) this.b={x:this.x, y:this.y, vy:-5}; };
+        gameInterval = setInterval(runSpace, 30);
+    }
+    else if (gameId === 14) { canvas.style.display = 'none'; textUI.style.display = 'flex'; gVar = { weight: 150 }; gameInterval = setInterval(runBlock, 50); }
+    else if (gameId === 15) {
+        canvas.style.display = 'none'; textUI.style.display = 'flex';
+        gVar = { bullet: Math.floor(Math.random()*6), rolled: 0, turn: 1, msg: "比賽開始！藍方回合，按 A 扣動扳機！" };
+        gVar.trigger = function(p) {
+            if(gVar.rolled === gVar.bullet) { endBattle(p===1 ? "💀 藍方踩到地雷炸飛！紅方勝利！" : "💀 紅方踩到地雷炸飛！藍方勝利！"); }
+            else { gVar.rolled++; gVar.turn = p===1 ? 2 : 1; gVar.msg = gVar.turn===1 ? "安全！輪到藍方，按 A ！" : "安全！輪到紅方，按 ◀ ！"; }
+        };
+        gameInterval = setInterval(runRoulette, 100);
+    }
+    canvas.focus();
+}
+
+function drawScores() { ctx.fillStyle = '#fff'; ctx.font = '12px sans-serif'; ctx.fillText(`藍 (WASD): ${p1.score}`, 15, 20); ctx.fillText(`紅 (▲▼◀▶): ${p2.score}`, 400, 20); }
+function checkWin(p1s, p2s, maxScore, msg1, msg2) { if (p1s >= maxScore) { endBattle(msg1); return true; } if (p2s >= maxScore) { endBattle(msg2); return true; } return false; }
+function endBattle(msg) { clearInterval(gameInterval); canvas.style.display = 'none'; textUI.style.display = 'none'; promptEl.style.display = 'block'; promptEl.innerHTML = `<b style='color:#fff; font-size:1.2rem;'>👑 戰果結算 👑</b><br><br>${msg}`; document.getElementById('startBtn').style.display = 'block'; }
+
+// 1~10 經典老遊戲代碼簡縮
+function runCar() {
+    if(keys['w'] && p1.y>30) p1.y-=4; if(keys['s'] && p1.y<230) p1.y+=4; if(keys['a'] && p1.x>15) p1.x-=4; if(keys['d'] && p1.x<490) p1.x+=4;
+    if(keys['arrowup'] && p2.y>30) p2.y-=4; if(keys['arrowdown'] && p2.y<230) p2.y+=4; if(keys['arrowleft'] && p2.x>15) p2.x-=4; if(keys['arrowright'] && p2.x<490) p2.x+=4;
+    if(!gVar.cx) gVar = { cx:250, cy:125 }; if(Math.hypot(p1.x-gVar.cx, p1.y-gVar.cy)<18) { p1.score++; gVar.cx=Math.random()*440+30; gVar.cy=Math.random()*180+40; }
+    if(Math.hypot(p2.x-gVar.cx, p2.y-gVar.cy)<18) { p2.score++; gVar.cx=Math.random()*440+30; gVar.cy=Math.random()*180+40; }
+    ctx.fillStyle='#000'; ctx.fillRect(0,0,510,250); drawScores(); ctx.fillStyle='#ff0'; ctx.beginPath(); ctx.arc(gVar.cx, gVar.cy, 6, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle=p1.color; ctx.fillRect(p1.x-8, p1.y-8, 16, 16); ctx.fillStyle=p2.color; ctx.fillRect(p2.x-8, p2.y-8, 16, 16); checkWin(p1.score, p2.score, 8, "藍方賽車手獲勝！", "紅方賽車手獲勝！");
+}
+function runWar() {
+    if(gVar.c1>0) gVar.c1--; if(gVar.c2>0) gVar.c2--; if(keys['w'] && gVar.c1===0) { gVar.troops.push({x:30, s:1, c:p1.color}); gVar.c1=12; } if(keys['arrowup'] && gVar.c2===0) { gVar.troops.push({x:480, s:2, c:p2.color}); gVar.c2=12; } p1.score = 100; p2.score = 100;
+    gVar.troops.forEach((t, i) => { if(t.s===1) { let enemy = gVar.troops.find(e => e.s===2 && e.x>t.x && e.x-t.x<12); if(enemy){ enemy.x+=1; t.x-=1; } else if(t.x>=490) { p2.score-=5; gVar.troops.splice(i,1); } else t.x+=2.5; } else { let enemy = gVar.troops.find(e => e.s===1 && t.x>e.x && t.x-e.x<12); if(enemy){ enemy.x-=1; t.x+=1; } else if(t.x<=20) { p1.score-=5; gVar.troops.splice(i,1); } else t.x-=2.5; } });
+    ctx.fillStyle='#000'; ctx.fillRect(0,0,510,250); ctx.fillStyle=p1.color; ctx.fillRect(0, 80, 20, 90); ctx.fillStyle=p2.color; ctx.fillRect(490, 80, 20, 90); gVar.troops.forEach(t => { ctx.fillStyle=t.c; ctx.beginPath(); ctx.arc(t.x, 125, 5, 0, Math.PI*2); ctx.fill(); });
+    ctx.fillStyle='#fff'; ctx.fillText(`左基地: ${p1.score}%`, 15, 20); ctx.fillText(`右基地: ${p2.score}%`, 350, 20); if(p1.score<=0) endBattle("紅方推平了對手基地！"); if(p2.score<=0) endBattle("藍方推平了對手基地！");
+}
+function runPong() {
+    if(keys['w'] && p1.y>20) p1.y-=5; if(keys['s'] && p1.y<180) p1.y+=5; if(keys['arrowup'] && p2.y>20) p2.y-=5; if(keys['arrowdown'] && p2.y<180) p2.y+=5; gVar.bx += gVar.vx; gVar.by += gVar.vy; if(gVar.by<=30 || gVar.by>=240) gVar.vy *= -1;
+    if(gVar.bx<=25 && gVar.by>=p1.y && gVar.by<=p1.y+50) gVar.vx *= -1.05; if(gVar.bx>=485 && gVar.by>=p2.y && gVar.by<=p2.y+50) gVar.vx *= -1.05;
+    if(gVar.bx<0) { p2.score++; gVar.bx=250; gVar.vx=4; } if(gVar.bx>510) { p1.score++; gVar.bx=250; gVar.vx=-4; } ctx.fillStyle='#000'; ctx.fillRect(0,0,510,250); drawScores(); ctx.fillStyle=p1.color; ctx.fillRect(15, p1.y, 10, 50); ctx.fillStyle=p2.color; ctx.fillRect(485, p2.y, 10, 50); ctx.fillStyle='#fff'; ctx.fillRect(gVar.bx-4, gVar.by-4, 8, 8); checkWin(p1.score, p2.score, 5, "藍方奪下乒乓球神寶座！", "紅方奪下乒乓球神寶座！");
+}
+function runTank() {
+    if(keys['w'] && p1.y>30) p1.y-=3; if(keys['s'] && p1.y<230) p1.y+=3; if(keys['arrowup'] && p2.y>30) p2.y-=3; if(keys['arrowdown'] && p2.y<230) p2.y+=3; ctx.fillStyle='#000'; ctx.fillRect(0,0,510,250); drawScores(); ctx.fillStyle=p1.color; ctx.fillRect(p1.x-10, p1.y-10, 20, 20); ctx.fillRect(p1.x, p1.y-3, 18, 6); ctx.fillStyle=p2.color; ctx.fillRect(p2.x-10, p2.y-10, 20, 20); ctx.fillRect(p2.x-18, p2.y-3, 18, 6);
+    if(p1.b) { p1.b.x += p1.b.vx; ctx.fillStyle='#ff0'; ctx.fillRect(p1.b.x, p1.b.y-2, 6, 4); if(Math.hypot(p1.b.x-p2.x, p1.b.y-p2.y)<15){ p1.score++; p1.b=null; } else if(p1.b.x>510) p1.b=null; } if(p2.b) { p2.b.x += p2.b.vx; ctx.fillStyle='#ff0'; ctx.fillRect(p2.b.x, p2.b.y-2, 6, 4); if(Math.hypot(p2.b.x-p1.x, p2.b.y-p1.y)<15){ p2.score++; p2.b=null; } else if(p2.b.x<0) p2.b=null; } checkWin(p1.score, p2.score, 5, "藍方坦克王轟平對手！", "紅方坦克王轟平對手！");
+}
+function runClick() { gVar.time--; textUI.innerHTML = `<div style='color:#fff;font-size:1.1rem;'>💥 瘋狂連打極速對決 💥</div><br><div>藍方(W鍵): <span style='color:#00f2fe'>${p1.score}</span></div><div>紅方(▲鍵): <span style='color:#ff007f'>${p2.score}</span></div><br><div style='color:yellow;'>剩餘時間: ${(gVar.time/100).toFixed(2)} 秒</div>`; if(gVar.time<=0) { endBattle(p1.score==p2.score?"雙方平手！":p1.score>p2.score?"👑 藍方快手獲勝！":"👑 紅方快手獲勝！"); } }
+function runDart() {
+    gVar.by += gVar.bvy; if(gVar.by<20 || gVar.by>220) gVar.bvy*=-1; if(keys['w'] && !gVar.p1f) gVar.p1f=true; if(keys['arrowup'] && !gVar.p2f) gVar.p2f=true;
+    if(gVar.p1f) { gVar.p1x += 8; if(gVar.p1x>=gVar.bx-10 && gVar.p1x<=gVar.bx+10 && Math.abs(gVar.by-125)<25) { p1.score++; gVar.p1f=false; gVar.p1x=40; } else if(gVar.p1x>510){ gVar.p1f=false; gVar.p1x=40; } } if(gVar.p2f) { gVar.p2x -= 8; if(gVar.p2x>=gVar.bx-10 && gVar.p2x<=gVar.bx+10 && Math.abs(gVar.by-125)<25) { p2.score++; gVar.p2f=false; gVar.p2x=470; } else if(gVar.p2x<0){ gVar.p2f=false; gVar.p2x=470; } }
+    ctx.fillStyle='#000'; ctx.fillRect(0,0,510,250); drawScores(); ctx.fillStyle='red'; ctx.beginPath(); ctx.arc(gVar.bx, gVar.by, 15, 0, Math.PI*2); ctx.fill(); ctx.fillStyle=p1.color; ctx.fillRect(gVar.p1x, 125, 15, 4); ctx.fillStyle=p2.color; ctx.fillRect(gVar.p2x, 125, 15, 4); checkWin(p1.score, p2.score, 5, "藍方神射手獲勝！", "紅方神射手獲勝！");
+}
+function runZone() {
+    if(keys['w'] && p1.y>30) p1.y-=4; if(keys['s'] && p1.y<230) p1.y+=4; if(keys['a'] && p1.x>15) p1.x-=4; if(keys['d'] && p1.x<490) p1.x+=4; if(keys['arrowup'] && p2.y>30) p2.y-=4; if(keys['arrowdown'] && p2.y<230) p2.y+=4; if(keys['arrowleft'] && p2.x>15) p2.x-=4; if(keys['arrowright'] && p2.x<490) p2.x+=4;
+    ctx.fillStyle='#000'; ctx.fillRect(0,0,510,250); drawScores(); gVar.dots.forEach((d,i) => { ctx.fillStyle='yellow'; ctx.fillRect(d.x-4, d.y-4, 8, 8); if(Math.hypot(p1.x-d.x, p1.y-d.y)<14) { p1.score++; gVar.dots.splice(i,1); } if(Math.hypot(p2.x-d.x, p2.y-d.y)<14) { p2.score++; gVar.dots.splice(i,1); } });
+    ctx.fillStyle=p1.color; ctx.fillRect(p1.x-8, p1.y-8, 16, 16); ctx.fillStyle=p2.color; ctx.fillRect(p2.x-8, p2.y-8, 16, 16); if(gVar.dots.length===0) endBattle(p1.score==p2.score?"平局！":p1.score>p2.score?"藍方圈地王獲勝！":"紅方圈地王獲勝！");
+}
+function runGravity() {
+    if(keys['w']) p1.y-=3; if(keys['s']) p1.y+=3; if(keys['a']) p1.x-=3; if(keys['d']) p1.x+=3; if(keys['arrowup']) p2.y-=3; if(keys['arrowdown']) p2.y+=3; if(keys['arrowleft']) p2.x-=3; if(keys['arrowright']) p2.x+=3;
+    let angle1 = Math.atan2(125-p1.y, 250-p1.x), angle2 = Math.atan2(125-p2.y, 250-p2.x); p1.x += Math.cos(angle1)*1.5; p1.y += Math.sin(angle1)*1.5; p2.x += Math.cos(angle2)*1.5; p2.y += Math.sin(angle2)*1.5;
+    ctx.fillStyle='#000'; ctx.fillRect(0,0,510,250); ctx.fillStyle='#7f00ff'; ctx.beginPath(); ctx.arc(250, 125, 25, 0, Math.PI*2); ctx.fill(); ctx.fillStyle=p1.color; ctx.fillRect(p1.x-6, p1.y-6, 12, 12); ctx.fillStyle=p2.color; ctx.fillRect(p2.x-6, p2.y-6, 12, 12);
+    if(Math.hypot(p1.x-250, p1.y-125)<25) endBattle("💀 藍方墜入黑洞，紅方獲勝！"); if(Math.hypot(p2.x-250, p2.y-125)<25) endBattle("💀 紅方墜入黑洞，藍方獲勝！");
+}
+function runBomb() {
+    let t1 = gVar.p1Target.toUpperCase(); if(t1==='ARROWLEFT') t1='左 ◀'; if(t1==='ARROWDOWN') t1='下 ▼'; if(t1==='ARROWRIGHT') t1='右 ▶'; let t2 = gVar.p2Target.toUpperCase(); if(t2==='ARROWLEFT') t2='左 ◀'; if(t2==='ARROWDOWN') t2='下 ▼'; if(t2==='ARROWRIGHT') t2='右 ▶';
+    textUI.innerHTML = `<div style='color:#ff003c;font-size:1.1rem;font-weight:bold;'>💣 賽博拆彈解碼競速 💣</div><br><div style='display:flex; gap:25px;'><div><div style='color:#00f2fe;'>藍解碼(A,S,D)</div><div style='font-size:1.6rem;background:#222;padding:6px;border-radius:8px;'>${t1}</div><div>分: ${p1.score}</div></div><div><div style='color:#ff007f;'>紅解碼(方向鍵)</div><div style='font-size:1.6rem;background:#222;padding:6px;border-radius:8px;'>${t2}</div><div>分: ${p2.score}</div></div></div>`; if(p1.score>=10) endBattle("藍方成功解除核彈！"); if(p2.score>=10) endBattle("紅方成功解除核彈！");
+}
+function runClimb() {
+    let bar1 = "=".repeat(Math.floor(p1.score/5)), bar2 = "=".repeat(Math.floor(p2.score/5)); textUI.innerHTML = `<div style='color:#fff;font-size:1.1rem;'>🧗 絕壁攀岩賽 </div><br><div style='width:260px; text-align:left;'><div>藍(A,D交替):</div><div style='background:#222; color:#00f2fe;'>|${bar1}🏃</div><br><div>紅(◀,▶交替):</div><div style='background:#222; color:#ff007f;'>|${bar2}🏃</div></div>`; if(p1.score>=100) endBattle("藍方率先登頂！"); if(p2.score>=100) endBattle("紅方率先登頂！");
+}
+
+// ==================== 💥 新增戰鬥/動作系遊戲 (11~15) ====================
+
+// 11. 街頭格鬥
+function runBrawl() {
+    if(keys['a'] && p1.x>20) p1.x-=4; if(keys['d'] && p1.x<p2.x-20) p1.x+=4;
+    if(keys['arrowleft'] && p2.x>p1.x+20) p2.x-=4; if(keys['arrowright'] && p2.x<490) p2.x+=4;
+    if(p1.cooldown>0) p1.cooldown--; else { if(keys['s']){ p1.state='punch'; p1.cooldown=10; if(p2.x-p1.x<45 && p2.state!=='defend') p2.hp-=10; } else if(keys['w']) p1.state='defend'; else p1.state='idle'; }
+    if(p2.cooldown>0) p2.cooldown--; else { if(keys['arrowdown']){ p2.state='punch'; p2.cooldown=10; if(p2.x-p1.x<45 && p1.state!=='defend') p1.hp-=10; } else if(keys['arrowup']) p2.state='defend'; else p2.state='idle'; }
+    ctx.fillStyle='#000'; ctx.fillRect(0,0,510,250); ctx.fillStyle='#fff'; ctx.font='11px sans-serif'; ctx.fillText(`藍方血量: ${p1.hp}`, 20, 20); ctx.fillText(`紅方血量: ${p2.hp}`, 400, 20);
+    ctx.fillStyle=p1.color; ctx.fillRect(p1.x-10, p1.y-30, 20, 40); if(p1.state=='punch') { ctx.fillStyle='#fff'; ctx.fillRect(p1.x+10, p1.y-20, 15, 6); } if(p1.state=='defend') { ctx.fillStyle='yellow'; ctx.fillRect(p1.x+8, p1.y-30, 4, 40); }
+    ctx.fillStyle=p2.color; ctx.fillRect(p2.x-10, p2.y-30, 20, 40); if(p2.state=='punch') { ctx.fillStyle='#fff'; ctx.fillRect(p2.x-25, p2.y-20, 15, 6); } if(p2.state=='defend') { ctx.fillStyle='yellow'; ctx.fillRect(p2.x-12, p2.y-30, 4, 40); }
+    if(p1.hp<=0) endBattle("👑 紅方街頭霸王擊倒對手！"); if(p2.hp<=0) endBattle("👑 藍方街頭霸王擊倒對手！");
+}
+
+// 12. 盾牌反彈戰
+function runShield() {
+    gVar.bx += gVar.vx; if(gVar.bx<40 && gVar.bx>15) { if(keys['w']) { gVar.vx = Math.abs(gVar.vx)+0.5; gVar.bx=41; } }
+    if(gVar.bx>470 && gVar.bx<495) { if(keys['arrowup']) { gVar.vx = -(Math.abs(gVar.vx)+0.5); gVar.bx=469; } }
+    ctx.fillStyle='#000'; ctx.fillRect(0,0,510,250); ctx.fillStyle='#fff'; ctx.fillText(`速度: ${Math.abs(gVar.vx).toFixed(1)}`, 230, 20);
+    ctx.fillStyle=p1.color; ctx.fillRect(15, 80, 10, 90); if(keys['w']) { ctx.fillStyle='yellow'; ctx.fillRect(25, 80, 6, 90); }
+    ctx.fillStyle=p2.color; ctx.fillRect(485, 80, 10, 90); if(keys['arrowup']) { ctx.fillStyle='yellow'; ctx.fillRect(479, 80, 6, 90); }
+    ctx.fillStyle='orange'; ctx.beginPath(); ctx.arc(gVar.bx, 125, 8, 0, Math.PI*2); ctx.fill();
+    if(gVar.bx<0) endBattle("💀 藍方反應太慢，被能量球炸飛！紅方勝！"); if(gVar.bx>510) endBattle("💀 紅方反應太慢，被能量球炸飛！藍方勝！");
+}
+
+// 13. 星際空戰
+function runSpace() {
+    if(keys['a'] && p1.x>20) p1.x-=5; if(keys['d'] && p1.x<490) p1.x+=5;
+    if(keys['arrowleft'] && p2.x>20) p2.x-=5; if(keys['arrowright'] && p2.x<490) p2.x+=5;
+    ctx.fillStyle='#000'; ctx.fillRect(0,0,510,250); drawScores();
+    ctx.fillStyle=p1.color; ctx.beginPath(); ctx.moveTo(p1.x, p1.y+15); ctx.lineTo(p1.x-12, p1.y-5); ctx.lineTo(p1.x+12, p1.y-5); ctx.fill();
+    ctx.fillStyle=p2.color; ctx.beginPath(); ctx.moveTo(p2.x, p2.y-15); ctx.lineTo(p2.x-12, p2.y+5); ctx.lineTo(p2.x+12, p2.y+5); ctx.fill();
+    if(p1.b) { p1.b.y += p1.b.vy; ctx.fillStyle='#00ffcc'; ctx.fillRect(p1.b.x-2, p1.b.y, 4, 8); if(Math.hypot(p1.b.x-p2.x, p1.b.y-p2.y)<16){ p1.score++; p1.b=null; } else if(p1.b.y>250) p1.b=null; }
+    if(p2.b) { p2.b.y += p2.b.vy; ctx.fillStyle='#ff007f'; ctx.fillRect(p2.b.x-2, p2.b.y, 4, 8); if(Math.hypot(p2.b.x-p1.x, p2.b.y-p1.y)<16){ p2.score++; p2.b=null; } else if(p2.b.y<0) p2.b=null; }
+    checkWin(p1.score, p2.score, 4, "藍方星際王牌擊墜對手！", "紅方星際王牌擊墜對手！");
+}
+
+// 14. 蓋磚壓制賽
+function runBlock() {
+    textUI.innerHTML = `<div style='color:#fff;font-size:1.1rem;'>🧱 賽博蓋磚極限壓制賽 </div><br>
+    <div style='width:300px; display:flex; flex-direction:column; align-items:center;'>
+        <div style='display:flex; justify-content:space-between; width:100%; font-size:0.9rem;'><span style='color:#00f2fe;'>藍方(按S砸磚)</span><span style='color:#ff007f;'>紅方(按▼砸磚)</span></div>
+        <div style='width:100%; height:30px; background:#222; border:2px solid #555; position:relative; margin-top:10px; border-radius:6px; overflow:hidden;'>
+            <div style='position:absolute; left:0; top:0; bottom:0; width:${gVar.weight}px; background:#00f2fe;'></div>
+            <div style='position:absolute; right:0; top:0; bottom:0; width:${300-gVar.weight}px; background:#ff007f;'></div>
+        </div>
+    </div>`;
+    if(gVar.weight<=0) endBattle("🧱 紅方磚塊泰山壓頂，獲得勝利！"); if(gVar.weight>=300) endBattle("🧱 藍方磚塊泰山壓頂，獲得勝利！");
+}
+
+// 15. 命運左輪
+function runRoulette() {
+    textUI.innerHTML = `<div style='color:#ffff00;font-size:1.1rem;font-weight:bold;'>🎰 賽博命運踩地雷決決鬥 🎰</div><br>
+    <div style='font-size:1rem; background:#222; padding:15px; border-radius:8px; width:280px; line-height:1.6;'>
+        ${gVar.msg}<br><br>
+        場上安全區剩下: <span style='color:#00ffcc;'>${6-gVar.rolled}</span> 格！
+    </div>`;
+}
+</script>
+</body>
+</html>
