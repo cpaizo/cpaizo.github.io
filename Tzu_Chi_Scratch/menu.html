@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 慈濟科丁國際 Scratch 友誼交流賽 - 快捷導覽</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #ffa64d; /* 活力亮橘 */
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            border-bottom: 3px solid var(--accent-color);
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            margin: 20px 0 10px 5px;
+            padding-left: 10px;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .links-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        @media (min-width: 600px) {
+            .links-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .full-width {
+                grid-column: span 2;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+
+        .card h3 {
+            font-size: 1.1rem;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+
+        .card p {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            display: inline-block;
+            text-align: center;
+            background-color: var(--primary-color);
+            color: #fff;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-color);
+            color: #fff;
+        }
+
+        .btn-important {
+            background-color: #e74c3c;
+        }
+        
+        .btn-important:hover {
+            background-color: var(--accent-color);
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px 0;
+            color: #888;
+            font-size: 0.85rem;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>2026 慈濟科丁國際 Scratch 友誼交流賽</h1>
+        <p>競賽相關資源與系統快捷導覽入口</p>
+    </header>
+
+    <div class="section-title">賽事資訊 & 報名</div>
+    <div class="links-grid">
+        <div class="card full-width">
+            <h3>大會官方網站</h3>
+            <p>瀏覽交流賽最新公告、詳細日程、規則說明與注意事項。</p>
+            <a href="https://sites.google.com/view/codingnations/tzu-chi-coding/2026" target="_blank" class="btn">前往官網</a>
+        </div>
+        <div class="card">
+            <h3>活動報名表單</h3>
+            <p>參與本次 Scratch 友誼交流賽的線上報名入口。</p>
+            <a href="https://forms.gle/xPUz3goRxctBSLea6" target="_blank" class="btn btn-important">立即報名</a>
+        </div>
+        <div class="card">
+            <h3>競賽題目公告</h3>
+            <p>即時查閱本次交流賽的正式題目與評分系統環境。</p>
+            <a href="https://cpaizo.github.io/Tzu_Chi_Scratch/scratch_exam_system.html" target="_blank" class="btn">查看題目</a>
+        </div>
+    </div>
+
+    <div class="section-title">參賽作品與評分系統</div>
+    <div class="links-grid">
+        <div class="card">
+            <h3>作品上傳 (Index.html)</h3>
+            <p>參賽選手提交、更新完工作品的專用上傳後台。</p>
+            <a href="https://script.google.com/macros/s/AKfycbzP2hayi_-qeKsPjEgJbG2sikhJQRGJalL8-ddG_ByiqRoWA6r1wWCswzSy1-tPDLjqvA/exec" target="_blank" class="btn">前往上傳</a>
+        </div>
+        <div class="card">
+            <h3>作品大會看板 (Admin)</h3>
+            <p>大會後台與選手作品總覽看板，集中檢視所有上傳項目。</p>
+            <a href="https://script.google.com/macros/s/AKfycbzP2hayi_-qeKsPjEgJbG2sikhJQRGJalL8-ddG_ByiqRoWA6r1wWCswzSy1-tPDLjqvA/exec?view=admin" target="_blank" class="btn">大會看板</a>
+        </div>
+        <div class="card">
+            <h3>評審線上評分 (Judge)</h3>
+            <p>評審專用線上評分系統（需具備評審特定權限）。</p>
+            <a href="https://script.google.com/macros/s/AKfycbzP2hayi_-qeKsPjEgJbG2sikhJQRGJalL8-ddG_ByiqRoWA6r1wWCswzSy1-tPDLjqvA/exec?view=judge" target="_blank" class="btn">評審評分</a>
+        </div>
+        <div class="card">
+            <h3>即時成績排行榜 (Rank)</h3>
+            <p>交流賽最新得分與即時名次排行看板動態更新。</p>
+            <a href="https://script.google.com/macros/s/AKfycbzP2hayi_-qeKsPjEgJbG2sikhJQRGJalL8-ddG_ByiqRoWA6r1wWCswzSy1-tPDLjqvA/exec?page=rank" target="_blank" class="btn">查看排行榜</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 慈濟科丁國際 Scratch 友誼交流賽. All Rights Reserved.</p>
+    </footer>
+</div>
+
+</body>
+</html>
