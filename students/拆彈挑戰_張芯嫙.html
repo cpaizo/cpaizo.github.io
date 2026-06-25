@@ -25,6 +25,7 @@
             margin: 0;
             padding: 15px;
             box-sizing: border-box;
+            overflow: hidden;
         }
 
         .game-container {
@@ -39,7 +40,7 @@
             position: relative;
         }
 
-        /* 系統初始化區塊：改成大橫條，不擋住全螢幕 */
+        /* 系統初始化區塊 */
         .system-init-box {
             background: rgba(0,0,0,0.5);
             border: 1px solid var(--glow-cyan);
@@ -159,30 +160,60 @@
         .btn {
             background: linear-gradient(135deg, #3a3f50, #2c2f3c);
             color: #e5e5ea;
-            border: 1px solid #4a5066;
+            border: 1px solid #44a5066;
             padding: 18px;
             font-size: 22px;
             font-weight: 600;
             border-radius: 14px;
             cursor: pointer;
+            transition: 0.1s;
         }
-        .btn:hover {
-            border-color: #00f0ff;
-        }
+        .btn:hover { border-color: #00f0ff; }
         .btn-clear { background: linear-gradient(135deg, #ff9500, #cc7600); border-color: #ffb347; }
         .btn-submit { background: linear-gradient(135deg, var(--success), #248a3d); grid-column: span 2; border-color: #54d675; }
 
+        /* 爆炸失敗遮罩 */
         .firework-overlay {
             display: none;
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(13, 14, 18, 0.9);
+            background: rgba(13, 14, 18, 0.95);
             border-radius: 22px;
             justify-content: center;
             align-items: center;
             flex-direction: column;
             z-index: 10;
             border: 2px solid var(--primary);
+        }
+
+        /* 全新：破關完美結局畫面 */
+        .success-overlay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #11141a 0%, #082032 100%);
+            border-radius: 22px;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 15;
+            border: 2px solid #f1c40f;
+            box-shadow: inset 0 0 40px rgba(241, 196, 15, 0.3);
+        }
+        .success-overlay h2 {
+            color: #f1c40f;
+            font-size: 32px;
+            margin: 10px 0;
+            text-shadow: 0 0 15px rgba(241, 196, 15, 0.6);
+        }
+        .medal {
+            font-size: 80px;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); filter: drop-shadow(0 0 20px #f1c40f); }
+            100% { transform: scale(1); }
         }
 
         #conan-player {
@@ -201,9 +232,18 @@
     <div class="game-container">
         
         <div class="firework-overlay" id="fireworkOverlay">
-            <h2 style="color: var(--primary);">🎆 系統引爆 🎆</h2>
-            <p>時間到了！推理失敗！</p>
-            <button class="toggle-btn" style="background: var(--primary);" onclick="resetFullGame()">重啟系統</button>
+            <h2 style="color: var(--primary); font-size: 30px;">🎆 系統被引爆 🎆</h2>
+            <p style="font-size: 16px; color: #aaa;">時間到了！推理失敗！</p>
+            <button class="toggle-btn" style="background: var(--primary); padding: 10px 20px;" onclick="resetFullGame()">重啟系統</button>
+        </div>
+
+        <div class="success-overlay" id="successOverlay">
+            <div class="medal">👑</div>
+            <h2>真相只有一個！</h2>
+            <p style="font-size: 16px; color: #e5e5ea; margin: 0 30px 20px 30px; line-height: 1.5;">
+                你不僅在時限內解開了重重謎題，還成功阻止了高階炸彈引爆！大家的安全由你守護住了！
+            </p>
+            <button class="toggle-btn" style="background: #f1c40f; color: #121212; font-weight: bold; padding: 12px 30px; font-size: 16px;" onclick="resetFullGame()">再挑戰一次</button>
         </div>
 
         <div class="top-bar">
@@ -290,7 +330,8 @@
         { q: "3, 6, 9, 12, 15, [ ? ]", a: 18, tip: "每次都加 3" },
         { q: "20, 18, 16, 14, 12, [ ? ]", a: 10, tip: "每次都減 2" },
         { q: "5, 10, 15, 20, 25, [ ? ]", a: 30, tip: "每次都加 5" },
-        { q: "1, 2, 4, 8, 16, [ ? ]", a: 32, tip: "後面的數字是前面的 2 倍" }
+        { q: "1, 2, 4, 8, 16, [ ? ]", a: 32, tip: "後面的數字是前面的 2 倍" },
+        { q: "11, 22, 33, 44, 55, [ ? ]", a: 66, tip: "每次都加 11" }
     ];
 
     let currentQuestion = {};
@@ -298,13 +339,16 @@
     let timeLeft = 20.00;
     let isGameOver = false;
     let score = 0; 
-    const targetScore = 3;
+    const targetScore = 3; // 答對 3 題破關
 
     function startGame() {
         if (!gameStarted) return;
+        
+        // 檢查是否成功破關
         if (score >= targetScore) {
-            alert("👑 真相只有一個！你成功阻止了爆炸！");
-            resetFullGame();
+            clearInterval(countdown);
+            isGameOver = true;
+            document.getElementById('successOverlay').style.display = "flex"; // 開啟破關畫面
             return;
         }
 
@@ -312,6 +356,7 @@
         timeLeft = 20.00;
         document.getElementById('answerDisplay').innerText = "";
         document.getElementById('fireworkOverlay').style.display = "none";
+        document.getElementById('successOverlay').style.display = "none";
         document.getElementById('stageText').innerText = `關卡: ${score + 1} / ${targetScore}`;
         document.getElementById('progressBar').style.width = `${(score / targetScore) * 100}%`;
 
@@ -351,7 +396,6 @@
 
         if (parseInt(userAns) === currentQuestion.a) {
             clearInterval(countdown);
-            isGameOver = true;
             score++;
             alert(`⚡ 密碼正確！成功解開第 ${score} 階段！\n【提示】${currentQuestion.tip}`);
             startGame(); 
@@ -370,6 +414,9 @@
 
     function resetFullGame() {
         score = 0;
+        isGameOver = false;
+        document.getElementById('successOverlay').style.display = "none";
+        document.getElementById('fireworkOverlay').style.display = "none";
         playMusic();
         startGame();
     }
