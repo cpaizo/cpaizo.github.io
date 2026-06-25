@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>名偵探柯南 - 案件真相大白</title>
+    <style>
+        /* 網頁背景與整體排版 */
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* 標題樣式 */
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+            color: #f1c40f;
+            text-shadow: 0px 0px 10px rgba(241, 196, 15, 0.5);
+        }
+
+        /* 按鈕容器 */
+        .btn-container {
+            display: flex;
+            gap: 20px;
+        }
+
+        /* 通用按鈕樣式 */
+        .btn {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: 2px solid #f1c40f;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: transparent;
+        }
+
+        /* 開始按鈕獨特樣式 */
+        .btn-start {
+            color: #121212;
+            background-color: #f1c40f;
+            box-shadow: 0px 5px 15px rgba(241, 196, 15, 0.4);
+        }
+
+        .btn-start:hover {
+            background-color: #d4ac0d;
+            transform: scale(1.05);
+        }
+
+        /* 暫停按鈕獨特樣式 */
+        .btn-pause {
+            color: #f1c40f;
+        }
+
+        .btn-pause:hover {
+            background-color: rgba(241, 196, 15, 0.1);
+            transform: scale(1.05);
+        }
+
+        /* 隱藏 YouTube 影片區塊 */
+        #conan-player {
+            width: 0;
+            height: 0;
+            position: absolute;
+            visibility: hidden;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>真相只有一個！</h1>
+
+    <div class="btn-container">
+        <button class="btn btn-start" onclick="playMusic()">▶ 開始調查 (播放配樂)</button>
+        <button class="btn btn-pause" onclick="pauseMusic()">⏸ 暫停</button>
+    </div>
+
+    <iframe 
+      id="conan-player"
+      src="https://www.youtube.com/embed/1XWe2MBaLRI?enablejsapi=1&controls=0" 
+      allow="autoplay; encrypted-media">
+    </iframe>
+
+    <script>
+        // 載入 YouTube 官方 API 腳本
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        var player;
+        // API 載入完成後會自動呼叫這個函式
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('conan-player');
+        }
+
+        // 播放音樂的控制
+        function playMusic() {
+            if (player && player.playVideo) {
+                player.playVideo();
+            } else {
+                alert("播放器準備中，請稍候再試一次！");
+            }
+        }
+
+        // 暫停音樂的控制
+        function pauseMusic() {
+            if (player && player.pauseVideo) {
+                player.pauseVideo();
+            }
+        }
+    </script>
+
+</body>
+</html>
