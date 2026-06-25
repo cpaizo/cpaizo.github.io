@@ -2,30 +2,68 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>學生精彩作品集</title>
+    <title>✨ 我們的網頁創客基地 ✨</title>
     <style>
-        .portfolio-container {
+        body {
+            /* 🌲 超可愛的黑板/筆記本格子風格背景 */
+            background-color: #F7F9FA;
+            background-image: linear-gradient(#E1E8ED 1px, transparent 1px),
+                              linear-gradient(90deg, #E1E8ED 1px, transparent 1px);
+            background-size: 20px 20px;
+            font-family: 'Comic Sans MS', 'Microsoft JhengHei', sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ⭐ 核心設定：讓整個內容往下移動大約 5 行的距離 */
+        .page-wrapper {
+            margin-top: 100px; 
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 35px;
+        }
+
+        .section-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 25px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+            box-sizing: border-box;
+        }
+
+        /* 課堂教材區的外觀（手繪虛線邊框） */
+        .bg-lessons {
+            border: 4px dashed #4CAF50;
+        }
+
+        /* 學生作品區的外觀（星星黃色邊框） */
+        .bg-portfolio {
+            border: 4px dashed #FFB300;
+            background-color: #FFFDE7;
+        }
+
+        h2 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .title-lessons { color: #2E7D32; }
+        .title-portfolio { color: #F57F17; }
+
+        .button-list {
             display: flex;
             flex-direction: column;
             gap: 15px;
-            max-width: 450px;
-            margin: 40px auto;
-            font-family: 'Comic Sans MS', 'Microsoft JhengHei', sans-serif;
-            padding: 20px;
-            background: #FFFDE7; /* 溫馨的淡黃色底塊 */
-            border: 3px dashed #FBC02D;
-            border-radius: 20px;
         }
 
-        .portfolio-title {
-            text-align: center;
-            color: #F57F17;
-            margin-top: 0;
-            margin-bottom: 15px;
-            font-size: 1.4rem;
-        }
-
-        .student-btn {
+        .menu-btn {
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -33,65 +71,85 @@
             font-size: 1.15rem;
             font-weight: bold;
             text-decoration: none;
-            border-radius: 12px;
+            border-radius: 15px;
             box-shadow: 0 6px 0 var(--shadow-color);
             transition: transform 0.1s, background-color 0.2s;
             color: white;
             cursor: pointer;
         }
 
-        /* 懸停與點擊的動態特效 */
-        .student-btn:hover {
+        /* 滑鼠懸停與點擊的可愛 Q 彈特效 */
+        .menu-btn:hover {
             transform: scale(1.02);
             filter: brightness(1.05);
         }
-        .student-btn:active {
+        .menu-btn:active {
             transform: translateY(6px);
             box-shadow: 0 0px 0 var(--shadow-color);
         }
 
-        /* 個別學生作品的粉嫩與亮眼色調 */
-        .btn-bomb {
-            background-color: #AB47BC; /* 質感紫 */
-            --shadow-color: #7B1FA2;
-        }
-        .btn-macaron {
-            background-color: #FF7043; /* 馬卡龍橘紅 */
-            --shadow-color: #D84315;
-        }
-        .btn-penguin {
-            background-color: #29B6F6; /* 企鵝冰雪藍 */
-            --shadow-color: #0288D1;
-        }
-
         .btn-tag {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             background: rgba(255, 255, 255, 0.25);
             padding: 3px 8px;
             border-radius: 20px;
-            margin-left: 8px;
+            margin-left: 6px;
         }
+
+        /* 🎨 按鈕顏色主題分配 */
+        .btn-candy { background-color: #EC407A; --shadow-color: #C2185B; }
+        .btn-bear { background-color: #FFA726; --shadow-color: #F57C00; }
+        .btn-dino { background-color: #66BB6A; --shadow-color: #388E3C; }
+        .btn-beaver { background-color: #26A69A; --shadow-color: #00796B; }
+        
+        .btn-bomb { background-color: #AB47BC; --shadow-color: #7B1FA2; }
+        .btn-macaron { background-color: #FF7043; --shadow-color: #D84315; }
+        .btn-penguin { background-color: #29B6F6; --shadow-color: #0288D1; }
     </style>
 </head>
 <body>
 
-    <div class="portfolio-container">
-        <h3 class="portfolio-title">✨ 學生創客網頁作品展 ✨</h3>
+    <div class="page-wrapper">
         
-        <a href="https://cpaizo.github.io/students/%E6%8B%86%E5%BD%88%E6%8C%91%E6%88%B0_%E5%BC%B5%E8%8A%AF%E5%AB%99.html" target="_blank" class="student-btn btn-bomb">
-            <span>💣 拆彈挑戰 <span class="btn-tag">張芯婗 作品</span></span>
-            <span>➔</span>
-        </a>
+        <div class="section-container bg-lessons">
+            <h2 class="title-lessons">📖 課堂互動玩數學</h2>
+            <div class="button-list">
+                <a href="https://cpaizo.github.io/students/candy-math.html" target="_blank" class="menu-btn btn-candy">
+                    <span>🍬 糖果量尺數學題</span>
+                    <span>➔</span>
+                </a>
+                <a href="https://cpaizo.github.io/students/bear-blender.html" target="_blank" class="menu-btn btn-bear">
+                    <span>🍏 小熊果汁機大挑戰</span>
+                    <span>➔</span>
+                </a>
+                <a href="https://cpaizo.github.io/students/dino-feeding.html" target="_blank" class="menu-btn btn-dino">
+                    <span>🦕 恐龍餵食秀動畫</span>
+                    <span>➔</span>
+                </a>
+                <a href="https://cpaizo.github.io/students/beaver-dam.html" target="_blank" class="menu-btn btn-beaver">
+                    <span>🦫 快樂築巢小河狸</span>
+                    <span>➔</span>
+                </a>
+            </div>
+        </div>
 
-        <a href="https://cpaizo.github.io/students/%E9%A6%AC%E5%8D%A1%E9%BE%8D%E9%81%8A%E6%88%B2%E6%A8%82%E5%9C%92_%E5%BC%B5%E5%80%A2%E9%88%9E.html" target="_blank" class="student-btn btn-macaron">
-            <span> Vignette 🎡 馬卡龍遊戲樂園 <span class="btn-tag">張億鈺 作品</span></span>
-            <span>➔</span>
-        </a>
-
-        <a href="https://cpaizo.github.io/students/%E4%BC%81%E9%B5%9D%E6%95%B8%E5%AD%B8_%E9%99%B3%E7%8E%89%E5%A9%B7.html" target="_blank" class="student-btn btn-penguin">
-            <span>🐧 企鵝數學大冒險 <span class="btn-tag">陳玉婷 作品</span></span>
-            <span>➔</span>
-        </a>
+        <div class="section-container bg-portfolio">
+            <h2 class="title-portfolio">✨ 學生創客作品展 ✨</h2>
+            <div class="button-list">
+                <a href="https://cpaizo.github.io/students/%E6%8B%86%E5%BD%88%E6%8C%91%E6%88%B0_%E5%BC%B5%E8%8A%AF%E5%AB%99.html" target="_blank" class="menu-btn btn-bomb">
+                    <span>💣 拆彈挑戰 <span class="btn-tag">張芯婗</span></span>
+                    <span>➔</span>
+                </a>
+                <a href="https://cpaizo.github.io/students/%E9%A6%AC%E5%8D%A1%E9%BE%8D%E9%81%8A%E6%88%B2%E6%A8%82%E5%9C%92_%E5%BC%B5%E5%80%A2%E9%88%9E.html" target="_blank" class="menu-btn btn-macaron">
+                    <span>🎡 馬卡龍遊戲樂園 <span class="btn-tag">張億鈺</span></span>
+                    <span>➔</span>
+                </a>
+                <a href="https://cpaizo.github.io/students/%E4%BC%81%E9%B5%9D%E6%95%B8%E5%AD%B8_%E9%99%B3%E7%8E%89%E5%A9%B7.html" target="_blank" class="menu-btn btn-penguin">
+                    <span>🐧 企鵝數學大冒險 <span class="btn-tag">陳玉婷</span></span>
+                    <span>➔</span>
+                </a>
+            </div>
+        </div>
 
     </div>
 
