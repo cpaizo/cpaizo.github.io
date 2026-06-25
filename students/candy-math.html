@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍬 甜心糖果屋 - 數字等高大挑戰 🍬</title>
+    <style>
+        :root {
+            --unit-height: 35px; /* 每 1 個單位的基礎高度 */
+        }
+        
+        body {
+            background-color: #FFF0F5; 
+            background-image: radial-gradient(#FFD1DC 20%, transparent 20%),
+                              radial-gradient(#FFD1DC 20%, transparent 20%);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            font-family: 'Comic Sans MS', 'Microsoft JhengHei', sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #5D5154;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            color: #FF69B4;
+            text-shadow: 2px 2px 0px #FFF, 4px 4px 0px #FFB6C1;
+            font-size: 2.3rem;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        p.subtitle {
+            font-size: 1.1rem;
+            background: #FFF;
+            padding: 8px 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 2px dashed #FFB6C1;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .game-container {
+            display: flex;
+            gap: 25px;
+            max-width: 1000px;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* 卡片樣式 */
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 25px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(255, 182, 193, 0.3);
+            border: 4px solid #FFE4E1;
+            flex: 1;
+            min-width: 340px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #FF1493;
+            font-size: 1.4rem;
+            margin-top: 0;
+            border-bottom: 3px dotted #FFB6C1;
+            padding-bottom: 10px;
+        }
+
+        /* 糖果積木按鈕區 */
+        .candy-selector {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            justify-items: center;
+        }
+
+        .candy-btn {
+            width: 55px;
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+            transition: transform 0.1s, filter 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .candy-btn:hover { transform: scale(1.05); filter: brightness(1.1); }
+        .candy-btn:active { transform: translateY(4px); box-shadow: 0 0px 0 rgba(0,0,0,0.15); }
+
+        /* 繽紛數字顏色 */
+        .c1 { height: calc(var(--unit-height) * 1); background: #FF6B6B; }
+        .c2 { height: calc(var(--unit-height) * 2); background: #FF8E53; }
+        .c3 { height: calc(var(--unit-height) * 3); background: #FFD200; }
+        .c4 { height: calc(var(--unit-height) * 4); background: #4ED164; }
+        .c5 { height: calc(var(--unit-height) * 5); background: #00D2FC; }
+        .c6 { height: calc(var(--unit-height) * 6); background: #5466FF; }
+        .c7 { height: calc(var(--unit-height) * 7); background: #9B5DE5; }
+        .c8 { height: calc(var(--unit-height) * 8); background: #F15BB5; }
+        .c9 { height: calc(var(--unit-height) * 9); background: #00F5D4; }
+        .c10 { height: calc(var(--unit-height) * 10); background: #FF5470; }
+
+        /* 舞台區 */
+        .play-stage {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end; 
+            height: 400px;
+            background: #FFF;
+            border-radius: 20px;
+            border: 3px inset #FFE4E1;
+            padding: 20px;
+            position: relative;
+            gap: 30px; 
+        }
+
+        .compare-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end; 
+        }
+
+        /* 底部對齊的對比基座平台 */
+        .base-platform {
+            display: flex;
+            align-items: flex-end; 
+            width: 80px;
+            background: #F5F5F5;
+            border-bottom: 6px solid #E0E0E0;
+            border-radius: 10px 10px 0 0;
+            min-height: 350px; 
+            position: relative;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+        }
+
+        /* 堆疊容器 */
+        .stack-container {
+            display: flex;
+            flex-direction: column-reverse; 
+            width: 100%;
+        }
+
+        /* 目標長條 */
+        .target-bar {
+            width: 100%;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.6rem;
+            font-weight: bold;
+            box-shadow: inset 0 0 12px rgba(0,0,0,0.1);
+            transition: height 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* 積木方塊 */
+        .stacked-block {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-sizing: border-box;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-bottom: none;
+            animation: dropIn 0.25s ease-out;
+        }
+
+        @keyframes dropIn {
+            0% { transform: translateY(-25px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        .label-tag {
+            margin-top: 12px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #8B4513;
+            background: #FFE4B5;
+            padding: 5px 15px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* 按鈕控制 */
+        .control-panel {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .btn-action {
+            background: #FF69B4;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 5px 0 #D14785;
+            margin: 5px;
+            transition: background 0.2s;
+        }
+        .btn-action:hover { background: #ff4da6; }
+        .btn-action:active { transform: translateY(5px); box-shadow: 0 0px 0 #D14785; }
+        .btn-reset { background: #BA55D3; box-shadow: 0 5px 0 #8A2BE2; }
+        .btn-reset:hover { background: #a13dbe; }
+        .btn-random { background: #20B2AA; box-shadow: 0 5px 0 #008B8B; }
+        .btn-random:hover { background: #1c9c95; }
+
+        /* 成功蓋版與煙火畫布 */
+        .success-mask {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.85);
+            border-radius: 20px;
+            z-index: 10;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .success-mask h3 { color: #FF1493; font-size: 2.2rem; margin: 0 0 10px 0; text-shadow: 1px 1px 2px #FFF; }
+        
+        #fireworks-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; 
+            z-index: 9;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🍬 甜心糖果屋 數字等高大挑戰 🍬</h1>
+    <p class="subtitle">聽好隨機目標，用右邊的積木疊到「剛好一樣高」吧！</p>
+
+    <div style="margin-bottom: 15px; font-weight: bold; font-size: 1.3rem; color: #FF1493;">
+        ⭐ 當前關卡：<span id="level-title">讀取中...</span> ⭐
+    </div>
+
+    <div class="game-container">
+        
+        <div class="card">
+            <h2>🍭 糖果積木架 (1-10)</h2>
+            <p style="text-align: center; color: #888; margin-top: 0;">點擊下方的糖果，把它們疊上去！</p>
+            <div class="candy-selector">
+                <button class="candy-btn c1" onclick="addBlock(1)">1</button>
+                <button class="candy-btn c2" onclick="addBlock(2)">2</button>
+                <button class="candy-btn c3" onclick="addBlock(3)">3</button>
+                <button class="candy-btn c4" onclick="addBlock(4)">4</button>
+                <button class="candy-btn c5" onclick="addBlock(5)">5</button>
+                <button class="candy-btn c6" onclick="addBlock(6)">6</button>
+                <button class="candy-btn c7" onclick="addBlock(7)">7</button>
+                <button class="candy-btn c8" onclick="addBlock(8)">8</button>
+                <button class="candy-btn c9" onclick="addBlock(9)">9</button>
+                <button class="candy-btn c10" onclick="addBlock(10)">10</button>
+            </div>
+            
+            <div style="text-align: center; margin-top: 25px;">
+                <button class="btn-action btn-random" onclick="generateRandomTarget()">🎲 幫我隨機換一題</button>
+            </div>
+        </div>
+
+        <div class="card" style="position: relative;">
+            <h2>⚖️ 身高比一比</h2>
+            
+            <div class="play-stage">
+                <canvas id="fireworks-canvas"></canvas>
+
+                <div class="success-mask" id="success-screen">
+                    <h3>🎉 太棒了！完美等高！🎉</h3>
+                    <p id="success-text" style="font-size: 1.3rem; font-weight: bold; color: #444; margin-bottom: 20px;"></p>
+                    <button class="btn-action" onclick="nextChallenge()">🎯 挑戰下一題</button>
+                </div>
+
+                <div class="compare-column">
+                    <div class="base-platform">
+                        <div id="target-bar" class="target-bar">?</div>
+                    </div>
+                    <div class="label-tag" id="target-label">🎯 目標：?</div>
+                </div>
+
+                <div class="compare-column">
+                    <div class="base-platform">
+                        <div id="player-stack" class="stack-container">
+                            </div>
+                    </div>
+                    <div class="label-tag" id="current-sum-label">📏 目前：0</div>
+                </div>
+            </div>
+
+            <div class="control-panel">
+                <button class="btn-action" onclick="checkHeight()">🔍 檢查有沒有一樣高</button>
+                <button class="btn-action btn-reset" onclick="resetGame()">🔄 清空重來</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let targetValue = 0;
+        let currentStack = []; 
+        let fireworksInterval;
+        
+        const colorClasses = {
+            1: '#FF6B6B', 2: '#FF8E53', 3: '#FFD200', 4: '#4ED164', 5: '#00D2FC',
+            6: '#5466FF', 7: '#9B5DE5', 8: '#F15BB5', 9: '#00F5D4', 10: '#FF5470'
+        };
+
+        // --- 音效系統 (樂音伴奏) ---
+        let audioCtx = null;
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        function playPopSound() {
+            initAudio(); if (!audioCtx) return;
+            let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        }
+
+        function playSuccessSound() {
+            initAudio(); if (!audioCtx) return;
+            const notes = [523.25, 659.25, 783.99, 1046.50]; 
+            notes.forEach((freq, index) => {
+                setTimeout(() => {
+                    let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+                }, index * 120);
+            });
+        }
+
+        // --- 【新增】語音合成系統 TTS ---
+        function speak(text) {
+            // 如果支援語音合成，則說出文字
+            if ('speechSynthesis' in window) {
+                // 先取消所有排隊中的語音，避免重疊混亂
+                window.speechSynthesis.cancel();
+                let utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-TW'; // 設定台灣中文
+                utterance.rate = 1.0;     // 速度
+                utterance.pitch = 1.2;    // 音調稍微高一點點，聽起來比較有活力、親切
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // --- 隨機出題系統 ---
+        function generateRandomTarget() {
+            let lastTarget = targetValue;
+            while (targetValue === lastTarget) {
+                targetValue = Math.floor(Math.random() * 10) + 1;
+            }
+            
+            const targetBar = document.getElementById('target-bar');
+            targetBar.className = `target-bar c${targetValue}`;
+            targetBar.style.height = `${targetValue * 35}px`; 
+            targetBar.innerText = targetValue;
+            
+            document.getElementById('target-label').innerText = `🎯 目標：${targetValue}`;
+            document.getElementById('level-title').innerText = `找尋數字 ${targetValue} 的等高糖果`;
+            
+            resetGame();
+            
+            // 隨機出題時，開口說話提示題目
+            setTimeout(() => {
+                speak(`現在的目標是數字 ${targetValue}，請在右邊疊出一樣高喔！`);
+            }, 300);
+        }
+
+        function nextChallenge() {
+            generateRandomTarget();
+        }
+
+        // --- 遊戲邏輯 ---
+        function addBlock(num) {
+            playPopSound();
+            speak(num.toString()); // 點擊按鈕，唸出當前點擊的數字
+            
+            const currentSum = currentStack.reduce((a, b) => a + b, 0);
+            
+            if (currentSum + num > 10) {
+                alert("哎呀！疊得太高，超過 10 格平台囉！");
+                speak("哎呀，太高了！");
+                return;
+            }
+
+            currentStack.push(num);
+            renderStack();
+        }
+
+        function renderStack() {
+            const stackContainer = document.getElementById('player-stack');
+            stackContainer.innerHTML = ''; 
+            
+            let total = 0;
+            currentStack.forEach(num => {
+                total += num;
+                const block = document.createElement('div');
+                block.className = 'stacked-block';
+                block.style.height = `${num * 35}px`; 
+                block.style.backgroundColor = colorClasses[num];
+                block.innerText = num;
+                stackContainer.appendChild(block);
+            });
+
+            document.getElementById('current-sum-label').innerText = `📏 目前：${total}`;
+        }
+
+        function checkHeight() {
+            const currentSum = currentStack.reduce((a, b) => a + b, 0);
+            
+            if (currentSum === 0) {
+                alert("右邊空空的，先點選左邊的糖果積木來排排看吧！");
+                speak("你還沒有放任何糖果積木喔。");
+                return;
+            }
+
+            if (currentSum === targetValue) {
+                playSuccessSound();
+                startFireworks();
+                
+                const formulaStr = currentStack.join('加');
+                const successMsg = `${formulaStr}，剛好等於 ${targetValue}！你太聰明了！`;
+                
+                document.getElementById('success-text').innerText = currentStack.join(' + ') + ` 剛好等於 ${targetValue}！`;
+                document.getElementById('success-screen').style.display = 'flex';
+                
+                speak(`太棒了！ ${successMsg}`);
+            } else if (currentSum < targetValue) {
+                alert(`看一看！目前高度是 ${currentSum}，比目標 ${targetValue} 還矮了一點，再加一顆糖果試試看！`);
+                speak(`看一看，目前高度是 ${currentSum}，比目標還矮了一點，再加一顆糖果試試看！`);
+            } else {
+                alert(`哎呀！目前高度是 ${currentSum}，已經比目標 ${targetValue} 還要高了！按「清空重來」試試看！`);
+                speak(`哎呀，目前高度是 ${currentSum}，已經比目標還要高了！按清空重來試試看吧！`);
+            }
+        }
+
+        function resetGame() {
+            currentStack = [];
+            renderStack();
+            document.getElementById('success-screen').style.display = 'none';
+            stopFireworks();
+        }
+
+        // --- 煙火特效繪製系統 (Canvas) ---
+        const canvas = document.getElementById('fireworks-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.offsetWidth;
+            canvas.height = canvas.parentElement.offsetHeight;
+        }
+
+        function createFirework() {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * (canvas.height * 0.6) + (canvas.height * 0.1);
+            const colors = ['#FF6B6B', '#FFD200', '#4ED164', '#00D2FC', '#F15BB5', '#FF5470'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            for (let i = 0; i < 30; i++) {
+                particles.push({
+                    x: x, y: y,
+                    angle: Math.random() * Math.PI * 2,
+                    speed: Math.random() * 3 + 1,
+                    radius: Math.random() * 3 + 2,
+                    color: color, alpha: 1,
+                    decay: Math.random() * 0.015 + 0.015
+                });
+            }
+        }
+
+        function updateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += Math.cos(p.angle) * p.speed;
+                p.y += Math.sin(p.angle) * p.speed + 0.5; 
+                p.alpha -= p.decay;
+                if (p.alpha <= 0) { particles.splice(i, 1); continue; }
+                ctx.save(); ctx.globalAlpha = p.alpha; ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = p.color; ctx.fill(); ctx.restore();
+            }
+            if (particles.length > 0) requestAnimationFrame(updateParticles);
+        }
+
+        function startFireworks() {
+            resizeCanvas(); createFirework(); 
+            fireworksInterval = setInterval(createFirework, 600);
+            updateParticles();
+        }
+
+        function stopFireworks() {
+            clearInterval(fireworksInterval); particles = [];
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // 網頁開啟初始化
+        window.onload = function() {
+            generateRandomTarget();
+            window.addEventListener('resize', resizeCanvas);
+        }
+    </script>
+</body>
+</html>
