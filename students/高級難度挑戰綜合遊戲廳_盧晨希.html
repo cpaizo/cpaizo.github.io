@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>終極地獄級 3合1 遊戲廳 (3條命 + 內建音效)</title>
+    <style>
+        body {
+            font-family: 'Microsoft JhengHei', sans-serif;
+            background-color: #08090f;
+            color: #e2e8f0;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 { color: #ff3838; text-shadow: 0 0 12px rgba(255, 56, 56, 0.5); margin-bottom: 5px; }
+        .menu-container { margin-bottom: 15px; }
+        select {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #171923;
+            color: #fff;
+            border: 2px solid #ff3838;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .game-window {
+            width: 500px;
+            min-height: 580px;
+            background-color: #11121a;
+            border: 3px solid #ff3838;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 0 35px rgba(255, 56, 56, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .status-bar {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 18px;
+            border-bottom: 2px dashed #ff3838;
+            padding-bottom: 8px;
+        }
+        .lives { color: #ff4757; font-weight: bold; text-shadow: 0 0 5px rgba(255,71,87,0.5); }
+        .score { color: #2ed573; font-weight: bold; }
+        .badge { color: #eccc68; font-weight: bold; }
+        
+        .instruction-box {
+            background-color: #1c1d26;
+            border-left: 4px solid #ff3838;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            font-size: 14px;
+            line-height: 1.4;
+            color: #cbd5e1;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .game-content {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+        }
+        .btn-action {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: #ff3838;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+            box-shadow: 0 4px 10px rgba(255,56,56,0.3);
+        }
+        .btn-action:hover { background-color: #ff6b6b; }
+
+        /* 1. 五子棋 */
+        .gomoku-board {
+            display: grid;
+            grid-template-columns: repeat(10, 35px);
+            grid-template-rows: repeat(10, 35px);
+            gap: 1px; background-color: #a0784e; padding: 5px; border-radius: 5px;
+        }
+        .gomoku-cell {
+            width: 35px; height: 35px; background-color: #dcb88a;
+            border: 1px solid #664a2d; display: flex; align-items: center; justify-content: center; cursor: pointer;
+        }
+        .piece { width: 28px; height: 28px; border-radius: 50%; box-shadow: 1px 1px 4px rgba(0,0,0,0.6); }
+        .piece.black { background-color: #111; }
+        .piece.white { background-color: #fff; }
+
+        /* 2. 心臟病 */
+        .card-display {
+            width: 120px; height: 170px; background-color: #fff; color: #111;
+            border-radius: 10px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; font-size: 48px; font-weight: bold;
+            box-shadow: 0 0 15px rgba(255,255,255,0.2); margin: 15px 0; border: 4px solid #ff3838;
+        }
+        .speak-bubble { font-size: 20px; color: #eccc68; margin-bottom: 10px; font-weight: bold; }
+
+        /* 3. 迷宮 */
+        .maze-board {
+            display: grid;
+            grid-template-columns: repeat(9, 38px);
+            grid-template-rows: repeat(9, 38px);
+            gap: 2px; background-color: #23273a; padding: 5px; border-radius: 6px;
+        }
+        .maze-cell {
+            width: 38px; height: 38px; background-color: #08090f;
+            display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer;
+        }
+        .maze-wall { background-color: #3b3f58; cursor: not-allowed; }
+        .maze-road { background-color: #141622; }
+        .maze-fog { background-color: #000000 !important; border: 1px solid #111; color: transparent !important; }
+    </style>
+</head>
+<body>
+
+    <h1>💀 高級難度挑戰綜合遊戲廳</h1>
+    <div class="menu-container">
+        <select id="gameSelector" onchange="initGame()">
+            <option value="1">1. 五子棋（神級 AI 戰術攻防）</option>
+            <option value="2">2. 心臟病（極限反應對戰 - 共50關）</option>
+            <option value="3">3. 盲走迷宮（戰爭迷霧模式 - 共100關）</option>
+        </select>
+    </div>
+
+    <div class="game-window">
+        <div class="status-bar">
+            <div id="gameName" style="color:#ff3838;">載入中...</div>
+            <div class="badge" id="extraBadge" style="display:none;">關卡: <span id="badgeVal">-</span></div>
+            <div class="score">得分: <span id="scoreVal">0</span></div>
+            <div class="lives">生命值: <span id="livesVal">❤️❤️❤️</span></div>
+        </div>
+        <div id="gameInstruction" class="instruction-box"></div>
+        <div class="game-content" id="gameContent"></div>
+    </div>
+
+    <script>
+        let lives = 3; let score = 0; let currentLevel = 1;
+        let audioCtx = null;
+        let gomokuBoard = []; let isGameOver = false;
+        
+        // 心臟病變數
+        let hzTimer = null; let hzCountNum = 1; let hzCardNum = 0; let hzHasClicked = false; let hzTimeout = null;
+
+        // 迷宮變數
+        let mazeGrid = []; let pRow = 0, pCol = 0; const mazeSize = 9;
+
+        window.onload = () => { initGame(); };
+
+        // 網頁原生電子音效
+        function playSound(type) {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+
+                if (type === 'hit') { 
+                    osc.frequency.setValueAtTime(450, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+                } else if (type === 'slap') { // 拍桌聲
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.08);
+                } else if (type === 'success') { 
+                    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+                    osc.frequency.setValueAtTime(880.00, audioCtx.currentTime + 0.08);
+                    gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+                } else if (type === 'fail') { 
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(95, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.25);
+                }
+            } catch(e) {}
+        }
+
+        function updateStatus(name, inst) {
+            document.getElementById("gameName").innerText = name;
+            document.getElementById("gameInstruction").innerHTML = "<b>💡 規則說明：</b>" + inst;
+            document.getElementById("scoreVal").innerText = score;
+            let hearts = "";
+            for(let i=0; i<lives; i++) hearts += "❤️";
+            document.getElementById("livesVal").innerText = hearts || "💀 GAME OVER";
+        }
+
+        function decreaseLife() {
+            lives--; playSound('fail');
+            if (lives <= 0) {
+                clearAllTimers();
+                lives = 0; updateStatus(document.getElementById("gameName").innerText, "挑戰中止。");
+                document.getElementById("gameContent").innerHTML = `<h3>💀 GAME OVER</h3><p>防線崩潰，3條命已全數扣完。</p><button class="btn-action" onclick="initGame()">重新挑戰</button>`;
+                return true;
+            }
+            return false;
+        }
+
+        function clearAllTimers() {
+            if (hzTimer) clearInterval(hzTimer);
+            if (hzTimeout) clearTimeout(hzTimeout);
+        }
+
+        function initGame() {
+            const gameType = parseInt(document.getElementById("gameSelector").value);
+            lives = 3; score = 0; isGameOver = false;
+            clearAllTimers();
+            const container = document.getElementById("gameContent");
+            container.innerHTML = "";
+
+            if (gameType === 1) {
+                document.getElementById("extraBadge").style.display = "none";
+                updateStatus("神級五子棋", "你執<b>黑子</b>。AI具備高級矩陣算法，會主動封鎖你並製造致命棋路。任何方向達成五子連線即可獲得 50 分，被白子先連線則扣 1 條命。");
+                container.innerHTML = `<div class="gomoku-board" id="gBoard"></div>`;
+                createGomoku();
+            } else if (gameType === 2) {
+                currentLevel = 1;
+                document.getElementById("extraBadge").style.display = "block";
+                document.getElementById("badgeVal").innerText = `${currentLevel} / 50`;
+                updateStatus("極限心臟病 (50關)", "中央會循環唸出 1~13 數字並翻牌。<b>當「唸出的字」與「牌面數字」完全相同時，必須立刻按下【拍桌手速】按鈕！</b> 數字不合時亂按、或是相同時太慢按（隨關卡進度時間從2秒縮減至0.4秒）都會扣 1 條命。滿 5 下正確即晉級下一關！");
+                startHzGame();
+            } else if (gameType === 3) {
+                currentLevel = 1;
+                document.getElementById("extraBadge").style.display = "block";
+                document.getElementById("badgeVal").innerText = `${currentLevel} / 100`;
+                updateStatus("100關迷霧迷宮", "操作 🧙‍♂️ 尋找 💎。高級難度：<b>啟用戰爭迷霧，你只能看見自身周圍 1 格的路線！</b> 撞牆或點錯牆壁會扣 1 條命並重回起點。隨著關卡遞增難度越高。");
+                container.innerHTML = `<div class="maze-board" id="mBoard"></div>`;
+                createMaze();
+            }
+        }
+
+        // ==================== 1. 五子棋 核心邏輯 ====================
+        function createGomoku() {
+            const boardEl = document.getElementById("gBoard");
+            gomokuBoard = Array(10).fill(null).map(() => Array(10).fill(0));
+            for(let r=0; r<10; r++) {
+                for(let c=0; c<10; c++) {
+                    let cell = document.createElement("div");
+                    cell.className = "gomoku-cell"; cell.id = `cell_${r}_${c}`;
+                    cell.onclick = () => playerMove(r, c);
+                    boardEl.appendChild(cell);
+                }
+            }
+        }
+
+        function playerMove(r, c) {
+            if(gomokuBoard[r][c] !== 0 || isGameOver || lives <= 0) return;
+            makeGomokuMove(r, c, 1);
+            if (checkGomokuWin(r, c, 1)) {
+                playSound('success'); score += 50; isGameOver = true; alert("🎉 太不可思議了！你突破了神級 AI！得分 +50"); initGame(); return;
+            }
+            
+            setTimeout(() => {
+                if (isGameOver) return;
+                let aiTarget = evaluateAIBestMove();
+                if(aiTarget) {
+                    makeGomokuMove(aiTarget.r, aiTarget.c, 2);
+                    if(checkGomokuWin(aiTarget.r, aiTarget.c, 2)) {
+                        isGameOver = true; alert("❌ AI 達成五子連線！挑戰失敗，扣 1 條命。"); 
+                        if(!decreaseLife()) initGame();
+                    }
+                }
+            }, 200);
+        }
+
+        function makeGomokuMove(r, c, p) {
+            gomokuBoard[r][c] = p; playSound('hit');
+            const cell = document.getElementById(`cell_${r}_${c}`);
+            let piece = document.createElement("div");
+            piece.className = "piece " + (p === 1 ? "black" : "white");
+            cell.appendChild(piece);
+        }
+
+        function evaluateAIBestMove() {
+            let bestScore = -1; let bestMove = null; let empties = [];
+            for(let r=0; r<10; r++) {
+                for(let c=0; c<10; c++) if(gomokuBoard[r][c] === 0) empties.push({r, c});
+            }
+            if(empties.length === 0) return null;
+
+            for(let cell of empties) {
+                let pScore = evaluateCellThreat(cell.r, cell.c, 1);
+                let aiScore = evaluateCellThreat(cell.r, cell.c, 2);
+                let currentCellScore = aiScore >= 3 ? aiScore * 2 : (pScore * 1.5 + aiScore);
+                if(currentCellScore > bestScore) { bestScore = currentCellScore; bestMove = cell; }
+            }
+            return bestScore === 0 ? empties[Math.floor(Math.random() * empties.length)] : bestMove;
+        }
+
+        function evaluateCellThreat(r, c, p) {
+            const dirs = [[1,0],[0,1],[1,1],[1,-1]]; let maxThreat = 0;
+            for(let [dr, dc] of dirs) {
+                let count = 0;
+                for(let i=1; i<5; i++) {
+                    let nr = r + dr*i; let nc = c + dc*i;
+                    if(nr>=0 && nr<10 && nc>=0 && nc<10 && gomokuBoard[nr][nc]===p) count++; else break;
+                }
+                for(let i=1; i<5; i++) {
+                    let nr = r - dr*i; let nc = c - dc*i;
+                    if(nr>=0 && nr<10 && nc>=0 && nc<10 && gomokuBoard[nr][nc]===p) count++; else break;
+                }
+                if(count > maxThreat) maxThreat = count;
+            }
+            return maxThreat;
+        }
+
+        function checkGomokuWin(r, c, p) {
+            const dirs = [[1,0],[0,1],[1,1],[1,-1]];
+            for(let [dr, dc] of dirs) {
+                let count = 1;
+                for(let i=1; i<5; i++) { if(r+dr*i>=0 && r+dr*i<10 && c+dc*i>=0 && c+dc*i<10 && gomokuBoard[r+dr*i][c+dc*i]===p) count++; else break; }
+                for(let i=1; i<5; i++) { if(r-dr*i>=0 && r-dr*i<10 && c-dc*i>=0 && c-dc*i<10 && gomokuBoard[r-dr*i][c-dc*i]===p) count++; else break; }
+                if(count >= 5) return true;
+            }
+            return false;
+        }
+
+        // ==================== 2. 心臟病 (50關高難度) ====================
+        let successInLevel = 0;
+        function startHzGame() {
+            successInLevel = 0;
+            hzCountNum = 1;
+            document.getElementById("badgeVal").innerText = `${currentLevel} / 50`;
+            
+            const container = document.getElementById("gameContent");
+            container.innerHTML = `
+                <div class="speak-bubble" id="hzSpeak">準備開局...</div>
+                <div class="card-display" id="hzCard">?</div>
+                <button class="btn-action" style="background-color:#ffd32a; color:#111; width:80%; font-size:20px;" onclick="slapTable()">💥 拍桌手速！</button>
+                <p style="font-size:13px; color:#aaa; margin-top:10px;">目前過關進度: <span id="hzProgress">0</span> / 5</p>
+            `;
+            
+            triggerNextCard();
+        }
+
+        function triggerNextCard() {
+            if(lives <= 0) return;
+            hzHasClicked = false;
+            
+            // 隨機生成卡牌數字 (1~13)，設定 30% 機率讓唸出的數字與卡面相同，製造高级難度
+            if(Math.random() < 0.3) {
+                hzCardNum = hzCountNum;
+            } else {
+                hzCardNum = Math.floor(Math.random() * 13) + 1;
+            }
+
+            document.getElementById("hzSpeak").innerText = `🗣️ 系統唸出：${hzCountNum}`;
+            document.getElementById("hzCard").innerText = hzCardNum;
+            playSound('hit');
+
+            // 反應反應限時隨關卡增長急遽縮減，高級難度公式
+            let reactionTime = Math.max(2000 - (currentLevel * 32), 400); 
+
+            hzTimeout = setTimeout(() => {
+                // 如果數字一樣但是玩家沒點擊，扣命！
+                if (hzCardNum === hzCountNum && !hzHasClicked) {
+                    alert(`💥 漏拍了！剛剛唸 ${hzCountNum} 且牌面也是 ${hzCardNum}！扣除 1 條命`);
+                    if(!decreaseLife()) { nextHzStep(); }
+                } else {
+                    nextHzStep();
+                }
+            }, reactionTime);
+        }
+
+        function nextHzStep() {
+            hzCountNum = (hzCountNum % 13) + 1;
+            triggerNextCard();
+        }
+
+        function slapTable() {
+            if(lives <= 0 || hzHasClicked) return;
+            hzHasClicked = true;
+            clearTimeout(hzTimeout);
+            playSound('slap');
+
+            if (hzCardNum === hzCountNum) {
+                // 拍對了
+                successInLevel++;
+                score += 15;
+                playSound('success');
+                document.getElementById("hzProgress").innerText = successInLevel;
+                
+                if(successInLevel >= 5) {
+                    if(currentLevel >= 50) {
+                        alert("🎉 神之神！你突破了心臟病地獄第 50 關！反應力太強了！");
+                        initGame();
+                    } else {
+                        currentLevel++;
+                        alert(`🎉 成功通過第 ${currentLevel - 1} 關！進入第 ${currentLevel} 關，節奏將大幅加快！`);
+                        startHzGame();
+                    }
+                    return;
+                }
+            } else {
+                // 拍錯了 (數字不同卻亂拍)
+                alert(`❌ 拍錯了！唸的是 ${hzCountNum} 但牌是 ${hzCardNum}，這不是心臟病！扣 1 條命`);
+                if(decreaseLife()) return;
+            }
+            nextHzStep();
+        }
+
+        // ==================== 3. 100關戰爭迷霧迷宮邏輯 ====================
+        function createMaze() {
+            mazeGrid = [];
+            document.getElementById("badgeVal").innerText = `${currentLevel} / 100`;
+            
+            for (let r = 0; r < mazeSize; r++) {
+                let row = [];
+                for (let c = 0; c < mazeSize; c++) {
+                    if ((r === 0 && c === 0) || (r === mazeSize-1 && c === mazeSize-1) || (r === 0 && c === 1) || (r === mazeSize-1 && c === mazeSize-2)) {
+                        row.push(0); 
+                    } else {
+                        // 高級難度障礙牆生成機率隨關卡上升
+                        let wallChance = Math.min(0.25 + (currentLevel * 0.0018), 0.42);
+                        row.push(Math.random() < wallChance ? 1 : 0);
+                    }
+                }
+                mazeGrid.push(row);
+            }
+            pRow = 0; pCol = 0;
+            renderMaze();
+        }
+
+        function renderMaze() {
+            const boardEl = document.getElementById("mBoard"); boardEl.innerHTML = "";
+            for (let r = 0; r < mazeSize; r++) {
+                for (let c = 0; c < mazeSize; c++) {
+                    let cell = document.createElement("div");
+                    
+                    // 高級難度迷霧模式：與玩家距離超過 1 格者全黑不顯示
+                    let dist = Math.abs(r - pRow) + Math.abs(c - pCol);
+                    if (dist > 1 && !(r === mazeSize-1 && c === mazeSize-1 && dist <= 2)) {
+                        cell.className = "maze-cell maze-fog";
+                    } else {
+                        cell.className = "maze-cell " + (mazeGrid[r][c] === 1 ? "maze-wall" : "maze-road");
+                    }
+                    
+                    if (r === pRow && c === pCol) { cell.innerText = "🧙‍♂️"; }
+                    else if (r === mazeSize-1 && c === mazeSize-1) { cell.innerText = "💎"; cell.classList.remove("maze-fog"); }
+                    
+                    cell.onclick = () => movePlayer(r, c);
+                    boardEl.appendChild(cell);
+                }
+            }
+        }
+
+        function movePlayer(r, c) {
+            if (lives <= 0) return;
+            
+            if (mazeGrid[r][c] === 1) {
+                alert("💥 盲走失敗！你在黑霧中撞上陷阱牆，扣 1 條命並傳回起點！");
+                pRow = 0; pCol = 0;
+                if (!decreaseLife()) renderMaze();
+                return;
+            }
+
+            let isAdjacent = (Math.abs(r - pRow) + Math.abs(c - pCol)) === 1;
+            
+            if (isAdjacent) {
+                pRow = r; pCol = c; playSound('hit');
+                
+                if (pRow === mazeSize-1 && pCol === mazeSize-1) {
+                    playSound('success'); score += 30;
+                    if (currentLevel >= 100) {
+                        alert("🎉 奇蹟！你完美征服了迷霧迷宮第 100 關！獲得至高無上的勝利！");
+                        initGame();
+                    } else {
+                        currentLevel++;
+                        alert(`🎉 第 ${currentLevel - 1} 關突破！成功踏入第 ${currentLevel} 關迷霧領域！`);
+                        createMaze();
+                    }
+                    return;
+                }
+                renderMaze();
+            } else {
+                alert("❌ 禁止越格跳躍！請朝上下左右相鄰的格子點擊。");
+            }
+        }
+    </script>
+</body>
+</html>
