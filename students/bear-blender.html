@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐻 小熊果汁機 - 水果等量大挑戰 🍏</title>
+    <style>
+        :root {
+            --unit-height: 40px; /* 每 1 格水果的高度單位 */
+        }
+        
+        body {
+            background-color: #FFFDF0; /* 溫暖的奶油淡黃色 */
+            background-image: radial-gradient(#FCE4D6 20%, transparent 20%),
+                              radial-gradient(#FCE4D6 20%, transparent 20%);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            font-family: 'Comic Sans MS', 'Microsoft JhengHei', sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #5C4033;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            color: #D35400;
+            text-shadow: 2px 2px 0px #FFF, 4px 4px 0px #F5CBA7;
+            font-size: 2.3rem;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        p.subtitle {
+            font-size: 1.1rem;
+            background: #FFF;
+            padding: 8px 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 2px dashed #E67E22;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .game-container {
+            display: flex;
+            gap: 25px;
+            max-width: 1000px;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* 卡片與吧檯風格 */
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(211, 84, 0, 0.15);
+            border: 4px solid #FEDBB6;
+            flex: 1;
+            min-width: 340px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #E67E22;
+            font-size: 1.4rem;
+            margin-top: 0;
+            border-bottom: 3px dotted #F5CBA7;
+            padding-bottom: 10px;
+        }
+
+        /* 水果籃按鈕區 */
+        .fruit-basket {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .fruit-btn {
+            background: #FFF;
+            border: 3px solid #F39C12;
+            border-radius: 20px;
+            padding: 15px 25px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #D35400;
+            transition: transform 0.1s;
+            text-align: center;
+        }
+
+        .fruit-btn:hover { transform: scale(1.05); background: #FFF9F2; }
+        .fruit-btn:active { transform: translateY(5px); box-shadow: 0 0px 0 #D35400; }
+        
+        .fruit-icon { font-size: 2.5rem; display: block; margin-bottom: 5px; }
+        .fruit-name { font-weight: bold; font-size: 1.1rem; color: #5C4033; }
+
+        /* 木質吧檯舞台區 */
+        .bar-stage {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end; 
+            height: 420px;
+            background: #F4E7D3; /* 日系淺木色吧檯背景 */
+            border-radius: 20px;
+            border: 6px solid #D35400; /* 深色木框 */
+            border-bottom: 16px solid #A04000; /* 吧檯厚底座 */
+            padding: 20px;
+            position: relative;
+            gap: 40px; 
+        }
+
+        .blender-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end; 
+        }
+
+        /* 透明果汁機外殼（起點在同一個底部水平線） */
+        .blender-cup {
+            display: flex;
+            align-items: flex-end; 
+            width: 90px;
+            background: rgba(230, 247, 255, 0.6); /* 透明玻璃感 */
+            border: 3px solid #BDC3C7;
+            border-bottom: 8px solid #7F8C8D; /* 果汁機馬達接頭 */
+            border-radius: 10px 10px 0 0;
+            min-height: 350px; 
+            position: relative;
+            box-shadow: inset 0 0 15px rgba(255,255,255,0.8);
+            overflow: hidden;
+        }
+
+        /* 堆疊容器（由下往上長） */
+        .juice-container {
+            display: flex;
+            flex-direction: column-reverse; 
+            width: 100%;
+        }
+
+        /* 左邊：目標高度（提示虛線或半透明色塊） */
+        .target-juice {
+            width: 100%;
+            background: rgba(231, 76, 60, 0.4); /* 半透明紅色提示 */
+            border-top: 3px dashed #C0392B;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #C0392B;
+            font-size: 1.6rem;
+            font-weight: bold;
+            transition: height 0.4s ease;
+        }
+
+        /* 右邊：實際放入的水果方塊 */
+        .fruit-block {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.3rem;
+            box-sizing: border-box;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-bottom: none;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+            animation: splashIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.15);
+        }
+
+        @keyframes splashIn {
+            0% { transform: translateY(-40px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        /* 水果方塊專屬漸層色 */
+        .block-apple { background: linear-gradient(#FF6B6B, #E74C3C); }
+        .block-watermelon { background: linear-gradient(#2ECC71, #27AE60); }
+
+        .label-tag {
+            margin-top: 12px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #FFF;
+            background: #E67E22;
+            padding: 5px 15px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* 按鈕控制 */
+        .control-panel {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .btn-action {
+            background: #E67E22;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 5px 0 #A04000;
+            margin: 5px;
+        }
+        .btn-action:hover { background: #D35400; }
+        .btn-action:active { transform: translateY(5px); box-shadow: 0 0px 0 #A04000; }
+        .btn-reset { background: #7F8C8D; box-shadow: 0 5px 0 #95A5A6; }
+        .btn-reset:hover { background: #95A5A6; }
+
+        /* 過關蓋版 */
+        .success-mask {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            z-index: 10;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .success-mask h3 { color: #E67E22; font-size: 2.2rem; margin: 0 0 10px 0; }
+        
+        /* 動態果汁攪拌動畫（過關時啟動） */
+        .blender-blend-anim {
+            animation: shake 0.1s infinite;
+        }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            100% { transform: translate(-1px, -1px) rotate(0deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🐻 小熊果汁機 - 水果等量大挑戰 🍏</h1>
+    <p class="subtitle">觀察左邊客人的指定容量，在右邊果汁機丟入剛好份量的水果吧！</p>
+
+    <div class="game-container">
+        
+        <div class="card">
+            <h2>🧺 小熊的水果籃</h2>
+            <p style="text-align: center; color: #7F8C8D; margin-top: 0;">點擊水果，丟進右邊的果汁機裡！</p>
+            
+            <div class="fruit-basket">
+                <button class="fruit-btn" onclick="addFruit('apple', 1)">
+                    <span class="fruit-icon">🍏</span>
+                    <span class="fruit-name">蘋果 (1格)</span>
+                </button>
+                <button class="fruit-btn" onclick="addFruit('watermelon', 2)">
+                    <span class="fruit-icon">🍉</span>
+                    <span class="fruit-name">西瓜 (2格)</span>
+                </button>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px;">
+                <button class="btn-action" style="background-color: #2ECC71; box-shadow: 0 5px 0 #27AE60;" onclick="generateChallenge()">🎲 換下一個客人（隨機出題）</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🍹 吧檯身高比一比</h2>
+            
+            <div class="bar-stage" id="blender-base">
+                <div class="success-mask" id="success-screen">
+                    <h3>🍹 製作成功！🎉</h3>
+                    <p id="success-text" style="font-size: 1.3rem; font-weight: bold; color: #5C4033; margin-bottom: 20px;"></p>
+                    <button class="btn-action" onclick="generateChallenge()">🎯 挑戰下一題</button>
+                </div>
+
+                <div class="blender-column">
+                    <div class="blender-cup" style="border: 3px dashed #E74C3C; background: rgba(254, 237, 222, 0.5);">
+                        <div id="target-bar" class="target-juice">6</div>
+                    </div>
+                    <div class="label-tag" id="target-label">🎯 客人要：6 格</div>
+                </div>
+
+                <div class="blender-column">
+                    <div class="blender-cup">
+                        <div id="player-blender" class="juice-container">
+                            </div>
+                    </div>
+                    <div class="label-tag" id="current-label" style="background-color: #34495E;">📏 目前有：0 格</div>
+                </div>
+            </div>
+
+            <div class="control-panel">
+                <button class="btn-action" onclick="checkJuice()">🔍 啟動果汁機（檢查高度）</button>
+                <button class="btn-action btn-reset" onclick="resetGame()">🔄 倒掉重來</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let targetValue = 6;
+        let currentStack = []; // 儲存放入的水果物件，如 {type: 'apple', value: 1}
+        
+        // --- 語音系統 TTS ---
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                let utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-TW';
+                utterance.rate = 1.0;
+                utterance.pitch = 1.2; // 稍高音調聽起來像可愛小熊
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // --- 內建 Web Audio 模擬果汁機轟轟聲 ---
+        let audioCtx = null;
+        function playBlenderSound(duration, callback) {
+            if (!window.AudioContext && !window.webkitAudioContext) { if(callback) callback(); return; }
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // 建立低頻震盪器模擬馬達轟轟聲
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.type = 'sawtooth'; // 鋸齒波適合模擬發動機聲
+            osc.frequency.setValueAtTime(110, audioCtx.currentTime); // 低音 110Hz
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + duration);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+            
+            setTimeout(() => {
+                audioCtx.close();
+                if(callback) callback();
+            }, duration * 1000);
+        }
+
+        // --- 隨機出題系統 ---
+        function generateChallenge() {
+            let lastTarget = targetValue;
+            // 隨機要求 2 ~ 8 格份量的果汁
+            while (targetValue === lastTarget) {
+                targetValue = Math.floor(Math.random() * 7) + 2;
+            }
+
+            const targetBar = document.getElementById('target-bar');
+            targetBar.style.height = `${targetValue * 40}px`;
+            targetBar.innerText = targetValue;
+            
+            document.getElementById('target-label').innerText = `🎯 客人要：${targetValue} 格`;
+            resetGame();
+
+            setTimeout(() => {
+                speak(`小熊果汁機開張囉！請幫我做出 ${targetValue} 顆水果份量的綜合果汁！`);
+            }, 300);
+        }
+
+        // --- 放入水果邏輯 ---
+        function addFruit(type, val) {
+            const currentSum = currentStack.reduce((sum, item) => sum + item.value, 0);
+            
+            if (currentSum + val > 8) {
+                alert("哇！果汁機滿出來了，放不下囉！");
+                speak("果汁機滿出來了！");
+                return;
+            }
+
+            // 語音報數
+            if(type === 'apple') speak("蘋果，一格");
+            if(type === 'watermelon') speak("西瓜，兩格");
+
+            currentStack.push({ type: type, value: val });
+            renderBlender();
+        }
+
+        // 渲染果汁機內部畫面
+        function renderBlender() {
+            const container = document.getElementById('player-blender');
+            container.innerHTML = '';
+            
+            let total = 0;
+            currentStack.forEach(item => {
+                total += item.value;
+                const block = document.createElement('div');
+                block.className = `fruit-block block-${item.type}`;
+                block.style.height = `${item.value * 40}px`;
+                block.innerText = item.type === 'apple' ? '🍏' : '🍉';
+                container.appendChild(block);
+            });
+
+            document.getElementById('current-label').innerText = `📏 目前有：${total} 格`;
+        }
+
+        // --- 檢查高度與反饋 ---
+        function checkJuice() {
+            const currentSum = currentStack.reduce((sum, item) => sum + item.value, 0);
+            
+            if (currentSum === 0) {
+                speak("果汁機裡面還沒有水果喔！");
+                return;
+            }
+
+            // 讓整個吧檯區產生「搖晃動畫」，模擬果汁機正在攪拌
+            const stage = document.getElementById('blender-base');
+            stage.classList.add('blender-blend-anim');
+
+            // 播放果汁機運轉聲 1.2 秒後再開獎
+            playBlenderSound(1.2, function() {
+                stage.classList.remove('blender-blend-anim'); // 停止搖晃
+
+                if (currentSum === targetValue) {
+                    // 答對了！組合中文算式台詞
+                    let textParts = currentStack.map(item => item.type === 'apple' ? '1' : '2');
+                    let formulaStr = textParts.join('加');
+                    
+                    document.getElementById('success-text').innerText = textParts.join(' + ') + ` 剛好等於 ${targetValue}！`;
+                    document.getElementById('success-screen').style.display = 'flex';
+                    
+                    speak(`哇！好喝的水果汁做好了！${formulaStr}剛好等於${targetValue}，你太棒了！`);
+                } else if (currentSum < targetValue) {
+                    speak(`目前的容量是 ${currentSum} 格。哎呀，還太矮了，果汁不夠客人的份量，再加點水果吧！`);
+                } else {
+                    speak(`目前的容量是 ${currentSum} 格。哎呀，太多了，果汁機要裝不下了！按倒掉重來試試看。`);
+                }
+            });
+        }
+
+        function resetGame() {
+            currentStack = [];
+            renderBlender();
+            document.getElementById('success-screen').style.display = 'none';
+        }
+
+        // 網頁加載時自動開啟第一題
+        window.onload = function() {
+            generateChallenge();
+        }
+    </script>
+</body>
+</html>
