@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>馬卡龍遊戲樂園 🎡</title>
+    <style>
+        :root {
+            --bg: #ffe5ec;
+            --primary: #ff758c;
+            --secondary: #b5e2fa;
+            --text: #5c4d4d;
+            --white: rgba(255, 255, 255, 0.9);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #ffe5ec, #fff9c4, #e8f0fe);
+            color: var(--text);
+            font-family: 'Microsoft JhengHei', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        #menu-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        .game-view { display: none; width: 100%; flex-direction: column; align-items: center; padding-top: 20px; }
+        .active { display: flex; }
+
+        h1 { color: var(--primary); text-shadow: 1px 1px 0px #fff; margin-bottom: 30px; }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            max-width: 800px;
+        }
+
+        .menu-card {
+            background: var(--white);
+            border: 3px solid var(--secondary);
+            border-radius: 20px;
+            padding: 20px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .menu-card:hover { transform: translateY(-10px); box-shadow: 0 10px 20px var(--secondary); }
+        .menu-card h2 { margin: 10px 0; color: var(--primary); }
+        .menu-card span { font-size: 50px; }
+
+        .back-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .game-container {
+            background: var(--white);
+            border: 4px solid var(--secondary);
+            border-radius: 20px;
+            padding: 20px;
+            width: 380px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+
+        input {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border: 2px solid var(--secondary);
+            text-align: center;
+            font-size: 18px;
+        }
+
+        /* 遊戲 1: 布丁 */
+        #pudding-stage {
+            width: 100%;
+            height: 400px;
+            background: #fff;
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+            cursor: crosshair;
+        }
+        #pudding-obj {
+            position: absolute; bottom: 10px; left: 50%;
+            width: 60px; font-size: 50px; transform: translateX(-50%);
+            user-select: none;
+        }
+        .topping { position: absolute; font-size: 30px; user-select: none; }
+
+        /* 遊戲 3: 記憶卡牌網格 (修改為每排 4 張，總共可以排成 3 排) */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .flip-card {
+            background: #ffb7b2;
+            height: 80px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 4px 0 #e0526c;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        .flip-card.flipped {
+            background: #fff;
+            border: 2px solid var(--secondary);
+            box-shadow: none;
+            transform: scaleX(-1);
+        }
+        .flip-card.matched {
+            background: #e8f0fe;
+            border: 2px solid #b5e2fa;
+            box-shadow: none;
+            visibility: visible;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="menu-screen">
+        <h1>🎡 馬卡龍遊戲樂園</h1>
+        <div class="menu-grid">
+            <div class="menu-card" onclick="showGame('game-pudding')">
+                <span>🍮</span>
+                <h2>布丁彈彈樂</h2>
+                <p>左右滑動接住水果！</p>
+            </div>
+            <div class="menu-card" onclick="showGame('game-math')">
+                <span>🔮</span>
+                <h2>心算魔法陣</h2>
+                <p>快節奏馬卡龍口算</p>
+            </div>
+            <div class="menu-card" onclick="showGame('game-match')">
+                <span>🃏</span>
+                <h2>翻牌對對碰</h2>
+                <p>考驗你的萌萌記憶力</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-pudding" class="game-view">
+        <button class="back-btn" onclick="goHome()">返回選單</button>
+        <div class="game-container">
+            <div id="p-score">得分: 0 | 生命: ❤❤❤</div>
+            <div id="pudding-stage">
+                <div id="pudding-obj">🍮</div>
+            </div>
+            <p style="font-size: 12px; margin-top:10px;">移動滑鼠或手指來控制布丁</p>
+            <button id="p-start-btn" onclick="startPudding()">開始遊戲</button>
+        </div>
+    </div>
+
+    <div id="game-math" class="game-view">
+        <button class="back-btn" onclick="goHome()">返回選單</button>
+        <div class="game-container">
+            <div id="m-stats">得分: 0 | Level: 1</div>
+            <div id="m-timer" style="width:100%; height:8px; background:#eee; margin:15px 0;">
+                <div id="m-progress" style="width:100%; height:100%; background:var(--primary);"></div>
+            </div>
+            <h2 id="m-question">Ready?</h2>
+            <input type="number" id="m-input" placeholder="輸入後按 Enter" disabled>
+            <div id="m-msg"></div>
+            <button id="m-start-btn" onclick="startMath()">開始遊戲</button>
+        </div>
+    </div>
+
+    <div id="game-match" class="game-view">
+        <button class="back-btn" onclick="goHome()">返回選單</button>
+        <div class="game-container">
+            <h2>🃏 翻牌對對碰</h2>
+            <p>點擊卡牌，找出配對的圖案吧！</p>
+            <div id="match-stats">步數：<span id="match-clicks">0</span></div>
+            <div class="card-grid" id="card-grid"></div>
+            <button onclick="initMatchGame()">重新洗牌</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 內建合成音效系統 ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+
+            if (type === 'score') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.setValueAtTime(659.25, now + 0.1);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'bomb') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.linearRampToValueAtTime(40, now + 0.4);
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                osc.start(now); osc.stop(now + 0.4);
+            } else if (type === 'fail') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(220, now);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                osc.start(now); osc.stop(now + 0.4);
+            } else if (type === 'win') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.setValueAtTime(659.25, now + 0.08);
+                osc.frequency.setValueAtTime(783.99, now + 0.16);
+                osc.frequency.setValueAtTime(1046.50, now + 0.24);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                osc.start(now); osc.stop(now + 0.5);
+            }
+        }
+
+        // 通用導航
+        function showGame(id) {
+            document.getElementById('menu-screen').style.display = 'none';
+            document.querySelectorAll('.game-view').forEach(v => v.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            if(id === 'game-match') initMatchGame();
+        }
+
+        function goHome() {
+            location.reload();
+        }
+
+        // --- 遊戲 1: 布丁邏輯 ---
+        let pActive = false, pScore = 0, pLives = 3, pToppings = [];
+        const stage = document.getElementById('pudding-stage');
+        const pObj = document.getElementById('pudding-obj');
+        
+        stage.addEventListener('mousemove', (e) => {
+            if(!pActive) return;
+            let rect = stage.getBoundingClientRect();
+            let x = e.clientX - rect.left - 30;
+            pObj.style.left = Math.max(0, Math.min(x, stage.offsetWidth - 60)) + 'px';
+        });
+
+        stage.addEventListener('touchmove', (e) => {
+            if(!pActive) return;
+            let rect = stage.getBoundingClientRect();
+            let x = e.touches[0].clientX - rect.left - 30;
+            pObj.style.left = Math.max(0, Math.min(x, stage.offsetWidth - 60)) + 'px';
+            e.preventDefault();
+        }, { passive: false });
+
+        function startPudding() {
+            pActive = true; pScore = 0; pLives = 3;
+            document.getElementById('p-start-btn').style.display = 'none';
+            pLoop();
+        }
+
+        function pLoop() {
+            if(!pActive) return;
+            if(Math.random() < 0.03) spawnTopping();
+            updateToppings();
+            requestAnimationFrame(pLoop);
+        }
+
+        function spawnTopping() {
+            const el = document.createElement('div');
+            el.className = 'topping';
+            const items = ['🍓','🍒','🍌','💣'];
+            const item = items[Math.floor(Math.random()*items.length)];
+            el.innerText = item;
+            el.style.left = Math.random() * (stage.offsetWidth - 30) + 'px';
+            el.style.top = '-30px';
+            stage.appendChild(el);
+            pToppings.push({el, y: -30, isBomb: item === '💣'});
+        }
+
+        function updateToppings() {
+            const pRect = pObj.getBoundingClientRect();
+            for(let i=pToppings.length-1; i>=0; i--) {
+                let t = pToppings[i];
+                t.y += 3 + (pScore/50);
+                t.el.style.top = t.y + 'px';
+                let tRect = t.el.getBoundingClientRect();
+                
+                if(tRect.bottom > pRect.top && tRect.left < pRect.right && tRect.right > pRect.left) {
+                    if(t.isBomb) { pLives--; playSound('bomb'); } else { pScore += 10; playSound('score'); }
+                    t.el.remove(); pToppings.splice(i,1);
+                } else if (t.y > 400) {
+                    if(!t.isBomb) { pLives--; playSound('fail'); }
+                    t.el.remove(); pToppings.splice(i,1);
+                }
+                updatePUI();
+            }
+            if(pLives <= 0) { pActive = false; playSound('fail'); alert("遊戲結束！得分: " + pScore); goHome(); }
+        }
+
+        function updatePUI() {
+            document.getElementById('p-score').innerText = `得分: ${pScore} | 生命: ${'❤'.repeat(Math.max(0, pLives))}`;
+        }
+
+        // --- 遊戲 2: 心算邏輯 ---
+        let mScore = 0, mLevel = 1, mAns = 0, mTimer;
+        function startMath() {
+            mScore = 0; mLevel = 1;
+            document.getElementById('m-start-btn').style.display = 'none';
+            document.getElementById('m-input').disabled = false;
+            mNext();
+        }
+
+        function mNext() {
+            let n1 = Math.floor(Math.random()*10*mLevel)+1;
+            let n2 = Math.floor(Math.random()*10*mLevel)+1;
+            const ops = ['+','-','*'];
+            const op = ops[mLevel > 1 ? Math.floor(Math.random()*3) : Math.floor(Math.random()*2)];
+            if(op === '+') mAns = n1 + n2;
+            else if(op === '-') { if(n1<n2) [n1,n2]=[n2,n1]; mAns = n1 - n2; }
+            else { n1=Math.floor(Math.random()*9)+2; n2=Math.floor(Math.random()*9)+2; mAns = n1 * n2; }
+            document.getElementById('m-question').innerText = `${n1} ${op==='*'?'×':op} ${n2} = ?`;
+            startMTimer();
+        }
+
+        function startMTimer() {
+            clearInterval(mTimer);
+            let time = 100;
+            mTimer = setInterval(() => {
+                time -= 1.5;
+                document.getElementById('m-progress').style.width = time + '%';
+                if(time <= 0) { clearInterval(mTimer); playSound('fail'); alert("時間到！"); goHome(); }
+            }, 100);
+        }
+
+        document.getElementById('m-input').addEventListener('keyup', (e) => {
+            if(e.key === 'Enter') {
+                if(parseInt(e.target.value) === mAns) {
+                    mScore += 10; mLevel = Math.floor(mScore/30)+1;
+                    document.getElementById('m-stats').innerText = `得分: ${mScore} | Level: ${mLevel}`;
+                    e.target.value = ''; playSound('score'); mNext();
+                } else { e.target.value = ''; playSound('fail'); }
+            }
+        });
+
+        // --- 遊戲 3: 記憶卡牌對對碰邏輯（升級為 12 張牌、3 排） ---
+        let icons = ['🍓', '🍓', '🍒', '🍒', '🍌', '🍌', '🍮', '🍮', '🍉', '🍉', '🍇', '🍇'];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let matchClicks = 0;
+        let blockFlip = false;
+
+        function initMatchGame() {
+            const grid = document.getElementById('card-grid');
+            grid.innerHTML = '';
+            flippedCards = [];
+            matchedPairs = 0;
+            matchClicks = 0;
+            blockFlip = false;
+            document.getElementById('match-clicks').innerText = matchClicks;
+
+            // 洗牌
+            icons.sort(() => Math.random() - 0.5);
+
+            // 產生 12 張牌（3排 x 4列）
+            for (let i = 0; i < icons.length; i++) {
+                const card = document.createElement('div');
+                card.className = 'flip-card';
+                card.dataset.icon = icons[i];
+                card.dataset.index = i;
+                card.innerText = '？';
+                card.addEventListener('click', handleCardClick);
+                grid.appendChild(card);
+            }
+        }
+
+        function handleCardClick() {
+            if (blockFlip) return;
+            const clickedCard = this;
+
+            if (clickedCard.classList.contains('flipped') || clickedCard.classList.contains('matched')) return;
+
+            clickedCard.classList.add('flipped');
+            clickedCard.innerText = clickedCard.dataset.icon;
+            flippedCards.push(clickedCard);
+
+            if (flippedCards.length === 2) {
+                matchClicks++;
+                document.getElementById('match-clicks').innerText = matchClicks;
+                blockFlip = true;
+
+                const [card1, card2] = flippedCards;
+                if (card1.dataset.icon === card2.dataset.icon) {
+                    setTimeout(() => {
+                        card1.classList.add('matched');
+                        card2.classList.add('matched');
+                        flippedCards = [];
+                        blockFlip = false;
+                        matchedPairs++;
+                        playSound('score');
+
+                        if (matchedPairs === icons.length / 2) {
+                            playSound('win');
+                            setTimeout(() => alert(`🎉 太強了！你花了 ${matchClicks} 步完美通關 3 排挑戰！`), 300);
+                        }
+                    }, 400);
+                } else {
+                    setTimeout(() => {
+                        card1.classList.remove('flipped');
+                        card1.innerText = '？';
+                        card2.classList.remove('flipped');
+                        card2.innerText = '？';
+                        flippedCards = [];
+                        blockFlip = false;
+                        playSound('fail');
+                    }, 1000);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

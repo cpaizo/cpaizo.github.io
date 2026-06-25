@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>企鵝數學進度條</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #e0f7fa; padding-top: 60px; }
+        .box { background: white; padding: 30px; display: inline-block; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 260px; }
+        h1 { font-size: 60px; margin: 10px 0; }
+        /* 進度條樣式 */
+        .p-bg { width: 100%; background: #e0e0e0; border-radius: 10px; height: 15px; margin: 15px 0; overflow: hidden; }
+        .p-bar { width: 0%; height: 100%; background: #00e676; transition: width 0.3s ease; }
+        input, button { font-size: 20px; padding: 6px; margin: 10px 0; width: 85%; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <p>完成進度：<span id="num">0</span>%</p>
+    <div class="p-bg"><div id="bar" class="p-bar"></div></div>
+    
+    <h1 id="penguin">🐧</h1>
+    <h2 id="question">1 + 1 = ?</h2>
+    
+    <div id="game-area">
+        <input type="number" id="ans" placeholder="輸入答案" onkeypress="if(event.key==='Enter')check()">
+        <button onclick="check()">檢查答案</button>
+    </div>
+    <p id="msg" style="font-weight:bold; font-size: 18px; min-height: 25px;"></p>
+</div>
+
+<script>
+    let n1, n2, ans, progress = 0;
+
+    function next() {
+        let r = Math.floor(Math.random() * 3);
+        if (r === 0) {
+            n1 = Math.floor(Math.random() * 20) + 1;
+            n2 = Math.floor(Math.random() * 20) + 1;
+            ans = n1 + n2;
+            document.getElementById('question').innerText = `${n1} + ${n2} = ?`;
+        } else if (r === 1) {
+            n1 = Math.floor(Math.random() * 20) + 10;
+            n2 = Math.floor(Math.random() * 10) + 1;
+            ans = n1 - n2;
+            document.getElementById('question').innerText = `${n1} - ${n2} = ?`;
+        } else {
+            n1 = Math.floor(Math.random() * 8) + 2;
+            n2 = Math.floor(Math.random() * 8) + 2;
+            ans = n1 * n2;
+            document.getElementById('question').innerText = `${n1} × ${n2} = ?`;
+        }
+        document.getElementById('ans').value = '';
+        document.getElementById('ans').focus();
+    }
+
+    function check() {
+        let user = parseInt(document.getElementById('ans').value);
+        let msg = document.getElementById('msg');
+
+        if (user === ans) {
+            progress += 10; // 答對一題加 10% 進度
+            if (progress > 100) progress = 100;
+            
+            document.getElementById('bar').style.width = progress + '%';
+            document.getElementById('num').innerText = progress;
+            
+            msg.innerText = "✨ 答對了！進度增加！";
+            msg.style.color = "green";
+
+            if (progress >= 100) {
+                document.getElementById('penguin').innerText = "👑🐧";
+                document.getElementById('question').innerText = "🎉 挑戰成功！";
+                document.getElementById('game-area').innerHTML = '<button onclick="location.reload()">再玩一次</button>';
+                msg.innerText = "你太厲害了！";
+            } else {
+                setTimeout(next, 800);
+            }
+        } else {
+            msg.innerText = "❌ 算錯囉，再試試！";
+            msg.style.color = "red";
+            document.getElementById('ans').select();
+        }
+    }
+
+    next();
+</script>
+
+</body>
+</html>
