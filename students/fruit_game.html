@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍎 水果翻牌對對碰（記憶大考驗） 🍇</title>
+    <style>
+        body {
+            background-color: #FFFDE7; 
+            background-image: linear-gradient(#F0F4C3 1px, transparent 1px),
+                              linear-gradient(90deg, #F0F4C3 1px, transparent 1px);
+            background-size: 25px 25px;
+            font-family: 'Comic Sans MS', 'Microsoft JhengHei', sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #5D4037;
+        }
+
+        /* ⭐ 讓遊戲區往下移動約 5 行的距離，畫面乾淨不擁擠 */
+        .game-wrapper {
+            margin-top: 100px;
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+        }
+
+        h1 {
+            color: #E64A19;
+            text-shadow: 2px 2px 0px #FFF, 4px 4px 0px #FFCCBC;
+            font-size: 2.2rem;
+            margin: 0;
+            text-align: center;
+        }
+
+        .status-panel {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            width: 100%;
+            align-items: center;
+        }
+
+        .info-badge {
+            font-size: 1.1rem;
+            background: #FFF;
+            padding: 8px 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 2px dashed #FF7043;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .counter-badge {
+            border-color: #26A69A;
+            color: #004D40;
+            background: #E0F2F1;
+        }
+
+        /* 倒數計時大字特效 */
+        .timer-badge {
+            border-color: #E64A19;
+            color: #D84315;
+            background: #FFCCBC;
+            animation: pulse 1s infinite;
+            display: none; /* 倒數時才顯示 */
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* 4x4 遊戲網格 */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 25px;
+            border: 4px dashed #FFB300;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+        }
+
+        .card {
+            perspective: 1000px;
+            cursor: pointer;
+            user-select: none;
+            position: relative; 
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.6s ease;
+            transform-style: preserve-3d;
+            border-radius: 15px;
+            box-shadow: 0 4px 0 #BCAAA4;
+        }
+
+        /* 點擊翻開或預覽狀態 */
+        .card.flipped .card-inner, .card.matched .card-inner {
+            transform: rotateY(180deg);
+            box-shadow: 0 4px 0 #FFB74D;
+        }
+
+        /* 配對成功後慢慢變淡消失 */
+        .card.matched .card-inner {
+            opacity: 0;
+            pointer-events: none;
+            box-shadow: none;
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 15px;
+            border: 3px solid;
+            box-sizing: border-box;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #FFB74D, #FFA726);
+            border-color: #F57C00;
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .card-front {
+            background: #FFF;
+            border-color: #FFB300;
+            font-size: 2.8rem;
+            transform: rotateY(180deg);
+        }
+
+        /* 煙火爆炸特效粒子 */
+        .firework-particle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 10px;
+            pointer-events: none;
+            z-index: 10;
+            opacity: 0;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: explode 0.5s ease-out forwards;
+        }
+
+        @keyframes explode {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.5); opacity: 0; }
+        }
+
+        .control-panel {
+            text-align: center;
+            width: 100%;
+        }
+
+        .btn-action {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 35px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 5px 0 #2E7D32;
+            transition: transform 0.1s, background-color 0.2s;
+        }
+        .btn-action:hover { background: #43A047; transform: scale(1.02); }
+        .btn-action:active { transform: translateY(5px); box-shadow: 0 0px 0 #2E7D32; }
+        
+        /* 開始按鈕使用亮眼的金黃/橘色色調 */
+        .btn-start {
+            background: #FF9800;
+            box-shadow: 0 5px 0 #E65100;
+            font-size: 1.4rem;
+            padding: 15px 45px;
+        }
+        .btn-start:hover { background: #FB8C00; }
+        .btn-start:active { box-shadow: 0 0px 0 #E65100; }
+
+        .success-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            z-index: 100;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .success-overlay h2 {
+            color: #E64A19; font-size: 3rem; margin: 0 0 10px 0;
+            text-shadow: 2px 2px 0px #FFF, 4px 4px 0px #FFCCBC;
+        }
+        .success-overlay p { font-size: 1.5rem; font-weight: bold; color: #2E7D32; margin-bottom: 30px; }
+    </style>
+</head>
+<body>
+
+    <div class="game-wrapper">
+        <h1>🍎 水果翻牌對對碰 🍇</h1>
+        
+        <div class="status-panel">
+            <p class="subtitle" id="game-hint">請按下按鈕開始記憶水果位置！</p>
+            <div class="info-badge timer-badge" id="memory-timer">看牌倒數：3 秒</div>
+            <div class="info-badge counter-badge" id="flip-counter">翻牌次數：0 次</div>
+        </div>
+
+        <div class="grid" id="game-grid"></div>
+
+        <div class="control-panel">
+            <button class="btn-action btn-start" id="main-action-btn" onclick="startMemoryPhase()">🎮 開始挑戰</button>
+        </div>
+    </div>
+
+    <div class="success-overlay" id="success-screen">
+        <h2>🎉 太厲害了！過關！ 🎉</h2>
+        <p id="final-score-text">你總共翻了 0 次牌，就把水果都找齊囉！</p>
+        <button class="btn-action" style="background:#FF9800; box-shadow:0 5px 0 #F57C00;" onclick="resetToMenu()">🎯 再玩一次</button>
+    </div>
+
+    <script>
+        const fruits = ['🍎', '🍌', '🍉', '🍇', '🍓', '🍍', '🍊', '🥝'];
+        let cardData = [...fruits, ...fruits];
+        let flippedCards = [];
+        let matchedCount = 0;
+        let flipCount = 0; 
+        let lockGrid = true; // 預設鎖定，必須點擊開始才能點牌
+        let gameStarted = false;
+        let audioCtx = null;
+
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                let utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-TW';
+                utterance.rate = 1.1;
+                utterance.pitch = 1.3; 
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function playSound(type) {
+            if (!window.AudioContext && !window.webkitAudioContext) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+
+            if (type === 'flip') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+            } else if (type === 'match') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(450, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(700, audioCtx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+            } else if (type === 'win') {
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        if (!audioCtx) return;
+                        let o = audioCtx.createOscillator(); let g = audioCtx.createGain(); o.type = 'sine';
+                        o.frequency.setValueAtTime(500 + (i * 100), audioCtx.currentTime); o.connect(g); g.connect(audioCtx.destination);
+                        g.gain.setValueAtTime(0.08, audioCtx.currentTime); g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
+                        o.start(); o.stop(audioCtx.currentTime + 0.15);
+                    }, i * 80);
+                }
+            }
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function createFirework(cardElement) {
+            const colors = ['✨', '⭐', '🌟', '💥', '💛', '💖'];
+            const angles = [0, 60, 120, 180, 240, 300]; 
+            const radius = 60;
+
+            angles.forEach((angle, i) => {
+                const particle = document.createElement('div');
+                particle.className = 'firework-particle';
+                particle.innerText = colors[i % colors.length];
+                const rad = (angle * Math.PI) / 180;
+                const dx = Math.cos(rad) * radius + 'px';
+                const dy = Math.sin(rad) * radius + 'px';
+                particle.style.setProperty('--dx', dx);
+                particle.style.setProperty('--dy', dy);
+                cardElement.appendChild(particle);
+                setTimeout(() => { particle.remove(); }, 500);
+            });
+        }
+
+        // 初始化網格（呈蓋牌待機狀態）
+        function initGrid() {
+            const grid = document.getElementById('game-grid');
+            grid.innerHTML = '';
+            flippedCards = [];
+            matchedCount = 0;
+            flipCount = 0;
+            gameStarted = false;
+            lockGrid = true; // 鎖定點擊
+
+            document.getElementById('flip-counter').innerText = `翻牌次數：0 次`;
+            document.getElementById('game-hint').innerText = "請小朋友點選下方按鈕開始挑戰！";
+            document.getElementById('memory-timer').style.display = 'none';
+
+            shuffle(cardData);
+
+            cardData.forEach((fruit) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.fruit = fruit;
+                card.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-back">❓</div>
+                        <div class="card-front">${fruit}</div>
+                    </div>
+                `;
+                card.addEventListener('click', handleCardClick);
+                grid.appendChild(card);
+            });
+        }
+
+        // ⭐ 新增：開始記憶階段（看牌 3 秒）
+        function startMemoryPhase() {
+            if (gameStarted) return; // 防止重複點擊
+            gameStarted = true;
+            
+            // 隱藏開始按鈕，切換為重洗功能
+            const mainBtn = document.getElementById('main-action-btn');
+            mainBtn.style.visibility = 'hidden';
+
+            speak("預備，看清楚水果在哪裡喔！");
+            document.getElementById('game-hint').innerText = "看清楚，記住水果的位置！";
+            
+            // 顯示倒數計時器
+            const timerBadge = document.getElementById('memory-timer');
+            timerBadge.style.display = 'block';
+
+            // 讓全部卡片翻開露臉
+            const allCards = document.querySelectorAll('.card');
+            allCards.forEach(card => card.classList.add('flipped'));
+
+            // 倒數 3 秒計時邏輯
+            let timeLeft = 3;
+            timerBadge.innerText = `看牌倒數：${timeLeft} 秒`;
+
+            let countdownInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft > 0) {
+                    timerBadge.innerText = `看牌倒數：${timeLeft} 秒`;
+                } else {
+                    clearInterval(countdownInterval);
+                    timerBadge.style.display = 'none';
+                    
+                    // 3秒時間到，全部蓋回去並解鎖網格
+                    allCards.forEach(card => card.classList.remove('flipped'));
+                    
+                    // 等蓋牌動畫播完再解除點擊限制
+                    setTimeout(() => {
+                        lockGrid = false;
+                        document.getElementById('game-hint').innerText = "時間到！請找出成對的水果！";
+                        mainBtn.innerText = "🔄 重新洗牌";
+                        mainBtn.className = "btn-action"; // 換回一般綠色按鈕外觀
+                        mainBtn.style.visibility = 'visible';
+                        speak("開始！");
+                    }, 400);
+                }
+            }, 1000);
+        }
+
+        function handleCardClick() {
+            if (lockGrid) return;
+            if (this.classList.contains('flipped') || this.classList.contains('matched')) return;
+
+            playSound('flip');
+            this.classList.add('flipped');
+            flippedCards.push(this);
+
+            flipCount++;
+            document.getElementById('flip-counter').innerText = `翻牌次數：${flipCount} 次`;
+
+            if (flippedCards.length === 2) {
+                lockGrid = true;
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            const [card1, card2] = flippedCards;
+            const fruit1 = card1.dataset.fruit;
+            const fruit2 = card2.dataset.fruit;
+
+            if (fruit1 === fruit2) {
+                setTimeout(() => {
+                    playSound('match');
+                    createFirework(card1);
+                    createFirework(card2);
+
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    card1.classList.add('matched');
+                    card2.classList.add('matched');
+                    
+                    matchedCount += 2;
+                    flippedCards = [];
+                    lockGrid = false;
+
+                    const fruitNames = {'🍎':'蘋果', '🍌':'香蕉', '🍉':'西瓜', '🍇':'葡萄', '🍓':'草莓', '🍍':'鳳梨', '🍊':'橘子', '🥝':'奇異果'};
+                    speak(`找到了！是${fruitNames[fruit1]}`);
+
+                    if (matchedCount === cardData.length) {
+                        handleWin();
+                    }
+                }, 300);
+            } else {
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    flippedCards = [];
+                    lockGrid = false;
+                }, 1000);
+            }
+        }
+
+        function handleWin() {
+            setTimeout(() => {
+                playSound('win');
+                document.getElementById('final-score-text').innerText = `你總共翻了 ${flipCount} 次牌，就把水果都找齊囉！`;
+                document.getElementById('success-screen').style.display = 'flex';
+                speak(`太棒了！你總共翻了 ${flipCount} 次牌，把所有水果都找齊了，過關！`);
+            }, 800);
+        }
+
+        // 返回主選單狀態
+        function resetToMenu() {
+            document.getElementById('success-screen').style.display = 'none';
+            const mainBtn = document.getElementById('main-action-btn');
+            mainBtn.innerText = "🎮 開始挑戰";
+            mainBtn.className = "btn-action btn-start";
+            mainBtn.style.visibility = 'visible';
+            initGrid();
+        }
+
+        // 重新洗牌按鈕
+        function resetGame() {
+            if (document.getElementById('main-action-btn').innerText.includes("開始")) {
+                startMemoryPhase();
+            } else {
+                resetToMenu();
+            }
+        }
+
+        window.onload = initGrid;
+    </script>
+</body>
+</html>
