@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>互動網頁教材選單</title>
+    <style>
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 400px;
+            margin: 40px auto;
+            font-family: 'Comic Sans MS', 'Microsoft JhengHei', sans-serif;
+        }
+
+        .menu-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 25px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 15px;
+            box-shadow: 0 6px 0 var(--shadow-color);
+            transition: transform 0.1s, background-color 0.2s;
+            color: white;
+            cursor: pointer;
+        }
+
+        /* 懸停與點擊的動態特效 */
+        .menu-btn:hover {
+            transform: scale(1.02);
+            filter: brightness(1.05);
+        }
+        .menu-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 0px 0 var(--shadow-color);
+        }
+
+        /* 個別按鈕的顏色主題（使用 muted 飽和度適中的高質感色調） */
+        .btn-candy {
+            background-color: #EC407A;
+            --shadow-color: #C2185B;
+        }
+        .btn-bear {
+            background-color: #FFA726;
+            --shadow-color: #F57C00;
+        }
+        .btn-dino {
+            background-color: #66BB6A;
+            --shadow-color: #388E3C;
+        }
+        .btn-beaver {
+            background-color: #26A69A;
+            --shadow-color: #00796B;
+        }
+
+        .btn-arrow {
+            font-size: 1.4rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="button-container">
+        
+        <a href="https://cpaizo.github.io/students/candy-math.html" target="_blank" class="menu-btn btn-candy">
+            <span>🍬 糖果量尺數學題</span>
+            <span class="btn-arrow">➔</span>
+        </a>
+
+        <a href="https://cpaizo.github.io/students/bear-blender.html" target="_blank" class="menu-btn btn-bear">
+            <span>🍏 小熊果汁機大挑戰</span>
+            <span class="btn-arrow">➔</span>
+        </a>
+
+        <a href="https://cpaizo.github.io/students/dino-feeding.html" target="_blank" class="menu-btn btn-dino">
+            <span>🦕 恐龍餵食秀動畫</span>
+            <span class="btn-arrow">➔</span>
+        </a>
+
+        <a href="https://cpaizo.github.io/students/beaver-dam.html" target="_blank" class="menu-btn btn-beaver">
+            <span>🦫 快樂築巢小河狸</span>
+            <span class="btn-arrow">➔</span>
+        </a>
+
+    </div>
+
+</body>
+</html>
