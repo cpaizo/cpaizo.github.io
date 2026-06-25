@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦫 快樂築巢小河狸 - 空間與長條堆疊 🪵</title>
+    <style>
+        :root {
+            --unit-height: 35px; /* 每 1 個長度單位的垂直高度 */
+        }
+        
+        body {
+            background-color: #E0F2F1; /* 河流淡藍色 */
+            background-image: radial-gradient(#B2DFDB 20%, transparent 20%),
+                              radial-gradient(#B2DFDB 20%, transparent 20%);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            font-family: 'Comic Sans MS', 'Microsoft JhengHei', sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #004D40;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            color: #004D40;
+            text-shadow: 2px 2px 0px #FFF, 4px 4px 0px #80CBC4;
+            font-size: 2.3rem;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        p.subtitle {
+            font-size: 1.1rem;
+            background: #FFF;
+            padding: 8px 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 2px dashed #009688;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .game-container {
+            display: flex;
+            gap: 25px;
+            max-width: 1000px;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0, 77, 64, 0.15);
+            border: 4px solid #B2DFDB;
+            flex: 1;
+            min-width: 350px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #00796B;
+            font-size: 1.4rem;
+            margin-top: 0;
+            border-bottom: 3px dotted #80CBC4;
+            padding-bottom: 10px;
+        }
+
+        /* 河狸區與對話框 */
+        .beaver-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        /* 河狸頭部轉向右邊的核心 CSS */
+        .beaver-avatar {
+            font-size: 5.5rem;
+            display: inline-block;
+            transition: transform 0.2s;
+            user-select: none;
+            transform: scaleX(-1); /* ⭐ 翻轉魔法：讓小河狸面朝右邊看水壩 */
+        }
+
+        .bubble {
+            position: relative;
+            background: #FFF;
+            border: 3px solid #009688;
+            border-radius: 15px;
+            padding: 10px 15px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #004D40;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .bubble:after, .bubble:before {
+            top: 100%; left: 50%; border: solid transparent; content: " "; height: 0; width: 0; position: absolute; pointer-events: none;
+        }
+        .bubble:after { border-color: rgba(255, 255, 255, 0); border-top-color: #FFF; border-width: 10px; margin-left: -10px; }
+        .bubble:before { border-color: rgba(0, 150, 136, 0); border-top-color: #009688; border-width: 14px; margin-left: -14px; }
+
+        /* 材料按鈕區 */
+        .wood-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .wood-btn {
+            background: #FFF;
+            border: 3px solid #4DB6AC;
+            border-radius: 15px;
+            padding: 10px 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #00796B;
+            transition: transform 0.1s;
+            width: 85%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #004D40;
+        }
+        .wood-btn:hover { transform: scale(1.02); background: #E0F2F1; }
+        .wood-btn:active { transform: translateY(4px); box-shadow: 0 0px 0 #00796B; }
+
+        /* 垂直堆疊舞台區 */
+        .stage-columns {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            align-items: flex-end; 
+            background: #F5F5F5;
+            background-image: linear-gradient(#E0E0E0 1px, transparent 1px);
+            background-size: 100% var(--unit-height); 
+            border-radius: 20px;
+            border: 3px inset #B2DFDB;
+            padding: 20px 10px;
+            height: 380px; 
+            position: relative;
+        }
+
+        /* 垂直柱狀外殼 */
+        .column-box {
+            display: flex;
+            flex-direction: column-reverse; 
+            width: 120px;
+            background: rgba(0, 0, 0, 0.03);
+            border-bottom: 8px solid #8D6E63; 
+            border-radius: 8px 8px 0 0;
+            min-height: 10px;
+        }
+
+        .column-label {
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: #00796B;
+            margin-top: 8px;
+        }
+
+        /* 缺口目標條 */
+        .target-gap-bar {
+            width: 100%;
+            background: repeating-linear-gradient(45deg, #FFCC80, #FFCC80 10px, #FFA726 10px, #FFA726 20px);
+            border: 3px solid #EF6C00;
+            border-bottom: none;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #5D4037;
+            font-weight: bold;
+            font-size: 1.3rem;
+            text-shadow: 1px 1px 0px white;
+            border-radius: 6px 6px 0 0;
+            transition: height 0.3s ease;
+        }
+
+        /* 學生堆疊的木頭鏈容器 */
+        .wood-chain {
+            display: flex;
+            flex-direction: column-reverse; 
+            width: 100%;
+            transition: height 0.5s ease;
+        }
+
+        /* 單個木頭積木 */
+        .wood-block {
+            width: 100%;
+            box-sizing: border-box;
+            border: 2px solid #5D4037;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+            box-shadow: inset 0 3px 0 rgba(255,255,255,0.2);
+            animation: dropDown 0.2s ease-out;
+        }
+
+        @keyframes dropDown {
+            0% { transform: translateY(-30px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        /* 木頭長度顏色區分 */
+        .wood-1 { background: linear-gradient(to bottom, #A1887F, #8D6E63); }
+        .wood-2 { background: linear-gradient(to bottom, #795548, #6D4C41); }
+
+        .control-panel {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .success-mask {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 15px;
+            z-index: 10;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .success-mask h3 { color: #00796B; font-size: 2.2rem; margin: 0 0 10px 0; }
+
+        /* ---------------- [動畫特效區] ---------------- */
+        /* 1. 河狸開心地左右搖擺跳舞（保留向右翻轉） */
+        .beaver-dance-anim {
+            animation: beaverDance 0.3s infinite alternate ease-in-out;
+        }
+        @keyframes beaverDance {
+            0% { transform: scaleX(-1) scale(1.05) rotate(-8deg); }
+            100% { transform: scaleX(-1) scale(1.05) rotate(8deg); }
+        }
+
+        /* 2. 補水壩工作時的垂直晃動（保留向右翻轉） */
+        .beaver-work-anim {
+            animation: beaverWork 0.1s 3 alternate;
+        }
+        @keyframes beaverWork {
+            0% { transform: scaleX(-1) scale(1.1) translateY(0); }
+            100% { transform: scaleX(-1) scale(1.1) translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🦫 快樂築巢小河狸 - 空間與長條堆疊 🪵</h1>
+    <p class="subtitle">水壩中央出現缺口了！請選取剛好高度的木頭，把缺口由下而上補滿吧！</p>
+
+    <div class="game-container">
+        
+        <div class="card">
+            <div class="beaver-area">
+                <div class="bubble" id="beaver-bubble">請幫我把高度 5 的缺口補起來！</div>
+                <div class="beaver-avatar" id="beaver-character">🦫</div>
+            </div>
+            
+            <h2>🪵 搬運組的木頭堆</h2>
+            <div class="wood-menu">
+                <button class="wood-btn" onclick="addWood(1)">
+                    <span>🪵 短木頭 (高度 1)</span>
+                    <span style="background:#8D6E63; color:white; padding:2px 8px; border-radius:4px;">■</span>
+                </button>
+                <button class="wood-btn" onclick="addWood(2)">
+                    <span>🪵 長木頭 (高度 2)</span>
+                    <span style="background:#6D4C41; color:white; padding:2px 8px; border-radius:4px;">■■</span>
+                </button>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn-action" style="background-color: #00897B; box-shadow: 0 5px 0 #00695C;" onclick="generateChallenge()">🎲 換一個缺口（隨機出題）</button>
+            </div>
+        </div>
+
+        <div class="card" style="position: relative;">
+            <h2>📊 水壩缺口與木頭比一比</h2>
+            
+            <div class="stage-columns">
+                <div class="success-mask" id="success-screen">
+                    <h3>🎉 水壩修好囉！ 🎉</h3>
+                    <p id="success-text" style="font-size: 1.3rem; font-weight: bold; color: #004D40; margin-bottom: 20px;"></p>
+                    <button class="btn-action" style="background:#009688; box-shadow:0 5px 0 #00796B;" onclick="generateChallenge()">🎯 挑戰下一關</button>
+                </div>
+
+                <div style="display:flex; flex-direction:column; align-items:center;">
+                    <div id="target-dam-box" class="column-box">
+                        <div id="target-gap" class="target-gap-bar">5</div>
+                    </div>
+                    <div class="column-label">🎯 水壩缺口高度</div>
+                </div>
+
+                <div style="display:flex; flex-direction:column; align-items:center;">
+                    <div class="column-box">
+                        <div id="player-wood-chain" class="wood-chain">
+                            </div>
+                    </div>
+                    <div class="column-label" id="current-title">📏 目前木頭高度：0</div>
+                </div>
+            </div>
+
+            <div class="control-panel">
+                <button class="btn-action" style="background:#009688; box-shadow:0 5px 0 #00796B;" onclick="checkDam()">🔨 把它補上去（檢查高度）</button>
+                <button class="btn-action" style="background:#888; box-shadow:0 5px 0 #555;" onclick="resetGame()">🔄 拿掉木頭重新疊</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let targetValue = 5;
+        let currentStack = []; 
+        let audioCtx = null;
+        
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                let utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-TW';
+                utterance.rate = 1.0;
+                utterance.pitch = 1.2; 
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function playWoodSound(isSuccess) {
+            if (!window.AudioContext && !window.webkitAudioContext) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            if (!isSuccess) {
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+            } else {
+                for(let i=0; i<4; i++){
+                    setTimeout(() => {
+                        if(!audioCtx) return;
+                        let osc = audioCtx.createOscillator();
+                        let gain = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(400 + (i*120), audioCtx.currentTime);
+                        osc.connect(gain); gain.connect(audioCtx.destination);
+                        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                        gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
+                        osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+                    }, i * 100);
+                }
+            }
+            setTimeout(() => { if (audioCtx && audioCtx.state !== 'closed') audioCtx.close(); }, 600);
+        }
+
+        function varUnitHeight() {
+            const rootStyles = getComputedStyle(document.documentElement);
+            return parseInt(rootStyles.getPropertyValue('--unit-height')) || 35;
+        }
+
+        function generateChallenge() {
+            let lastTarget = targetValue;
+            while (targetValue === lastTarget) {
+                targetValue = Math.floor(Math.random() * 8) + 3; 
+            }
+
+            const targetGap = document.getElementById('target-gap');
+            targetGap.style.height = `${targetValue * varUnitHeight()}px`;
+            targetGap.innerText = targetValue;
+            
+            document.getElementById('beaver-bubble').innerText = `請幫我把高度 ${targetValue} 的缺口補起來！`;
+            
+            resetGame();
+            setTimeout(() => { speak(`請幫我把高度 ${targetValue} 的缺口補起來！`); }, 300);
+        }
+
+        function addWood(val) {
+            const currentSum = currentStack.reduce((a, b) => a + b, 0);
+            const beaver = document.getElementById('beaver-character');
+            
+            if (currentSum + val > 10) {
+                alert("水壩頂端太高了，木頭快滾進河裡去啦！");
+                speak("太高囉！");
+                return;
+            }
+
+            playWoodSound(false);
+            beaver.className = "beaver-avatar beaver-work-anim";
+            setTimeout(() => { beaver.className = "beaver-avatar"; }, 300);
+
+            if (val === 1) speak("高度一");
+            if (val === 2) speak("高度二");
+
+            currentStack.push(val);
+            renderDam();
+        }
+
+        function renderDam() {
+            const container = document.getElementById('player-wood-chain');
+            container.innerHTML = '';
+            let total = 0;
+            
+            currentStack.forEach(val => {
+                total += val;
+                const block = document.createElement('div');
+                block.className = `wood-block wood-${val}`;
+                block.style.height = `${val * varUnitHeight()}px`;
+                block.innerText = val;
+                container.appendChild(block);
+            });
+
+            container.style.height = `${total * varUnitHeight()}px`;
+            document.getElementById('current-title').innerText = `📏 目前木頭高度：${total}`;
+        }
+
+        function checkDam() {
+            const currentSum = currentStack.reduce((a, b) => a + b, 0);
+            const beaver = document.getElementById('beaver-character');
+            
+            if (currentSum === 0) { speak("你還沒有放任何木頭到水壩上喔！"); return; }
+
+            if (currentSum === targetValue) {
+                playWoodSound(true);
+                beaver.className = "beaver-avatar beaver-dance-anim";
+                
+                let formulaStr = currentStack.join('加');
+                document.getElementById('success-text').innerText = currentStack.join(' + ') + ` 剛好等於 ${targetValue}！`;
+                document.getElementById('success-screen').style.display = 'flex';
+                
+                speak(`哇！謝謝你幫我把水壩補好了！${formulaStr} 剛好等於 ${targetValue}，這下大水不會漏進來囉！`);
+            } else if (currentSum < targetValue) {
+                speak(`目前的總高度是 ${currentSum}。嗯……還差一點點才填滿，再幫我疊一根木頭吧！`);
+            } else {
+                speak(`目前的總高度是 ${currentSum}。哎呀，木頭疊得比缺口還要高了！河水會被堵死，拿掉重新疊疊看。`);
+            }
+        }
+
+        function resetGame() {
+            currentStack = [];
+            renderDam();
+            document.getElementById('success-screen').style.display = 'none';
+            document.getElementById('beaver-character').className = 'beaver-avatar';
+        }
+
+        window.onload = function() {
+            generateChallenge();
+        }
+    </script>
+</body>
+</html>
