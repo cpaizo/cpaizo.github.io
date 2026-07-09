@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 慈濟科丁國際 Scratch 友誼交流賽</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #1a4d3a; /* 慈濟人文綠 */
+            --secondary-color: #2a7561;
+            --accent-color: #ffa64d; /* 活力亮橘 */
+            --dark-color: #2c3e50;
+            --light-color: #f8f9fa;
+            --gray-color: #6c757d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            line-height: 1.8;
+            color: var(--dark-color);
+            background-color: #fff;
+        }
+
+        /* Language Switcher Container */
+        .lang-switcher-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .btn-lang {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .btn-lang:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            border-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, rgba(26, 77, 58, 0.95), rgba(42, 117, 97, 0.9)), url('https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1920&q=80') no-repeat center center/cover;
+            color: white;
+            padding: 120px 20px 100px;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-size: 2.8rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            opacity: 0.9;
+        }
+
+        .cta-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #e68a2e;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-secondary:hover {
+            background-color: white;
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 80px 20px;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.2rem;
+            color: var(--primary-color);
+            margin-bottom: 50px;
+            position: relative;
+            font-weight: 700;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 4px;
+            background-color: var(--accent-color);
+            margin: 15px auto 0;
+            border-radius: 2px;
+        }
+
+        /* Goals Section */
+        .goals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .goal-card {
+            background: var(--light-color);
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s ease;
+            border-top: 4px solid var(--primary-color);
+        }
+
+        .goal-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        }
+
+        .goal-card i {
+            font-size: 2.5rem;
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+        }
+
+        .goal-card h3 {
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+
+        /* Info Highlight Block */
+        .info-banner {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 40px;
+            border-radius: 15px;
+            margin-bottom: 60px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 30px;
+            text-align: center;
+        }
+
+        .info-item h4 {
+            font-size: 1.1rem;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .info-item p {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
+        /* Group Schedule Section */
+        .group-section {
+            background-color: var(--light-color);
+            padding: 60px 0;
+        }
+
+        .group-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        @media (max-width: 500px) {
+            .group-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .group-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border: 1px solid #e1e8ed;
+        }
+
+        .group-header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .group-header h3 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .timezone-badge {
+            background-color: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-top: 5px;
+        }
+
+        /* Table Styling */
+        .table-responsive {
+            overflow-x: auto;
+            padding: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.95rem;
+        }
+
+        th {
+            background-color: #f1f5f8;
+            color: var(--dark-color);
+            font-weight: 600;
+            padding: 12px;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Rules & Details */
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 50px;
+        }
+
+        @media (max-width: 768px) {
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .detail-box {
+            background: #fff;
+            border: 1px solid #e1e8ed;
+            border-radius: 10px;
+            padding: 30px;
+        }
+
+        .detail-box h3 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid #f1f5f8;
+            padding-bottom: 10px;
+        }
+
+        .detail-box ul {
+            list-style: none;
+        }
+
+        .detail-box li {
+            position: relative;
+            padding-left: 25px;
+            margin-bottom: 15px;
+        }
+
+        .detail-box li::before {
+            content: '\f00c';
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            position: absolute;
+            left: 0;
+            color: var(--secondary-color);
+        }
+
+        /* Language display helper */
+        [data-lang="en"] {
+            display: none;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--dark-color);
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+            font-size: 0.95rem;
+        }
+
+        footer a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        footer .links {
+            margin-bottom: 20px;
+        }
+
+        footer .links a {
+            margin: 0 15px;
+            color: #fff;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        footer .links a:hover {
+            opacity: 1;
+            color: var(--accent-color);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="lang-switcher-container">
+        <button class="btn-lang" onclick="toggleLanguage()" id="langBtn">
+            <i class="fa-solid fa-earth-americas"></i> <span>English</span>
+        </button>
+    </div>
+
+    <header class="hero">
+        <h1 data-lang="zh">2026 慈濟科丁國際 Scratch 友誼交流賽</h1>
+        <h1 data-lang="en">2026 Tzu Chi Coding International Scratch Friendship Competition</h1>
+        
+        <p data-lang="zh">跨越國界、淬鍊創意！結合慈濟理念與程式邏輯，為初學者打造的國際友善競技舞台。讓我們用程式連結世界，點亮永續創意的火花！</p>
+        <p data-lang="en">Connecting the world through code! Combining Tzu Chi's core philosophies with programming logic, this is a friendly international arena for beginners. Let's ignite the sparks of sustainable creativity together!</p>
+        
+        <div class="cta-group">
+            <a href="https://forms.gle/xPUz3goRxctBSLea6" target="_blank" class="btn btn-primary">
+                <span data-lang="zh"><i class="fa-solid fa-pen-to-square"></i> 立即線上報名</span>
+                <span data-lang="en"><i class="fa-solid fa-pen-to-square"></i> Register Now</span>
+            </a>
+            <a href="https://script.google.com/macros/s/AKfycbzP2hayi_-qeKsPjEgJbG2sikhJQRGJalL8-ddG_ByiqRoWA6r1wWCswzSy1-tPDLjqvA/exec" target="_blank" class="btn btn-secondary">
+                <span data-lang="zh"><i class="fa-solid fa-cloud-arrow-up"></i> 作品上傳表單</span>
+                <span data-lang="en"><i class="fa-solid fa-cloud-arrow-up"></i> Project Upload</span>
+            </a>
+            <a href="https://reurl.cc/xWyA5e" target="_blank" class="btn btn-secondary" style="border-color: var(--accent-color); color: var(--accent-color);">
+                <span data-lang="zh"><i class="fa-solid fa-book"></i> 查閱競賽題目</span>
+                <span data-lang="en"><i class="fa-solid fa-book"></i> View Topics</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="container">
+        
+        <div class="info-banner">
+            <div class="info-item">
+                <h4 data-lang="zh">比賽日期</h4>
+                <h4 data-lang="en">Competition Date</h4>
+                <p data-lang="zh">2026年8月22~23日</p>
+                <p data-lang="en">Aug 22-23, 2026</p>
+            </div>
+            <div class="info-item">
+                <h4 data-lang="zh">創作時間</h4>
+                <h4 data-lang="en">Coding Duration</h4>
+                <p data-lang="zh">限時 2 小時</p>
+                <p data-lang="en">2 Hours</p>
+            </div>
+            <div class="info-item">
+                <h4 data-lang="zh">報名截止</h4>
+                <h4 data-lang="en">Registration Deadline</h4>
+                <p data-lang="zh">2026年7月15日前</p>
+                <p data-lang="en">Before July 15, 2026</p>
+            </div>
+        </div>
+
+        <section>
+            <h2 class="section-title">
+                <span data-lang="zh">比賽目標</span>
+                <span data-lang="en">Competition Goals</span>
+            </h2>
+            <div class="goals-grid">
+                <div class="goal-card">
+                    <i class="fa-solid fa-globe"></i>
+                    <h3 data-lang="zh">文化交流</h3>
+                    <h3 data-lang="en">Cultural Exchange</h3>
+                    <p data-lang="zh">促進不同國家學生的文化交流與跨國合作，拓展國際視野。</p>
+                    <p data-lang="en">Promote cultural exchange and global collaboration among students from diverse backgrounds.</p>
+                </div>
+                <div class="goal-card">
+                    <i class="fa-solid fa-seedling"></i>
+                    <h3 data-lang="zh">友善平台</h3>
+                    <h3 data-lang="en">Friendly Platform</h3>
+                    <p data-lang="zh">提供程式設計初學者一個毫無壓力、充滿支持的友善競賽平台。</p>
+                    <p data-lang="en">Provide a welcoming, supportive, and low-pressure environment for programming beginners.</p>
+                </div>
+                <div class="goal-card">
+                    <i class="fa-solid fa-lightbulb"></i>
+                    <h3 data-lang="zh">理念實踐</h3>
+                    <h3 data-lang="en">Philosophy Action</h3>
+                    <p data-lang="zh">透過與慈濟理念相關的主題，深入培養學生的創造力與問題解決能力。</p>
+                    <p data-lang="en">Cultivate creativity and problem-solving skills through topics tied to Tzu Chi's core values.</p>
+                </div>
+                <div class="goal-card">
+                    <i class="fa-solid fa-comments"></i>
+                    <h3 data-lang="zh">互助欣賞</h3>
+                    <h3 data-lang="en">Mutual Appreciation</h3>
+                    <p data-lang="zh">讓學生在競賽後透過線上工作坊互動，學習欣賞並給予他人作品正向回饋。</p>
+                    <p data-lang="en">Enable students to experience and appreciate others' works with positive feedback via online interaction.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <section class="group-section">
+        <h2 class="section-title">
+            <span data-lang="zh">賽事分組與流程 (台灣時間)</span>
+            <span data-lang="en">Groups & Agenda (Taiwan Time)</span>
+        </h2>
+        <div class="group-container">
+            
+            <div class="group-card">
+                <div class="group-header">
+                    <h3 data-lang="zh">【第一組】墨西哥、莫三比克</h3>
+                    <h3 data-lang="en">[Group 1] Mexico, Mozambique</h3>
+                    <div class="timezone-badge"><i class="fa-solid fa-clock"></i> Local Time: Mexico 07:00 / Mozambique 15:00</div>
+                    <div style="margin-top:5px; font-size:0.9rem;" data-lang="zh">競賽日期：8 月 22 日（星期六）</div>
+                    <div style="margin-top:5px; font-size:0.9rem;" data-lang="en">Date: Saturday, August 22</div>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th data-lang="zh">時間 (台灣)</th>
+                                <th data-lang="en">Time (Taiwan)</th>
+                                <th data-lang="zh">活動內容</th>
+                                <th data-lang="en">Activity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>18:00 - 18:30</td><td><strong data-lang="zh">線上開幕、公布抽選題目</strong><strong data-lang="en">Opening & Topic Announcement</strong></td></tr>
+                            <tr><td>18:30 - 20:30</td><td><span data-lang="zh">參賽者獨立創作（Scratch 程式設計 2 小時）</span><span data-lang="en">Independent Creation (Scratch Coding - 2 hrs)</span></td></tr>
+                            <tr><td>20:30 - 20:45</td><td><span data-lang="zh">作品上傳至 Google 表單</span><span data-lang="en">Upload projects to Google Form</span></td></tr>
+                            <tr><td>20:45 - 21:00</td><td><span data-lang="zh">評審書面評分 / <strong>科丁老師 AI 分享</strong></span><span data-lang="en">Judges Scoring / <strong>Coding Teacher AI Sharing</strong></span></td></tr>
+                            <tr><td>21:00 - 21:45</td><td><span data-lang="zh">學生與老師作品報告（老師先報，每人3分鐘）</span><span data-lang="en">Project Presentation (Teachers first, 3 mins each)</span></td></tr>
+                            <tr><td>21:45 - 22:00</td><td><span data-lang="zh">評審綜合講評 & Q&A</span><span data-lang="en">Judges' Review & Q&A</span></td></tr>
+                            <tr><td>22:00 - 22:20</td><td><span data-lang="zh">頒獎與閉幕</span><span data-lang="en">Award Ceremony & Closing</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="group-card">
+                <div class="group-header" style="background-color: var(--primary-color);">
+                    <h3 data-lang="zh">【第二組】土耳其、泰國</h3>
+                    <h3 data-lang="en">[Group 2] Turkey, Thailand</h3>
+                    <div class="timezone-badge"><i class="fa-solid fa-clock"></i> Local Time: Turkey 06:00 / Thailand 10:00</div>
+                    <div style="margin-top:5px; font-size:0.9rem;" data-lang="zh">競賽日期：8 月 23 日（星期日）</div>
+                    <div style="margin-top:5px; font-size:0.9rem;" data-lang="en">Date: Sunday, August 23</div>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th data-lang="zh">時間 (台灣)</th>
+                                <th data-lang="en">Time (Taiwan)</th>
+                                <th data-lang="zh">活動內容</th>
+                                <th data-lang="en">Activity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>11:00 - 11:30</td><td><strong data-lang="zh">線上開幕、致詞、大合照、公布題目</strong><strong data-lang="en">Opening, Remarks, Photo, & Announcement</strong></td></tr>
+                            <tr><td>11:30 - 13:30</td><td><span data-lang="zh">參賽者獨立創作（Scratch 程式設計 2 小時）</span><span data-lang="en">Independent Creation (Scratch Coding - 2 hrs)</span></td></tr>
+                            <tr><td>13:30 - 13:45</td><td><span data-lang="zh">作品上傳至 Google 表單</span><span data-lang="en">Upload projects to Google Form</span></td></tr>
+                            <tr><td>13:45 - 14:00</td><td><span data-lang="zh">評審書面評分 / <strong>科丁老師 AI 分享</strong></span><span data-lang="en">Judges Scoring / <strong>Coding Teacher AI Sharing</strong></span></td></tr>
+                            <tr><td>14:00 - 14:45</td><td><span data-lang="zh">學生與老師作品報告（老師先報，每人3分鐘）</span><span data-lang="en">Project Presentation (Teachers first, 3 mins each)</span></td></tr>
+                            <tr><td>14:45 - 15:00</td><td><span data-lang="zh">評審綜合講評 & Q&A</span><span data-lang="en">Judges' Review & Q&A</span></td></tr>
+                            <tr><td>15:00 - 15:20</td><td><span data-lang="zh">頒獎與閉幕</span><span data-lang="en">Award Ceremony & Closing</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section class="container">
+        <h2 class="section-title">
+            <span data-lang="zh">競賽機制與評分</span>
+            <span data-lang="en">Rules & Scoring</span>
+        </h2>
+        <div class="details-grid">
+            
+            <div class="detail-box">
+                <h3>
+                    <span data-lang="zh"><i class="fa-solid fa-gamepad"></i> 參賽對象與方式</span>
+                    <span data-lang="en"><i class="fa-solid fa-gamepad"></i> Teams & Formats</span>
+                </h3>
+                <ul data-lang="zh">
+                    <li><strong>參賽隊伍：</strong>泰國(清邁慈濟)、土耳其(滿納海)、莫三比克(莫凡比斯)、墨西哥指定學校。每國 1 隊，每隊 5 名學生。</li>
+                    <li><strong>題目抽選：</strong>賽前公布 10 道主題。比賽當天隨機抽出 5 題，隊員 5 人各負責 1 題獨立完成。</li>
+                    <!--<li><strong>師長參與：</strong>指導老師亦需參賽！老師題目另行抽取，於賽前完成並在當天發表分享。</li>-->
+                    <li><strong>語言翻譯：</strong>大會提供即時中文翻譯，以便評審與嘉賓聆聽 3 分鐘的作品發表。</li>
+                </ul>
+                <ul data-lang="en">
+                    <li><strong>Participating Teams:</strong> Thailand, Turkey, Mozambique, and Mexico. Each country sends 1 team of 5 students.</li>
+                    <li><strong>Topic Draw:</strong> 10 core topics are released in advance. 5 topics will be randomly drawn on site; each member takes 1 unique topic.</li>
+                    <!--<li><strong>Teacher Participation:</strong> Instructors also participate! Their topics are drawn separately and completed prior to the event for presentation.</li>-->
+                    <li><strong>Interpretation:</strong> Live interpreters will provide real-time translation into Chinese during the students' 3-minute presentations.</li>
+                </ul>
+            </div>
+
+            <div class="detail-box">
+                <h3>
+                    <span data-lang="zh"><i class="fa-solid fa-star"></i> 專業評分標準</span>
+                    <span data-lang="en"><i class="fa-solid fa-star"></i> Scoring Criteria</span>
+                </h3>
+                <p style="margin-bottom: 15px; font-weight: 500; color: var(--gray-color);" data-lang="zh">由 5 位專業裁判（科丁 3 位、慈濟 2 位）組成評審團：</p>
+                <p style="margin-bottom: 15px; font-weight: 500; color: var(--gray-color);" data-lang="en">Evaluated by 5 judges (3 from Coding101, 2 from Tzu Chi):</p>
+                <div class="table-responsive" style="padding:0;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th data-lang="zh">評分項目</th>
+                                <th data-lang="en">Criteria</th>
+                                <th data-lang="zh">比重</th>
+                                <th data-lang="en">Weight</th>
+                                <th data-lang="zh">說明</th>
+                                <th data-lang="en">Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong data-lang="zh">創意與表達</strong><strong data-lang="en">Creativity & Expression</strong></td>
+                                <td>15%</td>
+                                <td><span data-lang="zh">作品富有創意，表現完整</span><span data-lang="en">Innovation and completeness of expression</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong data-lang="zh">程式邏輯</strong><strong data-lang="en">Coding Logic</strong></td>
+                                <td>15%</td>
+                                <td><span data-lang="zh">運行順暢，結構清晰</span><span data-lang="en">Smooth execution and clear structure</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong data-lang="zh">互動性與體驗</strong><strong data-lang="en">Interactivity</strong></td>
+                                <td>10%</td>
+                                <td><span data-lang="zh">作品可玩性或動畫表現力</span><span data-lang="en">Playability or expressiveness of animation</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong data-lang="zh">美術與音效</strong><strong data-lang="en">Art & Audio</strong></td>
+                                <td>10%</td>
+                                <td><span data-lang="zh">視覺與聲音設計整體呈現</span><span data-lang="en">Overall visual and sound integration</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong data-lang="zh">作品講解</strong><strong data-lang="en">Presentation</strong></td>
+                                <td>50%</td>
+                                <td><span data-lang="zh">3分鐘講解表達清晰與完整度</span><span data-lang="en">Clarity and completeness of the 3-min speech</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="details-grid" style="margin-top: 30px;">
+            <div class="detail-box" style="grid-column: 1 / -1;">
+                <h3>
+                    <span data-lang="zh"><i class="fa-solid fa-trophy"></i> 豐富獎項與賽後人氣投票</span>
+                    <span data-lang="en"><i class="fa-solid fa-trophy"></i> Awards & Popularity Voting</span>
+                </h3>
+                <p style="margin-bottom: 20px;" data-lang="zh">大會為鼓勵所有同學，每位參賽者皆會獲頒<strong>參賽證明</strong>。此外還設有以下大獎：</p>
+                <p style="margin-bottom: 20px;" data-lang="en">To encourage all students, a **Certificate of Participation** is given to everyone. Special awards include:</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; text-align: center;">
+                    <div style="background:#f1f5f8; padding:15px; border-radius:8px; border-bottom: 3px solid var(--accent-color);">
+                        <strong data-lang="zh">最佳創意獎</strong><strong data-lang="en">Best Creativity</strong><br>
+                        <span style="font-size:0.9rem; color:var(--gray-color);" data-lang="zh">1名 (獎狀+獎品)</span>
+                        <span style="font-size:0.9rem; color:var(--gray-color);" data-lang="en">1 Winner (Certificate+Prize)</span>
+                    </div>
+                    <div style="background:#f1f5f8; padding:15px; border-radius:8px; border-bottom: 3px solid var(--accent-color);">
+                        <strong data-lang="zh">最佳程式設計獎</strong><strong data-lang="en">Best Coding</strong><br>
+                        <span style="font-size:0.9rem; color:var(--gray-color);" data-lang="zh">1名 (獎狀+獎品)</span>
+                        <span style="font-size:0.9rem; color:var(--gray-color);" data-lang="en">1 Winner (Certificate+Prize)</span>
+                    </div>
+                    <div style="background:#f1f5f8; padding:15px; border-radius:8px; border-bottom: 3px solid var(--accent-color);">
+                        <strong data-lang="zh">最佳互動體驗獎</strong><strong data-lang="en">Best Interaction</strong><br>
+                        <span style="font-size:0.9rem; color:var(--gray-color);" data-lang="zh">1名 (獎狀+獎品)</span>
+                        <span style="font-size:0.9rem; color:var(--gray-color);" data-lang="en">1 Winner (Certificate+Prize)</span>
+                    </div>
+                    <div style="background:#f1f5f8; padding:15px; border-radius:8px; border-bottom: 3px solid var(--accent-color);">
+                        <strong data-lang="zh">團隊優勝獎</strong><strong data-lang="en">Team Champion</strong><br>
+                        <span style="font-size:0.9rem; color:var(--gray-color);" data-lang="zh">1名 (獎狀+獎品)</span>
+                        <span style="font-size:0.9rem; color:var(--gray-color);" data-lang="en">1 Winner (Certificate+Prize)</span>
+                    </div>
+                    <div style="background:#f1f5f8; padding:15px; border-radius:8px; border-bottom: 3px solid var(--accent-color);">
+                        <strong data-lang="zh">人氣獎</strong><strong data-lang="en">Popularity Award</strong><br>
+                        <span style="font-size:0.9rem; color:var(--gray-color);" data-lang="zh">1名 (愛心最高者)</span>
+                        <span style="font-size:0.9rem; color:var(--gray-color);" data-lang="en">1 Winner (Most Likes)</span>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 25px; padding: 15px; background-color: #fff9f2; border-left: 4px solid var(--accent-color); border-radius: 4px;">
+                    <span data-lang="zh"><strong><i class="fa-solid fa-heart" style="color:red;"></i> 線上人氣獎機制：</strong> 比賽結束後，作品將上傳至 <a href="https://scratch.mit.edu/studios/36480615" target="_blank" style="color:var(--secondary-color); font-weight:bold; text-decoration:underline;">Scratch 官方工作坊</a>，開放一週時間讓全球學生線上體驗並點擊愛心（Like），最高者得獎！</span>
+                    <span data-lang="en"><strong><i class="fa-solid fa-heart" style="color:red;"></i> Popularity Award Mechanism:</strong> After the competition, all projects will be uploaded to the <a href="https://scratch.mit.edu/studios/36480615" target="_blank" style="color:var(--secondary-color); font-weight:bold; text-decoration:underline;">Scratch Studio</a>. It will open for one week for global peers to experience and "Like." The project with the most likes wins!</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="links">
+            <a href="https://sites.google.com/view/codingnations/tzu-chi-coding" target="_blank"><i class="fa-solid fa-house"></i> <span data-lang="zh">大會官方網站</span><span data-lang="en">Official Website</span></a> | 
+            <a href="https://forms.gle/xPUz3goRxctBSLea6" target="_blank"><i class="fa-solid fa-user-plus"></i> <span data-lang="zh">賽事報名表單</span><span data-lang="en">Registration</span></a> | 
+            <a href="https://forms.gle/YinJhYBV9dE1zrZf8" target="_blank"><i class="fa-solid fa-file-arrow-up"></i> <span data-lang="zh">作品上傳連結</span><span data-lang="en">Upload Portal</span></a>
+        </div>
+        <p>&copy; 2026 社團法人科丁聯盟協會 & 慈濟基金會. All Rights Reserved. </p>
+    </footer>
+
+    <script>
+        let currentLang = 'zh';
+
+        function toggleLanguage() {
+            const zhElements = document.querySelectorAll('[data-lang="zh"]');
+            const enElements = document.querySelectorAll('[data-lang="en"]');
+            const langBtnText = document.querySelector('#langBtn span');
+
+            if (currentLang === 'zh') {
+                // Switch to English
+                zhElements.forEach(el => el.style.display = 'none');
+                enElements.forEach(el => el.style.display = 'inline-block');
+                
+                // Keep table row spans or blocks acting correctly
+                document.querySelectorAll('span[data-lang="en"], strong[data-lang="en"]').forEach(el => {
+                    el.style.display = 'inline';
+                });
+                document.querySelectorAll('div[data-lang="en"], ul[data-lang="en"], p[data-lang="en"]').forEach(el => {
+                    el.style.display = 'block';
+                });
+
+                langBtnText.textContent = '中文版本';
+                currentLang = 'en';
+            } else {
+                // Switch to Chinese
+                enElements.forEach(el => el.style.display = 'none');
+                zhElements.forEach(el => el.style.display = 'inline-block');
+
+                document.querySelectorAll('span[data-lang="zh"], strong[data-lang="zh"]').forEach(el => {
+                    el.style.display = 'inline';
+                });
+                document.querySelectorAll('div[data-lang="zh"], ul[data-lang="zh"], p[data-lang="zh"]').forEach(el => {
+                    el.style.display = 'block';
+                });
+
+                langBtnText.textContent = 'English';
+                currentLang = 'zh';
+            }
+        }
+    </script>
+</body>
+</html>
