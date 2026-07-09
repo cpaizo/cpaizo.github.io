@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-TW" class="lang-zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -335,17 +335,16 @@
 
         .detail-box li::before {
             content: '\f00c';
-            font-family: 'Font Awesome 5 Free';
+            font-family: 'Font Awesome 6 Free';
             font-weight: 900;
             position: absolute;
             left: 0;
             color: var(--secondary-color);
         }
 
-        /* Language display helper */
-        [data-lang="en"] {
-            display: none;
-        }
+        /* 用頂層 Class 智慧切換語系，確保排版完美不跑位 */
+        .lang-zh [data-lang="en"] { display: none !important; }
+        .lang-en [data-lang="zh"] { display: none !important; }
 
         /* Footer */
         footer {
@@ -489,10 +488,14 @@
                     <table>
                         <thead>
                             <tr>
-                                <th data-lang="zh">時間 (台灣)</th>
-                                <th data-lang="en">Time (Taiwan)</th>
-                                <th data-lang="zh">活動內容</th>
-                                <th data-lang="en">Activity</th>
+                                <th>
+                                    <span data-lang="zh">時間 (台灣)</span>
+                                    <span data-lang="en">Time (Taiwan)</span>
+                                </th>
+                                <th>
+                                    <span data-lang="zh">活動內容</span>
+                                    <span data-lang="en">Activity</span>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -520,10 +523,14 @@
                     <table>
                         <thead>
                             <tr>
-                                <th data-lang="zh">時間 (台灣)</th>
-                                <th data-lang="en">Time (Taiwan)</th>
-                                <th data-lang="zh">活動內容</th>
-                                <th data-lang="en">Activity</th>
+                                <th>
+                                    <span data-lang="zh">時間 (台灣)</span>
+                                    <span data-lang="en">Time (Taiwan)</span>
+                                </th>
+                                <th>
+                                    <span data-lang="zh">活動內容</span>
+                                    <span data-lang="en">Activity</span>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -557,13 +564,11 @@
                 <ul data-lang="zh">
                     <li><strong>參賽隊伍：</strong>泰國(清邁慈濟)、土耳其(滿納海)、莫三比克(莫凡比斯)、墨西哥指定學校。每國 1 隊，每隊 5 名學生。</li>
                     <li><strong>題目抽選：</strong>賽前公布 10 道主題。比賽當天隨機抽出 5 題，隊員 5 人各負責 1 題獨立完成。</li>
-                    <!--<li><strong>師長參與：</strong>指導老師亦需參賽！老師題目另行抽取，於賽前完成並在當天發表分享。</li>-->
                     <li><strong>語言翻譯：</strong>大會提供即時中文翻譯，以便評審與嘉賓聆聽 3 分鐘的作品發表。</li>
                 </ul>
                 <ul data-lang="en">
                     <li><strong>Participating Teams:</strong> Thailand, Turkey, Mozambique, and Mexico. Each country sends 1 team of 5 students.</li>
                     <li><strong>Topic Draw:</strong> 10 core topics are released in advance. 5 topics will be randomly drawn on site; each member takes 1 unique topic.</li>
-                    <!--<li><strong>Teacher Participation:</strong> Instructors also participate! Their topics are drawn separately and completed prior to the event for presentation.</li>-->
                     <li><strong>Interpretation:</strong> Live interpreters will provide real-time translation into Chinese during the students' 3-minute presentations.</li>
                 </ul>
             </div>
@@ -579,12 +584,18 @@
                     <table>
                         <thead>
                             <tr>
-                                <th data-lang="zh">評分項目</th>
-                                <th data-lang="en">Criteria</th>
-                                <th data-lang="zh">比重</th>
-                                <th data-lang="en">Weight</th>
-                                <th data-lang="zh">說明</th>
-                                <th data-lang="en">Description</th>
+                                <th>
+                                    <span data-lang="zh">評分項目</span>
+                                    <span data-lang="en">Criteria</span>
+                                </th>
+                                <th>
+                                    <span data-lang="zh">比重</span>
+                                    <span data-lang="en">Weight</span>
+                                </th>
+                                <th>
+                                    <span data-lang="zh">說明</span>
+                                    <span data-lang="en">Description</span>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -676,39 +687,16 @@
 
     <script>
         let currentLang = 'zh';
+        const htmlEl = document.documentElement;
+        const langBtnText = document.querySelector('#langBtn span');
 
         function toggleLanguage() {
-            const zhElements = document.querySelectorAll('[data-lang="zh"]');
-            const enElements = document.querySelectorAll('[data-lang="en"]');
-            const langBtnText = document.querySelector('#langBtn span');
-
             if (currentLang === 'zh') {
-                // Switch to English
-                zhElements.forEach(el => el.style.display = 'none');
-                enElements.forEach(el => el.style.display = 'inline-block');
-                
-                // Keep table row spans or blocks acting correctly
-                document.querySelectorAll('span[data-lang="en"], strong[data-lang="en"]').forEach(el => {
-                    el.style.display = 'inline';
-                });
-                document.querySelectorAll('div[data-lang="en"], ul[data-lang="en"], p[data-lang="en"]').forEach(el => {
-                    el.style.display = 'block';
-                });
-
+                htmlEl.className = 'lang-en';
                 langBtnText.textContent = '中文版本';
                 currentLang = 'en';
             } else {
-                // Switch to Chinese
-                enElements.forEach(el => el.style.display = 'none');
-                zhElements.forEach(el => el.style.display = 'inline-block');
-
-                document.querySelectorAll('span[data-lang="zh"], strong[data-lang="zh"]').forEach(el => {
-                    el.style.display = 'inline';
-                });
-                document.querySelectorAll('div[data-lang="zh"], ul[data-lang="zh"], p[data-lang="zh"]').forEach(el => {
-                    el.style.display = 'block';
-                });
-
+                htmlEl.className = 'lang-zh';
                 langBtnText.textContent = 'English';
                 currentLang = 'zh';
             }
