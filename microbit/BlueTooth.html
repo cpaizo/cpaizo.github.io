@@ -3,47 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Micro:bit 藍牙連線測試</title>
+    <title>16x16 LED 矩陣藍牙控制器</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; marginTop: 50px; background: #f0f2f5; }
-        .btn { padding: 15px 30px; font-size: 18px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        .btn:hover { background: #218838; }
-        #status { margin-top: 20px; font-size: 20px; font-weight: bold; color: #555; }
+        body { font-family: Arial, sans-serif; text-align: center; background: #f0f2f5; padding: 10px; }
+        .btn { padding: 12px 24px; font-size: 16px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 10px; }
+        #status { font-weight: bold; margin-bottom: 15px; color: #555; }
+        
+        /* 16x16 網格樣式 */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(16, 1fr);
+            gap: 2px;
+            max-width: 340px;
+            margin: 0 auto 20px auto;
+            background: #ccc;
+            padding: 2px;
+            border-radius: 4px;
+        }
+        .cell {
+            aspect-ratio: 1;
+            background: #fff;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        .cell:active { background: #ddd; }
+        
+        .control-box { max-width: 300px; margin: 0 auto; text-align: left; }
+        label { display: block; margin-top: 8px; font-weight: bold; }
+        input[type=range] { width: 100%; }
     </style>
 </head>
 <body>
 
-    <h1>Micro:bit 藍牙連線測試面板</h1>
-    <button class="btn" onclick="connectMicrobit()">👉 點擊尋找並連線 Micro:bit</button>
-    <div id="status">目前狀態：尚未連線</div>
+    <h2>16x16 LED 藍牙控制面板</h2>
+    <button class="btn" onclick="connectMicrobit()">🔗 連線 Micro:bit</button>
+    <div id="status">狀態：尚未連線</div>
+
+    <!-- 16x16 互動網格 -->
+    <div class="grid-container" id="pixel-grid"></div>
+
+    <!-- 顏色選擇器 -->
+    <div class="control-box">
+        <label style="color:red;">紅 (R): <span id="r_val">255</span></label>
+        <input type="range" id="r_slide" min="0" max="255" value="255" oninput="document.getElementById('r_val').innerText=this.value">
+        
+        <label style="color:green;">綠 (G): <span id="g_val">0</span></label>
+        <input type="range" id="g_slide" min="0" max="255" value="0" oninput="document.getElementById('g_val').innerText=this.value">
+        
+        <label style="color:blue;">藍 (B): <span id="b_val">0</span></label>
+        <input type="range" id="b_slide" min="0" max="255" value="0" oninput="document.getElementById('b_val').innerText=this.value">
+    </div>
 
 <script>
-// Nordic UART 服務的標準 UUID
 const UART_SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
+const TX_CHARACTERISTIC_UUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
 
+let txCharacteristic = null;
+
+// 自動產生 16x16 的格子
+const grid = document.getElementById('pixel-grid');
+for (let y = 0; y < 16; y++) {
+    for (let x = 0; x < 16; x++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        // 點擊格子時觸發傳送
+        cell.onclick = () => sendPixel(x, y);
+        grid.appendChild(cell);
+    }
+}
+
+// 藍牙連線
 async function connectMicrobit() {
     const statusDiv = document.getElementById('status');
-    statusDiv.innerText = '正在尋找裝置中...';
-
+    statusDiv.innerText = '尋找裝置中...';
     try {
-        // 請求藍牙裝置
         const device = await navigator.bluetooth.requestDevice({
             filters: [{ namePrefix: 'BBC micro:bit' }],
             optionalServices: [UART_SERVICE_UUID]
         });
-
-        statusDiv.innerText = '正在連線至：' + device.name + '...';
-
-        // 建立 GATT 連線
         const server = await device.gatt.connect();
-        
+        const service = await server.getPrimaryService(UART_SERVICE_UUID);
+        txCharacteristic = await service.getCharacteristic(TX_CHARACTERISTIC_UUID);
         statusDiv.style.color = '#28a745';
-        statusDiv.innerText = '🎉 連線成功！已成功連接 ' + device.name;
-        
+        statusDiv.innerText = '🎉 連線成功！可以點擊上方格子控燈了';
     } catch (error) {
-        console.error(error);
         statusDiv.style.color = '#dc3545';
-        statusDiv.innerText = '❌ 連線失敗：' + error.message;
+        statusDiv.innerText = '❌ 失敗：' + error.message;
+    }
+}
+
+// 傳送特定座標與顏色值
+async function sendPixel(x, y) {
+    if (!txCharacteristic) {
+        alert('請先點選上方按鈕連線 Micro:bit！');
+        return;
+    }
+
+    const r = document.getElementById('r_slide').value;
+    const g = document.getElementById('g_slide').value;
+    const b = document.getElementById('b_slide').value;
+
+    // 格式化字串："X,Y,R,G,B\n"
+    const dataString = `${x},${y},${r},${g},${b}\n`;
+    const encoder = new TextEncoder();
+    const dataBuffer = encoder.encode(dataString);
+
+    try {
+        await txCharacteristic.writeValueWithoutResponse(dataBuffer);
+        console.log('已傳送:', dataString);
+    } catch (error) {
+        console.error('傳送失敗:', error);
     }
 }
 </script>
