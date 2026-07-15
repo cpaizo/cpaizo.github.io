@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Micro:bit 藍牙連線測試</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; marginTop: 50px; background: #f0f2f5; }
+        .btn { padding: 15px 30px; font-size: 18px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .btn:hover { background: #218838; }
+        #status { margin-top: 20px; font-size: 20px; font-weight: bold; color: #555; }
+    </style>
+</head>
+<body>
+
+    <h1>Micro:bit 藍牙連線測試面板</h1>
+    <button class="btn" onclick="connectMicrobit()">👉 點擊尋找並連線 Micro:bit</button>
+    <div id="status">目前狀態：尚未連線</div>
+
+<script>
+// Nordic UART 服務的標準 UUID
+const UART_SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
+
+async function connectMicrobit() {
+    const statusDiv = document.getElementById('status');
+    statusDiv.innerText = '正在尋找裝置中...';
+
+    try {
+        // 請求藍牙裝置
+        const device = await navigator.bluetooth.requestDevice({
+            filters: [{ namePrefix: 'BBC micro:bit' }],
+            optionalServices: [UART_SERVICE_UUID]
+        });
+
+        statusDiv.innerText = '正在連線至：' + device.name + '...';
+
+        // 建立 GATT 連線
+        const server = await device.gatt.connect();
+        
+        statusDiv.style.color = '#28a745';
+        statusDiv.innerText = '🎉 連線成功！已成功連接 ' + device.name;
+        
+    } catch (error) {
+        console.error(error);
+        statusDiv.style.color = '#dc3545';
+        statusDiv.innerText = '❌ 連線失敗：' + error.message;
+    }
+}
+</script>
+</body>
+</html>
