@@ -5,32 +5,92 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>16x16 LED 矩陣藍牙控制器</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background: #f0f2f5; padding: 10px; }
-        .btn { padding: 12px 24px; font-size: 16px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 10px; }
-        #status { font-weight: bold; margin-bottom: 15px; color: #555; }
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            background: #f0f2f5; 
+            padding: 10px; 
+            margin: 0;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .btn { 
+            padding: 12px 24px; 
+            font-size: 16px; 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            margin: 10px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .btn:active {
+            background: #0056b3;
+        }
+        #status { 
+            font-weight: bold; 
+            margin-bottom: 15px; 
+            color: #666; 
+            font-size: 14px;
+        }
         
         /* 16x16 網格樣式 */
         .grid-container {
             display: grid;
             grid-template-columns: repeat(16, 1fr);
             gap: 2px;
-            max-width: 340px;
+            max-width: 360px;
             margin: 0 auto 20px auto;
             background: #ccc;
-            padding: 2px;
-            border-radius: 4px;
+            padding: 4px;
+            border-radius: 6px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         }
         .cell {
             aspect-ratio: 1;
             background: #fff;
             border-radius: 2px;
             cursor: pointer;
+            transition: background 0.1s;
         }
-        .cell:active { background: #ddd; }
+        .cell:active { 
+            background: #ddd; 
+        }
         
-        .control-box { max-width: 300px; margin: 0 auto; text-align: left; }
-        label { display: block; margin-top: 8px; font-weight: bold; }
-        input[type=range] { width: 100%; }
+        /* 滑桿控制區樣式 */
+        .control-box { 
+            max-width: 320px; 
+            margin: 0 auto; 
+            text-align: left; 
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .slider-group {
+            margin-bottom: 12px;
+        }
+        label { 
+            display: block; 
+            font-weight: bold; 
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        input[type=range] { 
+            width: 100%; 
+            margin: 0;
+        }
+        .color-preview {
+            width: 100%;
+            height: 20px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            margin-top: 10px;
+            background-color: rgb(255, 0, 0);
+        }
     </style>
 </head>
 <body>
@@ -44,58 +104,91 @@
 
     <!-- 顏色選擇器 -->
     <div class="control-box">
-        <label style="color:red;">紅 (R): <span id="r_val">255</span></label>
-        <input type="range" id="r_slide" min="0" max="255" value="255" oninput="document.getElementById('r_val').innerText=this.value">
+        <div class="slider-group">
+            <label style="color: #dc3545;">紅 (R): <span id="r_val">255</span></label>
+            <input type="range" id="r_slide" min="0" max="255" value="255" oninput="updateColorPreview()">
+        </div>
         
-        <label style="color:green;">綠 (G): <span id="g_val">0</span></label>
-        <input type="range" id="g_slide" min="0" max="255" value="0" oninput="document.getElementById('g_val').innerText=this.value">
+        <div class="slider-group">
+            <label style="color: #28a745;">綠 (G): <span id="g_val">0</span></label>
+            <input type="range" id="g_slide" min="0" max="255" value="0" oninput="updateColorPreview()">
+        </div>
         
-        <label style="color:blue;">藍 (B): <span id="b_val">0</span></label>
-        <input type="range" id="b_slide" min="0" max="255" value="0" oninput="document.getElementById('b_val').innerText=this.value">
+        <div class="slider-group">
+            <label style="color: #007bff;">藍 (B): <span id="b_val">0</span></label>
+            <input type="range" id="b_slide" min="0" max="255" value="0" oninput="updateColorPreview()">
+        </div>
+
+        <div style="font-size: 12px; color: #777; margin-top: 10px;">目前選擇的顏色：</div>
+        <div class="color-preview" id="preview-box"></div>
     </div>
 
 <script>
+// Micro:bit 藍牙 Nordic UART 服務的 UUID
 const UART_SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
-const TX_CHARACTERISTIC_UUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
+const TX_CHARACTERISTIC_UUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // 網頁傳送給 Micro:bit
 
 let txCharacteristic = null;
 
-// 自動產生 16x16 的格子
+// 自動產生 16x16 的網格
 const grid = document.getElementById('pixel-grid');
 for (let y = 0; y < 16; y++) {
     for (let x = 0; x < 16; x++) {
         const cell = document.createElement('div');
         cell.className = 'cell';
-        // 點擊格子時觸發傳送
+        // 綁定點擊事件，點下去就發送對應的 (X, Y) 座標
         cell.onclick = () => sendPixel(x, y);
         grid.appendChild(cell);
     }
 }
 
-// 藍牙連線
+// 更新網頁上的數值與預覽顏色
+function updateColorPreview() {
+    const r = document.getElementById('r_slide').value;
+    const g = document.getElementById('g_slide').value;
+    const b = document.getElementById('b_slide').value;
+    
+    document.getElementById('r_val').innerText = r;
+    document.getElementById('g_val').innerText = g;
+    document.getElementById('b_val').innerText = b;
+    
+    document.getElementById('preview-box').style.backgroundColor = `rgb(${r},${g},${b})`;
+}
+
+// 藍牙連線函式（直接搜尋支援 UART 的裝置）
 async function connectMicrobit() {
     const statusDiv = document.getElementById('status');
     statusDiv.innerText = '尋找裝置中...';
+    statusDiv.style.color = '#666';
+    
     try {
+        // 關鍵：改用 services 進行過濾，這樣在 Micro:bit 正常跑 Python 時就能搜到
         const device = await navigator.bluetooth.requestDevice({
-            filters: [{ namePrefix: 'BBC micro:bit' }],
-            optionalServices: [UART_SERVICE_UUID]
+            filters: [
+                { services: [UART_SERVICE_UUID] }
+            ]
         });
+        
+        statusDiv.innerText = `正在連線至：${device.name || "Micro:bit"}...`;
+        
         const server = await device.gatt.connect();
         const service = await server.getPrimaryService(UART_SERVICE_UUID);
         txCharacteristic = await service.getCharacteristic(TX_CHARACTERISTIC_UUID);
+        
         statusDiv.style.color = '#28a745';
-        statusDiv.innerText = '🎉 連線成功！可以點擊上方格子控燈了';
+        statusDiv.innerText = `🎉 連線成功！已連接：${device.name || "Micro:bit"}`;
+        
     } catch (error) {
+        console.error(error);
         statusDiv.style.color = '#dc3545';
         statusDiv.innerText = '❌ 失敗：' + error.message;
     }
 }
 
-// 傳送特定座標與顏色值
+// 傳送特定座標與顏色值給 Micro:bit
 async function sendPixel(x, y) {
     if (!txCharacteristic) {
-        alert('請先點選上方按鈕連線 Micro:bit！');
+        alert('請先點選上方藍色按鈕連線 Micro:bit！');
         return;
     }
 
@@ -103,14 +196,15 @@ async function sendPixel(x, y) {
     const g = document.getElementById('g_slide').value;
     const b = document.getElementById('b_slide').value;
 
-    // 格式化字串："X,Y,R,G,B\n"
+    // 格式化字串為："X,Y,R,G,B\n" (例如 "0,0,255,0,0\n")
     const dataString = `${x},${y},${r},${g},${b}\n`;
     const encoder = new TextEncoder();
     const dataBuffer = encoder.encode(dataString);
 
     try {
+        // 使用 writeValueWithoutResponse 發送，速度快且不易卡頓
         await txCharacteristic.writeValueWithoutResponse(dataBuffer);
-        console.log('已傳送:', dataString);
+        console.log('已發送:', dataString.trim());
     } catch (error) {
         console.error('傳送失敗:', error);
     }
