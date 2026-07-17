@@ -139,7 +139,7 @@
             text-align: center;
             font-size: 2.2rem;
             color: var(--primary-color);
-            margin-bottom: 50px;
+            margin-bottom: 30px; /* 稍微縮小原來的 50px 讓下一行的連結排版更緊湊 */
             position: relative;
             font-weight: 700;
         }
@@ -152,6 +152,28 @@
             background-color: var(--accent-color);
             margin: 15px auto 0;
             border-radius: 2px;
+        }
+
+        /* Detailed Schedule Sub-link */
+        .schedule-sub-link {
+            text-align: center;
+            margin-bottom: 45px;
+            font-size: 1.1rem;
+        }
+
+        .schedule-sub-link a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .schedule-sub-link a:hover {
+            color: var(--accent-color);
+            text-decoration: underline;
         }
 
         /* Goals Section */
@@ -474,6 +496,14 @@
             <span data-lang="zh">賽事分組與流程 (台灣時間)</span>
             <span data-lang="en">Groups & Agenda (Taiwan Time)</span>
         </h2>
+        
+        <!-- 新增的連結區塊：位於標題正下方一行，支援多語系架構且排版不跑位 -->
+        <div class="schedule-sub-link">
+            <a href="https://drive.google.com/file/d/1OCGAbEy8L6_LR6r-9MyFq6gH3Vy0B29C/view" target="_blank">
+                <i class="fa-solid fa-file-pdf"></i> Detailed Schedule (Bilingual)
+            </a>
+        </div>
+
         <div class="group-container">
             
             <div class="group-card">
