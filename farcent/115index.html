@@ -1,1 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【花仙子教育基金會】AI小達人 × 智慧商戰園遊會寒假冬令營</title>
+    <style>
+        /* 晨曦森林魔法風配色與基本設定 */
+        :root {
+            --primary-color: #2ec4b6;
+            --secondary-color: #ffa64d;
+            --background-color: #f4f9f6;
+            --text-dark: #2d3748;
+            --card-bg: #ffffff;
+        }
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Helvetica Neue", Arial, "Noto Sans TC", sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-dark);
+            line-height: 1.8;
+        }
+
+        /* 頂部橫幅 */
+        header {
+            background: linear-gradient(135deg, #2ec4b6 0%, #a8ded9 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            border-bottom-left-radius: 40px;
+            border-bottom-right-radius: 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .badge-main {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        header h1 {
+            font-size: 2.3rem;
+            font-weight: 900;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 0px rgba(0,0,0,0.1);
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* 主要內容排版容器 */
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        /* 基本資訊區塊 */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .info-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 5px solid var(--primary-color);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+
+        .info-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        .sponsor-text {
+            color: #e65c00;
+            font-weight: bold;
+        }
+
+        /* 課程目的介紹 */
+        .intro-box {
+            background: linear-gradient(to right, #ffffff, #edf7f6);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 50px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .section-title {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: var(--text-dark);
+            margin-bottom: 25px;
+            position: relative;
+            padding-left: 15px;
+        }
+
+        .section-title::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 4px;
+            width: 6px;
+            height: 24px;
+            background-color: var(--secondary-color);
+            border-radius: 3px;
+        }
+
+        /* 4天日程大卡片排版 */
+        .day-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .day-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.03);
+            border: 1px solid #eef5f2;
+        }
+
+        .day-header {
+            background-color: #2ec4b6;
+            color: white;
+            padding: 15px 25px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .day-badge {
+            background-color: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .lesson-list {
+            padding: 25px;
+        }
+
+        .lesson-item {
+            border-bottom: 1px dashed #e2e8f0;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+
+        .lesson-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+
+        .lesson-title {
+            font-weight: 900;
+            font-size: 1.1rem;
+            color: #1a202c;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .lesson-title span {
+            background-color: #fff0e0;
+            color: var(--secondary-color);
+            padding: 2px 8px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+        }
+
+        .lesson-detail {
+            font-size: 0.95rem;
+            color: #4a5568;
+            margin-left: 5px;
+        }
+
+        .lesson-target {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-top: 4px;
+            margin-left: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        footer {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 30px 20px;
+            font-size: 0.9rem;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+        }
+
+        /* 手機板響應式優化 */
+        @media (max-width: 600px) {
+            header h1 { font-size: 1.7rem; }
+            .section-title { font-size: 1.3rem; }
+            .day-header { font-size: 1rem; flex-direction: column; align-items: flex-start; gap: 5px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 頂部宣傳 Banner -->
+    <header>
+        <div class="badge-main">⭐ 寒假限定 AI 科技商戰營</div>
+        <h1>AI小達人 × 智慧商戰園遊會</h1>
+        <p>不套用死板模組！引導孩子扮演專案策劃者，親手特訓 AI 大腦、打造專屬無人魔法商店</p>
+    </header>
+
+    <div class="container">
+        
+        <!-- 營隊基本資訊面板 -->
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>📅 執行時間</h3>
+                <p>115 學年度 第一學期<br><strong>寒假期間</strong></p>
+            </div>
+            <div class="info-card">
+                <h3>🎒 招收對象</h3>
+                <p>新北市公立國小<br><strong>5 ~ 6 年級</strong> 學生</p>
+            </div>
+            <div class="info-card">
+                <h3>🏫 參與規模</h3>
+                <p>新北市公立國小 <strong>3 所</strong><br>每校限額 15 位，共 45 位</p>
+            </div>
+            <div class="info-card">
+                <h3>💰 營隊費用</h3>
+                <p class="sponsor-text">🎁 課程費用與美味餐點<br>由花仙子全額贊助！</p>
+            </div>
+        </div>
+
+        <!-- 一、課程背景與目的 -->
+        <div class="intro-box">
+            <h2 class="section-title">一、營隊核心目的與特色</h2>
+            <p>隨著人工智慧技術的普及，未來人才的核心能力在於<strong>「如何與 AI 高效溝通與協作」</strong>。本營隊首創「智慧商戰園遊會」主題，深度圍繞 AI 溝通技巧（AI Prompting），結合 Teachable Machine 影像辨識、前端網頁設計（HTML/JS）與 Micro:bit 控制技術。</p>
+            <p style="margin-top: 15px;">課程不套用現成死板的模組，而是引導學生扮演專案策劃者，親自採集與訓練 AI 商品辨識模型，並將自己的商務邏輯與設計想法「餵給 AI」，由 AI 輔助編寫網頁程式碼與 Micro:bit LED 矩陣燈板的控制程式。學生將在自主測試與對 AI 下指令除錯（Debug）的過程中，深刻體驗人機協作的威力，培養獨立思考、邏輯轉譯與新世代的 AI 溝通素養。</p>
+        </div>
+
+        <!-- 二、20堂課小小老闆探險指南 -->
+        <h2 class="section-title">二、20堂課小小老闆探險指南</h2>
+        
+        <div class="day-timeline">
+            
+            <!-- DAY 1 -->
+            <div class="day-card">
+                <div class="day-header">
+                    <div>🌳 Day 1：AI 魔法大腦與商店設計圖</div>
+                    <div class="day-badge">第 1 ~ 5 堂課</div>
+                </div>
+                <div class="lesson-list">
+                    <div class="lesson-item">
+                        <div class="lesson-title"><span>第 1 堂</span> 【AI 超能力探索】</div>
+                        <div class="lesson-detail"><strong>我們要做什麼：</strong>認識 AI 這個魔法幫手，知道它能看懂照片（影像辨識），但也知道它有時候會看錯。</div>
+                        <div class="lesson-target">🎯 挑戰成功目標：學會做一個誠實、有禮貌的 AI 小主人，不作弊、不亂用。</div>
+                    </div>
+                    <div class="lesson-item">
+                        <div class="lesson-title"><span>第 2 堂</span> 【老闆們集合！商戰啟航】</div>
+                        <div class="lesson-detail"><strong>我們要做什麼：</strong>搞懂園遊會大賽的規則。選出每組的隊長和工作負責人，決定我們的花仙子商店要怎麼賣東西。</div>
+                        <div class="lesson-target">🎯 挑戰成功目標：分好工作、寫好商店計畫書，知道怎麼拿到園遊會的營收第一名！</div>
+                    </div>
+                    <div class="lesson-item">
+                        <div class="lesson-title"><span>第 3 堂</span> 【蓋出網頁城堡（HTML 基礎）】</div>
+                        <div class="lesson-detail"><strong>我們要做什麼：</strong>學習寫網頁的蓋房子祕訣（HTML），把文字和漂漂亮亮的顏色放到畫面上。</div>
+                        <div class="lesson-target">🎯 挑戰成功目標：認識網路商店的骨架，看得懂基本的網頁長什麼樣子。</div>
+                    </div>
+                    <div class="lesson-item">
+                        <div class="lesson-title"><span>第 4~5 堂</span> 【金幣大作戰！行銷策略】</div>
+                        <div class="lesson-detail"><strong>我們要做什麼：</strong>當個聰明的小商人，想出好玩的「促銷招數」（例如：四大天王套餐、滿額送神祕大獎）。</div>
+                        <div class="lesson-target">🎯 挑戰成功目標：想出最厲害的賺錢大絕招，讓客人忍不住把口袋裡的 20 金幣全部花光光！</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DAY 2 -->
+            <div class="day-card">
+                <div class="day-header" style="background-color: #3aa89e;">
+                    <div>⚡ Day 2：召喚 AI 寫程式與特訓鏡頭</div>
+                    <div class="day-badge">第 6 ~ 10 堂課</div>
+                </div>
+                <div class="lesson-list">
+                    <div class="lesson-item">
+                        <div class="lesson-title"><span>第 1~2 堂</span> 【召喚 AI 寫程式初稿】</div>
+                        <div class="lesson-detail"><strong>我們要做什麼：</strong>學習跟 AI 助教說悄悄話（咒語 Prompt），請 AI 幫我們寫出商店網頁的第一版程式碼。</div>
+                        <div class="lesson-target">🎯 挑戰成功目標：和 AI 合作，神奇地變出我們網路商店的初步畫面！</div>
+                    </div>
+                    <div class="lesson-item">
+                        <div class="lesson-title"><span>第 3 堂</span> 【打開天眼！鏡頭大連線】</div>
+                        <div class="lesson-detail"><strong>我們要做什麼：</strong>讓網頁和電腦的視訊鏡頭（WebCam）連上線，讓網頁能看到外面的世界。</div>
+                        <div class="lesson-target">🎯 挑戰成功目標：網頁畫面上成功出現你們的大臉和即時畫面。</div>
+                    </div>
+                    <div class="lesson-item">
+                        <div class="lesson-title"><span>第 4~5 堂</span> 【AI 眼睛特訓（Teachable Machine）】</div>
+                        <div class="lesson-detail"><strong>我們要做什麼：</strong>拍很多張花仙子商品的各種角度照片，拿去餵給 AI 吃，特訓 AI 的眼睛。</div>
+                        <div class="lesson-target">🎯 挑戰成功目標：訓練出專屬於你們店的「AI 商品辨識腦袋」，商品拿過去它就認得！</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DAY 3 -->
+            <div class="day-card">
+                <div class="day-header" style="background-color: #49918a;">
+                    <div>🛠️ Day 3：商店網頁超級大改造與捉怪</div>
+                    <div class="day-badge">第 11 ~ 15 堂課</div>
+                </div>
+                <div class="lesson-list">
+                    <div class="lesson-item">
+                        <div class="lesson-title"><span>第 1~5 堂</span> 【網路商店抓蟲與蓋完它】</div>
+                        <div class="lesson-detail"><strong>我們要做什麼：</strong>當個軟體除錯小偵探，把程式裡亂跳的怪物（Bug）抓出來；把畫面變漂亮，並加上防呆設計。</div>
+                        <div class="lesson-target">🎯 挑戰成功目標：做出一台超級好用、絕對不會當機、評審看了會發出「哇～」的完美 AI 無人商店！</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DAY 4 -->
+            <div class="day-card">
+                <div class="day-header" style="background-color: #537a76;">
+                    <div>🔮 Day 4：Micro:bit 閃亮實體招牌與市集決戰</div>
+                    <div class="day-badge">第 16 ~ 20 堂課</div>
+                </div>
+                <div class="lesson-list">
+                    <div class="lesson-item">
+                        <div class="lesson-title"><span>第 1 堂</span> 【Micro:bit 電腦小板板初體驗】</div>
+                        <div class="lesson-detail"><strong>我們要做什麼：</strong>認識一塊手掌大、上面會發光的智慧晶片板，好玩地控制上面的紅色燈號。</div>
+                        <div class="lesson-target">🎯 挑戰成功目標：學會讓小板板聽你的話，自己控制它亮起來。</div>
+                    </div>
+                    <div class="lesson-item">
+                        <div class="lesson-title"><span>第 2~5 堂</span> 【閃亮亮招牌創作與市集大賽】</div>
+                        <div class="lesson-detail"><strong>我們要做什麼：</strong>請 AI 幫忙做 LED 燈板的動畫（像是笑臉、倒數 321、金錢符號），做成店面的實體吸睛招牌，並在最後搬去現場跟全校大比賽！</div>
+                        <div class="lesson-target">🎯 挑戰成功目標：完成最炫的實體招牌，並在智慧商戰市集大賽中成功發表，贏得最高營收！</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- 頁尾主辦資訊 -->
+    <footer>
+        <p><strong>主辦單位：</strong>財團法人花仙子教育基金會 &nbsp;&nbsp;|&nbsp;&nbsp; <strong>執行單位：</strong>社團法人科丁聯盟協會</p>
+        <p>© 2026 AI小達人智慧商戰冬令營 著作權所有</p>
+    </footer>
+
+</body>
+</html>
