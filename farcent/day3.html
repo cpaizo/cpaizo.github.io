@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 3：商店網頁超級大改造與捉怪 - 探險指南</title>
+    <style>
+        :root {
+            --primary: #3aa89e;      /* 森林深綠 */
+            --primary-light: #edf7f6;/* 森林淺綠底色 */
+            --secondary: #ffa64d;    /* 大會指定：亮橘色 */
+            --bg: #f8faf9;           /* 日式簡約極淺灰綠 */
+            --dark: #2d3748;         /* 深文字色 */
+            --white: #ffffff;
+            --border: #e2e8f0;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: "Helvetica Neue", Arial, "Noto Sans TC", sans-serif; background-color: var(--bg); color: var(--dark); line-height: 1.8; padding: 20px 10px; }
+        
+        /* 網頁主容器 */
+        .container { max-width: 800px; margin: 0 auto; background: var(--white); padding: 40px 30px; border-radius: 24px; box-shadow: 0 8px 30px rgba(0,0,0,0.02); }
+        
+        /* 大會規定亮橘色 Badge */
+        .badge { background: var(--secondary); color: var(--white); padding: 6px 16px; border-radius: 50px; font-weight: bold; font-size: 0.9rem; display: inline-block; margin-bottom: 15px; letter-spacing: 1px; }
+        
+        h1 { font-size: 2.2rem; color: var(--dark); margin-bottom: 20px; font-weight: 700; border-bottom: 2px solid var(--primary-light); padding-bottom: 15px; }
+        h2 { font-size: 1.5rem; color: var(--primary); margin: 35px 0 20px 0; display: flex; align-items: center; }
+        h3 { font-size: 1.15rem; color: var(--dark); margin-bottom: 10px; font-weight: 600; }
+        
+        .intro-box { background: var(--primary-light); padding: 25px; border-radius: 16px; margin-bottom: 35px; border-left: 6px solid var(--primary); }
+        .intro-box p { font-size: 1.05rem; }
+        
+        /* 課堂卡片 */
+        .class-card { background: var(--white); border: 1px solid var(--border); border-radius: 16px; padding: 25px; margin-bottom: 30px; transition: transform 0.2s; }
+        .class-card:hover { transform: translateY(-2px); border-color: var(--primary); }
+        .class-title { font-size: 1.3rem; color: var(--dark); font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; }
+        .class-title span { background: var(--primary); color: white; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.9rem; margin-right: 10px; }
+        
+        /* 提示區塊 */
+        .alert-zone { background: #fffaf0; border: 1px dashed var(--secondary); padding: 15px 20px; border-radius: 12px; margin: 15px 0; }
+        .alert-item { margin-bottom: 8px; padding-left: 15px; position: relative; }
+        .alert-item::before { content: "•"; color: var(--secondary); font-weight: bold; position: absolute; left: 0; }
+        
+        .target-box { background: #fafdfb; border: 1px solid #c6f6d5; padding: 15px 20px; border-radius: 12px; margin-top: 15px; }
+        .target-box strong { color: #2f855a; }
+        
+        /* 底部返回按鈕 */
+        .btn-back { display: inline-block; margin-top: 20px; color: var(--primary); text-decoration: none; font-weight: bold; font-size: 1.05rem; padding: 10px 20px; border: 2px solid var(--primary); border-radius: 50px; transition: all 0.2s; }
+        .btn-back:hover { background: var(--primary); color: var(--white); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 大會指定亮橘色 Badge -->
+        <span class="badge">🛠️ DAY 3 探險指南</span>
+        <h1>商店網頁超級大改造與捉怪</h1>
+        
+        <div class="intro-box">
+            <h3>🕵️‍♂️ 金牌店面裝潢師與除錯偵探集合！</h3>
+            <p>昨天的網頁只有簡單的商品名字嗎？今天我們要用最強大的<strong>視覺與文字魔法</strong>，徹底勾起評審長官們的購買欲望，同時把畫面中亂跳的排版小怪物（Bug）全部抓乾淨，做出一台讓人驚呼「哇～」的完美無人商店網頁！</p>
+        </div>
+
+        <!-- 課堂 11~15 -->
+        <div class="class-card">
+            <div class="class-title"><span>1</span> 課堂十一～十五：網路商店抓蟲與蓋完它</div>
+            <p><strong>核心觀念：</strong>寫程式最厲害的不是一次寫對，而是遇到錯誤時能冷靜解決。我們要學會微調視覺版面，並用吸睛的行銷文字勾引消費者的心！</p>
+            
+            <div class="alert-zone">
+                <strong>🛡️ 探險大改造：挑戰三大吸睛與除錯關卡！</strong>
+                <div class="alert-item"><strong>第一關：黃金招牌大變身（視覺美化）：</strong>把店名變大、換上精緻的現代日式簡約風格外框，並將商品下方的購買按鈕統一換上大會指定的<strong>亮橘色（#ffa64d）</strong>，讓長官一眼看到就想點下去！</div>
+                <div class="alert-item"><strong>第二關：心動爆擊字句（勾引購買欲望）：</strong>光有名字還不夠，為 4 個商品加上「誘人劇本」！例如將商品加上 <em>“限時限量！吃一口幸運一整天”</em> 或 <em>“🔥 評審長官推薦必買”</em> 的醒目标籤，讓商品看起來更搶手！</div>
+                <div class="alert-item"><strong>第三關：錯位小怪物退散（排版除錯）：</strong>如果圖片太大把字壓扁了、或者是按鈕歪掉亂跳，大腦警報器就要響起！我們要仔細檢查程式碼裡面的寬度與高度設定，把畫面微調到最完美、最整齊的狀態。</div>
+            </div>
+
+            <div class="target-box">
+                🎯 <strong>3人戰術密碼（神級商店美化大隊）：</strong><br><br>
+                <strong>【網頁 A】版面美化主控 💻</strong><br>
+                主控鍵盤操作程式碼，微調網頁的字體大小、外框與大會亮橘色按鈕，並負責把全組想出來的心動行銷文字精準貼進網頁中。<br><br>
+                
+                <strong>【辨識 B】文案與 AI 大合體 🧠</strong><br>
+                負責構思 4 個商品的「心動爆擊字句」，並正式將昨天的 Teachable Machine「AI 商品辨識腦袋」與網頁程式碼進行大合體，測試鏡頭前辨識出商品時，網頁文字有沒有對齊秀出來。<br><br>
+                
+                <strong>【行銷總監 C】視覺與排版除錯 👀</strong><br>
+                化身為最嚴格的客人，站在螢幕前左右檢查網頁排版有沒有歪掉、字體會不會太小，並幫忙 A 同學一起找出排版錯位的程式小怪物，讓店面完美無瑕！
+            </div>
+        </div>
+
+        <!-- 返回主頁 -->
+        <div style="text-align: center;">
+            <a href="115index.html" class="btn-back">⬅️ 回到營隊主導首頁</a>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 2：召喚 AI 寫程式與特訓鏡頭 - 探險指南</title>
+    <style>
+        :root {
+            --primary: #3aa89e;      /* 森林深綠 */
+            --primary-light: #edf7f6;/* 森林淺綠底色 */
+            --secondary: #ffa64d;    /* 大會指定：亮橘色 */
+            --bg: #f8faf9;           /* 日式簡約極淺灰綠 */
+            --dark: #2d3748;         /* 深文字色 */
+            --white: #ffffff;
+            --border: #e2e8f0;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: "Helvetica Neue", Arial, "Noto Sans TC", sans-serif; background-color: var(--bg); color: var(--dark); line-height: 1.8; padding: 20px 10px; }
+        
+        /* 網頁主容器 */
+        .container { max-width: 800px; margin: 0 auto; background: var(--white); padding: 40px 30px; border-radius: 24px; box-shadow: 0 8px 30px rgba(0,0,0,0.02); }
+        
+        /* 大會規定亮橘色 Badge */
+        .badge { background: var(--secondary); color: var(--white); padding: 6px 16px; border-radius: 50px; font-weight: bold; font-size: 0.9rem; display: inline-block; margin-bottom: 15px; letter-spacing: 1px; }
+        
+        h1 { font-size: 2.2rem; color: var(--dark); margin-bottom: 20px; font-weight: 700; border-bottom: 2px solid var(--primary-light); padding-bottom: 15px; }
+        h2 { font-size: 1.5rem; color: var(--primary); margin: 35px 0 20px 0; display: flex; align-items: center; }
+        h3 { font-size: 1.15rem; color: var(--dark); margin-bottom: 10px; font-weight: 600; }
+        
+        .intro-box { background: var(--primary-light); padding: 25px; border-radius: 16px; margin-bottom: 35px; border-left: 6px solid var(--primary); }
+        .intro-box p { font-size: 1.05rem; }
+        
+        /* 課堂卡片 */
+        .class-card { background: var(--white); border: 1px solid var(--border); border-radius: 16px; padding: 25px; margin-bottom: 30px; transition: transform 0.2s; }
+        .class-card:hover { transform: translateY(-2px); border-color: var(--primary); }
+        .class-title { font-size: 1.3rem; color: var(--dark); font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; }
+        .class-title span { background: var(--primary); color: white; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.9rem; margin-right: 10px; }
+        
+        /* 咒語語法框 */
+        .prompt-box { background: #2d3748; color: #f7fafc; padding: 20px; border-radius: 12px; font-family: monospace; font-size: 0.95rem; margin: 15px 0; border-left: 4px solid var(--secondary); line-height: 1.6; }
+        .prompt-keyword { color: #f6e05e; font-weight: bold; }
+        
+        /* 提示區塊 */
+        .alert-zone { background: #fffaf0; border: 1px dashed var(--secondary); padding: 15px 20px; border-radius: 12px; margin: 15px 0; }
+        .alert-item { margin-bottom: 8px; padding-left: 15px; position: relative; }
+        .alert-item::before { content: "•"; color: var(--secondary); font-weight: bold; position: absolute; left: 0; }
+        
+        .target-box { background: #fafdfb; border: 1px solid #c6f6d5; padding: 15px 20px; border-radius: 12px; margin-top: 15px; }
+        .target-box strong { color: #2f855a; }
+        
+        /* 底部返回按鈕 */
+        .btn-back { display: inline-block; margin-top: 20px; color: var(--primary); text-decoration: none; font-weight: bold; font-size: 1.05rem; padding: 10px 20px; border: 2px solid var(--primary); border-radius: 50px; transition: all 0.2s; }
+        .btn-back:hover { background: var(--primary); color: var(--white); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 大會指定亮橘色 Badge -->
+        <span class="badge">⚡ DAY 2 探險指南</span>
+        <h1>召喚 AI 寫程式與特訓鏡頭</h1>
+        
+        <div class="intro-box">
+            <h3>👋 歡迎來到科技挑戰的最高峰！</h3>
+            <p>今天我們要從「設計圖」跨入「真程式」！你們不需要死背複雜的英文代碼，因為你們今天是<strong>導演</strong>，AI 是你們的特效助理。接著，我們還要幫網頁裝上眼睛，親手特訓出全場最聰明的「商品辨識AI大腦」！</p>
+        </div>
+
+        <!-- 課堂 6~7 -->
+        <div class="class-card">
+            <div class="class-title"><span>1</span> 課堂六～七：召喚 AI 寫程式初稿</div>
+            <p><strong>核心觀念：</strong>只要學會跟 AI 助教說悄悄話（下達精準指令 Prompt），它就能在幾秒鐘內幫我們寫出網路商店的第一版 HTML 程式碼！</p>
+            
+            <div class="prompt-box">
+                <span class="prompt-keyword">📝 導演的黃金咒語（Prompt 範本）：</span><br><br>
+                1. <span class="prompt-keyword">【設定角色】</span>你是一位很溫柔的國小網頁設計老師。<br>
+                2. <span class="prompt-keyword">【給予材料】</span>我們的小組店名是「花仙子魔法屋」，要販售 4 種神奇商品：長官特調咖啡（10金幣）、幸運草餅乾（3金幣）...<br>
+                3. <span class="prompt-keyword">【明確規定】</span>請用 HTML 幫我寫出網頁商店。畫面要日式簡約風格，商品下方的購買按鈕請幫我使用大會規定的亮橘色（<span style="color: var(--secondary);">#ffa64d</span>）！
+            </div>
+
+            <div class="target-box">
+                🎯 <strong>3人戰術密碼：</strong><br>
+                <strong>【網頁 A】主控鍵盤 💻</strong> 負責把全組改好的咒語貼給 AI，並將產出的程式碼複製（Copy）並貼上（Paste）到檔案裡。<br>
+                <strong>【辨識 B】商戰對齊 🔍</strong> 檢查 AI 寫出來的商品名稱跟價格，有沒有把昨天的「組合包優惠策略」漏掉？<br>
+                <strong>【硬體 C】視覺把關 👀</strong> 盯著螢幕看，檢查網頁上有沒有出現亮橘色的漂亮按鈕？
+            </div>
+        </div>
+
+        <!-- 課堂 8 -->
+        <div class="class-card">
+            <div class="class-title"><span>2</span> 課堂八：打開天眼！鏡頭大連線</div>
+            <p><strong>核心觀念：</strong>我們要幫網頁裝上「靈魂之窗」，向電腦申請打開視訊鏡頭（WebCam）的權限，讓網頁看得到外面的世界！</p>
+            
+            <div class="alert-zone">
+                <strong>🛡️ 大腦警報器：隱私防護盾！</strong><br>
+                當網頁跳出「<strong>這個網站想要使用您的相機</strong>」時，如果是不認識的陌生網站，絕對要按下【拒絕】保護隱私！但今天是在我們自己蓋的城堡裡，請全組大方按下<strong>【允許】</strong>。
+            </div>
+
+            <div class="target-box">
+                🎯 <strong>3人戰術密碼：</strong><br>
+                <strong>【網頁 A】</strong> 在 AI 助教的指引下，將特殊的視訊標籤埋入網頁，順利在畫面接通即時影像。<br>
+                <strong>【辨識 B】</strong> 坐在鏡頭正中央調整坐姿，測試把商品拿在手上時，畫面看起來清不清晰？<br>
+                <strong>【硬體 C】</strong> 開始思考——當明天鏡頭順利認出商品時，Micro:bit 實體招牌應該要發出什麼閃爍訊號？
+            </div>
+        </div>
+
+        <!-- 課堂 9~10 -->
+        <div class="class-card">
+            <div class="class-title"><span>3</span> 課堂九～十：AI 眼睛特訓</div>
+            <p><strong>核心觀念：</strong>我們要帶 AI 去上幼稚園！利用 Google Teachable Machine 工具，我們就是魔鬼特訓班教練，要把 4 種商品的成百上千張照片「餵給 AI 吃」，幫它建立辨識大腦。</p>
+            
+            <div class="alert-zone" style="background: #fff5f5; border-color: #feb2b2;">
+                <strong>🚨 拍照特訓三大魔鬼細節（漏掉一個 AI 就會瞎掉喔）：</strong>
+                <div class="alert-item"><strong>「多吃多健康」原則：</strong>每種商品至少要轉動角度、拿高拿低，拍下 <strong>100 張以上</strong> 的照片，AI 才不會死腦筋。</div>
+                <div class="alert-item"><strong>「背景除錯」原則：</strong>拍照時，後面千萬不能出現隊友的搞笑大臉或隔壁組的雜物，否則 AI 會把隊友的臉誤當成商品的一部分！</div>
+                <div class="alert-item"><strong>「空無一物」設定：</strong>一定要留一班叫做「Background（背景）」的課程，拍下什麼都沒拿的畫面，告訴 AI 這叫「沒東西」。</div>
+            </div>
+
+            <div class="target-box">
+                🎯 <strong>3人戰術密碼（拍照特訓大隊）：</strong><br>
+                <strong>【辨識 B】特訓總教官 👑</strong> 主導特訓網頁的操作，精準設定 4 個商品類別與背景標籤。<br>
+                <strong>【網頁 A】超級模特兒 💃</strong> 負責在鏡頭前用完美的慢動作、360 度旋轉展示小組的 4 種神奇商品。<br>
+                <strong>【硬體 C】燈光與場景總監 💡</strong> 負責幫忙遮擋背後雜亂的背景或太刺眼的陽光，確保每張照片都乾淨漂亮！
+            </div>
+        </div>
+
+        <!-- 返回主頁 -->
+        <div style="text-align: center;">
+            <a href="115index.html" class="btn-back">⬅️ 回到營隊主導首頁</a>
+        </div>
+    </div>
+
+</body>
+</html>

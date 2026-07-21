@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 4：Micro:bit 閃亮實體招牌與市集決戰 - 探險指南</title>
+    <style>
+        :root {
+            --primary: #3aa89e;      /* 森林深綠 */
+            --primary-light: #edf7f6;/* 森林淺綠底色 */
+            --secondary: #ffa64d;    /* 大會指定：亮橘色 */
+            --bg: #f8faf9;           /* 日式簡約極淺灰綠 */
+            --dark: #2d3748;         /* 深文字色 */
+            --white: #ffffff;
+            --border: #e2e8f0;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: "Helvetica Neue", Arial, "Noto Sans TC", sans-serif; background-color: var(--bg); color: var(--dark); line-height: 1.8; padding: 20px 10px; }
+        
+        /* 網頁主容器 */
+        .container { max-width: 800px; margin: 0 auto; background: var(--white); padding: 40px 30px; border-radius: 24px; box-shadow: 0 8px 30px rgba(0,0,0,0.02); }
+        
+        /* 大會規定亮橘色 Badge */
+        .badge { background: var(--secondary); color: var(--white); padding: 6px 16px; border-radius: 50px; font-weight: bold; font-size: 0.9rem; display: inline-block; margin-bottom: 15px; letter-spacing: 1px; }
+        
+        h1 { font-size: 2.2rem; color: var(--dark); margin-bottom: 20px; font-weight: 700; border-bottom: 2px solid var(--primary-light); padding-bottom: 15px; }
+        h2 { font-size: 1.5rem; color: var(--primary); margin: 35px 0 20px 0; display: flex; align-items: center; }
+        h3 { font-size: 1.15rem; color: var(--dark); margin-bottom: 10px; font-weight: 600; }
+        
+        .intro-box { background: var(--primary-light); padding: 25px; border-radius: 16px; margin-bottom: 35px; border-left: 6px solid var(--primary); }
+        .intro-box p { font-size: 1.05rem; }
+        
+        /* 課堂卡片 */
+        .class-card { background: var(--white); border: 1px solid var(--border); border-radius: 16px; padding: 25px; margin-bottom: 30px; transition: transform 0.2s; }
+        .class-card:hover { transform: translateY(-2px); border-color: var(--primary); }
+        .class-title { font-size: 1.3rem; color: var(--dark); font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; }
+        .class-title span { background: var(--primary); color: white; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.9rem; margin-right: 10px; }
+        
+        /* 提示區塊 */
+        .alert-zone { background: #fffaf0; border: 1px dashed var(--secondary); padding: 15px 20px; border-radius: 12px; margin: 15px 0; }
+        .alert-item { margin-bottom: 8px; padding-left: 15px; position: relative; }
+        .alert-item::before { content: "•"; color: var(--secondary); font-weight: bold; position: absolute; left: 0; }
+        
+        .target-box { background: #fafdfb; border: 1px solid #c6f6d5; padding: 15px 20px; border-radius: 12px; margin-top: 15px; }
+        .target-box strong { color: #2f855a; }
+        
+        /* 底部返回按鈕 */
+        .btn-back { display: inline-block; margin-top: 20px; color: var(--primary); text-decoration: none; font-weight: bold; font-size: 1.05rem; padding: 10px 20px; border: 2px solid var(--primary); border-radius: 50px; transition: all 0.2s; }
+        .btn-back:hover { background: var(--primary); color: var(--white); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 大會指定亮橘色 Badge -->
+        <span class="badge">🔮 DAY 4 探險指南</span>
+        <h1>Micro:bit 閃亮實體招牌與市集決戰</h1>
+        
+        <div class="intro-box">
+            <h3>🎪 最終決戰！用實體霓虹燈吸引所有人的目光！</h3>
+            <p>今天的 Micro:bit 是獨立運作的店面「數位迷你霓虹燈看板」！它不需要連接網頁，要在實體攤位前全天候播放最炫的促銷動畫與限時倒數。配合我們精心打磨的日式簡約網頁與 AI 眼睛，我們要全組聯手在智慧商戰市集大賽中贏得最高營收！</p>
+        </div>
+
+        <!-- 課堂 16 -->
+        <div class="class-card">
+            <div class="class-title"><span>1</span> 課堂十六：Micro:bit 電腦小板板初體驗</div>
+            <p><strong>核心觀念：</strong>認識這塊手掌大、會發光的智慧晶片板。我們要利用圖形化積木，輕鬆控制上面由 5x5 紅色 LED 燈組成的魔法光陣！</p>
+            
+            <div class="alert-zone">
+                <strong>⚡ 小板板三大基本功：</strong>
+                <div class="alert-item"><strong>認識硬體：</strong>找到板子正面的 A、B 按鈕，以及背後的 USB 連接孔與晶片。</div>
+                <div class="alert-item"><strong>亮燈點陣圖：</strong>練習在 MakeCode 畫面上格一格點亮心形、笑臉或驚嘆號圖案。</div>
+                <div class="alert-item"><strong>把魔法灌進去：</strong>寫好程式後，學會按下【下載】（燒錄），將燈光指令神奇地裝進實體小板子裡！</div>
+            </div>
+
+            <div class="target-box">
+                🎯 <strong>3人戰術密碼（初試身手）：</strong><br><br>
+                <strong>【硬體總監 C】積木編程主控 🔌</strong><br>
+                主控 MakeCode 網頁操作，負責把小組發想的亮燈圖案用積木排好，並接上傳輸線將程式燒錄進 Micro:bit。<br><br>
+                
+                <strong>【網頁 A】＆ 【辨識 B】燈光創意副官 💡</strong><br>
+                在旁邊協助 C 同學盯著螢幕，幫忙看積木有沒有接錯、實體板子的燈號有沒有對齊亮起，並共同發想接下來的吸睛霓虹燈招牌。
+            </div>
+        </div>
+
+        <!-- 課堂 17~20 -->
+        <div class="class-card">
+            <div class="class-title"><span>2</span> 課堂十七～二十：閃亮亮招牌創作與市集大賽</div>
+            <p><strong>核心觀念：</strong>市集對決開打！我們的 Micro:bit 招牌必須在 5 公尺外就牢牢抓住評審長官的目光。請召喚 AI 助教幫忙，做出一套最強大的實體促銷螢幕！</p>
+            
+            <div class="alert-zone" style="background: #faf5ff; border-color: #d6bcfa;">
+                <strong>🎬 三大獨立促銷霓虹燈動畫劇本（請 AI 助教出點子）：</strong>
+                <div class="alert-item"><strong>劇本一：金幣大爆發（招財特效）：</strong>在螢幕上設計一個閃爍的「金錢符號（$）」，或是金幣不斷落下的動態循環動畫，暗示長官們快來大筆消費！</div>
+                <div class="alert-item"><strong>劇本二：心動大倒數（限時特賣）：</strong>在 Micro:bit 的<strong>右上方</strong>設計緊湊的「10 秒倒數計時」閃爍效果。當客人走過去時按下 A 按鈕，看板就會開始倒數 3、2、1，營造限時搶購的刺激感！</div>
+                <div class="alert-item"><strong>劇本三：笑臉迎客流：</strong>平常沒人時，看板會自動閃爍超有活力的店狗笑臉或愛心符號，用滿滿的親和力拉攏客人的心。</div>
+            </div>
+
+            <div class="target-box">
+                🎯 <strong>3人戰術密碼（市集決戰總動員）：</strong><br><br>
+                <strong>【硬體總監 C】實體霓虹燈魔術師 🎨</strong><br>
+                負責將 Micro:bit 動畫招牌完美完成，並利用紙盒或底座，把閃亮招牌精緻地立在實體店面的最前方吸客！<br><br>
+                
+                <strong>【網頁 A】數位店面掌門人 💻</strong><br>
+                在筆電上啟動我們大改造後的「現代日式簡約商店網頁」，擺好完美排版，準備迎接評審長官的瀏覽與點擊！<br><br>
+                
+                <strong>【辨識 B】AI 辨識總檢查長 🧠</strong><br>
+                負責看守視訊鏡頭（WebCam），確保客人在拿著商品進行 AI 商品辨識時，現場光線充足、角度完美，結帳辨識百發百中！
+            </div>
+        </div>
+
+        <!-- 返回主頁 -->
+        <div style="text-align: center;">
+            <a href="115index.html" class="btn-back">⬅️ 回到營隊主導首頁</a>
+        </div>
+    </div>
+
+</body>
+</html>

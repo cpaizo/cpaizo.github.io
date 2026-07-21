@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 1：AI 魔法大腦與商店設計圖 - 探險指南</title>
+    <style>
+        :root {
+            --primary: #3aa89e;      /* 森林深綠 */
+            --primary-light: #edf7f6;/* 森林淺綠底色 */
+            --secondary: #ffa64d;    /* 大會指定：亮橘色 */
+            --bg: #f8faf9;           /* 日式簡約極淺灰綠 */
+            --dark: #2d3748;         /* 深文字色 */
+            --white: #ffffff;
+            --border: #e2e8f0;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: "Helvetica Neue", Arial, "Noto Sans TC", sans-serif; background-color: var(--bg); color: var(--dark); line-height: 1.8; padding: 20px 10px; }
+        
+        /* 網頁主容器 */
+        .container { max-width: 800px; margin: 0 auto; background: var(--white); padding: 40px 30px; border-radius: 24px; box-shadow: 0 8px 30px rgba(0,0,0,0.02); }
+        
+        /* 大會規定亮橘色 Badge */
+        .badge { background: var(--secondary); color: var(--white); padding: 6px 16px; border-radius: 50px; font-weight: bold; font-size: 0.9rem; display: inline-block; margin-bottom: 15px; letter-spacing: 1px; }
+        
+        h1 { font-size: 2.2rem; color: var(--dark); margin-bottom: 20px; font-weight: 700; border-bottom: 2px solid var(--primary-light); padding-bottom: 15px; }
+        h2 { font-size: 1.5rem; color: var(--primary); margin: 35px 0 20px 0; display: flex; align-items: center; }
+        h3 { font-size: 1.15rem; color: var(--dark); margin-bottom: 10px; font-weight: 600; }
+        
+        .intro-box { background: var(--primary-light); padding: 25px; border-radius: 16px; margin-bottom: 35px; border-left: 6px solid var(--primary); }
+        .intro-box p { font-size: 1.05rem; }
+        
+        /* 課堂卡片 */
+        .class-card { background: var(--white); border: 1px solid var(--border); border-radius: 16px; padding: 25px; margin-bottom: 30px; transition: transform 0.2s; }
+        .class-card:hover { transform: translateY(-2px); border-color: var(--primary); }
+        .class-title { font-size: 1.3rem; color: var(--dark); font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; }
+        .class-title span { background: var(--primary); color: white; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.9rem; margin-right: 10px; }
+        
+        /* 角色分工表格 */
+        .role-table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 0.95rem; }
+        .role-table th { background: var(--primary-light); color: var(--primary); font-weight: bold; text-align: left; padding: 12px; border: 1px solid var(--border); }
+        .role-table td { padding: 12px; border: 1px solid var(--border); vertical-align: top; }
+        .role-tag { background: #edf2f7; color: #4a5568; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85rem; }
+        
+        /* 警報與提示區塊 */
+        .alert-zone { background: #fffaf0; border: 1px dashed var(--secondary); padding: 15px 20px; border-radius: 12px; margin: 15px 0; }
+        .alert-item { margin-bottom: 8px; padding-left: 15px; position: relative; }
+        .alert-item::before { content: "•"; color: var(--secondary); font-weight: bold; position: absolute; left: 0; }
+        
+        .target-box { background: #fafdfb; border: 1px solid #c6f6d5; padding: 15px 20px; border-radius: 12px; margin-top: 15px; }
+        .target-box strong { color: #2f855a; }
+        
+        .code-tip { font-family: "Courier New", Courier, monospace; background: #2d3748; color: #f7fafc; padding: 2px 6px; border-radius: 4px; font-size: 0.95rem; }
+        
+        /* 底部返回按鈕 */
+        .btn-back { display: inline-block; margin-top: 20px; color: var(--primary); text-decoration: none; font-weight: bold; font-size: 1.05rem; padding: 10px 20px; border: 2px solid var(--primary); border-radius: 50px; transition: all 0.2s; }
+        .btn-back:hover { background: var(--primary); color: var(--white); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 大會指定亮橘色 Badge -->
+        <span class="badge">⛺ DAY 1 探險指南</span>
+        <h1>🌳 AI 魔法大腦與商店設計圖</h1>
+        
+        <div class="intro-box">
+            <h3>👋 歡迎來到智慧商戰第一站！</h3>
+            <p>今天我們要一起解開 AI 的神秘面紗，組成強大的 3 人創業團隊，並且動手蓋出網頁商店的「第一塊積木」。最後，還要一起破解評審長官們的金幣密碼，準備在最後一天的市集大賽賺大錢！</p>
+        </div>
+
+        <!-- 課堂 1 -->
+        <div class="class-card">
+            <div class="class-title"><span>1</span> 課堂一：AI 超能力探索</div>
+            <p><strong>核心觀念：</strong>AI 其實不會像人類一樣思考，它是一個「看圖猜謎的超級學人精」！它是透過讀取成千上萬的資料來「算機率」猜答案的。</p>
+            
+            <div class="alert-zone">
+                <strong>🚨 全班挑戰：三大「大腦警報器」大測試！</strong>
+                <div class="alert-item"><strong>知識幻覺怪：</strong>如果你問 AI「台灣最高的山是哪座？」，它回答「是陽明山！」，或者說「愛因斯坦發明了 iPhone」。這就叫做 <strong>AI 幻覺</strong>，它正在一本正經地胡說八道！</div>
+                <div class="alert-item"><strong>視覺特徵怪：</strong>如果把貓咪的照片上下倒過來、或者現場光線太暗、背景太亂，AI 就可能把貓咪猜成「一條抹布」！</div>
+                <div class="alert-item"><strong>刻板偏見怪：</strong>如果人類給的資料裡覺得煮飯都是媽媽的事，AI 就會學壞，變成有偏見的機器人。</div>
+            </div>
+
+            <div class="target-box">
+                🎯 <strong>小組協力觀察點：</strong><br>
+                <strong>【網頁 A】</strong> 觀察 AI 猜測時，畫面上的「信心分數 %」是怎麼跳動的？<br>
+                <strong>【辨識 B】</strong> 思考要怎麼拍出清楚、角度好的商品照片，AI 才不會看錯？<br>
+                <strong>【硬體 C】</strong> 思考當 AI 認錯或沒把握（分數太低）時，手上的 Micro:bit 燈板要發出什麼警告號誌？
+            </div>
+        </div>
+
+        <!-- 課堂 2 -->
+        <div class="class-card">
+            <div class="class-title"><span>2</span> 課堂二：老闆們集合！商戰啟航</div>
+            <p><strong>核心觀念：</strong>沒有完美的個人，只有無敵的團隊！今天我們要組成「花仙子智慧商店」創業團隊，選出店名、決定要賣的 4 種神奇商品。</p>
+            
+            <h3>🤝 3人黃金職責與合夥合約</h3>
+            <p style="font-size: 0.9rem; color: #718096; margin-bottom: 10px;">（每位同學都要參與討論與程式，但有各自的主要負責戰場喔！）</p>
+            
+            <table class="role-table">
+                <thead>
+                    <tr>
+                        <th style="width: 25%">核心角色</th>
+                        <th style="width: 40%">今日主戰場</th>
+                        <th style="width: 35%">夥伴協力義務</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="role-tag">A 網頁店長</span></td>
+                        <td>負責網頁蓋台與介面掌控。設計網頁排版、決定店名和按鈕放在哪裡。</td>
+                        <td>要去幫 B 夥伴想商品怎麼擺，幫 C 夥伴想實體招牌特效。</td>
+                    </tr>
+                    <tr>
+                        <td><span class="role-tag">B AI 特訓師</span></td>
+                        <td>負責 AI 商品辨識與資料收集。規劃 4 種商品的視覺特徵，確保好辨識。</td>
+                        <td>要準確提供 4 種商品的名稱與故事，讓 A 夥伴放進網頁裡。</td>
+                    </tr>
+                    <tr>
+                        <td><span class="role-tag">C 硬體總監</span></td>
+                        <td>負責 Micro:bit 閃亮實體招牌設計。構思結帳成功、歡迎光臨的實體燈號。</td>
+                        <td>要在一旁幫忙 A 夥伴測試網頁按鈕按起來順不順暢。</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="target-box">
+                🎯 <strong>今日限時任務：</strong>討論出你們的 4 種核心商品。<strong>注意：</strong>商品的形狀和顏色不能太像（例如不能同時賣兩種綠色正方形盒子），否則 B 同學明天特訓 AI 時會崩潰喔！
+            </div>
+        </div>
+
+        <!-- 課堂 3 -->
+        <div class="class-card">
+            <div class="class-title"><span>3</span> 課堂三：蓋出網頁城堡</div>
+            <p><strong>核心觀念：</strong>寫網頁就像蓋樂高積木！HTML 標籤就是牆壁、柱子與神奇機關。我們今天先學會三個最重要的魔法密碼：</p>
+            
+            <div style="margin: 15px 0; padding-left: 10px;">
+                <p>🔹 <span class="code-tip">&lt;h1&gt;</span>：<strong>標題大頭兵！</strong>用來大大的寫出我們威風的店名。</p>
+                <p>🔹 <span class="code-tip">&lt;p&gt;</span>：<strong>傳話小兵！</strong>負責把商品的介紹和價格詳細講給客人聽。</p>
+                <p>🔹 <span class="code-tip">&lt;button&gt;</span>：<strong>魔法機關！</strong>按下去就能模擬客人買東西結帳。</p>
+            </div>
+
+            <div class="target-box">
+                🎯 <strong>三人並肩挑戰（鍵盤爭奪戰）：</strong><br>
+                由 <strong>A 同學</strong>主控鍵盤輸入代碼；<strong>B 同學</strong>在一旁大聲唸出剛剛討論好的商品名稱與故事讓 A 打字；<strong>C 同學</strong>負責檢查標籤有沒有漏掉括號。全組一起在瀏覽器雙擊打開網頁，看店名有沒有成功秀出來！
+            </div>
+        </div>
+
+        <!-- 課堂 4~5 -->
+        <div class="class-card">
+            <div class="class-title"><span>4</span> 課堂四～五：金幣大作戰！商戰策略</div>
+            <p><strong>核心觀念：</strong>這不是好玩的園遊會，這是一場高智商的「心理攻防戰」！大會給了我們精準的市場秘密情報：</p>
+            
+            <div style="background: #f7fafc; padding: 15px; border-radius: 12px; margin: 15px 0; border: 1px solid var(--border);">
+                ℹ️ <strong>大會市場情報：</strong><br>
+                1. 評審長官們每個人口袋裡只有 <strong>20 個金幣</strong>。<br>
+                2. 每家店的貨架空間很珍貴，總共只有 <strong>12 個商品總庫存</strong>（4種商品，每種各 3 個）。
+            </div>
+
+            <h3 style="color: var(--secondary); margin-top: 20px;">⚠️ 小組激辯！避開三大價格陷阱：</h3>
+            <div class="alert-zone" style="background: #fff5f5; border-color: #feb2b2;">
+                <div class="alert-item"><strong>「做功德」陷阱（定價 1~2 金幣）：</strong>全賣光也才賺 12~24 金幣，別組賣兩個就超越你們了，絕對拿不到第一名！</div>
+                <div class="alert-item"><strong>「搶劫發霉」陷阱（定價超過 20 金幣）：</strong>評審長官根本買不起，商品只能在貨架上發霉。</div>
+                <div class="alert-item"><strong>「壓力山大」陷阱（定價 15 金幣）：</strong>買一個口袋就空了，長官會覺得壓力很大，轉身去別家可以買很多的店。</div>
+            </div>
+
+            <div class="target-box">
+                🎯 <strong>商戰奇策討論：</strong><br>
+                3個人一起決定：要不要設計「高價主打款」與「平價親民款」的搭配？有沒有什麼「雙重組合包特價」？要把這些促銷想法記下來，後面幾天我們要請 AI 助教幫我們寫進網頁的計分板程式裡喔！
+            </div>
+        </div>
+
+        <!-- 返回主頁 -->
+        <div style="text-align: center;">
+            <a href="115index.html" class="btn-back">⬅️ 回到營隊主導首頁</a>
+        </div>
+    </div>
+
+</body>
+</html>
