@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【AI小達人智慧商戰園遊會】金幣定價與促銷戰略指南</title>
+    <style>
+        /* 延續晨曦森林與魔法學院風格 */
+        :root {
+            --primary-color: #2ec4b6;
+            --secondary-color: #ffa64d; /* 指定亮橘色 */
+            --background-color: #f4f9f6;
+            --text-dark: #2d3748;
+            --card-bg: #ffffff;
+            --accent-red: #ff5a5f;
+            --money-gold: #ffd166;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Helvetica Neue", Arial, "Noto Sans TC", sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-dark);
+            line-height: 1.8;
+        }
+
+        /* 頂部橫幅 */
+        header {
+            background: linear-gradient(135deg, #2ec4b6 0%, #a8ded9 100%);
+            color: white;
+            padding: 50px 20px;
+            text-align: center;
+            border-bottom-left-radius: 40px;
+            border-bottom-right-radius: 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .subtitle-badge {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 5px 16px;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            font-weight: bold;
+        }
+
+        /* 主要內容容器 */
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px 60px 20px;
+        }
+
+        /* 市場商戰情報區塊 */
+        .market-info {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.02);
+            margin-bottom: 40px;
+            border: 1px solid #eef5f2;
+        }
+
+        .market-info h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+        }
+
+        .info-sub-card {
+            background-color: #edf7f6;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .info-sub-card h4 {
+            color: #1a202c;
+            margin-bottom: 8px;
+            font-size: 1.05rem;
+        }
+
+        /* 大標題樣式 */
+        .main-title {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: var(--text-dark);
+            margin: 40px 0 25px 0;
+            position: relative;
+            padding-left: 15px;
+        }
+
+        .main-title::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 4px;
+            width: 6px;
+            height: 24px;
+            background-color: var(--secondary-color);
+            border-radius: 3px;
+        }
+
+        /* 三大陷阱排版 */
+        .trap-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .trap-card {
+            background-color: #fff5eb;
+            border: 1px solid #ffe2cc;
+            border-left: 6px solid var(--secondary-color); /* 亮橘色強調 */
+            padding: 20px;
+            border-radius: 4px 16px 16px 4px;
+        }
+
+        .trap-card strong {
+            color: #d96d00;
+            font-size: 1.1rem;
+        }
+
+        /* 任務面板 */
+        .task-section {
+            background: var(--card-bg);
+            padding: 35px;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 40px;
+        }
+
+        .task-list {
+            margin-top: 20px;
+        }
+
+        .task-item {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+
+        .task-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .task-item h3 {
+            font-size: 1.2rem;
+            color: #1a202c;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .task-item h3 span {
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 0.8rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .example-box {
+            background-color: #f7fafc;
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.95rem;
+        }
+
+        /* 備忘錄區塊 */
+        .memo-section {
+            background: linear-gradient(135deg, #2ec4b6 0%, #25a195 100%);
+            color: white;
+            padding: 35px;
+            border-radius: 24px;
+            box-shadow: 0 15px 30px rgba(46, 196, 182, 0.15);
+            text-align: center;
+        }
+
+        .memo-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .memo-box {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 20px;
+            border-radius: 16px;
+            text-align: left;
+            max-width: 700px;
+            margin: 0 auto;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            font-size: 1.05rem;
+        }
+
+        /* 頁尾樣式 */
+        footer {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 30px 20px;
+            font-size: 0.9rem;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            margin-top: 50px;
+        }
+
+        footer p {
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            header h1 { font-size: 1.6rem; }
+            .task-section { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 頂部導航橫幅 -->
+    <header>
+        <div class="subtitle-badge">📊 實戰工作坊</div>
+        <h1>金幣定價與促銷戰略指南</h1>
+        <p>小總經理們集合！用智慧與策略攻佔園遊會市場吧！</p>
+    </header>
+
+    <div class="container">
+
+        <!-- 市場商戰情報 -->
+        <section class="market-info">
+            <h2>📈 市場商戰情報</h2>
+            <p style="margin-bottom: 20px; color: #4a5568;">在決定你們店的商品要賣多少個金幣之前，請先搞懂市場上的金幣流向：</p>
+            
+            <div class="info-cards-container">
+                <div class="info-sub-card">
+                    <h4>💰 市場總金幣</h4>
+                    <p>現場有 <strong>5 ~ 10 位</strong> 長官，每人手上有 20 個金幣。整個市場大約有 <strong>100 ~ 200 個金幣</strong> 可以讓你們賺！</p>
+                </div>
+                <div class="info-sub-card">
+                    <h4>📦 商店總庫存</h4>
+                    <p>你們店裡共有 <strong>4 種</strong> 商品，每種 3 個，總共只有 <strong>12 個</strong> 實體商品。</p>
+                </div>
+                <div class="info-sub-card" style="border-left-color: var(--secondary-color);">
+                    <h4>🧠 長官的消費者心理</h4>
+                    <p>長官可以重複購買同一種商品，但大會沒有規定長官必須把金幣花完。如果定價太貴或不划算，他們有權力<strong>「留著金幣不買」</strong>！</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 商戰數學：找出金幣天花板 -->
+        <h2 class="main-title">🧠 商戰數學：找出你們店的「金幣天花板」</h2>
+        <p style="margin-bottom: 20px;">定價會直接決定你們能不能拿到總冠軍，請避開以下三大陷阱：</p>
+        
+        <div class="trap-container">
+            <div class="trap-card">
+                <p>❌ <strong>定價 1 金幣的「底線陷阱」：</strong>如果每樣商品都賣 1 金幣，12 個商品全部賣光，總營業額被鎖死在 12 金幣 ➡️ <strong>絕對與總冠軍無緣！</strong></p>
+            </div>
+            <div class="trap-card">
+                <p>❌ <strong>定價超過 20 金幣的「絕路陷阱」：</strong>長官全身上下只有 20 個金幣，定太高長官連 1 個商品都買不起 ➡️ <strong>直接滯銷！</strong></p>
+            </div>
+            <div class="trap-card">
+                <p>❌ <strong>定價 15 金幣的「太貴陷阱」：</strong>長官買 1 個就快沒金幣了，會轉身去別家店 ➡️ <strong>生意冷清！</strong></p>
+            </div>
+        </div>
+
+        <!-- 小組商戰討論任務 -->
+        <section class="task-section">
+            <h2 style="color: #1a202c; font-size: 1.4rem; border-bottom: 2px solid var(--primary-color); padding-bottom: 10px;">🚀 小組商戰討論任務</h2>
+            <p style="margin-top: 10px; color: #4a5568;">請各組小總經理立即開始討論，自由決定你們店的商品金幣數量與促銷，並記在心裡或筆記本上：</p>
+            
+            <div class="task-list">
+                <!-- 任務 1 -->
+                <div class="task-item">
+                    <h3><span>任務 1</span> 決定商品的金幣定價</h3>
+                    <p>請自行拿捏折衷點，讓價格高於 1 金幣，但又不會讓長官買不起。</p>
+                    <div class="example-box" style="border-left: 3px solid var(--primary-color);">
+                        💡 <strong>思考看看：</strong>哪一種商品比較有特色可以收比較多金幣？哪一種商品適合收少一點金幣？
+                    </div>
+                </div>
+
+                <!-- 任務 2 -->
+                <div class="task-item">
+                    <h3><span>任務 2</span> 設計你們店的「祕密武器」（促銷方案）</h3>
+                    <p>既然長官可以重複購買，你們要怎麼設計促銷來吸引他們投入更多金幣？</p>
+                    <div class="example-box">
+                        🎁 <strong>促銷靈感點子：</strong><br>
+                        • 特定商品買 2 個可以少給幾個金幣？<br>
+                        • 買 A 商品加購 B 商品有驚喜的金幣「組合價」？
+                    </div>
+                </div>
+
+                <!-- 任務 3 -->
+                <div class="task-item">
+                    <h3><span>任務 3</span> 目標預測</h3>
+                    <p>算算看，如果長官被你們的自然介紹與促銷打動，把你們店的 12 個商品全部掃光，你們店<strong>總共能賺到幾個金幣？</strong></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 店長商戰備忘錄 -->
+        <section class="memo-section">
+            <h2>💡 店長商戰備忘錄</h2>
+            <div class="memo-box">
+                <p>定價沒有標準答案，也沒有固定模板！最聰明的店家會利用<strong>合理的金幣數量</strong>與<strong>吸引人的促銷組合</strong>，讓長官心甘情願把口袋裡的金幣掏出來。</p>
+                <p style="margin-top: 10px; font-weight: bold; text-align: center; color: var(--money-gold);">🔥 現在，開始討論你們店的獨家商戰策略吧！</p>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- 頁尾主辦資訊 -->
+    <footer>
+        <p><strong>主辦單位：</strong>財團法人花仙子教育基金會 &nbsp;&nbsp;|&nbsp;&nbsp; <strong>執行單位：</strong>社團法人科丁聯盟協會</p>
+        <p>© 2026 AI小達人智慧商戰冬令營 著作權所有</p>
+    </footer>
+
+</body>
+</html>
