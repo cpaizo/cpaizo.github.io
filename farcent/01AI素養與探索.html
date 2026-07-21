@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI素養與探索：AI 是你的超強學習小幫手，不是替身！</title>
+    <style>
+        /* 延續晨曦森林與魔法學院風格 */
+        :root {
+            --primary-color: #2ec4b6;
+            --secondary-color: #ffa64d; /* 指定亮橘色 */
+            --background-color: #f4f9f6;
+            --text-dark: #2d3748;
+            --card-bg: #ffffff;
+            --accent-red: #ff5a5f;
+            --accent-green: #2a9d8f;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Helvetica Neue", Arial, "Noto Sans TC", sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-dark);
+            line-height: 1.8;
+        }
+
+        /* 頂部橫幅 */
+        header {
+            background: linear-gradient(135deg, #2ec4b6 0%, #a8ded9 100%);
+            color: white;
+            padding: 50px 20px;
+            text-align: center;
+            border-bottom-left-radius: 40px;
+            border-bottom-right-radius: 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .subtitle-badge {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 5px 16px;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            font-weight: bold;
+        }
+
+        /* 主要內容容器 */
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px 60px 20px;
+        }
+
+        /* 開場白與引言 */
+        .intro-section {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.02);
+            margin-bottom: 35px;
+            border: 1px solid #eef5f2;
+        }
+
+        .intro-section h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+        .magic-list {
+            margin: 15px 0 15px 20px;
+            color: #4a5568;
+        }
+
+        /* 為什麼要認識 AI 區塊 */
+        .why-box {
+            background-color: #edf7f6;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 25px;
+        }
+
+        .why-box h3 {
+            margin-bottom: 12px;
+            color: #1a202c;
+        }
+
+        .why-box ul {
+            margin-left: 20px;
+        }
+
+        .why-box li {
+            margin-bottom: 8px;
+        }
+
+        /* 大標題樣式 */
+        .main-title {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: var(--text-dark);
+            margin: 50px 0 25px 0;
+            position: relative;
+            padding-left: 15px;
+        }
+
+        .main-title::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 4px;
+            width: 6px;
+            height: 24px;
+            background-color: var(--secondary-color);
+            border-radius: 3px;
+        }
+
+        /* 四大能力卡片排版 */
+        .ability-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .ability-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.02);
+            border-top: 6px solid var(--primary-color);
+        }
+
+        .ability-card:nth-child(even) {
+            border-top-color: var(--secondary-color);
+        }
+
+        .ability-number {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #718096;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .ability-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #1a202c;
+        }
+
+        /* 警告與強烈提醒區塊 */
+        .warning-box {
+            background-color: #fff0e0;
+            border-left: 5px solid var(--secondary-color);
+            padding: 20px;
+            border-radius: 4px 12px 12px 4px;
+            margin: 15px 0;
+        }
+
+        .danger-box {
+            background-color: #ffebee;
+            border-left: 5px solid var(--accent-red);
+            padding: 20px;
+            border-radius: 4px 12px 12px 4px;
+            margin: 15px 0;
+        }
+
+        .danger-box ul, .warning-box ul {
+            margin-left: 20px;
+            margin-top: 8px;
+        }
+
+        /* 紅綠燈表格樣式 */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            background: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.02);
+            margin-bottom: 40px;
+            border: 1px solid #e2e8f0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background-color: #edf7f6;
+            color: var(--text-dark);
+            font-weight: bold;
+        }
+
+        .light-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: inline-block;
+        }
+
+        .light-green { background-color: var(--accent-green); }
+        .light-yellow { background-color: var(--secondary-color); }
+        .light-red { background-color: var(--accent-red); }
+
+        /* 誓詞區塊 */
+        .vow-section {
+            background: linear-gradient(135deg, #2ec4b6 0%, #25a195 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 24px;
+            text-align: center;
+            box-shadow: 0 15px 30px rgba(46, 196, 182, 0.2);
+            margin-top: 50px;
+        }
+
+        .vow-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+
+        .vow-box {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 25px;
+            border-radius: 16px;
+            text-align: left;
+            max-width: 600px;
+            margin: 0 auto;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        .vow-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 1.05rem;
+        }
+
+        .vow-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .vow-checkbox {
+            background-color: white;
+            color: var(--primary-color);
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+            margin-top: 3px;
+        }
+
+        /* 頁尾樣式 */
+        footer {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 30px 20px;
+            font-size: 0.9rem;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+        }
+
+        footer p {
+            margin-bottom: 5px;
+        }
+
+        /* 響應式調整 */
+        @media (max-width: 768px) {
+            .ability-grid { grid-template-columns: 1fr; }
+            header h1 { font-size: 1.7rem; }
+            th, td { padding: 12px; font-size: 0.95rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 頂部導航橫幅 -->
+    <header>
+        <div class="subtitle-badge">💡 課程次主題：AI 素養與探索</div>
+        <h1>AI 是你的超強學習小幫手，不是替身！</h1>
+        <p>準備好迎接科技挑戰，成為智慧商戰園遊會的 AI 好主人了嗎？</p>
+    </header>
+
+    <div class="container">
+
+        <!-- 開場白區塊 -->
+        <section class="intro-section">
+            <h2>👋 開場白：AI 就像一個「很會猜心」的機器人</h2>
+            <p>你好！歡迎來到 AI 的神奇世界。你可以把 AI 想像成一個<strong>「超強會學習的機器」</strong>，它很厲害，可以做到很多事情，例如：</p>
+            <ul class="magic-list">
+                <li>💬 跟你聊天</li>
+                <li>🎨 幫你畫圖</li>
+                <li>📖 陪你寫故事</li>
+                <li>🎬 推薦你喜歡的影片</li>
+            </ul>
+            <p>但我們要記住一個最重要的觀念：<strong>AI 不是真人</strong>，它其實不懂我們說的話，它只會根據學過的龐大資料，來「猜」出你最想要的答案。</p>
+
+            <!-- 為什麼要認識 AI -->
+            <div class="why-box">
+                <h3>🤔 為什麼我們要認識 AI？</h3>
+                <ul>
+                    <li><strong>它已經在我們的生活中：</strong>無論是手機裡的語音助手，還是 YouTube 推薦給你的下一部影片，AI 早已無所不在。</li>
+                    <li><strong>讓你更有競爭力：</strong>學會善用 AI 這個強大的工具，就像多了一項新技能，能讓你比別人更有效率。</li>
+                    <li><strong>它是你的超級助手：</strong>AI 雖然不能完全相信，但只要學會正確地使用它，它就能成為你學習路上的好幫手。</li>
+                </ul>
+            </div>
+            <p style="margin-top: 20px; font-weight: bold; text-align: center; color: var(--primary-color);">準備好了嗎？接下來，就讓我們一起學習如何成為 AI 的好主人，駕馭這個強大的工具吧！</p>
+        </section>
+
+        <!-- 第一站標題 -->
+        <h2 class="main-title">第一站：成為 AI 的好主人 —— 必須知道的四大能力</h2>
+        <p style="margin-bottom: 30px;">聯合國教科文組織（UNESCO）特別為全世界的學生提出了學習 AI 必須具備的四項核心能力。這就像是全球通用的「黃金標準」，幫助我們正確又安全地使用 AI。別擔心，這四項能力聽起來很專業，但其實就像玩遊戲破關一樣，只要跟著老師一關一關學，你很快就能掌握！</p>
+
+        <!-- 四大能力卡片群組 -->
+        <div class="ability-grid">
+            
+            <!-- 能力一 -->
+            <div class="ability-card">
+                <div class="ability-number">Capacity 1</div>
+                <h3>1. 能力一：以人為本（你是主角，AI 是工具）</h3>
+                <p>最重要的原則是：「人類才是主角，AI 只是工具」。做決定的永遠是你，AI 只是在旁邊提供協助。</p>
+                <div class="warning-box">
+                    <strong>🏋️ 就像健身房教練一樣：</strong><br>
+                    AI 就像健身房教練，他可以教你怎麼舉重，但如果重量都是教練在舉，你的肌肉（也就是你的大腦）就永遠不會變強壯。學習的目的是訓練自己的大腦，不是讓 AI 代替你思考。
+                </div>
+                <div class="warning-box" style="border-left-color: var(--primary-color); background-color: #edf7f6;">
+                    <strong>🧠 你要記得，AI 可能會『一本正經地胡說八道』：</strong><br>
+                    AI 雖然讀過很多資料，但它並不完美，有時會「記錯」或編造故事。這種情況有個專有名詞，叫做<strong>「幻覺」</strong>喔！所以你必須保持警覺：
+                    <ul>
+                        <li>AI 不是完美的，它會犯錯。</li>
+                        <li>它給的答案不一定等於真理。</li>
+                        <li>拿到答案後，必須透過課本、百科全書或詢問老師進行二次查核。</li>
+                    </ul>
+                </div>
+                <p style="font-size: 0.9rem; color: #718096; margin-top: 10px;">💡 <em>例如：如果 AI 告訴你「桃園有海」，你的大腦警報器就該響起來！你應該馬上想到桃園是台地地形，並不靠海。這就是你在當主角！</em></p>
+            </div>
+
+            <!-- 能力二 -->
+            <div class="ability-card">
+                <div class="ability-number">Capacity 2</div>
+                <h3>2. 能力二：AI 倫理（安全第一，保持善良）</h3>
+                <p>使用 AI 的核心倫理非常簡單，就是「安全」與「負責任」。你必須遵守以下三條重要的界線：</p>
+                <ul style="margin-left: 20px; margin-top: 10px; margin-bottom: 15px;">
+                    <li><strong>🔒 保護自己和別人的「祕密」：</strong>你輸入給 AI 的所有內容都可能被存檔。絕對不要輸入真實姓名、地址、電話，更不能隨便上傳同學的照片。</li>
+                    <li><strong>❤️ 保持善良，不用 AI 傷害別人：</strong>科技是用來幫助人的。絕對禁止使用 AI 生成傷人的話，或是製作惡搞同學的變臉照片。</li>
+                    <li><strong>✏️ 誠實學習，不用 AI 抄作業：</strong>你可以請它解釋不懂的成語，但不能直接複製貼上它寫的整篇文章當作自己的作業，這屬於作弊行為。</li>
+                </ul>
+                <div class="danger-box">
+                    <strong>❌ 這些是絕對不可以做的事！</strong>
+                    <ul>
+                        <li>用 AI 生成同學的變臉照片。</li>
+                        <li>用 AI 寫考卷答案。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 能力三 -->
+            <div class="ability-card">
+                <div class="ability-number">Capacity 3</div>
+                <h3>3. 能力三：AI 技術基礎（AI 到底怎麼「猜」答案的？）</h3>
+                <p>你可能會好奇：「AI 不是真的『懂』，那它是怎麼回答問題的？」其實原理學很簡單：</p>
+                <ol style="margin-left: 20px; margin-top: 10px; margin-bottom: 15px;">
+                    <li><strong>AI 看過非常非常多的資料：</strong>它就像讀完了世界上所有的書和幾百萬張圖片。</li>
+                    <li><strong>它從資料中學習模式：</strong>它會找出關聯性，例如「貓」這個字常常跟「耳朵」、「尾巴」、「喵」這些特徵一起出現。</li>
+                    <li><strong>它根據模式來「猜」出最可能的答案：</strong>所以當你問它問題時，它不是在思考，而是在做一個高機率的「猜測」。</li>
+                </ol>
+                <div class="warning-box">
+                    <strong>🤖 小心！AI 也會學到人類的壞習慣：</strong><br>
+                    AI 就像一個超級學人精。如果我們的資料裡充滿了像是「護理師都是女生」或「工程師都是男生」這種錯誤的老舊觀念，那 AI 也會學壞，變成一個有偏見的機器人。當你發現時，要勇敢地在心裡對它說：「你錯了！」
+                </div>
+            </div>
+
+            <!-- 能力四 -->
+            <div class="ability-card">
+                <div class="ability-number">Capacity 4</div>
+                <h3>4. 能力四：AI 系統設計（發揮創意！你是導演，AI 是助手）</h3>
+                <p>想指揮 AI 大軍，不需要學會複雜的程式語言！你只需要動動你的金頭腦，下達清楚的指令（Prompt）就可以了。把你當成「導演」，AI 則是你的「助手」。</p>
+                <div class="why-box" style="background-color: #f7fafc; margin-top: 15px;">
+                    <strong>💡 生活中有哪些事可以讓 AI 幫忙？</strong>
+                    <ul style="margin-left: 20px; margin-top: 5px;">
+                        <li>想做一本故事書 → 請 AI 幫你畫出故事的插圖。</li>
+                        <li>想設計一張海報 → 請 AI 幫你思考排版與配色。</li>
+                        <li>想辦一個班級活動 → 請 AI 幫你產生各種有趣的點子。</li>
+                    </ul>
+                </div>
+                <p style="margin-top: 15px;"><strong>✍️ 誰才是真正的作者？</strong><br>AI 生成的內容是從無數人的作品中拼湊出來的，並不完全屬於你的原創。如果在作品中有參考 AI 的幫助，應該誠實地標註（例如：「本海報設計由 AI 協助生成」），並且要在這個基礎上加入你自己的獨特見解！</p>
+            </div>
+
+        </div>
+
+        <!-- 第二站標題 -->
+        <h2 class="main-title">第二站：AI 使用「紅綠燈」守則</h2>
+        <p style="margin-bottom: 20px;">這是一張簡單的檢查表，在你每次使用 AI 前，可以快速判斷什麼可以做、什麼要小心、什麼絕對不能做。</p>
+
+        <!-- 紅綠燈守則表格 -->
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 20%;">燈號</th>
+                        <th style="width: 25%;">行為性質</th>
+                        <th style="width: 55%;">具體做法建議</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="light-badge light-green">🟢 綠燈：讚！</span></td>
+                        <td><strong>輔助學習</strong></td>
+                        <td>查單字、找靈感、請 AI 解釋原理、練習外語對話。</td>
+                    </tr>
+                    <tr>
+                        <td><span class="light-badge light-yellow">🟡 黃燈：等等！</span></td>
+                        <td><strong>半自動處理</strong></td>
+                        <td>用 AI 修改草稿、翻譯整段課文。<strong>（須先問過老師或家長）</strong></td>
+                    </tr>
+                    <tr>
+                        <td><span class="light-badge light-red">🔴 紅燈：停！</span></td>
+                        <td><strong>作弊與侵權</strong></td>
+                        <td>抄襲答案、輸入個資（如電話、住址）、生成惡搞別人的圖片或文字。</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 附錄：聯合國提醒 -->
+        <div class="intro-box" style="border-left: 5px solid var(--primary-color);">
+            <h3 style="margin-bottom: 15px;">📋 附錄：來自聯合國 (UNESCO) 的溫馨提醒</h3>
+            <p>聯合國針對全球教育發布了 AI 使用指南，我們整理出最重要的三項「國際規範」，幫助你更安全地學習：</p>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li><strong>1. 年齡守則：</strong>13 歲以下的學生，應在老師或家長的陪同下使用 AI，不應單獨操作。</li>
+                <li><strong>2. 人腦優先：</strong>學習基礎能力（例如讀、寫、算）時，應該靠自己練習，不依賴機器，這樣才能真正訓練你的大腦。</li>
+                <li><strong>3. 資料保護：</strong>絕對不可以將個人或同學的私密資料（如照片、姓名、住址）上傳到 AI 軟體中。</li>
+            </ul>
+        </div>
+
+        <!-- 結語：數位小公民誓詞 -->
+        <div class="vow-section">
+            <h2>📜 結語：簽下你的數位小公民誓詞</h2>
+            <p style="margin-bottom: 25px; opacity: 0.9;">AI 是一個非常強大的工具，但工具本身沒有好壞之分，最重要的，是使用它的那顆心。希望你能成為一位有智慧又善良的數位小公民！</p>
+            
+            <div class="vow-box">
+                <div class="vow-item">
+                    <div class="vow-checkbox">✓</div>
+                    <div>我會用 AI 來幫我學習，但不讓 AI 代替我思考。</div>
+                </div>
+                <div class="vow-item">
+                    <div class="vow-checkbox">✓</div>
+                    <div>我會 check (檢查) AI 說的話，不隨便相信陌生來源。</div>
+                </div>
+                <div class="vow-item">
+                    <div class="vow-checkbox">✓</div>
+                    <div>我會保護自己和別人的隱私，不亂輸入個資。</div>
+                </div>
+                <div class="vow-item">
+                    <div class="vow-checkbox">✓</div>
+                    <div>我會用 AI 來做有意義、善良的事，不傷害、不欺騙別人.</div>
+                </div>
+            </div>
+            
+            <p style="margin-top: 25px; font-weight: bold; font-size: 1.2rem; letter-spacing: 2px;">數位小公民，挑戰成功！🏆</p>
+        </div>
+
+    </div>
+
+    <!-- 頁尾主辦資訊 -->
+    <footer>
+        <p><strong>主辦單位：</strong>財團法人花仙子教育基金會 &nbsp;&nbsp;|&nbsp;&nbsp; <strong>執行單位：</strong>社團法人科丁聯盟協會</p>
+        <p>© 2026 AI小達人智慧商戰冬令營 著作權所有</p>
+    </footer>
+
+</body>
+</html>
