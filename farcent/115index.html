@@ -152,11 +152,36 @@
             align-items: center;
         }
 
+        /* 探險地圖連結按鈕樣式 */
+        .btn-enter-day {
+            display: inline-flex;
+            align-items: center;
+            background-color: #ffffff;
+            color: #2ec4b6;
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            transition: all 0.25s ease;
+            margin-left: 15px;
+            white-space: nowrap;
+        }
+
+        .btn-enter-day:hover {
+            background-color: var(--secondary-color);
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(255, 166, 77, 0.3);
+        }
+
         .day-badge {
             background-color: rgba(255,255,255,0.2);
             padding: 4px 12px;
             border-radius: 8px;
             font-size: 0.9rem;
+            margin-left: auto; /* 推至按鈕左側 */
         }
 
         .lesson-list {
@@ -223,7 +248,9 @@
         @media (max-width: 600px) {
             header h1 { font-size: 1.7rem; }
             .section-title { font-size: 1.3rem; }
-            .day-header { font-size: 1rem; flex-direction: column; align-items: flex-start; gap: 5px; }
+            .day-header { font-size: 1rem; flex-direction: column; align-items: flex-start; gap: 8px; }
+            .day-badge { margin-left: 0; }
+            .btn-enter-day { margin-left: 0; width: 100%; justify-content: center; }
         }
     </style>
 </head>
@@ -275,6 +302,8 @@
                 <div class="day-header">
                     <div>🌳 Day 1：AI 魔法大腦與商店設計圖</div>
                     <div class="day-badge">第 1 ~ 5 堂課</div>
+                    <!-- 新增分頁開啟連結 -->
+                    <a href="day01.html" target="_blank" rel="noopener noreferrer" class="btn-enter-day">🔗 進入探險地圖</a>
                 </div>
                 <div class="lesson-list">
                     <div class="lesson-item">
@@ -284,7 +313,7 @@
                     </div>
                     <div class="lesson-item">
                         <div class="lesson-title"><span>第 2 堂</span> 【老闆們集合！商戰啟航】</div>
-                        <div class="lesson-detail"><strong>我們要做什麼：</strong>搞懂園遊會大賽的規則。選出每組的隊長和工作負責人，決定我們的花仙子商店要怎麼賣東西。</div>
+                        <div class="lesson-detail"><strong>我們要做什麼：</strong>搞懂園遊會大賽的規則。選出每組的隊長 and 工作負責人，決定我們的花仙子商店要怎麼賣東西。</div>
                         <div class="lesson-target">🎯 挑戰成功目標：分好工作、寫好商店計畫書，知道怎麼拿到園遊會的營收第一名！</div>
                     </div>
                     <div class="lesson-item">
@@ -305,6 +334,8 @@
                 <div class="day-header" style="background-color: #3aa89e;">
                     <div>⚡ Day 2：召喚 AI 寫程式與特訓鏡頭</div>
                     <div class="day-badge">第 6 ~ 10 堂課</div>
+                    <!-- 新增分頁開啟連結 -->
+                    <a href="day02.html" target="_blank" rel="noopener noreferrer" class="btn-enter-day" style="color: #3aa89e;">🔗 進入探險地圖</a>
                 </div>
                 <div class="lesson-list">
                     <div class="lesson-item">
@@ -330,6 +361,8 @@
                 <div class="day-header" style="background-color: #49918a;">
                     <div>🛠️ Day 3：商店網頁超級大改造與捉怪</div>
                     <div class="day-badge">第 11 ~ 15 堂課</div>
+                    <!-- 新增分頁開啟連結 -->
+                    <a href="day03.html" target="_blank" rel="noopener noreferrer" class="btn-enter-day" style="color: #49918a;">🔗 進入探險地圖</a>
                 </div>
                 <div class="lesson-list">
                     <div class="lesson-item">
@@ -345,6 +378,8 @@
                 <div class="day-header" style="background-color: #537a76;">
                     <div>🔮 Day 4：Micro:bit 閃亮實體招牌與市集決戰</div>
                     <div class="day-badge">第 16 ~ 20 堂課</div>
+                    <!-- 新增分頁開啟連結 -->
+                    <a href="day04.html" target="_blank" rel="noopener noreferrer" class="btn-enter-day" style="color: #537a76;">🔗 進入探險地圖</a>
                 </div>
                 <div class="lesson-list">
                     <div class="lesson-item">
