@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>16x16 WS2812 LED 中文跑馬燈產生器 (動態亮度版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            background-color: #0f172a;
+        }
+        .led-glow {
+            box-shadow: 0 0 14px var(--glow-color);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col">
+
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur px-6 py-4 flex items-center justify-between sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <div class="p-2 bg-rose-500/10 rounded-lg text-rose-500">
+                <i data-lucide="cpu" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold bg-gradient-to-r bg-clip-text text-transparent from-rose-400 to-amber-400">
+                    16x16 WS2812 中文跑馬燈控制台
+                </h1>
+                <p class="text-xs text-slate-400">已修正鏡射字問題：左至右串接、右上起點蛇形走線、新增動態亮度限制</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 text-sm bg-slate-800 px-3 py-1.5 rounded-full text-slate-300">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            亮度同步控制已就緒
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <div class="lg:col-span-5 flex flex-col gap-6">
+            
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col gap-4">
+                <h2 class="text-lg font-semibold flex items-center gap-2 text-slate-200">
+                    <i data-lucide="type" class="w-5 h-5 text-rose-400"></i> 1. 跑馬燈文字與清晰度調校
+                </h2>
+                
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1.5">輸入滾動句子 (可輸入多個中英文字)</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="charInput" value="歡迎光臨" 
+                               class="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-left text-lg font-bold focus:outline-none focus:border-rose-500 text-slate-100 transition">
+                        <button onclick="generateFromText()" 
+                                class="bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-slate-950 font-bold px-5 rounded-lg transition flex items-center gap-1">
+                            <i data-lucide="wand-2" class="w-4 h-4"></i> 生成
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">字型選擇</label>
+                        <select id="fontFamily" onchange="generateFromText()" 
+                                class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-rose-500 text-slate-200">
+                            <option value='monospace' selected>等寬像素風 (Monospace)</option>
+                            <option value='"Microsoft JhengHei", sans-serif'>微軟正黑體</option>
+                            <option value='"PMingLiU", serif'>新細明體</option>
+                            <option value='"DFKai-SB", sans-serif'>標楷體</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">字體粗細</label>
+                        <select id="fontWeight" onchange="generateFromText()" 
+                                class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-rose-500 text-slate-200">
+                            <option value="normal">一般</option>
+                            <option value="bold" selected>粗體</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-800 pt-3 flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-semibold text-rose-300">💡 清晰度(二值化)閾值門檻</label>
+                        <span id="thresholdVal" class="text-xs font-mono text-slate-400">120</span>
+                    </div>
+                    <input type="range" id="pixelThreshold" min="20" max="230" value="120" step="5" oninput="updateThresholdVal(this.value)"
+                           class="w-full accent-rose-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 border-t border-slate-800 pt-3">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5 font-mono">字體大小 (px)</label>
+                        <div class="flex items-center bg-slate-950 border border-slate-800 rounded-lg px-2">
+                            <input type="range" id="fontSize" min="10" max="20" value="15" oninput="updateFontVal(this.value)"
+                                   class="w-full accent-rose-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                            <span id="fontSizeVal" class="text-xs font-mono ml-2 text-slate-400 min-w-[24px] text-right">15px</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">垂直偏移 (Y軸微調)</label>
+                        <div class="flex items-center bg-slate-950 border border-slate-800 rounded-lg px-2">
+                            <input type="range" id="offsetY" min="-5" max="5" value="0.5" step="0.5" oninput="updateYVal(this.value)"
+                                   class="w-full accent-rose-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                            <span id="offsetYVal" class="text-xs font-mono ml-2 text-slate-400 min-w-[24px] text-right">0.5</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 border-t border-slate-800 pt-3">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">文字顏色</label>
+                        <input type="color" id="fgColor" value="#ff2a5f" onchange="updateColors()" 
+                               class="w-full h-9 rounded border border-slate-800 bg-transparent cursor-pointer transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">特效模式</label>
+                        <button onclick="toggleRainbow()" id="rainbowBtn" 
+                                class="w-full h-9 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition flex items-center justify-center gap-1">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> 彩虹漸層特效
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col gap-4">
+                <h2 class="text-lg font-semibold flex items-center gap-2 text-slate-200">
+                    <i data-lucide="sliders" class="w-5 h-5 text-amber-400"></i> 2. 跑馬燈與硬體設定
+                </h2>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">16x16 面板串接數量</label>
+                        <select id="panelCount" onchange="onPanelCountChange()" 
+                                class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm font-bold focus:outline-none focus:border-rose-500 text-amber-400">
+                            <option value="1">1 片 (16 x 16)</option>
+                            <option value="2" selected>2 片 (32 x 16) [預設]</option>
+                            <option value="3">3 片 (48 x 16)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5 font-mono">micro:bit Pin 腳位</label>
+                        <input type="text" id="ledPin" value="pin16" 
+                               class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-center font-mono focus:outline-none focus:border-rose-500 text-slate-200">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">單片燈板內部走線方向</label>
+                        <select id="layoutType" onchange="onLayoutChange()" 
+                                class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-rose-500 text-slate-200">
+                            <option value="top-right-zigzag" selected>右上角起點 ➔ 蛇形佈線</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5 text-rose-400 font-bold">💡 LED 燈光亮度限制</label>
+                        <select id="brightnessSelect" onchange="updateBrightness()" 
+                                class="w-full bg-slate-950 border border-rose-900 rounded-lg px-3 py-2 text-sm font-bold focus:outline-none focus:border-rose-500 text-rose-400">
+                            <option value="0.10">10% 偏暗 (最安全)</option>
+                            <option value="0.20" selected>20% 中低 (預設推薦)</option>
+                            <option value="0.30">30% 中等亮度</option>
+                            <option value="0.40">40% 較高亮度</option>
+                            <option value="0.50">50% 明亮限制</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">滾動速度 (毫秒/幀)</label>
+                        <div class="flex items-center bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5">
+                            <input type="range" id="scrollSpeed" min="50" max="400" value="150" step="10" oninput="updateSpeedVal(this.value)"
+                                   class="w-full accent-amber-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                            <span id="scrollSpeedVal" class="text-xs font-mono ml-2 text-slate-400 min-w-[36px] text-right">150ms</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-7 flex flex-col gap-6">
+            
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col items-center gap-4">
+                <div class="w-full flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-lg font-semibold flex items-center gap-2 text-slate-200">
+                            <i data-lucide="eye" class="w-5 h-5 text-rose-500"></i> <span id="simulatorTitle">32x16 跑馬燈即時模擬與手動編修</span>
+                        </h2>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="toggleMarquee()" id="playBtn" class="px-3.5 py-1.5 bg-rose-500 hover:bg-rose-600 text-slate-950 font-bold rounded-lg text-xs transition flex items-center gap-1">
+                            <i data-lucide="pause" id="playIcon" class="w-3.5 h-3.5"></i> <span id="playText">暫停模擬</span>
+                        </button>
+                        <label class="flex items-center gap-1.5 text-xs text-slate-300 cursor-pointer">
+                            <input type="checkbox" id="showLedIndices" onchange="drawMatrix()" class="accent-rose-500">
+                            顯示燈珠編號
+                        </label>
+                    </div>
+                </div>
+
+                <div class="bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-inner flex justify-center items-center w-full overflow-x-auto no-scrollbar">
+                    <div id="ledGrid" class="grid gap-1 min-w-[280px] w-full transition-all duration-300">
+                        </div>
+                </div>
+
+                <div class="flex justify-between w-full text-xs text-slate-500 border-t border-slate-800/60 pt-3">
+                    <span class="text-amber-400">💡 提示：點擊上方燈珠可手動微調修正字型</span>
+                    <span id="totalLedCountInfo">燈珠總數: 512 顆</span>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col gap-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold flex items-center gap-2 text-slate-200">
+                        <i data-lucide="code-2" class="w-5 h-5 text-emerald-400"></i> micro:bit MicroPython 跑馬燈原始碼
+                    </h2>
+                    <div class="flex gap-2">
+                        <a href="https://python.microbit.org/v/3" target="_blank" rel="noopener noreferrer" class="px-4 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-slate-950 font-bold rounded-lg text-xs transition flex items-center gap-1">
+                            <i data-lucide="external-link" class="w-3.5 h-3.5"></i> 線上編輯器
+                        </a>
+                        <button onclick="copyCode(this)" class="px-4 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold rounded-lg text-xs transition flex items-center gap-1">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i> 複製程式碼
+                        </button>
+                    </div>
+                </div>
+
+                <div class="relative">
+                    <textarea id="microPythonCode" readonly class="w-full h-80 bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-xs text-emerald-400 focus:outline-none resize-none no-scrollbar"></textarea>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <canvas id="textCanvas" width="16" height="16" class="hidden"></canvas>
+
+    <script>
+        const grid = document.getElementById('ledGrid');
+        const matrixRows = 16;
+        let matrixCols = 32; 
+        let numPanels = 2;   
+
+        let fontColor = '#ff2a5f';
+        let darkColor = '#000000'; 
+        let rainbowMode = false;   
+        let currentBrightness = 0.20; // 預設亮度 20%
+        
+        let textBitmaps = []; 
+        let currentScrollOffset = -32; 
+        let marqueeInterval = null;
+        let marqueeSpeed = 150; 
+        let isPlaying = true;
+        let currentThreshold = 120; 
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            onPanelCountChange();
+        });
+
+        function onPanelCountChange() {
+            const panelCountEl = document.getElementById('panelCount');
+            numPanels = panelCountEl ? parseInt(panelCountEl.value) : 2;
+            matrixCols = numPanels * 16;
+
+            document.getElementById('simulatorTitle').innerText = `${matrixCols}x16 跑馬燈即時模擬與手動編修`;
+            document.getElementById('totalLedCountInfo').innerText = `燈珠總數: ${matrixCols * 16} 顆`;
+
+            grid.style.display = 'grid';
+            grid.style.gridTemplateColumns = `repeat(${matrixCols}, minmax(0, 1fr))`;
+            grid.style.gridTemplateRows = `repeat(${matrixRows}, minmax(0, 1fr))`;
+            
+            if (numPanels === 1) grid.style.maxWidth = '400px';
+            else if (numPanels === 2) grid.style.maxWidth = '650px';
+            else grid.style.maxWidth = '850px';
+
+            currentScrollOffset = -matrixCols; 
+
+            buildLedBoard();
+            generateFromText();
+            if (isPlaying) {
+                stopMarqueeTimer();
+                startMarqueeTimer();
+            }
+        }
+
+        function buildLedBoard() {
+            grid.innerHTML = '';
+            for (let r = 0; r < matrixRows; r++) {
+                for (let c = 0; c < matrixCols; c++) {
+                    const led = document.createElement('div');
+                    led.id = `led-${r}-${c}`;
+                    led.className = "aspect-square rounded-full cursor-pointer transition-all duration-100 ease-out border border-slate-900/40 flex items-center justify-center text-[7px] font-mono select-none overflow-hidden";
+                    led.style.backgroundColor = darkColor;
+                    
+                    led.addEventListener('mousedown', (e) => { toggleLED(r, c); });
+                    grid.appendChild(led);
+                }
+            }
+        }
+
+        function toggleLED(r, c) {
+            const totalCols = textBitmaps.length * 16;
+            let abs_c = c + currentScrollOffset;
+            if (abs_c >= 0 && abs_c < totalCols) {
+                let charIdx = Math.floor(abs_c / 16);
+                let colLocal = abs_c % 16;
+                textBitmaps[charIdx][r][colLocal] = textBitmaps[charIdx][r][colLocal] === 1 ? 0 : 1;
+                drawMatrix();
+                generateMicroPythonCode();
+            }
+        }
+
+        function updateColors() {
+            const fgColorEl = document.getElementById('fgColor');
+            fontColor = fgColorEl ? fgColorEl.value : '#ff2a5f';
+            drawMatrix();
+            generateMicroPythonCode();
+        }
+
+        // 🌟 新增：更新亮度控制
+        function updateBrightness() {
+            const brightnessEl = document.getElementById('brightnessSelect');
+            if (brightnessEl) {
+                currentBrightness = parseFloat(brightnessEl.value);
+            }
+            drawMatrix();
+            generateMicroPythonCode();
+        }
+
+        function toggleRainbow() {
+            rainbowMode = !rainbowMode;
+            const btn = document.getElementById('rainbowBtn');
+            const fgColorEl = document.getElementById('fgColor');
+            
+            if (rainbowMode) {
+                if (btn) {
+                    btn.classList.replace('bg-slate-800', 'bg-gradient-to-r');
+                    btn.classList.add('from-pink-500', 'via-purple-500', 'to-cyan-500', 'text-slate-950');
+                }
+                if (fgColorEl) fgColorEl.disabled = true;
+            } else {
+                if (btn) {
+                    btn.classList.replace('bg-gradient-to-r', 'bg-slate-800');
+                    btn.classList.remove('from-pink-500', 'via-purple-500', 'to-cyan-500', 'text-slate-950');
+                    btn.classList.add('text-slate-300');
+                }
+                if (fgColorEl) fgColorEl.disabled = false;
+            }
+            drawMatrix();
+            generateMicroPythonCode();
+        }
+
+        function updateThresholdVal(val) {
+            document.getElementById('thresholdVal').innerText = val;
+            currentThreshold = parseInt(val);
+            generateFromText();
+        }
+        function updateFontVal(val) {
+            document.getElementById('fontSizeVal').innerText = val + 'px';
+            generateFromText();
+        }
+        function updateYVal(val) {
+            document.getElementById('offsetYVal').innerText = val;
+            generateFromText();
+        }
+        function updateSpeedVal(val) {
+            document.getElementById('scrollSpeedVal').innerText = val + 'ms';
+            marqueeSpeed = parseInt(val);
+            if (isPlaying) {
+                stopMarqueeTimer();
+                startMarqueeTimer();
+            }
+            generateMicroPythonCode();
+        }
+
+        function onLayoutChange() {
+            generateMicroPythonCode();
+            drawMatrix();
+        }
+
+        function generateFromText() {
+            const sentence = document.getElementById('charInput').value;
+            const font = document.getElementById('fontFamily').value;
+            const size = parseInt(document.getElementById('fontSize').value);
+            const oy = parseFloat(document.getElementById('offsetY').value);
+            const weight = document.getElementById('fontWeight').value;
+
+            const canvas = document.getElementById('textCanvas');
+            const ctx = canvas.getContext('2d');
+
+            textBitmaps = [];
+
+            for (let i = 0; i < sentence.length; i++) {
+                const char = sentence[i];
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, 16, 16);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = `${weight} ${size}px ${font}`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(char, 8, 8 + oy);
+
+                const imgData = ctx.getImageData(0, 0, 16, 16).data;
+                let charMatrix = Array(matrixRows).fill().map(() => Array(16).fill(0));
+
+                for (let r = 0; r < matrixRows; r++) {
+                    for (let c = 0; c < 16; c++) {
+                        const idx = (r * 16 + c) * 4;
+                        charMatrix[r][c] = imgData[idx] > currentThreshold ? 1 : 0;
+                    }
+                }
+                textBitmaps.push(charMatrix);
+            }
+            currentScrollOffset = -matrixCols;
+            drawMatrix();
+            generateMicroPythonCode();
+        }
+
+        function startMarqueeTimer() {
+            if (marqueeInterval) clearInterval(marqueeInterval);
+            marqueeInterval = setInterval(() => {
+                const totalCols = textBitmaps.length * 16;
+                if (totalCols === 0) return;
+                currentScrollOffset++;
+                if (currentScrollOffset >= totalCols) currentScrollOffset = -matrixCols;
+                drawMatrix();
+            }, marqueeSpeed);
+        }
+
+        function stopMarqueeTimer() {
+            if (marqueeInterval) clearInterval(marqueeInterval);
+        }
+
+        function toggleMarquee() {
+            const btn = document.getElementById('playBtn');
+            const icon = document.getElementById('playIcon');
+            const txt = document.getElementById('playText');
+            
+            if (isPlaying) {
+                stopMarqueeTimer();
+                btn.classList.replace('bg-rose-500', 'bg-emerald-500');
+                icon.setAttribute('data-lucide', 'play');
+                txt.innerText = '開始模擬';
+                isPlaying = false;
+            } else {
+                startMarqueeTimer();
+                btn.classList.replace('bg-emerald-500', 'bg-rose-500');
+                icon.setAttribute('data-lucide', 'pause');
+                txt.innerText = '暫停模擬';
+                isPlaying = true;
+            }
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        // 將 HSL 轉成網頁 RGB 字串
+        function hslToRgbStr(h, s, l) {
+            l /= 100;
+            const a = s * Math.min(l, 1 - l) / 100;
+            const f = n => {
+                const k = (n + h / 30) % 12;
+                const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+                return Math.round(255 * color);
+            };
+            return `rgb(${f(0)}, ${f(8)}, ${f(4)})`;
+        }
+
+        // 依比例調暗網頁 Hex 色彩
+        function applyBrightnessToHex(hex, factor) {
+            const rgb = hexToRgb(hex);
+            const r = Math.round(rgb.r * factor);
+            const g = Math.round(rgb.g * factor);
+            const b = Math.round(rgb.b * factor);
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        function drawMatrix() {
+            const showIndices = document.getElementById('showLedIndices').checked;
+            const totalCols = textBitmaps.length * 16;
+
+            for (let r = 0; r < matrixRows; r++) {
+                for (let c = 0; c < matrixCols; c++) {
+                    const led = document.getElementById(`led-${r}-${c}`);
+                    if (!led) continue;
+                    
+                    const ledIdx = getLEDIndexMultiPanel(r, c);
+                    led.innerText = showIndices ? ledIdx : '';
+
+                    let isPixelOn = false;
+                    let abs_c = c + currentScrollOffset;
+
+                    if (abs_c >= 0 && abs_c < totalCols && textBitmaps.length > 0) {
+                        let charIdx = Math.floor(abs_c / 16);
+                        let colLocal = abs_c % 16;
+                        isPixelOn = textBitmaps[charIdx][r][colLocal] === 1;
+                    }
+
+                    if (isPixelOn) {
+                        let activeColor = "";
+                        if (rainbowMode) {
+                            let hue = (abs_c * 15 + currentScrollOffset * 4) % 360;
+                            // 藉由調降 HSL 的亮度（Lightness）來配合亮度選單模擬
+                            let simulatedLightness = 50 * (currentBrightness / 0.5); 
+                            activeColor = hslToRgbStr(hue, 100, Math.max(10, simulatedLightness));
+                        } else {
+                            // 單色模式直接依比例計算 RGB
+                            activeColor = applyBrightnessToHex(fontColor, currentBrightness);
+                        }
+                        led.style.backgroundColor = activeColor;
+                        led.style.setProperty('--glow-color', activeColor + '88');
+                        led.classList.add('led-glow');
+                        led.style.border = 'none';
+                    } else {
+                        led.style.backgroundColor = darkColor;
+                        led.style.removeProperty('--glow-color');
+                        led.classList.remove('led-glow');
+                        led.style.border = '1px solid rgba(15, 23, 42, 0.4)';
+                    }
+                }
+            }
+        }
+
+        function getLEDIndexMultiPanel(r, c) {
+            const panelIdx = Math.floor(c / 16); 
+            const local_c = c % 16;              
+            const baseOffset = panelIdx * 256;   
+
+            if (r % 2 === 0) {
+                return baseOffset + (r * 16 + (15 - local_c));
+            } else {
+                return baseOffset + (r * 16 + local_c);
+            }
+        }
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : { r: 255, g: 0, b: 0 };
+        }
+
+        function generateMicroPythonCode() {
+            const sentence = document.getElementById('charInput').value;
+            const pin = document.getElementById('ledPin').value;
+            const speed = document.getElementById('scrollSpeed').value;
+
+            const fgRGB = hexToRgb(fontColor);
+            const bgRGB = hexToRgb(darkColor);
+            const totalLeds = numPanels * 256;
+
+            let pythonTuples = [];
+            for (let charIdx = 0; charIdx < textBitmaps.length; charIdx++) {
+                const charMatrix = textBitmaps[charIdx];
+                let bytes = [];
+                for (let r = 0; r < 16; r++) {
+                    let byte1 = 0; let byte2 = 0;
+                    for (let c = 0; c < 8; c++) {
+                        if (charMatrix[r][c] === 1) byte1 |= (1 << (7 - c));
+                    }
+                    for (let c = 8; c < 16; c++) {
+                        if (charMatrix[r][c] === 1) byte2 |= (1 << (15 - c));
+                    }
+                    bytes.push(byte1); bytes.push(byte2);
+                }
+                
+                let hexStrings = bytes.map(b => '0x' + b.toString(16).toUpperCase().padStart(2, '0'));
+                let tupleStr = "(\n        " + 
+                               hexStrings.slice(0, 8).join(', ') + ",\n        " +
+                               hexStrings.slice(8, 16).join(', ') + ",\n        " +
+                               hexStrings.slice(16, 24).join(', ') + ",\n        " +
+                               hexStrings.slice(24, 32).join(', ') + "\n    )";
+                pythonTuples.push(tupleStr);
+            }
+
+            let fontDataPy = "font_data = [\n    " + pythonTuples.join(",\n    ") + "\n]";
+
+            let mapping_py_body = 
+                "    panel_idx = c // 16       # 算出在哪一片燈板\n" +
+                "    local_c = c % 16          # 該燈板內的 X 座標\n" +
+                "    base_offset = panel_idx * 256\n\n" +
+                "    # 右上角起點之蛇形走線邏輯\n" +
+                "    if r % 2 == 0:\n" +
+                "        return base_offset + (r * 16 + (15 - local_c))\n" +
+                "    else:\n" +
+                "        return base_offset + (r * 16 + local_c)";
+
+            let rainbowHelperFunction = "";
+            let drawFrameFunction = "";
+
+            if (rainbowMode) {
+                // 彩虹模式下加入了 BRIGHTNESS 乘法縮放
+                rainbowHelperFunction = 
+                    "def hsv_to_rgb(h):\n" +
+                    "    if h < 85:\n" +
+                    "        r, g, b = (255 - h * 3, h * 3, 0)\n" +
+                    "    elif h < 170:\n" +
+                    "        h -= 85\n" +
+                    "        r, g, b = (0, 255 - h * 3, h * 3)\n" +
+                    "    else:\n" +
+                    "        h -= 170\n" +
+                    "        r, g, b = (h * 3, 0, 255 - h * 3)\n" +
+                    "    # 配合硬體亮度選單進行即時縮放\n" +
+                    "    return (int(r * BRIGHTNESS), int(g * BRIGHTNESS), int(b * BRIGHTNESS))\n\n";
+
+                drawFrameFunction = 
+                    `def draw_frame(offset_x):
+    hue_shift = (offset_x * 4) % 256
+    for r in range(16):
+        for c in range(${matrixCols}):
+            abs_c = c + offset_x
+            is_pixel_on = False
+            if 0 <= abs_c < TOTAL_COLS:
+                char_idx = abs_c // 16
+                col_local = abs_c % 16
+                byte_idx = r * 2 + (0 if col_local < 8 else 1)
+                bit_shift = 7 - (col_local % 8)
+                is_pixel_on = (font_data[char_idx][byte_idx] & (1 << bit_shift)) != 0
+
+            led_idx = get_led_index(r, c)
+            if is_pixel_on:
+                pixel_hue = (abs_c * 10 + hue_shift) % 256
+                np[led_idx] = hsv_to_rgb(pixel_hue)
+            else:
+                np[led_idx] = BG_COLOR\n`;
+            } else {
+                drawFrameFunction = 
+                    `def draw_frame(offset_x):
+    for r in range(16):
+        for c in range(${matrixCols}):
+            abs_c = c + offset_x
+            is_pixel_on = False
+            if 0 <= abs_c < TOTAL_COLS:
+                char_idx = abs_c // 16
+                col_local = abs_c % 16
+                byte_idx = r * 2 + (0 if col_local < 8 else 1)
+                bit_shift = 7 - (col_local % 8)
+                is_pixel_on = (font_data[char_idx][byte_idx] & (1 << bit_shift)) != 0
+
+            led_idx = get_led_index(r, c)
+            if is_pixel_on:
+                np[led_idx] = FG_COLOR
+            else:
+                np[led_idx] = BG_COLOR\n`;
+            }
+
+            const code = '"""\n' +
+                '16x16 WS2812 LED 跑馬燈 (安全亮度控制版)\n' +
+                '規格：串接 ' + numPanels + ' 片面板，可視範圍 ' + matrixCols + 'x16，總燈數 ' + totalLeds + ' 顆\n' +
+                '內部佈線：右上角起點 ➔ 蛇形走線\n' +
+                '"""\n\n' +
+                'from microbit import *\n' +
+                'import neopixel\n\n' +
+                'np = neopixel.NeoPixel(' + pin + ', ' + totalLeds + ')\n\n' +
+                fontDataPy + '\n\n' +
+                '# 亮度乘數設定\n' +
+                'BRIGHTNESS = ' + currentBrightness.toFixed(2) + '  # 限制硬體最高亮度，避免主機過載\n\n' +
+                '# 顏色設定 (已自動在原始色碼上乘上亮度係數)\n' +
+                'FG_COLOR = (int(' + fgRGB.r + ' * BRIGHTNESS), int(' + fgRGB.g + ' * BRIGHTNESS), int(' + fgRGB.b + ' * BRIGHTNESS))\n' +
+                'BG_COLOR = (' + bgRGB.r + ', ' + bgRGB.g + ', ' + bgRGB.b + ')\n\n' +
+                'NUM_CHARS = len(font_data)\n' +
+                'TOTAL_COLS = NUM_CHARS * 16\n\n' +
+                'def get_led_index(r, c):\n' +
+                mapping_py_body + '\n\n' +
+                rainbowHelperFunction +
+                '# 根據偏移量繪製當前幀\n' +
+                drawFrameFunction + '\n' +
+                'while True:\n' +
+                '    for offset in range(-' + matrixCols + ', TOTAL_COLS):\n' +
+                '        draw_frame(offset)\n' +
+                '        np.show()\n' +
+                '        sleep(' + speed + ')\n';
+
+            document.getElementById('microPythonCode').value = code;
+        }
+
+        function copyCode(btn) {
+            const copyText = document.getElementById("microPythonCode");
+            if (!copyText) return;
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            try {
+                const successful = document.execCommand('copy');
+                if(successful && btn) {
+                    const originHTML = btn.innerHTML;
+                    btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5"></i> 已複製！`;
+                    btn.classList.replace('bg-emerald-500', 'bg-blue-500');
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                    setTimeout(() => {
+                        btn.innerHTML = originHTML;
+                        btn.classList.replace('bg-blue-500', 'bg-emerald-500');
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    }, 2000);
+                }
+            } catch (err) {}
+        }
+    </script>
+</body>
+</html>

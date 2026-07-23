@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 LED 矩陣 - AI 提示詞大師</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary: #0ea5e9;
+            --secondary-hover: #0284c7;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --border: #e2e8f0;
+        }
+        body {
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 750px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 5px;
+            font-size: 26px;
+            font-weight: 900;
+        }
+        .subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 24px;
+            padding: 20px;
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            background-color: #fbfbfd;
+        }
+        .section-title {
+            font-weight: 800;
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .form-group {
+            margin-bottom: 12px;
+        }
+        label {
+            display: block;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+        select, input[type="text"], textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 14px;
+            font-weight: bold;
+            color: #334155;
+            background-color: #fff;
+            transition: border-color 0.2s;
+        }
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        .hint {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 6px;
+            line-height: 1.4;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.2);
+        }
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+        button:active {
+            transform: scale(0.99);
+        }
+        .microbit-btn {
+            background-color: var(--secondary);
+            margin-top: 12px;
+            box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.2);
+            text-decoration: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box;
+        }
+        .microbit-btn:hover {
+            background-color: var(--secondary-hover);
+        }
+        .output-box {
+            margin-top: 30px;
+            display: none;
+        }
+        .output-title {
+            font-weight: 800;
+            color: #10b981;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+        textarea#resultPrompt {
+            height: 280px;
+            background-color: #0f172a;
+            color: #38bdf8;
+            font-family: monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            padding: 15px;
+            border: none;
+        }
+        .copy-btn {
+            background-color: #10b981;
+            margin-top: 10px;
+            box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+        }
+        .copy-btn:hover {
+            background-color: #059669;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🤖 LED 矩陣 - AI 提示詞大師</h1>
+    <div class="subtitle">用滑鼠點選規格，自動組裝成「不當機」的完美 AI 提示詞！</div>
+    
+    <div class="section">
+        <div class="section-title">🛠️ 步驟一：選擇硬體與排列方式</div>
+        
+        <div class="grid-2">
+            <div class="form-group">
+                <label for="board">1. 控制主機</label>
+                <select id="board">
+                    <option value="Micro:bit V2">Micro:bit V2</option>
+                    <option value="Arduino Uno">Arduino Uno</option>
+                    <option value="Raspberry Pi Pico">Raspberry Pi Pico</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="ledType">2. LED 面板型號</label>
+                <select id="ledType">
+                    <option value="WS2812B 16x16 LED 矩陣面板">WS2812B (16x16 面板)</option>
+                    <option value="WS2812B 8x8 LED 矩陣面板">WS2812B (8x8 面板)</option>
+                    <option value="WS2812B 炫彩燈條">WS2812B 燈條</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 10px;">
+            <label for="panelCount">3. 數量與串接結構</label>
+            <select id="panelCount">
+                <option value="2 片橫向串接（左邊是第 1 片，右邊是第 2 片，總共 512 顆燈）">2 片橫向串接 (512 顆燈)</option>
+                <option value="1 片單獨使用（總共 256 顆燈）">1 片單獨使用 (256 顆燈)</option>
+                <option value="4 片拼成 32x32 的正方形畫面">4 片田字型拼貼 (1024 顆燈)</option>
+            </select>
+        </div>
+
+        <div class="form-group" style="margin-top: 10px;">
+            <label for="wiring">4. 面板佈線（走線）方向</label>
+            <select id="wiring">
+                <option value="右上角為編號 0 的『S 型（蛇形）佈線』">右上角起點 ➔ 蛇形 (S型)</option>
+                <option value="左上角為編號 0 的『S 型（蛇形）佈線』">左上角起點 ➔ 蛇形 (S型)</option>
+                <option value="左上角為編號 0 的『Z 型（並排）佈線』">左上角起點 ➔ 並排 (Z型)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">🔌 步驟二：程式語言與接腳</div>
+        <div class="grid-2">
+            <div class="form-group">
+                <label for="lang">1. 程式語言環境</label>
+                <select id="lang">
+                    <option value="MicroPython 語言並導入 neopixel 套件">MicroPython</option>
+                    <option value="Arduino C++ 語言並使用 Adafruit_NeoPixel 函式庫">Arduino C++</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="pin">2. 訊號輸入腳位 (DIN)</label>
+                <select id="pin">
+                    <option value="Pin 7">Pin 7</option>
+                    <option value="Pin 8">Pin 8</option>
+                    <option value="Pin 9">Pin 9</option>
+                    <option value="Pin 12">Pin 12</option>
+                    <option value="Pin 16" selected>Pin 16</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">✨ 步驟三：設定展示效果與亮度</div>
+        
+        <div class="form-group">
+            <label for="brightness">1. 燈光亮度限制</label>
+            <select id="brightness">
+                <option value="15% 亮度，調配微亮的淡藍色">15% 偏暗（最安全、最防當機）</option>
+                <option value="30% 亮度，調配亮綠色">30% 中等亮度</option>
+                <option value="50% 亮度，調配亮橘色">50% 較明亮</option>
+            </select>
+        </div>
+
+        <div class="form-group" style="margin-top: 10px;">
+            <label for="effect">2. 增加 LED 動態展示效果（請用中文寫下你想做的畫面）：</label>
+            <textarea id="effect" placeholder="例如：按下 Micro:bit 的 A 按鈕後，燈泡要以一顆接一顆亮起且不滅的方式填滿大螢幕。填滿 512 顆燈後，要靜止亮 3 秒鐘，最後全部熄滅。"></textarea>
+            <div class="hint">💡 學生可以直接在這裡輸入任何口語的點子（例如：畫一個跳動的紅色愛心、做左右來回的跑馬燈），網頁會自動幫忙加上「防金魚腦卡死當機」的建表法程式優化命令！</div>
+        </div>
+    </div>
+
+    <button onclick="buildPrompt()">🚀 產生完美的 AI 提示詞</button>
+    
+    <a href="https://python.microbit.org/v/3" target="_blank" style="text-decoration: none;">
+        <button type="button" class="microbit-btn">🐍 前往 Micro:bit Python 編輯器</button>
+    </a>
+
+    <div class="output-box" id="outputBox">
+        <div class="output-title">📋 產生成功！請複製下方文字送給 AI：</div>
+        <textarea id="resultPrompt" readonly></textarea>
+        <button class="copy-btn" onclick="copyToClipboard()">✨ 一鍵複製提示詞</button>
+    </div>
+</div>
+
+<script>
+    function buildPrompt() {
+        const board = document.getElementById('board').value;
+        const ledType = document.getElementById('ledType').value;
+        const panelCount = document.getElementById('panelCount').value;
+        const wiring = document.getElementById('wiring').value;
+        const lang = document.getElementById('lang').value;
+        const pin = document.getElementById('pin').value;
+        const brightness = document.getElementById('brightness').value;
+        const effect = document.getElementById('effect').value.trim() || "請幫我寫一個基礎的走馬燈測試程式。";
+
+        let ledCount = "512";
+        if (panelCount.includes("256")) ledCount = "256";
+        if (panelCount.includes("1024")) ledCount = "1024";
+
+        // 🌟 核心修改點：在 finalPrompt 的【特殊優化需求】中，強制塞入 16 進位編碼命令！
+        const finalPrompt = `你是一位非常有耐心、擅長使用簡單好懂文字的「國小創客程式老師」。目前我的國小學生們正在進行 LED 矩陣的實作專案，請幫我們撰寫符合以下規格、功能完全正確、且高度優化的程式碼：
+
+1. 【使用硬體與排列方式】：
+   - 主機：${board}
+   - LED 型號：${ledType}
+   - 數量與串接：${panelCount}
+   - 佈線排列：${wiring}
+
+2. 【使用程式語言】：
+   - 請使用 ${lang} 來撰寫。
+
+3. 【使用的控制接腳】：
+   - 面板的訊號輸入線（DIN）接在主機的 ${pin}。
+
+4. 【LED 展示效果與觸發規則】：
+   - 亮度設定：請嚴格控制在 ${brightness}，以防止耗電過大導致主機電壓不穩而當機。
+   - 動畫效果：${effect}
+
+⚠️【特殊優化需求】：
+1. 因為燈泡總數達 ${ledCount} 顆，主機的記憶體（RAM）非常小。如果讓主機在迴圈執行時當場計算 S 型或 Z 型佈線的座標轉換，會導致記憶體爆滿而卡死當機。請改用「在開機（Initialization）時，先用演算法將所有燈泡的視覺順序算好，存入一個清單/陣列（建表法 Table-lookup）」的邏輯。
+2. 【📢 記憶體極致壓縮】：請將程式碼中所有字體庫（FONT）點陣圖、圖形座標或二維陣列位置，一律強制改用「16進位（Hexadecimal，例如 0x01, 0x0F）」方式進行硬體編碼與儲存。這樣才能最大化節省主機記憶體，防止 MicroPython 發生記憶體不足（Out of Memory）或閃爍當機！
+
+請提供：
+1. 完整且加上「詳細中文註解」的程式碼（註解語氣要親切活潑，適合國小生閱讀）。
+2. 在程式碼後，用條列式（1, 2, 3）提供「AI 老師貼心說明」，用簡單的積木邏輯比喻，告訴學生這段程式碼的運作原理與接線注意事項（提醒一接要把主機的 GND 與外接電源負極共地）。`;
+
+        document.getElementById('resultPrompt').value = finalPrompt;
+        const outputBox = document.getElementById('outputBox');
+        outputBox.style.display = 'block';
+        
+        outputBox.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function copyToClipboard() {
+        const copyText = document.getElementById("resultPrompt");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999); 
+        
+        navigator.clipboard.writeText(copyText.value).then(() => {
+            alert("🎉 提示詞複製成功！快帶去貼給 AI 看吧！");
+        }).catch(err => {
+            document.execCommand("copy");
+            alert("🎉 提示詞複製成功！");
+        });
+    }
+</script>
+
+</body>
+</html>
