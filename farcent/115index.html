@@ -60,6 +60,28 @@
         header p {
             font-size: 1.1rem;
             opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        /* 頂部範例按鈕 */
+        .btn-header-demo {
+            display: inline-flex;
+            align-items: center;
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-size: 1rem;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: all 0.25s ease;
+        }
+
+        .btn-header-demo:hover {
+            background-color: #e68a00;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.2);
         }
 
         /* 主要內容排版容器 */
@@ -234,6 +256,41 @@
             gap: 5px;
         }
 
+        /* 內嵌範店提示區塊 */
+        .demo-box {
+            background-color: #fffaf0;
+            border: 1px solid #ffe6cc;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .demo-box p {
+            font-size: 0.95rem;
+            color: #b35c00;
+            margin: 0;
+        }
+
+        .btn-demo-link {
+            background-color: #ffa64d;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            text-decoration: none;
+            font-weight: bold;
+            white-space: nowrap;
+            transition: background 0.2s;
+        }
+
+        .btn-demo-link:hover {
+            background-color: #e68a00;
+        }
+
         footer {
             background-color: #2d3748;
             color: #a0aec0;
@@ -251,6 +308,8 @@
             .day-header { font-size: 1rem; flex-direction: column; align-items: flex-start; gap: 8px; }
             .day-badge { margin-left: 0; }
             .btn-enter-day { margin-left: 0; width: 100%; justify-content: center; }
+            .demo-box { flex-direction: column; align-items: stretch; text-align: center; }
+            .btn-demo-link { width: 100%; }
         }
     </style>
 </head>
@@ -261,6 +320,7 @@
         <div class="badge-main">⭐ 寒假限定 AI 科技商戰營</div>
         <h1>AI小達人 × 智慧商戰園遊會</h1>
         <p>不套用死板模組！引導孩子扮演專案策劃者，親手特訓 AI 大腦、打造專屬無人魔法商店</p>
+        <a href="https://cpaizo.github.io/farcent/115_%E9%A9%85%E5%A1%B5%E6%B0%8Fver5.html" target="_blank" rel="noopener noreferrer" class="btn-header-demo">🛒 觀看老師範例商店</a>
     </header>
 
     <div class="container">
@@ -369,6 +429,12 @@
                         <div class="lesson-title"><span>第 1~5 堂</span> 【網路商店抓蟲與蓋完它】</div>
                         <div class="lesson-detail"><strong>我們要做什麼：</strong>當個軟體除錯小偵探，把程式裡亂跳的怪物（Bug）抓出來；把畫面變漂亮，並加上防呆設計。</div>
                         <div class="lesson-target">🎯 挑戰成功目標：做出一台超級好用、絕對不會當機、評審看了會發出「哇～」的完美 AI 無人商店！</div>
+                        
+                        <!-- 內嵌老師範例商店連結位置 -->
+                        <div class="demo-box">
+                            <p>💡 <b>不知道完美的 AI 無人商店長怎樣嗎？</b> 快來參考老師做好的驅塵氏示範網路商店，看看結合鏡頭與辨識的最終成果吧！</p>
+                            <a href="https://cpaizo.github.io/farcent/115_%E9%A9%85%E5%A1%B5%E6%B0%8Fver5.html" target="_blank" rel="noopener noreferrer" class="btn-demo-link">👉 點此開啟範例商店</a>
+                        </div>
                     </div>
                 </div>
             </div>
