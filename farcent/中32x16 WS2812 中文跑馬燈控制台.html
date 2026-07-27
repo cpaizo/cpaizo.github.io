@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>16x16 WS2812 LED 中文跑馬燈產生器 (動態亮度版)</title>
+    <title>32x16 WS2812 LED 中文跑馬燈產生器</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -31,14 +31,14 @@
             </div>
             <div>
                 <h1 class="text-xl font-bold bg-gradient-to-r bg-clip-text text-transparent from-rose-400 to-amber-400">
-                    16x16 WS2812 中文跑馬燈控制台
+                    32x16 WS2812 中文跑馬燈控制台
                 </h1>
-                <p class="text-xs text-slate-400">已修正鏡射字問題：左至右串接、右上起點蛇形走線、新增動態亮度限制</p>
+                <p class="text-xs text-slate-400">已修正鏡射字問題：左至右串接、右上起點蛇形走線、已優化顏色飽和度與閃爍問題</p>
             </div>
         </div>
         <div class="flex items-center gap-2 text-sm bg-slate-800 px-3 py-1.5 rounded-full text-slate-300">
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            亮度同步控制已就緒
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+            狀態：穩定同步中
         </div>
     </header>
 
@@ -68,18 +68,18 @@
                         <label class="block text-xs font-medium text-slate-400 mb-1.5">字型選擇</label>
                         <select id="fontFamily" onchange="generateFromText()" 
                                 class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-rose-500 text-slate-200">
-                            <option value='monospace' selected>等寬像素風 (Monospace)</option>
+                            <option value='"PMingLiU", serif' selected>新細明體</option>
                             <option value='"Microsoft JhengHei", sans-serif'>微軟正黑體</option>
-                            <option value='"PMingLiU", serif'>新細明體</option>
                             <option value='"DFKai-SB", sans-serif'>標楷體</option>
+                            <option value='monospace'>等寬像素風 (Monospace)</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1.5">字體粗細</label>
                         <select id="fontWeight" onchange="generateFromText()" 
                                 class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-rose-500 text-slate-200">
-                            <option value="normal">一般</option>
-                            <option value="bold" selected>粗體</option>
+                            <option value="normal" selected>一般</option>
+                            <option value="bold">粗體</option>
                         </select>
                     </div>
                 </div>
@@ -210,7 +210,7 @@
                 </div>
 
                 <div class="flex justify-between w-full text-xs text-slate-500 border-t border-slate-800/60 pt-3">
-                    <span class="text-amber-400">💡 提示：點擊上方燈珠可手動微調修正字型</span>
+                    <span class="text-amber-400">💡 提示：點擊上方燈珠可手動微調修正字型，不閃爍且即時套用文字顏色</span>
                     <span id="totalLedCountInfo">燈珠總數: 512 顆</span>
                 </div>
             </div>
@@ -248,7 +248,7 @@
         let fontColor = '#ff2a5f';
         let darkColor = '#000000'; 
         let rainbowMode = false;   
-        let currentBrightness = 0.20; // 預設亮度 20%
+        let currentBrightness = 0.20; 
         
         let textBitmaps = []; 
         let currentScrollOffset = -32; 
@@ -322,7 +322,6 @@
             generateMicroPythonCode();
         }
 
-        // 🌟 新增：更新亮度控制
         function updateBrightness() {
             const brightnessEl = document.getElementById('brightnessSelect');
             if (brightnessEl) {
@@ -436,6 +435,14 @@
             if (marqueeInterval) clearInterval(marqueeInterval);
         }
 
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopMarqueeTimer();
+            } else if (isPlaying) {
+                startMarqueeTimer();
+            }
+        });
+
         function toggleMarquee() {
             const btn = document.getElementById('playBtn');
             const icon = document.getElementById('playIcon');
@@ -457,7 +464,6 @@
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
-        // 將 HSL 轉成網頁 RGB 字串
         function hslToRgbStr(h, s, l) {
             l /= 100;
             const a = s * Math.min(l, 1 - l) / 100;
@@ -467,15 +473,6 @@
                 return Math.round(255 * color);
             };
             return `rgb(${f(0)}, ${f(8)}, ${f(4)})`;
-        }
-
-        // 依比例調暗網頁 Hex 色彩
-        function applyBrightnessToHex(hex, factor) {
-            const rgb = hexToRgb(hex);
-            const r = Math.round(rgb.r * factor);
-            const g = Math.round(rgb.g * factor);
-            const b = Math.round(rgb.b * factor);
-            return `rgb(${r}, ${g}, ${b})`;
         }
 
         function drawMatrix() {
@@ -499,26 +496,25 @@
                         isPixelOn = textBitmaps[charIdx][r][colLocal] === 1;
                     }
 
+                    // 修正：固定邊框避免重繪時發白閃爍
+                    led.style.border = '1px solid rgba(15, 23, 42, 0.4)';
+
                     if (isPixelOn) {
                         let activeColor = "";
                         if (rainbowMode) {
                             let hue = (abs_c * 15 + currentScrollOffset * 4) % 360;
-                            // 藉由調降 HSL 的亮度（Lightness）來配合亮度選單模擬
-                            let simulatedLightness = 50 * (currentBrightness / 0.5); 
-                            activeColor = hslToRgbStr(hue, 100, Math.max(10, simulatedLightness));
+                            activeColor = hslToRgbStr(hue, 100, 50); 
                         } else {
-                            // 單色模式直接依比例計算 RGB
-                            activeColor = applyBrightnessToHex(fontColor, currentBrightness);
+                            // 修正：網頁前端直接顯示 100% 設定色彩，免除暗淡問題
+                            activeColor = fontColor; 
                         }
                         led.style.backgroundColor = activeColor;
                         led.style.setProperty('--glow-color', activeColor + '88');
                         led.classList.add('led-glow');
-                        led.style.border = 'none';
                     } else {
                         led.style.backgroundColor = darkColor;
                         led.style.removeProperty('--glow-color');
                         led.classList.remove('led-glow');
-                        led.style.border = '1px solid rgba(15, 23, 42, 0.4)';
                     }
                 }
             }
@@ -594,7 +590,6 @@
             let drawFrameFunction = "";
 
             if (rainbowMode) {
-                // 彩虹模式下加入了 BRIGHTNESS 乘法縮放
                 rainbowHelperFunction = 
                     "def hsv_to_rgb(h):\n" +
                     "    if h < 85:\n" +
@@ -605,7 +600,6 @@
                     "    else:\n" +
                     "        h -= 170\n" +
                     "        r, g, b = (h * 3, 0, 255 - h * 3)\n" +
-                    "    # 配合硬體亮度選單進行即時縮放\n" +
                     "    return (int(r * BRIGHTNESS), int(g * BRIGHTNESS), int(b * BRIGHTNESS))\n\n";
 
                 drawFrameFunction = 
@@ -650,7 +644,7 @@
             }
 
             const code = '"""\n' +
-                '16x16 WS2812 LED 跑馬燈 (安全亮度控制版)\n' +
+                '32x16 WS2812 LED 跑馬燈 (安全亮度控制版)\n' +
                 '規格：串接 ' + numPanels + ' 片面板，可視範圍 ' + matrixCols + 'x16，總燈數 ' + totalLeds + ' 顆\n' +
                 '內部佈線：右上角起點 ➔ 蛇形走線\n' +
                 '"""\n\n' +
