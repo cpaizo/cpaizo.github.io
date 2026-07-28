@@ -885,7 +885,7 @@
             renderCart();
         }
 
-        // 🚀 核心大改造：配合 Excel 雙表結構打包資料並透過 Fetch POST 傳給 GAS 後端
+        // 🚀 核心大改造：配合 Excel 雙表結構打包資料並透過正確的 Fetch POST 傳給 GAS 後端
         function triggerCheckout() {
             let totalCost = parseInt(document.getElementById('magic-total').innerText);
             if (totalCost === 0) {
@@ -939,21 +939,21 @@
             
             speakMagicWord(TEXT_CHECKOUT_SUCCESS_SPEECH);
 
-            // 5. 非同步發送資料到 GAS 後端
+            // 5. 【修正核心】移除 no-cors，改用標準 text/plain 或 json 傳輸，確保資料不被瀏覽器清空
             fetch(CONFIG_GAS_URL, {
                 method: "POST",
-                mode: "no-cors", // 關鍵：繞過瀏覽器跨網域限制 (CORS)
-                headers: { "Content-Type": "application/json" },
+                // 💡 移除 mode: "no-cors"，改用 text/plain 可以巧妙繞過某些舊型 CORS 的預檢請求攔截
+                headers: { "Content-Type": "text/plain;charset=utf-8" }, 
                 body: JSON.stringify(orderPayload)
             })
-            .then(() => {
+            .then(res => {
                 // 顯示成功 Modal 並彈出花雨
                 document.getElementById('success-modal').classList.add('show');
                 createFlowerRain();
             })
             .catch(error => {
                 console.error("結帳魔力傳輸失敗：", error);
-                alert("傳輸資料時發生异常，請檢查後端網址或網路！");
+                alert("傳輸資料時發生異常，請檢查後端網址或網路！");
             });
         }
 
