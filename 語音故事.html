@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>畫裡的微笑時光 | Smiling Moments in the Painting</title>
+  <style>
+    :root {
+      --bg-color: #fdf8f4;
+      --card-bg: #ffffff;
+      --primary-color: #ff7b89;
+      --secondary-color: #ffb3ba;
+      --text-color: #4a4a4a;
+      --english-color: #6c757d;
+      --accent-yellow: #ffdfba;
+      --accent-blue: #baffc9;
+      --shadow-color: rgba(220, 180, 160, 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #fdf8f4 0%, #fff3e6 50%, #fef5f0 100%);
+      color: var(--text-color);
+      line-height: 1.85;
+      padding: 40px 20px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* 背景飄浮小元素動畫 */
+    .floating-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .bubble {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.6;
+      animation: floatUp 12s infinite ease-in-out;
+    }
+
+    .bubble:nth-child(1) { width: 60px; height: 60px; background: #ffe4e1; left: 10%; bottom: -60px; animation-delay: 0s; animation-duration: 14s; }
+    .bubble:nth-child(2) { width: 40px; height: 40px; background: #e0f7fa; left: 85%; bottom: -40px; animation-delay: 3s; animation-duration: 11s; }
+    .bubble:nth-child(3) { width: 70px; height: 70px; background: #fff9c4; left: 70%; bottom: -70px; animation-delay: 6s; animation-duration: 16s; }
+    .bubble:nth-child(4) { width: 50px; height: 50px; background: #f3e5f5; left: 25%; bottom: -50px; animation-delay: 2s; animation-duration: 13s; }
+
+    @keyframes floatUp {
+      0% { transform: translateY(0) rotate(0deg); opacity: 0.5; }
+      50% { opacity: 0.8; transform: translateY(-50vh) rotate(180deg); }
+      100% { transform: translateY(-105vh) rotate(360deg); opacity: 0; }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      width: 100%;
+      background: var(--card-bg);
+      padding: 45px 50px;
+      border-radius: 28px;
+      box-shadow: 0 15px 35px var(--shadow-color);
+      border: 4px solid #fff;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 35px;
+      padding-bottom: 20px;
+      border-bottom: 2px dashed #ffd8d0;
+      position: relative;
+    }
+
+    /* 右上角控制區塊 */
+    .header-control {
+      position: absolute;
+      right: 0;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+    }
+
+    /* 快捷鍵提示標籤 */
+    .shortcut-hint {
+      font-size: 0.85rem;
+      color: #777;
+      background: #fff0ed;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid #ffd3cc;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 2px 6px rgba(255, 123, 137, 0.15);
+    }
+
+    .browser-tag {
+      background: #0078d4;
+      color: #ffffff;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 6px;
+      margin-right: 2px;
+    }
+
+    kbd {
+      background: #ffffff;
+      border: 1px solid #ccc;
+      border-bottom-color: #bbb;
+      border-radius: 4px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      color: #333;
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 1px 6px;
+      line-height: 1.2;
+    }
+
+    .header-icon {
+      font-size: 2.2rem;
+      display: inline-block;
+      animation: gentlePulse 2.5s infinite ease-in-out;
+    }
+
+    @keyframes gentlePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.12) rotate(3deg); }
+    }
+
+    h1 {
+      color: var(--primary-color);
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      margin-top: 5px;
+    }
+
+    .title-en {
+      display: block;
+      font-size: 1.2rem;
+      color: #888;
+      font-weight: 500;
+      margin-top: 4px;
+    }
+
+    /* 雙欄版型佈局 (左圖右文) */
+    .content-wrapper {
+      display: flex;
+      gap: 40px;
+      align-items: flex-start;
+    }
+
+    /* 左側圖片區塊 */
+    .left-column {
+      flex: 0 0 42%;
+      position: sticky;
+      top: 30px;
+    }
+
+    .artwork-frame {
+      background: #ffffff;
+      padding: 14px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      border: 2px solid #f7e8dd;
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .artwork-frame:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(255, 123, 137, 0.2);
+    }
+
+    .artwork-frame img {
+      width: 100%;
+      height: auto;
+      border-radius: 14px;
+      display: block;
+      object-fit: cover;
+    }
+
+    .artwork-caption {
+      margin-top: 15px;
+      text-align: center;
+      font-size: 0.95rem;
+      color: #777;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      background: #fff8f6;
+      padding: 10px 15px;
+      border-radius: 20px;
+    }
+
+    .artwork-caption .en {
+      font-size: 0.85rem;
+      color: #999;
+    }
+
+    /* 右側故事文章區塊 */
+    .right-column {
+      flex: 1;
+    }
+
+    .story-block {
+      background: #faf6f0;
+      padding: 22px 26px;
+      border-radius: 16px;
+      margin-bottom: 22px;
+      border-left: 4px solid var(--secondary-color);
+      transition: all 0.3s ease;
+    }
+
+    .story-block:hover {
+      transform: translateX(6px);
+      background: #fff0ed;
+      border-left-color: var(--primary-color);
+    }
+
+    .zh-text {
+      font-size: 1.08rem;
+      color: #4a4a4a;
+      line-height: 1.85;
+      margin-bottom: 8px;
+    }
+
+    .en-text {
+      font-size: 0.96rem;
+      color: var(--english-color);
+      line-height: 1.65;
+      font-style: italic;
+    }
+
+    .highlight-block {
+      background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+      border-left: 5px solid #ff9800;
+      padding: 22px 26px;
+      margin: 25px 0;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(255, 152, 0, 0.12);
+      transition: all 0.3s ease;
+    }
+
+    .highlight-block .zh-text {
+      font-weight: 500;
+      color: #5d4037;
+    }
+
+    .highlight-block .en-text {
+      color: #7d5a4f;
+      font-weight: 400;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #f0e6dd;
+      font-size: 0.95rem;
+      color: #999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .sparkle {
+      display: inline-block;
+      animation: spin 4s linear infinite;
+    }
+
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+
+    /* 響應式手機版適應 */
+    @media (max-width: 868px) {
+      .container { padding: 30px 22px; }
+      header { display: flex; flex-direction: column; align-items: center; }
+      .header-control { position: static; margin-bottom: 15px; align-items: center; }
+      .content-wrapper { flex-direction: column; gap: 30px; }
+      .left-column { flex: 100%; width: 100%; position: static; }
+      h1 { font-size: 1.8rem; }
+      .title-en { font-size: 1rem; }
+      .zh-text { font-size: 1rem; }
+      .en-text { font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 漂浮背景動畫 -->
+  <div class="floating-bg">
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+  </div>
+
+  <div class="container">
+    <header>
+      <!-- 右上角區塊：標註 Edge 專屬快捷鍵說明 -->
+      <div class="header-control">
+        <div class="shortcut-hint">
+          💡 聽說故事：<span class="browser-tag">Edge 專用</span> 按 <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>U</kbd>
+        </div>
+      </div>
+
+      <div class="header-icon">🎨 ☀️ 💖</div>
+      <h1 id="storyTitle">
+        畫裡的微笑時光
+        <span class="title-en">Smiling Moments in the Painting</span>
+      </h1>
+    </header>
+
+    <div class="content-wrapper">
+      <!-- 左側：圖片區 -->
+      <div class="left-column">
+        <div class="artwork-frame">
+          <img src="塗鴉.jpg" alt="畫裡的微笑時光 - 妞妞與姨丈的塗鴉">
+        </div>
+        <div class="artwork-caption">
+          <span>🖼️ 妞妞與姨丈的溫馨手繪畫作</span>
+          <span class="en">Niu Niu and Uncle's Heartwarming Drawing</span>
+        </div>
+      </div>
+
+      <!-- 右側：中英雙語故事內文（加入 lang 標籤輔助 Edge 判讀） -->
+      <div class="right-column" id="storyContent">
+        
+        <div class="story-block">
+          <div class="zh-text" lang="zh-TW">在妞妞的家裡，有一張非常特別的畫。那是她親手用彩色鉛筆和蠟筆畫出來的，畫裡記錄著她和姨丈之間最溫暖、最開心的回憶。</div>
+          <div class="en-text" lang="en-US">In Niu Niu's home, there is a very special drawing. She created it herself using colored pencils and crayons, capturing the warmest and happiest memories shared between her and her uncle.</div>
+        </div>
+
+        <div class="story-block">
+          <div class="zh-text" lang="zh-TW">畫中的姨丈戴著一副大大的眼鏡，頭髮帶著些灰白色，看起來親切又溫柔。他露出燦爛的笑容，伸出一根手指指著妞妞，好像正在驕傲地說：「看，這是我最疼愛的小姪女！」</div>
+          <div class="en-text" lang="en-US">In the drawing, her uncle wears big glasses and has silvery-gray hair, looking kind and gentle. With a bright smile, he points a finger at Niu Niu, as if proudly saying, "Look, this is my beloved niece!"</div>
+        </div>
+
+        <div class="story-block">
+          <div class="zh-text" lang="zh-TW">畫裡的妞妞留著長長的頭髮，穿著可愛的粉紅色衣服。她開心地舉起雙手比著「Yeah」，露出整齊的牙齒，笑得眼睛彎彎的，亮晶晶的眼神裡充滿了幸福。</div>
+          <div class="en-text" lang="en-US">Niu Niu in the picture has long hair and wears a cute pink outfit. Joyfully raising both hands in a victory sign, she shows a big smile with her eyes curving into sweet crescents, filled with pure happiness.</div>
+        </div>
+
+        <div class="story-block">
+          <div class="zh-text" lang="zh-TW">在他們兩人的周圍，還有許多充滿童趣的小圖案。有一個帶著笑容的大太陽，散發溫暖的光芒，照耀著旁邊美麗的小花。天空中飄著像棉花糖一樣柔軟的藍色雲朵，還有許多紅色的小愛心，象徵著姨丈和妞妞之間滿滿的愛。</div>
+          <div class="en-text" lang="en-US">Surrounding them are many playful doodles. A big smiling sun radiates warm light over lovely little flowers. Soft, marshmallow-like blue clouds float in the sky, alongside little red hearts symbolizing the abundance of love between Niu Niu and her uncle.</div>
+        </div>
+
+        <div class="story-block">
+          <div class="zh-text" lang="zh-TW">姨丈手指指向的地方，畫著一隻可愛的小貓咪，牠也露出開心的笑臉。小貓咪旁邊有一株小草，種在一個有笑臉的藍色花盆裡，好像也一起分享這份快樂。頭頂上掛著五顏六色的小旗子，就像正在舉辦一場溫馨的小派對。</div>
+          <div class="en-text" lang="en-US">Where her uncle points, there is a cute kitten with a cheerful face. Next to the kitten grows a small plant in a blue pot decorated with a smiley face, sharing in the joy. Colorful party banners hang overhead, making it feel like a cozy celebration.</div>
+        </div>
+
+        <div class="highlight-block">
+          <div class="zh-text" lang="zh-TW">這張畫不只是一張作品，更是一段珍貴的回憶。每當妞妞看見它，就會想起那一天，她和姨丈一起畫畫、一起聊天、一起分享歡笑的時光。</div>
+          <div class="en-text" lang="en-US">This drawing is not merely a piece of art; it is a cherished memory. Whenever Niu Niu looks at it, she remembers that day when she and her uncle drew, chatted, and shared joyful laughter together.</div>
+        </div>
+
+        <div class="story-block">
+          <div class="zh-text" lang="zh-TW">對妞妞來說，這張畫收藏的不只是色彩，更是姨丈給她的關心與陪伴，是世界上最溫暖、最珍貴的禮物。</div>
+          <div class="en-text" lang="en-US">For Niu Niu, this drawing holds more than just colors—it holds her uncle's love and companionship, making it the warmest and most precious gift in the world.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <footer>
+      <div><span class="sparkle">✨</span> 珍藏每一個溫暖的時刻 <span class="sparkle">✨</span></div>
+      <div style="font-size: 0.85rem; color: #b0b0b0;">Treasuring every warm moment</div>
+    </footer>
+  </div>
+
+</body>
+</html>
