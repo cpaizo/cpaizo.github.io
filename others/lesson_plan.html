@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>國中資訊科技 簡案 - 微型電腦與 IPO 模型</title>
+    <style>
+        :root {
+            --primary-color: #1a5f7a;
+            --secondary-color: #0288d1;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #212529;
+            --border-color: #dee2e6;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft JhengHei", sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            border-left: 4px solid var(--secondary-color);
+            padding-left: 10px;
+            margin-top: 30px;
+            font-size: 1.3rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 10px 12px;
+            text-align: left;
+            vertical-align: top;
+            font-size: 0.95rem;
+        }
+
+        th {
+            background-color: #e9ecef;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            background-color: #f1f3f5;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .meta-item {
+            font-size: 0.95rem;
+        }
+
+        .meta-item strong {
+            color: var(--primary-color);
+        }
+
+        ul, ol {
+            margin: 5px 0;
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 5px;
+        }
+
+        .tag {
+            display: inline-block;
+            background-color: #e3f2fd;
+            color: #0d47a1;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .print-btn {
+            display: block;
+            width: 100%;
+            max-width: 200px;
+            margin: 20px auto 0;
+            padding: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        @media print {
+            body { background-color: white; padding: 0; }
+            .container { box-shadow: none; padding: 0; max-width: 100%; }
+            .print-btn { display: none; }
+            h2 { page-break-after: avoid; }
+            table { page-break-inside: auto; }
+            tr { page-break-inside: avoid; page-break-after: auto; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>108課綱 國中資訊科技 教學活動設計簡案</h1>
+
+    <!-- 基本資訊區 -->
+    <div class="meta-grid">
+        <div class="meta-item"><strong>單元名稱：</strong>微型電腦與 IPO 模型</div>
+        <div class="meta-item"><strong>授課年級：</strong>國中七年級</div>
+        <div class="meta-item"><strong>授課時間：</strong>10 分鐘（試教簡案）</div>
+        <div class="meta-item"><strong>教材來源：</strong>Micro:bit 官網與自編教材</div>
+    </div>
+
+    <!-- 學習重點與目標 -->
+    <h2>一、 學習重點與學習目標</h2>
+    
+    <h3>(一) 學習重點對應</h3>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 50%;">學習表現（Performance Standards）</th>
+                <th style="width: 50%;">學習內容（Learning Content）</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <ul>
+                        <li><strong>c-IV-1</strong> 能理解資訊科技系統之基本運作原理。</li>
+                        <li><strong>a-IV-1</strong> 能主動探索資訊科技新知，並具備運用資訊科技解決問題的興趣。</li>
+                    </ul>
+                </td>
+                <td>
+                    <ul>
+                        <li><strong>資 系統 H-IV-1</strong> 資訊科技系統之基本組成元素（Input-Process-Output）。</li>
+                        <li><strong>資 系統 H-IV-2</strong> 常見微型處理器與硬體元件功能。</li>
+                    </ul>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>(二) 學習表現與內容雙向細目對照表</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>學習維度</th>
+                <th>學習表現 (動詞)</th>
+                <th>學習內容 (主題)</th>
+                <th>學習目標 (具體行為敘述)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>認知</strong></td>
+                <td>c-IV-1 (理解)</td>
+                <td>H-IV-2 (元件功能)</td>
+                <td>能指認 micro:bit 正背面的核心元件（按鈕、LED、CPU、感測器）並說出其功能。</td>
+            </tr>
+            <tr>
+                <td><strong>技能</strong></td>
+                <td>c-IV-1 (分析)</td>
+                <td>H-IV-1 (IPO模型)</td>
+                <td>能運用 IPO 模型，拆解微型電腦處理資料的運作流程（如：智慧計步器）。</td>
+            </tr>
+            <tr>
+                <td><strong>情意</strong></td>
+                <td>a-IV-1 (探索)</td>
+                <td>H-IV-2 (生活應用)</td>
+                <td>能體會軟硬體結合的原理，並主動舉出 1~2 個生活中的 IPO 應用實例。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- 議題融入與跨領域連結 -->
+    <h2>二、 議題融入與跨領域連結</h2>
+    <table>
+        <tr>
+            <td style="width: 20%;"><strong>議題融入</strong></td>
+            <td>
+                <span class="tag">安全教育 安 J4</span> 理解生活周遭的安全防護機制與原理。<br>
+                <em>說明：</em>講述加速度計（Input）時，連結「獨居長者跌倒警示系統」或「自行車撞擊報警器」，引導學生思考科技對人類安全的防護價值。
+            </td>
+        </tr>
+        <tr>
+            <td><strong>跨領域連結</strong></td>
+            <td>
+                <ul>
+                    <li><strong>自然科學領域（理化）</strong>：連結「運動與力」概念，說明加速度計如何將物理動態轉換為數位訊號。</li>
+                    <li><strong>健康與體育領域（健體）</strong>：連結「智慧運動管理」，以智慧計步器拆解 IPO 運作，展現科技在運動健康的應用。</li>
+                </ul>
+            </td>
+        </tr>
+    </table>
+
+    <!-- 教學設備與資源 -->
+    <h2>三、 教學設備與資源</h2>
+    <p>micro:bit V2 開發板、電腦、單槍投影機、MakeCode 模擬器、黑板與彩色粉筆。</p>
+
+    <!-- 教學活動設計 -->
+    <h2>四、 教學活動設計流程</h2>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 55%;">教學活動內容及實施方式</th>
+                <th style="width: 10%; text-align: center;">時間</th>
+                <th style="width: 35%;">備註（評量方式與輔助）</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <strong>一、 引起動機：生活情境連結</strong>
+                    <ul>
+                        <li>展示 micro:bit 實體教具，拋出生活情境：「智慧手環如何知道你在走路？自動門如何知道有人靠近？」</li>
+                        <li>引導思考：微型電腦如何感知外界並做出反應？</li>
+                    </ul>
+                </td>
+                <td style="text-align: center;">1.5 分</td>
+                <td rowspan="3">
+                    <strong>【評量方式】</strong>
+                    <ul>
+                        <li><em>口頭/觀察評量：</em>評估能否指認正背面元件並說明功能（對應認知目標）。</li>
+                        <li><em>情境問答評量：</em>以「智慧計步器」檢核能否正確連結元件與 IPO 角色（對應技能目標）。</li>
+                    </ul>
+                    <strong>【學習輔助與教具】</strong>
+                    <ul>
+                        <li>實體教具：micro:bit V2 開發板。</li>
+                        <li>視覺輔助：黑板板書呈現 IPO 結構圖與顏色標註（藍-Input / 綠-Process / 紅-Output）。</li>
+                    </ul>
+                    <strong>【議題融入與跨領域】</strong>
+                    <ul>
+                        <li>安全教育（安 J4）：跌倒偵測。</li>
+                        <li>自然/健體：運動數據採集。</li>
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <strong>二、 發展活動：IPO 模型與硬體大解密</strong>
+                    <ul>
+                        <li><strong>建構 IPO 架構：</strong>講述 Input（輸入）➔ Process（處理）➔ Output（輸出）資料流向。</li>
+                        <li><strong>實物觀察與拆解：</strong>
+                            <ul>
+                                <li><em>正面：</em>觀察按鈕 (Input) 與 5x5 LED 網格 (Output)。</li>
+                                <li><em>背面：</em>指認 CPU 處理器 (Process)、加速度計感測器 (Input)。</li>
+                            </ul>
+                        </li>
+                        <li><strong>思考實踐：</strong>以「搖晃 micro:bit 觸發心形圖案」分析數據傳輸路徑。</li>
+                    </ul>
+                </td>
+                <td style="text-align: center;">6.0 分</td>
+            </tr>
+            <tr>
+                <td>
+                    <strong>三、 綜合與評量活動：情境應用與總結</strong>
+                    <ul>
+                        <li><strong>隨堂提問評量：</strong>以「智慧計步器」情境請學生拆解 IPO（加速度計 ➔ CPU ➔ LED）。</li>
+                        <li><strong>生活遷移與總結：</strong>引導學生舉例生活中的 IPO 應用（如長者防跌警報器），預告下節課進行 MakeCode 程式實作。</li>
+                    </ul>
+                </td>
+                <td style="text-align: center;">2.5 分</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- 參考資料 -->
+    <h2>五、 參考資料</h2>
+    <ol>
+        <li>教育部（2018）。《十二年國民基本教育課程綱要：國民中小學及普通型高級中等學校—科技領域》。台北市：教育部。</li>
+        <li>Micro:bit Educational Foundation. <em>micro:bit Official User Guide & Technical Specifications</em>. Retrieved from <a href="https://microbit.org/" target="_blank">https://microbit.org/</a></li>
+        <li>Microsoft. <em>Microsoft MakeCode for micro:bit</em>. Retrieved from <a href="https://makecode.microbit.org/" target="_blank">https://makecode.microbit.org/</a></li>
+    </ol>
+
+    <!-- 附錄 -->
+    <h2>六、 附錄：教學補充說明</h2>
+    
+    <h3>附錄一：黑板板書配置規劃（Blackboard Layout）</h3>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 33%;">左側：概念與架構</th>
+                <th style="width: 34%;">中間：實物元件對照</th>
+                <th style="width: 33%;">右側：情境拆解練習</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <strong>IPO 模型：</strong><br>
+                    Input ➔ Process ➔ Output<br><br>
+                    <strong>角色分類：</strong>
+                    <ul>
+                        <li>Input：按鈕、加速度計</li>
+                        <li>Process：CPU 微處理器</li>
+                        <li>Output：LED 網格</li>
+                    </ul>
+                </td>
+                <td>
+                    <strong>micro:bit 板面示意：</strong>
+                    <ul>
+                        <li>[正面] A/B 鍵、5x5 LED</li>
+                        <li>[背面] CPU 晶片、加速度計</li>
+                    </ul>
+                </td>
+                <td>
+                    <strong>智慧計步器拆解：</strong><br>
+                    搖晃震動 (Input)<br>
+                    ↓<br>
+                    CPU 計數 (Process)<br>
+                    ↓<br>
+                    顯示步數 (Output)
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>附錄二：微型電腦（micro:bit V2）硬體對照表</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>元件名稱</th>
+                <th>板面位置</th>
+                <th>IPO 角色分類</th>
+                <th>功能說明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>A / B 按鈕</strong></td>
+                <td>正面</td>
+                <td><span class="tag">Input</span></td>
+                <td>透過實體按壓輸入開關訊號。</td>
+            </tr>
+            <tr>
+                <td><strong>加速度計</strong></td>
+                <td>背面</td>
+                <td><span class="tag">Input</span></td>
+                <td>偵測板身的搖晃、傾斜、自由落體與動態加速度變化。</td>
+            </tr>
+            <tr>
+                <td><strong>微處理器 (CPU)</strong></td>
+                <td>背面</td>
+                <td><span class="tag" style="background:#e8f5e9; color:#1b5e20;">Process</span></td>
+                <td>接收輸入訊號、執行邏輯運算並發送控制指令。</td>
+            </tr>
+            <tr>
+                <td><strong>5x5 LED 網格</strong></td>
+                <td>正面</td>
+                <td><span class="tag" style="background:#fbe9e7; color:#b71c1c;">Output</span></td>
+                <td>呈現圖案、文字、數字或閃爍動畫。</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <button class="print-btn" onclick="window.print()">列印 / 輸出 PDF</button>
+</div>
+
+</body>
+</html>
