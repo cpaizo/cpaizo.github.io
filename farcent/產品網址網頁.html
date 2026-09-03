@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品目錄參考 - Farcent 產品展示</title>
+    <style>
+        /* 基礎樣式設定 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", "PingFang TC", Arial, sans-serif;
+            background-color: #f4f6f9;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 25px 0;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: #7f8c8d;
+            font-size: 0.95rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 產品組區塊 */
+        .category-section {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .category-title {
+            font-size: 1.4rem;
+            color: #16a085;
+            border-bottom: 3px solid #16a085;
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        /* 網格排版 (Grid) */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        /* 商品卡片樣式 */
+        .product-card {
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .img-container {
+            width: 100%;
+            height: 200px;
+            background-color: #fcfcfc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .img-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .product-info {
+            padding: 15px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .product-name {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #34495e;
+            margin-bottom: 10px;
+        }
+
+        /* 網址文字區塊 */
+        .url-block {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 8px;
+            font-size: 0.8rem;
+            color: #555;
+            word-break: break-all; /* 自動換行以防溢出 */
+            user-select: all;      /* 點擊即可快速選取全部網址 */
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>商品目錄與圖片網址參考</h1>
+            <p>圖片下方已附上完整的圖片連結網址（點擊網址文字即可全選複製）</p>
+        </header>
+
+        <!-- 01 香氛去味 -->
+        <section class="category-section">
+            <h2 class="category-title">01 香氛去味</h2>
+            <div class="product-grid">
+                
+                <div class="product-card">
+                    <div class="img-container">
+                        <img src="https://cpaizo.github.io/farcent/photos/01%E9%A6%99%E6%B0%9B%E5%8E%BB%E5%91%B3/01%E8%8A%B1%E4%BB%99%E5%AD%90%E8%8A%B1%E8%AA%9E%E9%A6%99%E8%86%8F-%E6%AA%B8%E6%AA%AC.png" alt="花仙子花語香膏-檸檬">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">花仙子花語香膏-檸檬</div>
+                        <div class="url-block">https://cpaizo.github.io/farcent/photos/01%E9%A6%99%E6%B0%9B%E5%8E%BB%E5%91%B3/01%E8%8A%B1%E4%BB%99%E5%AD%90%E8%8A%B1%E8%AA%9E%E9%A6%99%E8%86%8F-%E6%AA%B8%E6%AA%AC.png</div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="img-container">
+                        <img src="https://cpaizo.github.io/farcent/photos/01%E9%A6%99%E6%B0%9B%E5%8E%BB%E5%91%B3/02%E5%8E%BB%E5%91%B3%E5%A4%A7%E5%B8%AB%E7%A7%91%E6%8A%80%E7%A4%A6%E6%99%B6%E9%A6%99%E5%8C%85-%E6%97%A5%E6%9C%88%E6%BD%AD%E7%B4%85%E7%8E%89.png" alt="去味大師科技礦晶香包-日月潭紅玉">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">去味大師科技礦晶香包-日月潭紅玉</div>
+                        <div class="url-block">https://cpaizo.github.io/farcent/photos/01%E9%A6%99%E6%B0%9B%E5%8E%BB%E5%91%B3/02%E5%8E%BB%E5%91%B3%E5%A4%A7%E5%B8%AB%E7%A7%91%E6%8A%80%E7%A4%A6%E6%99%B6%E9%A6%99%E5%8C%85-%E6%97%A5%E6%9C%88%E6%BD%AD%E7%B4%85%E7%8E%89.png</div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="img-container">
+                        <img src="https://cpaizo.github.io/farcent/photos/01%E9%A6%99%E6%B0%9B%E5%8E%BB%E5%91%B3/03Farcent%E9%A6%99%E6%B0%B4%E5%AE%A4%E5%85%A7%E6%93%B4%E9%A6%99-%E5%B0%8F%E8%92%BC%E8%98%AD&%E8%8B%B1%E5%9C%8B%E6%A2%A8.png" alt="Farcent香水室內擴香-小蒼蘭&英國梨">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">Farcent香水室內擴香-小蒼蘭&英國梨</div>
+                        <div class="url-block">https://cpaizo.github.io/farcent/photos/01%E9%A6%99%E6%B0%9B%E5%8E%BB%E5%91%B3/03Farcent%E9%A6%99%E6%B0%B4%E5%AE%A4%E5%85%A7%E6%93%B4%E9%A6%99-%E5%B0%8F%E8%92%BC%E8%98%AD&%E8%8B%B1%E5%9C%8B%E6%A2%A8.png</div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="img-container">
+                        <img src="https://cpaizo.github.io/farcent/photos/01%E9%A6%99%E6%B0%9B%E5%8E%BB%E5%91%B3/04Farcent%E9%A6%99%E6%B0%B4%E6%B3%95%E9%A0%8C%E7%B2%BE%E6%B2%B9%E6%93%B4%E9%A6%99-%E8%92%BC%E6%9C%A8%E6%9D%9C%E6%9D%BE.png" alt="Farcent香水法頌精油擴香-蒼木杜松">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">Farcent香水法頌精油擴香-蒼木杜松</div>
+                        <div class="url-block">https://cpaizo.github.io/farcent/photos/01%E9%A6%99%E6%B0%9B%E5%8E%BB%E5%91%B3/04Farcent%E9%A6%99%E6%B0%B4%E6%B3%95%E9%A0%8C%E7%B2%BE%E6%B2%B9%E6%93%B4%E9%A6%99-%E8%92%BC%E6%9C%A8%E6%9D%9C%E6%9D%BE.png</div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 02 天然清潔洗劑 -->
+        <section class="category-section">
+            <h2 class="category-title">02 天然清潔洗劑</h2>
+            <div class="product-grid">
+                
+                <div class="product-card">
+                    <div class="img-container">
+                        <img src="https://cpaizo.github.io/farcent/photos/02%E5%A4%A9%E7%84%B6%E6%B8%85%E6%BD%94%E6%B4%97%E5%8A%91/01%E8%8C%B6%E6%A8%B9%E8%8E%8A%E5%9C%92%E8%8C%B6%E6%A8%B9%E6%AA%B8%E6%AA%AC%E6%8A%97%E8%8F%8C%E6%B4%97%E6%89%8B%E6%85%95%E6%96%AF.png" alt="茶樹莊園茶樹檸檬抗菌洗手慕斯">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">茶樹莊園茶樹檸檬抗菌洗手慕斯</div>
+                        <div class="url-block">https://cpaizo.github.io/farcent/photos/02%E5%A4%A9%E7%84%B6%E6%B8%85%E6%BD%94%E6%B4%97%E5%8A%91/01%E8%8C%B6%E6%A8%B9%E8%8E%8A%E5%9C%92%E8%8C%B6%E6%A8%B9%E6%AA%B8%E6%AA%AC%E6%8A%97%E8%8F%8C%E6%B4%97%E6%89%8B%E6%85%95%E6%96%AF.png</div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="img-container">
+                        <img src="https://cpaizo.github.io/farcent/photos/02%E5%A4%A9%E7%84%B6%E6%B8%85%E6%BD%94%E6%B4%97%E5%8A%91/02%E8%8C%B6%E6%A8%B9%E8%8E%8A%E5%9C%92%E8%8C%B6%E6%A8%B9%E5%A4%A9%E7%84%B6%E6%BF%83%E7%B8%AE%E6%8A%97%E8%8F%8C%E6%B4%97%E8%A1%A3%E7%B2%BE.png" alt="茶樹莊園茶樹天然濃縮抗菌洗衣精">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">茶樹莊園茶樹天然濃縮抗菌洗衣精</div>
+                        <div class="url-block">https://cpaizo.github.io/farcent/photos/02%E5%A4%A9%E7%84%B6%E6%B8%85%E6%BD%94%E6%B4%97%E5%8A%91/02%E8%8C%B6%E6%A8%B9%E8%8E%8A%E5%9C%92%E8%8C%B6%E6%A8%B9%E5%A4%A9%E7%84%B6%E6%BF%83%E7%B8%AE%E6%8A%97%E8%8F%8C%E6%B4%97%E8%A1%A3%E7%B2%BE.png</div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="img-container">
+                        <img src="https://cpaizo.github.io/farcent/photos/02%E5%A4%A9%E7%84%B6%E6%B8%85%E6%BD%94%E6%B4%97%E5%8A%91/03%E8%8C%B6%E6%A8%B9%E8%8E%8A%E5%9C%926X%E6%BF%83%E7%B8%AE%E7%A7%91%E6%8A%80%E6%B4%97%E8%A1%A3%E7%90%83-%E6%8A%97%E8%8F%8C%E9%98%B2%E8%9F%8E.png" alt="茶樹莊園6X濃縮科技洗衣球">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">茶樹莊園6X濃縮科技洗衣球</div>
+                        <div class="url-block">https://cpaizo.github.io/farcent/photos/02%E5%A4%A9%E7%84%B6%E6%B8%85%E6%BD%94%E6%B4%97%E5%8A%91/03%E8%8C%B6%E6%A8%B9%E8%8E%8A%E5%9C%926X%E6%BF%83%E7%B8%AE%E7%A7%91%E6%8A%80%E6%B4%97%E8%A1%A3%E7%90%83-%E6%8A%97%E8%8F%8C%E9%98%B2%E8%9F%8E.png</div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="img-container">
+                        <img src="https://cpaizo.github.io/farcent/photos/02%E5%A4%A9%E7%84%B6%E6%B8%85%E6%BD%94%E6%B4%97%E5%8A%91/04%E8%8C%B6%E6%A8%B9%E8%8E%8A%E5%9C%92%E9%9B%99%E6%95%88%E8%94%AC%E6%9E%9C%E9%A3%9F%E5%99%A8%E6%B4%97%E6%BB%8C%E6%B6%B2-%E9%85%B5%E7%B4%A0%E6%B2%B9%E5%88%87.png" alt="茶樹莊園雙效蔬果食器洗滌液-酵素油切">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">茶樹莊園雙效蔬果食器洗滌液-酵素油切</div>
+                        <div class="url-block">https://cpaizo.github.io/farcent/photos/02%E5%A4%A9%E7%84%B6%E6%B8%85%E6%BD%94%E6%B4%97%E5%8A%91/04%E8%8C%B6%E6%A8%B9%E8%8E%8A%E5%9C%92%E9%9B%99%E6%95%88%E8%94%AC%E6%9E%9C%E9%A3%9F%E5%99%A8%E6%B4%97%E6%BB%8C%E6%B6%B2-%E9%85%B5%E7%B4%A0%E6%B2%B9%E5%88%87.png</div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 03 除濕防霉 -->
+        <section class="category-section">
+            <h2 class="category-title">03 除濕防霉</h2>
+            <div class="product-grid">
+                
+                <div class="product-card">
+                    <div class="img-container">
+                        <img src="https://cpaizo.github.io/farcent/photos/03%E9%99%A4%E6%BF%95%E9%98%B2%E9%9C%89/01%E5%85%8B%E6%BD%AE%E9%9D%88%E6%AB%A5%E6%AB%83%E7%94%A8%E9%99%A4%E6%BF%95%E5%8A%91-%E7%8E%AB%E7%91%B0%E9%A6%99.png" alt="克潮靈櫥櫃用除濕劑-玫瑰香">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">克潮靈櫥櫃用除濕劑-玫瑰香</div>
+                        <div class="url-block">https://cpaizo.github.io/farcent/photos/03%E9%99%A4%E6%BF%95%E9%98%B2%E9%9C%89/01%E5%85%8B%E6%BD%AE%E9%9D%88%E6%AB%A5%E6%AB%83%E7%94%A8%E9%99%A4%E6%BF%95%E5%8A%91-%E7%8E%AB%E7%91%B0%E9%A6%99.png</div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="img-container">
+                        <img src="https://cpaizo.github.io/farcent/photos/03%E9%99%A4%E6%BF%95%E9%98%B2%E9%9C%89/02%E5%85%8B%E6%BD%AE%E9%9D%88%E9%9B%86%E6%B0%B4%E8%A2%8B%E9%99%A4%E6%BF%95%E7%B9%92-%E5%8E%BB%E9%9C%89%E5%91%B3.png" alt="克潮靈集水袋除濕盒-去霉味">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">克潮靈集水袋除濕盒-去霉味</div>
+                        <div class="url-block">https://cpaizo.github.io/farcent/photos/03%E9%99%A4%E6%BF%95%E9%98%B2%E9%9C%89/02%E5%85%8B%E6%BD%AE%E9%9D%88%E9%9B%86%E6%B0%B4%E8%A2%8B%E9%99%A4%E6%BF%95%E7%B9%92-%E5%8E%BB%E9%9C%89%E5%91%B3.png</div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="img-container">
+                        <img src="https://cpaizo.github.io/farcent/photos/03%E9%99%A4%E6%BF%95%E9%98%B2%E9%9C%89/03%E5%85%8B%E6%BD%AE%E9%9D%88%E5%90%8A%E6%8E%9B%E5%BC%8F%E9%99%A4%E6%BF%95%E8%A2%8B-%E6%99%A8%E9%9C%B2%E9%A6%99%E6%B0%9B.png" alt="克潮靈吊掛式除濕袋-晨露香氛">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">克潮靈吊掛式除濕袋-晨露香氛</div>
+                        <div class="url-block">https://cpaizo.github.io/farcent/photos/03%E9%99%A4%E6%BF%95%E9%98%B2%E9%9C%89/03%E5%85%8B%E6%BD%AE%E9%9D%88%E5%90%8A%E6%8E%9B%E5%BC%8F%E9%99%A4%E6%BF%95%E8%A2%8B-%E6%99%A8%E9%9C%B2%E9%A6%99%E6%B0%9B.png</div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="img-container">
+                        <img src="https://cpaizo.github.io/farcent/photos/03%E9%99%A4%E6%BF%95%E9%98%B2%E9%9C%89/04%E5%85%8B%E6%BD%AE%E9%9D%88%E7%22%B0%E4%BF%9D%E9%99%A4%E6%BF%95%E6%A1%B6-%E7%84%A1%E9%A6%99.png" alt="克潮靈環保除濕桶-無香">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">克潮靈環保除濕桶-無香</div>
+                        <div class="url-block">https://cpaizo.github.io/farcent/photos/03%E9%99%A4%E6%BF%95%E9%98%B2%E9%9C%89/04%E5%85%8B%E6%BD%AE%E9%9D%88%E7%22%B0%E4%BF%9D%E9%99%A4%E6%BF%95%E6%A1%B6-%E7%84%A1%E9%A6%99.png</div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 04 居家打掃工具 -->
+        <section class="category-section">
+            <h2 class="category-title">04 居家打掃工具</h2>
+            <div class="product-grid">
+                
+                <div class="product-card">
+                    <div class="img-container">
+                        <img src="https://cpaizo.github.io/farcent/photos/04%E5%B1%85%E5%AE%B6%E6%89%93%E6%8E%83%E5%B7%A5%E5%85%B7/01%E9%A9%85%E5%A1%B5%E6%B0%8F%E9%BB%8F%E5%A1%B5%E6%BB%BE%E8%BC%AA.png" alt="驅塵氏黏塵滾輪">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">驅塵氏黏塵滾輪</div>
+                        <div class="url-block">https://cpaizo.github.io/farcent/photos/04%E5%B1%85%E5%AE%B6%E6%89%93%E6%8E%83%E5%B7%A5%E5%85%B7/01%E9%A9%85%E5%A1%B5%E6%B0%8F%E9%BB%8F%E5%A1%B5%E6%BB%BE%E8%BC%AA.png</div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="img-container">
+                        <img src="https://cpaizo.github.io/farcent/photos/04%E5%B1%85%E5%AE%B6%E6%89%93%E6%8E%83%E5%B7%A5%E5%85%B7/02%E9%A9%85%E5%A1%B5%E6%B0%8F%E6%8A%97%E8%8F%8C%E6%BF%95%E6%8B%96%E5%B7%BE-%E6%9C%A8%E8%B3%AA%E9%BA%9D%E9%A6%99.png" alt="驅塵氏抗菌濕拖巾-木質麝香">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">驅塵氏抗菌濕拖巾-木質麝香</div>
+                        <div class="url-block">https://cpaizo.github.io/farcent/photos/04%E5%B1%85%E5%AE%B6%E6%89%93%E6%8E%83%E5%B7%A5%E5%85%B7/02%E9%A9%85%E5%A1%B5%E6%B0%8F%E6%8A%97%E8%8F%8C%E6%BF%95%E6%8B%96%E5%B7%BE-%E6%9C%A8%E8%B3%AA%E9%BA%9D%E9%A6%99.png</div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="img-container">
+                        <img src="https://cpaizo.github.io/farcent/photos/04%E5%B1%85%E5%AE%B6%E6%89%93%E6%8E%83%E5%B7%A5%E5%85%B7/03%E9%A9%85%E5%A1%B5%E6%B0%8F%E9%9B%99%E8%BB%8C%E5%AF%86%E5%B0%81%E5%A4%BE%E9%8F%88%E8%A2%8B(%E4%B8%AD).png" alt="驅塵氏雙軌密封夾鏈袋(中)">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">驅塵氏雙軌密封夾鏈袋(中)</div>
+                        <div class="url-block">https://cpaizo.github.io/farcent/photos/04%E5%B1%85%E5%AE%B6%E6%89%93%E6%8E%83%E5%B7%A5%E5%85%B7/03%E9%A9%85%E5%A1%B5%E6%B0%8F%E9%9B%99%E8%BB%8C%E5%AF%86%E5%B0%81%E5%A4%BE%E9%8F%88%E8%A2%8B(%E4%B8%AD).png</div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="img-container">
+                        <img src="https://cpaizo.github.io/farcent/photos/04%E5%B1%85%E5%AE%B6%E6%89%93%E6%8E%83%E5%B7%A5%E5%85%B7/04%E9%A9%85%E5%A1%B5%E6%B0%8F%E9%9D%9C%E9%9B%BB%E9%99%A4%E5%A1%B5%E7%B4%99(%E7%84%A1%E9%A6%99).png" alt="驅塵氏靜電除塵紙(無香)">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">驅塵氏靜電除塵紙(無香)</div>
+                        <div class="url-block">https://cpaizo.github.io/farcent/photos/04%E5%B1%85%E5%AE%B6%E6%89%93%E6%8E%83%E5%B7%A5%E5%85%B7/04%E9%A9%85%E5%A1%B5%E6%B0%8F%E9%9D%9C%E9%9B%BB%E9%99%A4%E5%A1%B5%E7%B4%99(%E7%84%A1%E9%A6%99).png</div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </div>
+
+</body>
+</html>
