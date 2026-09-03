@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>學生第一個網頁作品集</title>
+    <style>
+        /* 全域漸層背景動畫 (淺綠到淺橘) */
+        body {
+            margin: 0;
+            padding: 40px 20px;
+            font-family: "PingFang TC", "Microsoft JhengHei", Arial, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(-45deg, #e8f5e9, #ffe0b2, #e8f5e9);
+            background-size: 400% 400%;
+            animation: gradientBG 10s ease infinite;
+            box-sizing: border-box;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 標題區域 */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+
+        /* 作品連結列表容器 */
+        .work-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+        }
+
+        /* 單一連結卡片樣式 */
+        .work-item a {
+            display: block;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.85);
+            color: #333;
+            text-decoration: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* 滑鼠懸停效果 (Hover) */
+        .work-item a:hover {
+            transform: translateY(-4px);
+            background: #ffffff;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            color: #e65100;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>學生第一個網頁作品集</h1>
+        
+        <ul class="work-list">
+            <li class="work-item">
+                <a href="https://cpaizo.github.io/students/115-1/0903-余品靚.html" target="_blank" rel="noopener noreferrer">
+                    余品靚 的作品
+                </a>
+            </li>
+            <li class="work-item">
+                <a href="https://cpaizo.github.io/students/115-1/0903-吳寬.html" target="_blank" rel="noopener noreferrer">
+                    吳寬 的作品
+                </a>
+            </li>
+            <li class="work-item">
+                <a href="https://cpaizo.github.io/students/115-1/0903-呂定睿.html" target="_blank" rel="noopener noreferrer">
+                    呂定睿 的作品
+                </a>
+            </li>
+            <li class="work-item">
+                <a href="https://cpaizo.github.io/students/115-1/0903-張芯嫙.html" target="_blank" rel="noopener noreferrer">
+                    張芯嫙 的作品
+                </a>
+            </li>
+            <li class="work-item">
+                <a href="https://cpaizo.github.io/students/115-1/0903-盧晨希.html" target="_blank" rel="noopener noreferrer">
+                    盧晨希 的作品
+                </a>
+            </li>
+            <li class="work-item">
+                <a href="https://cpaizo.github.io/students/115-1/0913-張倢鈞.html" target="_blank" rel="noopener noreferrer">
+                    張倢鈞 的作品
+                </a>
+            </li>
+        </ul>
+    </div>
+
+</body>
+</html>
