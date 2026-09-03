@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>☆*: .｡. o(≧▽≦)o .｡.:*☆</title>
+	<style>
+		body {
+			/* 流光背景 */
+			background: linear-gradient(-45deg, #ff9a9e, #fecfef, #a1c4fd, #c2e9fb);
+			background-size: 400% 400%;
+			animation: gradientBG 6s ease infinite;
+
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			height: 100vh;
+			margin: 0;
+			overflow: hidden;
+			user-select: none;
+			cursor: pointer;
+		}
+
+		/* 顏文字動畫 */
+		h1 {
+			font-size: 3rem;
+			margin-bottom: 10px;
+			animation: float 3s ease-in-out infinite;
+		}
+
+		p {
+			font-size: 1.8rem;
+			margin-top: 0;
+			animation: bounce 2s ease infinite;
+		}
+
+		/* 飛散水果特效 */
+		.fruit-particle {
+			position: absolute;
+			font-size: 28px;
+			pointer-events: none;
+			animation: explode 1s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+		}
+
+		/* 背景動畫 */
+		@keyframes gradientBG {
+			0% { background-position: 0% 50%; }
+			50% { background-position: 100% 50%; }
+			100% { background-position: 0% 50%; }
+		}
+
+		@keyframes float {
+			0%, 100% { transform: translateY(0px); }
+			50% { transform: translateY(-15px); }
+		}
+
+		@keyframes bounce {
+			0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+			40% { transform: translateY(-20px); }
+			60% { transform: translateY(-10px); }
+		}
+
+		/* 水果爆發飛散動畫 */
+		@keyframes explode {
+			0% {
+				opacity: 1;
+				transform: translate(-50%, -50%) translate(0, 0) scale(0.5) rotate(0deg);
+			}
+			100% {
+				opacity: 0;
+				transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) scale(1.2) rotate(var(--rot));
+			}
+		}
+	</style>
+</head>
+<body>
+
+	<h1>(*/ω＼*)</h1>
+	<p>(●'◡'●)</p>
+
+	<script>
+		// 水果清單
+		const fruits = ['🍎', '🍓', '🍑', '🍒', '🍋', '🍇', '🍉', '🍍', '🍌', '🥭', '🫐', '🥝'];
+
+		document.body.addEventListener('click', function(e) {
+			// 點一下產生 8~12 個水果，形成一串噴發的效果
+			const count = Math.floor(Math.random() * 5) + 8;
+
+			for (let i = 0; i < count; i++) {
+				const fruit = document.createElement('span');
+				fruit.className = 'fruit-particle';
+				
+				// 隨機挑選水果
+				fruit.innerText = fruits[Math.floor(Math.random() * fruits.length)];
+
+				// 設定初始位置為點擊座標
+				fruit.style.left = e.clientX + 'px';
+				fruit.style.top = e.clientY + 'px';
+
+				// 計算隨機飛散角度與距離
+				const angle = Math.random() * Math.PI * 2;
+				const distance = Math.random() * 120 + 50; // 飛散距離
+				const tx = Math.cos(angle) * distance + 'px';
+				const ty = Math.sin(angle) * distance - 30 + 'px'; // 稍微偏上方飛出
+				const rot = (Math.random() - 0.5) * 360 + 'deg'; // 隨機旋轉
+
+				// 將隨機數值傳給 CSS 變數
+				fruit.style.setProperty('--tx', tx);
+				fruit.style.setProperty('--ty', ty);
+				fruit.style.setProperty('--rot', rot);
+
+				document.body.appendChild(fruit);
+
+				// 動畫結束自動刪除
+				setTimeout(() => {
+					fruit.remove();
+				}, 1000);
+			}
+		});
+	</script>
+
+</body>
+</html>

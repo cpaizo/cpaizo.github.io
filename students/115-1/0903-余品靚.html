@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>我的第一個網頁*-*</title>
+	<style>
+		body {
+			margin: 0;
+			height: 100vh;
+			overflow: hidden;
+			background: linear-gradient(-45deg, #FFE5B4, #E0F7FA, #FFDAB9, #B3E5FC);
+			background-size: 400% 400%;
+			animation: gradientBG 10s ease infinite;
+			font-family: sans-serif;
+			user-select: none;
+		}
+
+		@keyframes gradientBG {
+			0% { background-position: 0% 50%; }
+			50% { background-position: 100% 50%; }
+			100% { background-position: 0% 50%; }
+		}
+
+		.content {
+			position: relative;
+			z-index: 10;
+			text-align: center;
+			margin-top: 50px;
+			pointer-events: none;
+		}
+
+		.pokemon-container {
+			position: absolute;
+			width: 80px;
+			cursor: pointer;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			z-index: 5;
+		}
+
+		.hp-bar-container {
+			width: 60px;
+			height: 8px;
+			background-color: #ddd;
+			border: 1px solid #333;
+			border-radius: 4px;
+			margin-bottom: 5px;
+			overflow: hidden;
+			display: none;
+		}
+
+		.hp-bar {
+			width: 100%;
+			height: 100%;
+			background-color: #4CAF50;
+			transition: width 0.15s ease, background-color 0.15s ease;
+		}
+
+		.pokemon-img {
+			width: 100%;
+			height: auto;
+		}
+
+		/* 加強版爆破粒子 */
+		.particle {
+			position: absolute;
+			border-radius: 50%;
+			pointer-events: none;
+			z-index: 99;
+			animation: explode 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+		}
+
+		/* 爆炸衝擊波光圈 */
+		.shockwave {
+			position: absolute;
+			border: 3px solid #FFF;
+			border-radius: 50%;
+			pointer-events: none;
+			z-index: 98;
+			animation: wave 0.4s ease-out forwards;
+		}
+
+		@keyframes explode {
+			0% {
+				opacity: 1;
+				transform: translate(0, 0) scale(1.5);
+			}
+			100% {
+				opacity: 0;
+				transform: translate(var(--dx), var(--dy)) scale(0);
+			}
+		}
+
+		@keyframes wave {
+			0% {
+				width: 10px;
+				height: 10px;
+				opacity: 1;
+				transform: translate(-50%, -50%) scale(1);
+			}
+			100% {
+				width: 150px;
+				height: 150px;
+				opacity: 0;
+				transform: translate(-50%, -50%) scale(1.5);
+			}
+		}
+	</style>
+</head>
+<body>
+
+	<div class="content">
+		<h1>這是我的內容</h1>
+		<p>所有咚咚都在body裡喔</p>
+	</div>
+
+	<script>
+		// 擴充寶可夢圖鑑數量
+		const pokemonImages = [
+			'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png', // 皮卡丘
+			'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png',  // 小火龍
+			'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png',  // 傑尼龜
+			'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png',  // 妙蛙種子
+			'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/133.png', // 伊布
+			'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/39.png',  // 胖丁
+			'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/54.png',  // 可達鴨
+			'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/143.png', // 卡比獸
+			'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/150.png', // 夢幻
+			'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/94.png'   // 耿鬼
+		];
+
+		const pokemons = [];
+		const totalPokemons = 12; // 場上同時存在的寶可夢數量
+
+		// 生成單隻寶可夢
+		function createPokemon() {
+			const container = document.createElement('div');
+			container.className = 'pokemon-container';
+
+			const hpContainer = document.createElement('div');
+			hpContainer.className = 'hp-bar-container';
+
+			const hpBar = document.createElement('div');
+			hpBar.className = 'hp-bar';
+			hpContainer.appendChild(hpBar);
+
+			const img = document.createElement('img');
+			// 隨機抽樣圖片
+			const randomSrc = pokemonImages[Math.floor(Math.random() * pokemonImages.length)];
+			img.src = randomSrc;
+			img.className = 'pokemon-img';
+
+			container.appendChild(hpContainer);
+			container.appendChild(img);
+			document.body.appendChild(container);
+
+			const obj = {
+				element: container,
+				hpBar: hpBar,
+				hpContainer: hpContainer,
+				hp: 100,
+				x: Math.random() * (window.innerWidth - 100),
+				y: Math.random() * (window.innerHeight - 100),
+				vx: (Math.random() - 0.5) * 6 || 3,
+				vy: (Math.random() - 0.5) * 6 || 3,
+				width: 80,
+				height: 90
+			};
+
+			container.addEventListener('click', (e) => {
+				e.stopPropagation();
+
+				createExplosion(e.clientX, e.clientY, true);
+
+				obj.hpContainer.style.display = 'block';
+				obj.hp -= 20;
+				if (obj.hp < 0) obj.hp = 0;
+
+				obj.hpBar.style.width = obj.hp + '%';
+				if (obj.hp < 30) {
+					obj.hpBar.style.backgroundColor = '#FF5252';
+				} else if (obj.hp < 60) {
+					obj.hpBar.style.backgroundColor = '#FFC107';
+				}
+
+				// 血量歸零：消除並在 1.5 秒後重生
+				if (obj.hp === 0) {
+					container.remove();
+					const index = pokemons.indexOf(obj);
+					if (index > -1) pokemons.splice(index, 1);
+
+					setTimeout(() => {
+						createPokemon();
+					}, 1500);
+				}
+			});
+
+			pokemons.push(obj);
+		}
+
+		// 初始化多隻寶可夢
+		for (let i = 0; i < totalPokemons; i++) {
+			createPokemon();
+		}
+
+		// 移動與反彈動畫
+		function update() {
+			pokemons.forEach(p => {
+				p.x += p.vx;
+				p.y += p.vy;
+
+				if (p.x <= 0 || p.x + p.width >= window.innerWidth) {
+					p.vx *= -1;
+				}
+				if (p.y <= 0 || p.y + p.height >= window.innerHeight) {
+					p.vy *= -1;
+				}
+
+				p.element.style.left = p.x + 'px';
+				p.element.style.top = p.y + 'px';
+			});
+			requestAnimationFrame(update);
+		}
+		update();
+
+		// 全局點擊爆破
+		document.body.addEventListener('click', (e) => {
+			createExplosion(e.clientX, e.clientY, false);
+		});
+
+		// 強化版爆破效果（加入衝擊波與更多色彩粒子）
+		function createExplosion(x, y, isHit) {
+			const colors = ['#FF1744', '#FFEA00', '#00E676', '#00E5FF', '#D500F9', '#FF9100'];
+			const particleCount = isHit ? 35 : 20; // 擊中時粒子更多
+
+			// 產生衝擊波
+			const wave = document.createElement('div');
+			wave.className = 'shockwave';
+			wave.style.left = x + 'px';
+			wave.style.top = y + 'px';
+			wave.style.borderColor = isHit ? '#FF5252' : '#FFF';
+			document.body.appendChild(wave);
+			setTimeout(() => wave.remove(), 400);
+
+			// 產生爆破粒子
+			for (let i = 0; i < particleCount; i++) {
+				const particle = document.createElement('div');
+				particle.className = 'particle';
+				
+				const size = Math.random() * 8 + 4;
+				particle.style.width = size + 'px';
+				particle.style.height = size + 'px';
+				particle.style.left = x + 'px';
+				particle.style.top = y + 'px';
+				particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+
+				const angle = Math.random() * Math.PI * 2;
+				const speed = Math.random() * 120 + 30;
+				const dx = Math.cos(angle) * speed + 'px';
+				const dy = Math.sin(angle) * speed + 'px';
+
+				particle.style.setProperty('--dx', dx);
+				particle.style.setProperty('--dy', dy);
+
+				document.body.appendChild(particle);
+
+				setTimeout(() => {
+					particle.remove();
+				}, 600);
+			}
+		}
+	</script>
+
+</body>
+</html>

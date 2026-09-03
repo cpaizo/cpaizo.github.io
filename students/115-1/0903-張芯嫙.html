@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>☆*:.｡. 馬卡龍夢幻互動世界 .｡.:*☆</title>
+	<style>
+		:root {
+			--pink: #ffb7c5;
+			--mint: #b2ebf2;
+			--yellow: #fef9e7;
+			--purple: #e1bee7;
+			--text-color: #6a4c68;
+		}
+
+		body {
+			margin: 0;
+			padding: 0;
+			min-height: 100vh;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			background: linear-gradient(135deg, #ffe4e1, #e0f7fa, #f3e5f5);
+			background-size: 400% 400%;
+			animation: gradientBG 10s ease infinite;
+			font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
+			color: var(--text-color);
+			overflow: hidden;
+			user-select: none;
+		}
+
+		@keyframes gradientBG {
+			0% { background-position: 0% 50%; }
+			50% { background-position: 100% 50%; }
+			100% { background-position: 0% 50%; }
+		}
+
+		.card {
+			background: rgba(255, 255, 255, 0.75);
+			backdrop-filter: blur(12px);
+			padding: 40px;
+			border-radius: 30px;
+			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+			text-align: center;
+			border: 2px solid rgba(255, 255, 255, 0.9);
+			max-width: 90%;
+			width: 320px;
+			position: relative;
+			z-index: 10;
+		}
+
+		/* 點擊標題的跳躍動畫 */
+		h1 {
+			font-size: 2.5rem;
+			margin: 0 0 20px 0;
+			color: #b5739d;
+			cursor: pointer;
+			display: inline-block;
+			transition: transform 0.1s;
+			text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
+			animation: float 3s ease-in-out infinite;
+		}
+
+		h1:active {
+			transform: scale(1.2) rotate(10deg);
+		}
+
+		@keyframes float {
+			0%, 100% { transform: translateY(0px); }
+			50% { transform: translateY(-10px); }
+		}
+
+		/* 點擊文字的互動 */
+		p {
+			font-size: 1.3rem;
+			margin: 15px 0;
+			letter-spacing: 1px;
+			font-weight: bold;
+			cursor: pointer;
+			transition: color 0.3s, transform 0.2s;
+		}
+
+		p:hover {
+			color: #ff6b81;
+			transform: scale(1.05);
+		}
+
+		/* 馬卡龍 */
+		.macaron-container {
+			display: flex;
+			justify-content: center;
+			gap: 15px;
+			margin: 25px 0;
+		}
+
+		.macaron {
+			width: 65px;
+			height: 48px;
+			border-radius: 20px;
+			cursor: pointer;
+			position: relative;
+			transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+			box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+		}
+
+		.macaron::before {
+			content: '';
+			position: absolute;
+			top: 50%;
+			left: 5%;
+			width: 90%;
+			height: 6px;
+			background: #fff;
+			border-radius: 3px;
+			transform: translateY(-50%);
+			opacity: 0.9;
+		}
+
+		.macaron:hover {
+			transform: scale(1.15) rotate(-5deg);
+		}
+
+		.macaron:active {
+			transform: scale(0.85) rotate(5deg);
+		}
+
+		.pink { background-color: var(--pink); }
+		.mint { background-color: var(--mint); }
+		.purple { background-color: var(--purple); }
+
+		/* 按鈕 */
+		.btn {
+			background: linear-gradient(45deg, #ffb7c5, #e1bee7);
+			border: none;
+			color: white;
+			padding: 12px 24px;
+			border-radius: 25px;
+			font-size: 1rem;
+			font-weight: bold;
+			cursor: pointer;
+			box-shadow: 0 4px 15px rgba(255, 183, 197, 0.4);
+			transition: all 0.3s ease;
+		}
+
+		.btn:hover {
+			box-shadow: 0 6px 20px rgba(255, 183, 197, 0.6);
+			transform: translateY(-2px);
+		}
+
+		.btn:active {
+			transform: translateY(1px);
+		}
+	</style>
+</head>
+<body>
+
+	<div class="card">
+		<h1 id="emoji-title" onclick="changeEmoji()">╰(*°▽°*)╯</h1>
+		
+		<p id="text-msg" onclick="changeText()">(●'◡'●)(❁´◡`❁)！</p>
+
+		<div class="macaron-container">
+			<div class="macaron pink" onclick="popParticles(event, ['🌸', '💖', '✨'])"></div>
+			<div class="macaron mint" onclick="popParticles(event, ['🍃', '💎', '⭐'])"></div>
+			<div class="macaron purple" onclick="popParticles(event, ['🔮', '🦄', '🍬'])"></div>
+		</div>
+
+		<button class="btn" onclick="changeColor()">換個心情 ☆</button>
+	</div>
+
+	<script>
+		// 1. 全螢幕點擊水波紋效果
+		document.body.addEventListener('click', function(e) {
+			if (e.target.tagName === 'BUTTON' || e.target.classList.contains('macaron')) return;
+			
+			const ripple = document.createElement('div');
+			ripple.style.position = 'fixed';
+			ripple.style.left = e.clientX + 'px';
+			ripple.style.top = e.clientY + 'px';
+			ripple.style.width = '10px';
+			ripple.style.height = '10px';
+			ripple.style.background = 'rgba(255, 255, 255, 0.6)';
+			ripple.style.borderRadius = '50%';
+			ripple.style.pointerEvents = 'none';
+			ripple.style.transform = 'translate(-50%, -50%)';
+			ripple.style.transition = 'all 0.6s ease-out';
+			
+			document.body.appendChild(ripple);
+
+			setTimeout(() => {
+				ripple.style.width = '120px';
+				ripple.style.height = '120px';
+				ripple.style.opacity = '0';
+			}, 10);
+
+			setTimeout(() => ripple.remove(), 600);
+		});
+
+		// 2. 點擊馬卡龍爆發圖示特效
+		function popParticles(e, icons) {
+			for (let i = 0; i < 6; i++) {
+				const particle = document.createElement('div');
+				particle.innerText = icons[Math.floor(Math.random() * icons.length)];
+				particle.style.position = 'fixed';
+				particle.style.left = e.clientX + 'px';
+				particle.style.top = e.clientY + 'px';
+				particle.style.fontSize = (20 + Math.random() * 10) + 'px';
+				particle.style.pointerEvents = 'none';
+				particle.style.transition = 'all 0.8s cubic-bezier(0.25, 1, 0.5, 1)';
+				particle.style.zIndex = '100';
+
+				document.body.appendChild(particle);
+
+				const angle = Math.random() * Math.PI * 2;
+				const velocity = 60 + Math.random() * 60;
+				const x = Math.cos(angle) * velocity;
+				const y = Math.sin(angle) * velocity - 30; 
+
+				setTimeout(() => {
+					particle.style.transform = `translate(${x}px, ${y}px) scale(1.2)`;
+					particle.style.opacity = '0';
+				}, 10);
+
+				setTimeout(() => particle.remove(), 800);
+			}
+		}
+
+		// 3. 點擊標題切換顏文字
+		const emojis = ['╰(*°▽°*)╯', '٩(ˊᗜˋ*)و', 'o(≧▽≦)o', '(๑•̀ㅂ•́)و✧', '(*¯︶¯*)'];
+		let emojiIdx = 0;
+		function changeEmoji() {
+			emojiIdx = (emojiIdx + 1) % emojis.length;
+			document.getElementById('emoji-title').innerText = emojis[emojiIdx];
+		}
+
+		// 4. 點擊文字切換文字
+		const texts = ['(●\'◡\'●)(❁´◡`❁)！', '甜蜜馬卡龍時間 ☕', '今天也要加油加油 🌟', '點擊馬卡龍有驚喜喔！'];
+		let textIdx = 0;
+		function changeText() {
+			textIdx = (textIdx + 1) % texts.length;
+			document.getElementById('text-msg').innerText = texts[textIdx];
+		}
+
+		// 5. 切換背景漸變色
+		function changeColor() {
+			const colors = [
+				['#ffe4e1', '#e0f7fa', '#f3e5f5'],
+				['#fff3e0', '#fce4ec', '#e8eaf6'],
+				['#e8f5e9', '#fffde7', '#f3e5f5'],
+				['#ffd1dc', '#ffe0b2', '#e1bee7']
+			];
+			const randomChoice = colors[Math.floor(Math.random() * colors.length)];
+			document.body.style.background = `linear-gradient(135deg, ${randomChoice[0]}, ${randomChoice[1]}, ${randomChoice[2]})`;
+		}
+	</script>
+
+</body>
+</html>

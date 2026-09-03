@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>我的網頁</title>
+    <style>
+        body {
+            /* 設定多顏色漸層背景 */
+            background: linear-gradient(-45deg, #ff7675, #e84393, #0984e3, #00b894, #fdcb6e, #e17055);
+            /* 將背景尺寸放大，讓動畫平滑滾動 */
+            background-size: 400% 400%;
+            /* 套用動畫：名稱 gradientStyle、時間 15秒、平滑過渡、無限循環 */
+            animation: gradientStyle 15s ease infinite;
+            /* 基本排版與字體樣式 */
+            margin: 0;
+            padding: 20px;
+            font-family: sans-serif;
+            color: #ffffff; /* 將文字設為白色以利閱讀 */
+        }
+
+        /* 定義背景移動的關鍵影格 */
+        @keyframes gradientStyle {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>這是我的內容</h1>
+    <p>所有要給別人看的內容都在body裡歐! </p>
+
+</body>
+</html>
