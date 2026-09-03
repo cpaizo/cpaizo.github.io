@@ -1,41 +1,370 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>我的網頁</title>
+    <title>寶可夢抓抓樂</title>
     <style>
         body {
-            /* 設定多顏色漸層背景 */
+            /* 漸層動態背景 */
             background: linear-gradient(-45deg, #ff7675, #e84393, #0984e3, #00b894, #fdcb6e, #e17055);
-            /* 將背景尺寸放大，讓動畫平滑滾動 */
             background-size: 400% 400%;
-            /* 套用動畫：名稱 gradientStyle、時間 15秒、平滑過渡、無限循環 */
             animation: gradientStyle 15s ease infinite;
-            /* 基本排版與字體樣式 */
             margin: 0;
             padding: 20px;
             font-family: sans-serif;
-            color: #ffffff; /* 將文字設為白色以利閱讀 */
+            color: #ffffff;
+            overflow: hidden;
+            user-select: none;
+            min-height: 100vh;
+            box-sizing: border-box;
         }
 
-        /* 定義背景移動的關鍵影格 */
         @keyframes gradientStyle {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .header {
+            text-align: center;
+            pointer-events: none;
+        }
+
+        /* 狂暴狀態提示 UI */
+        #buff-status {
+            font-size: 20px;
+            font-weight: bold;
+            color: #a29bfe;
+            text-shadow: 0 0 10px #6c5ce7, 0 0 20px #ffffff;
+            display: none;
+            margin-top: 5px;
+            animation: pulse 0.5s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+
+        /* 遊戲區域 */
+        #game-area {
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 160px);
+        }
+
+        /* 寶可夢樣式與平滑移動 */
+        .pokemon {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: left 2.5s ease-in-out, top 2.5s ease-in-out, transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        .pokemon:active {
+            transform: scale(0.9);
+        }
+
+        /* 寶可夢圖片大小 */
+        .pokemon-img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            filter: drop-shadow(0 6px 8px rgba(0,0,0,0.4));
+        }
+
+        /* 神獸特效與大小 */
+        .pokemon.legendary .pokemon-img {
+            width: 160px;
+            height: 160px;
+            filter: drop-shadow(0 0 20px #ffd700);
+        }
+
+        /* 血條容器 */
+        .health-bar-container {
+            width: 80px;
+            height: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+            overflow: hidden;
+            border: 1px solid #fff;
+            margin-top: 5px;
+        }
+
+        .legendary .health-bar-container {
+            width: 130px;
+            height: 14px;
+        }
+
+        /* 血條內部 */
+        .health-bar {
+            width: 100%;
+            height: 100%;
+            background-color: #2ecc71;
+            transition: width 0.2s ease, background-color 0.2s ease;
+        }
+
+        .legendary .health-bar {
+            background-color: #f1c40f;
+        }
+
+        /* 普通寶可夢球粒子 */
+        .pokeball-particle {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(to bottom, #ff0000 50%, #ffffff 50%);
+            border: 2px solid #000;
+            pointer-events: none;
+            z-index: 9999;
+            animation: explode 0.6s ease-out forwards;
+        }
+
+        .pokeball-particle::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 6px;
+            height: 6px;
+            background: #fff;
+            border: 1px solid #000;
+            border-radius: 50%;
+        }
+
+        /* 大師球粒子（強化攻擊時） */
+        .masterball-particle {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(to bottom, #6c5ce7 50%, #ffffff 50%);
+            border: 2px solid #2d3436;
+            pointer-events: none;
+            z-index: 9999;
+            box-shadow: 0 0 12px #a29bfe;
+            animation: explode 0.6s ease-out forwards;
+        }
+
+        .masterball-particle::after {
+            content: 'M';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 10px;
+            background: #fff;
+            border: 1px solid #000;
+            border-radius: 50%;
+            font-size: 8px;
+            font-weight: bold;
+            color: #6c5ce7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes explode {
             0% {
-                background-position: 0% 50%;
-            }
-            50% {
-                background-position: 100% 50%;
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1) rotate(0deg);
             }
             100% {
-                background-position: 0% 50%;
+                opacity: 0;
+                transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.5) rotate(360deg);
             }
         }
     </style>
 </head>
 <body>
 
-    <h1>這是我的內容</h1>
-    <p>所有要給別人看的內容都在body裡歐! </p>
+    <div class="header">
+        <h1>這是我的內容</h1>
+        <p>所有要給別人看的內容都在body裡歐! 吳寬你這臭小子</p>
+        <h2 id="round-info">第 1 輪 (一般關卡)</h2>
+        <div id="buff-status">🔮 進入大師球模式！攻擊力 x5！ (剩餘 5 秒)</div>
+    </div>
 
+    <div id="game-area"></div>
+
+    <script>
+        const gameArea = document.getElementById('game-area');
+        const roundInfo = document.getElementById('round-info');
+        const buffStatus = document.getElementById('buff-status');
+
+        let currentRound = 1;
+        let activePokemons = 0;
+
+        // 攻擊力與大師球狀態
+        let attackPower = 1;
+        let frenzyTimer = null;
+        let frenzyTimeLeft = 0;
+
+        const normalPokemonIds = [25, 4, 7, 1, 133, 39, 54, 155, 158, 252, 255, 258];
+        const legendaryPokemonIds = [150, 151, 249, 250, 384, 483, 484];
+
+        // 點擊特效
+        document.addEventListener('click', (e) => {
+            createPokeballExplosion(e.clientX, e.clientY);
+        });
+
+        function createPokeballExplosion(x, y) {
+            const isMasterMode = attackPower > 1;
+            const particleCount = isMasterMode ? 12 : 8;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                // 根據模式設定大師球或普通球
+                particle.className = isMasterMode ? 'masterball-particle' : 'pokeball-particle';
+
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+
+                const angle = (Math.PI * 2 / particleCount) * i + (Math.random() - 0.5);
+                const velocity = (isMasterMode ? 90 : 60) + Math.random() * 60;
+                const dx = `${Math.cos(angle) * velocity}px`;
+                const dy = `${Math.sin(angle) * velocity}px`;
+
+                particle.style.setProperty('--dx', dx);
+                particle.style.setProperty('--dy', dy);
+
+                document.body.appendChild(particle);
+
+                setTimeout(() => {
+                    particle.remove();
+                }, 600);
+            }
+        }
+
+        // 觸發大師球狂暴模式 5 秒
+        function triggerFrenzy() {
+            attackPower = 5;
+            frenzyTimeLeft = 5;
+            buffStatus.style.display = 'block';
+            buffStatus.innerText = `🔮 進入大師球模式！攻擊力 x5！ (剩餘 ${frenzyTimeLeft} 秒)`;
+
+            if (frenzyTimer) clearInterval(frenzyTimer);
+
+            frenzyTimer = setInterval(() => {
+                frenzyTimeLeft--;
+                if (frenzyTimeLeft > 0) {
+                    buffStatus.innerText = `🔮 進入大師球模式！攻擊力 x5！ (剩餘 ${frenzyTimeLeft} 秒)`;
+                } else {
+                    clearInterval(frenzyTimer);
+                    attackPower = 1;
+                    buffStatus.style.display = 'none';
+                }
+            }, 1000);
+        }
+
+        // 開始新一輪
+        function startNewRound() {
+            gameArea.innerHTML = '';
+            const isLegendaryRound = (currentRound % 2 === 0);
+
+            if (isLegendaryRound) {
+                roundInfo.innerText = `第 ${currentRound} 輪 — ⚠️ 遭遇神獸！(15滴血，打倒啟動大師球)`;
+                roundInfo.style.color = '#ffd700';
+            } else {
+                roundInfo.innerText = `第 ${currentRound} 輪 (一般關卡 — 5滴血)`;
+                roundInfo.style.color = '#ffffff';
+            }
+
+            activePokemons = 5;
+
+            for (let i = 0; i < 5; i++) {
+                createPokemon(isLegendaryRound);
+            }
+        }
+
+        // 建立寶可夢
+        function createPokemon(isLegendaryRound) {
+            const pokemon = document.createElement('div');
+            pokemon.className = 'pokemon';
+
+            const isLegendary = isLegendaryRound;
+            const maxHp = isLegendary ? 15 : 5;
+            let currentHp = maxHp;
+
+            if (isLegendary) {
+                pokemon.classList.add('legendary');
+            }
+
+            const idList = isLegendary ? legendaryPokemonIds : normalPokemonIds;
+            const randomId = idList[Math.floor(Math.random() * idList.length)];
+            const imgUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${randomId}.png`;
+
+            pokemon.innerHTML = `
+                <img class="pokemon-img" src="${imgUrl}" alt="Pokemon" draggable="false">
+                <div class="health-bar-container">
+                    <div class="health-bar"></div>
+                </div>
+            `;
+
+            movePokemon(pokemon);
+
+            const moveInterval = setInterval(() => {
+                movePokemon(pokemon);
+            }, 2500);
+
+            const healthBar = pokemon.querySelector('.health-bar');
+
+            // 點擊寶可夢扣血
+            pokemon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                createPokeballExplosion(e.clientX, e.clientY);
+
+                currentHp -= attackPower;
+                if (currentHp < 0) currentHp = 0;
+
+                const hpPercent = (currentHp / maxHp) * 100;
+                healthBar.style.width = `${hpPercent}%`;
+
+                if (hpPercent < 30) {
+                    healthBar.style.backgroundColor = '#e74c3c';
+                }
+
+                // 擊倒寶可夢
+                if (currentHp <= 0) {
+                    clearInterval(moveInterval);
+
+                    if (isLegendary) {
+                        triggerFrenzy();
+                    }
+
+                    pokemon.style.transform = 'scale(0)';
+                    pokemon.style.opacity = '0';
+                    setTimeout(() => {
+                        pokemon.remove();
+                        activePokemons--;
+                        if (activePokemons === 0) {
+                            currentRound++;
+                            setTimeout(startNewRound, 500);
+                        }
+                    }, 200);
+                }
+            });
+
+            gameArea.appendChild(pokemon);
+        }
+
+        function movePokemon(pokemon) {
+            const maxX = gameArea.clientWidth - 160;
+            const maxY = gameArea.clientHeight - 160;
+            const randomX = Math.max(20, Math.floor(Math.random() * maxX));
+            const randomY = Math.max(20, Math.floor(Math.random() * maxY));
+
+            pokemon.style.left = `${randomX}px`;
+            pokemon.style.top = `${randomY}px`;
+        }
+
+        // 初始化遊戲
+        startNewRound();
+    </script>
 </body>
 </html>
