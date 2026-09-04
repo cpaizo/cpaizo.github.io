@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🪄 AI 智能魔法商店生成器 v3.0 (全選單 10 大選項解鎖版)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4A0E4E;
+            --primary-accent: #8E24AA;
+            --bg-gradient: linear-gradient(135deg, #1A0B2E 0%, #2D114D 50%, #15002A 100%);
+            --panel-bg: rgba(255, 255, 255, 0.97);
+            --shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans TC', sans-serif; }
+        body { background: var(--bg-gradient); color: #2C3E50; padding: 25px 15px; min-height: 100vh; }
+        .main-wrapper { max-width: 1250px; margin: 0 auto; background: var(--panel-bg); border-radius: 24px; padding: 30px; box-shadow: var(--shadow); }
+        .header-title { text-align: center; margin-bottom: 25px; }
+        .header-title h1 { font-size: 2.2rem; font-weight: 900; background: linear-gradient(45deg, #4A0E4E, #8E24AA); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 950px) { .grid-layout { grid-template-columns: 1fr; } }
+        
+        .section-card { background: #FFFFFF; border: 2px solid #EAECEE; border-radius: 16px; padding: 20px; margin-bottom: 18px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .section-title { font-size: 1.15rem; font-weight: 900; color: var(--primary-accent); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed #F2F4F4; padding-bottom: 8px; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-weight: 700; margin-bottom: 5px; color: #34495E; font-size: 0.9rem; }
+        input[type="text"], input[type="number"], input[type="url"], select { width: 100%; padding: 9px 12px; border: 2px solid #D5D8DC; border-radius: 8px; font-size: 0.9rem; background: #FAFAFA; transition: all 0.2s; }
+        input:focus, select:focus { border-color: var(--primary-accent); outline: none; background: #FFF; box-shadow: 0 0 0 3px rgba(142, 36, 170, 0.15); }
+        
+        .select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        @media (max-width: 600px) { .select-grid { grid-template-columns: 1fr; } }
+
+        .product-item { background: #F8F9F9; border: 2px dashed #BDC3C7; border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+        .btn-remove { background: #EC7063; color: white; border: none; padding: 3px 8px; border-radius: 5px; cursor: pointer; float: right; font-weight: bold; font-size: 0.8rem; }
+        .btn-add { background: #2ECC71; color: white; border: none; width: 100%; padding: 10px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 12px; }
+        .btn-generate { background: linear-gradient(135deg, #8E24AA, #4A0E4E); color: white; border: none; width: 100%; padding: 16px; font-size: 1.2rem; font-weight: 900; border-radius: 50px; cursor: pointer; box-shadow: 0 8px 20px rgba(142, 36, 170, 0.3); }
+        .btn-generate:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+<div class="main-wrapper">
+    <div class="header-title">
+        <h1>🪄 AI 智能魔法商店生成器 v3.0</h1>
+        <p style="color: #7F8C8D; margin-top: 4px;">解鎖 10 大選單 × 10 種風格選項 (共計 100+ 種組合變化)</p>
+    </div>
+
+    <div class="grid-layout">
+        <!-- 左側：設定區 -->
+        <div>
+            <div class="section-card">
+                <div class="section-title"><i class="fa-solid fa-sliders"></i> 1. 商店基本設定</div>
+                <div class="form-group">
+                    <label for="storeName">商店名稱：</label>
+                    <input type="text" id="storeName" value="🌸 花仙子 × 驅塵氏：閃亮城堡的魔法清潔工坊 🌸">
+                </div>
+                <div class="form-group">
+                    <label for="promoText">促銷標語：</label>
+                    <input type="text" id="promoText" value="✨ 揮動驅塵魔法棒！召喚森林精靈，把家裡的灰塵怪獸通通變不見！ ✨">
+                </div>
+                <div class="form-group">
+                    <label for="modelUrl">Teachable Machine 模型網址 (末尾須為 /)：</label>
+                    <input type="url" id="modelUrl" value="https://teachablemachine.withgoogle.com/models/XMd01LdS0/">
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-title"><i class="fa-solid fa-palette"></i> 2. 10 大控制選單 (各提供 10 種選項)</div>
+                <div class="select-grid">
+                    
+                    <!-- 選單 1：核心版面架構 (10 種選項) -->
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label for="layoutArch">選單 1. 核心網頁版面配置架構 (10種)：</label>
+                        <select id="layoutArch">
+                            <option value="layout-classic" selected>1. 經典雙欄 (左AI鏡頭 / 右購物車)</option>
+                            <option value="layout-reversed">2. 反向雙欄 (左購物車 / 右AI鏡頭)</option>
+                            <option value="layout-stacked">3. 垂直三層流線 (上AI / 中商品 / 下購物車)</option>
+                            <option value="layout-sidebar">4. 側邊控制台 (左側購物車 / 右側AI與商品)</option>
+                            <option value="layout-topcart">5. 置頂購物車條 (上購物車 / 下AI與商品)</option>
+                            <option value="layout-focusai">6. 沉浸式 AI 中心 (中央大鏡頭 / 兩側選單)</option>
+                            <option value="layout-bottomai">7. 底部控制台 (上商品 / 中購物車 / 底AI鏡頭)</option>
+                            <option value="layout-split3">8. 均衡三欄 (左AI / 中商品展示 / 右購物車)</option>
+                            <option value="layout-cardgrid">9. 現代儀表板卡片 (四分格磚牆佈局)</option>
+                            <option value="layout-mobilefirst">10. 智慧直式單欄 (手機優先流線型)</option>
+                        </select>
+                    </div>
+
+                    <!-- 選單 2：視覺主題色系 (20 種選項) -->
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label for="styleTheme">選單 2. 視覺主題色系 (4大類/共20種風格)：</label>
+                        <select id="styleTheme">
+                            <optgroup label="🌸 香氛去味 (5種風格)">
+                                <option value="lavender" selected>1. 浪漫薰衣草 (夢幻亮紫)</option>
+                                <option value="rose">2. 典雅玫瑰粉 (溫柔甜美)</option>
+                                <option value="whitetea">3. 清新白茶綠 (雅緻薄荷)</option>
+                                <option value="peach">4. 甜美蜜桃香 (活力蜜桃)</option>
+                                <option value="nightpurple">5. 靜謐夜香紫 (神秘深邃)</option>
+                            </optgroup>
+                            <optgroup label="🌿 天然清潔洗劑 (5種風格)">
+                                <option value="lemongrass">6. 綠意檸檬草 (鮮活黃綠)</option>
+                                <option value="citrus">7. 活力柑橘香 (陽光暖橘)</option>
+                                <option value="olive">8. 純淨橄欖綠 (自然大地)</option>
+                                <option value="enzyme">9. 環保酵素青 (深層淨化)</option>
+                                <option value="bamboo">10. 晨露竹萃綠 (清新竹林)</option>
+                            </optgroup>
+                            <optgroup label="💧 除濕防霉 (5種風格)">
+                                <option value="ocean">11. 海洋極淨藍 (清爽湛藍)</option>
+                                <option value="mint">12. 薄荷冰爽藍 (極致沁涼)</option>
+                                <option value="deepsea">13. 靜謐深海藍 (沉穩專業)</option>
+                                <option value="sky">14. 爽朗晴空藍 (活潑天空)</option>
+                                <option value="fog">15. 雲霧輕晨灰 (莫蘭迪灰)</option>
+                            </optgroup>
+                            <optgroup label="🧹 居家打掃工具 (5種風格)">
+                                <option value="magic">16. 經典魔法城堡 (經典紫黃)</option>
+                                <option value="sunshine">17. 活力日光黃 (明亮陽光)</option>
+                                <option value="modern">18. 摩登極簡黑 (時尚黑灰)</option>
+                                <option value="wood">19. 溫馨木質棕 (質感日系)</option>
+                                <option value="tech">20. 酷炫科技藍 (現代工業)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <!-- 選單 3：AI 鏡頭區容器造型 (10種) -->
+                    <div class="form-group">
+                        <label for="aiCamStyle">選單 3. AI 鏡頭容器造型 (10種)：</label>
+                        <select id="aiCamStyle">
+                            <option value="cam-circle" selected>1. 🔮 圓形魔法水晶球</option>
+                            <option value="cam-polaroid">2. 📷 拍立得復古相框</option>
+                            <option value="cam-neon">3. ⚡ 霓虹科技發光框</option>
+                            <option value="cam-flat">4. 🔲 簡約無邊框陰影</option>
+                            <option value="cam-hex">5. 🛑 六角形魔法陣框</option>
+                            <option value="cam-stamp">6. ✉️ 郵票齒邊復古框</option>
+                            <option value="cam-mirror">7. 🪞 皇室奢華金色鏡框</option>
+                            <option value="cam-tv">8. 📺 80年代復古電視機</option>
+                            <option value="cam-capsule">9. 💊 現代膠囊圓弧框</option>
+                            <option value="cam-terminal">10. 💻 賽博朋克黑客終端框</option>
+                        </select>
+                    </div>
+
+                    <!-- 選單 4：購物車項目風格 (10種) -->
+                    <div class="form-group">
+                        <label for="cartItemStyle">選單 4. 購物車項目風格 (10種)：</label>
+                        <select id="cartItemStyle">
+                            <option value="cart-relief" selected>1. 3D 浮雕圓角卡片</option>
+                            <option value="cart-glass">2. 微光玻璃擬態</option>
+                            <option value="cart-minimal">3. 極簡橫向底線清單</option>
+                            <option value="cart-badge">4. 彩虹氣泡橢圓膠囊</option>
+                            <option value="cart-retro">5. 8-Bit 復古像素框</option>
+                            <option value="cart-ticket">6. 票券存根撕線風格</option>
+                            <option value="cart-neon">7. 霓虹高對比邊線</option>
+                            <option value="cart-paper">8. 貼紙便條紙風格</option>
+                            <option value="cart-gradient">9. 動態漸層邊框卡片</option>
+                            <option value="cart-pill">10. 柔和雙色圓角條帶</option>
+                        </select>
+                    </div>
+
+                    <!-- 選單 5：商品展示櫃排列 (10種) -->
+                    <div class="form-group">
+                        <label for="productGrid">選單 5. 商品展示櫃排列 (10種)：</label>
+                        <select id="productGrid">
+                            <option value="grid-2col" selected>1. 雙欄發光大卡片</option>
+                            <option value="grid-3col">2. 三欄精緻小方格</option>
+                            <option value="grid-4col">3. 四欄密集小徽章</option>
+                            <option value="grid-1col">4. 單欄寬版導覽卡</option>
+                            <option value="grid-staggered">5. 高低錯位瀑布流風格</option>
+                            <option value="grid-horizontal">6. 橫向滑動卡片列</option>
+                            <option value="grid-circle">7. 圓形頭像風格排列</option>
+                            <option value="grid-compact">8. 緊湊型文字表格卡片</option>
+                            <option value="grid-listview">9. 條列式詳細圖文清單</option>
+                            <option value="grid-magazine">10. 雜誌首圖大卡混排</option>
+                        </select>
+                    </div>
+
+                    <!-- 選單 6：頁面動態與懸浮 (10種) -->
+                    <div class="form-group">
+                        <label for="animLevel">選單 6. 頁面懸浮動效 (10種)：</label>
+                        <select id="animLevel">
+                            <option value="anim-soft" selected>1. ✨ 魔法輕盈飄浮</option>
+                            <option value="anim-bouncy">2. 🎈 活潑卡片彈跳</option>
+                            <option value="anim-none">3. 🛑 靜態專注模式</option>
+                            <option value="anim-pulse">4. 💗 溫柔呼吸脈衝</option>
+                            <option value="anim-shake">5. ⚡ 趣味微幅晃動</option>
+                            <option value="anim-flip">6. 🔄 3D 翻轉懸停</option>
+                            <option value="anim-zoom">7. 🔍 鏡頭微距放大</option>
+                            <option value="anim-slide">8. ➡️ 左側平移滑入</option>
+                            <option value="anim-glow">9. 🌟 閃爍金色光暈</option>
+                            <option value="anim-tilt">10. 📐 隨滑鼠傾斜感</option>
+                        </select>
+                    </div>
+
+                    <!-- 選單 7：背景底紋質感 (10種) -->
+                    <div class="form-group">
+                        <label for="bgTexture">選單 7. 網頁背景質感 (10種)：</label>
+                        <select id="bgTexture">
+                            <option value="texture-stars" selected>1. ✨ 星光魔法微粒</option>
+                            <option value="texture-grid">2. 📐 日系精細網格</option>
+                            <option value="texture-smooth">3. 🎨 柔和漸層光暈</option>
+                            <option value="texture-dots">4. 🔴 波爾卡圓點</option>
+                            <option value="texture-stripes">5. 💈 經典斜紋線條</option>
+                            <option value="texture-noise">6. 📺 復古噪點質感</option>
+                            <option value="texture-hex">7. 🐝 蜂巢六角幾何</option>
+                            <option value="texture-wave">8. 🌊 海洋波浪線條</option>
+                            <option value="texture-bubbles">9. 🫧 夢幻氣泡微粒</option>
+                            <option value="texture-darkmagic">10. 🌌 神秘夜空星系</option>
+                        </select>
+                    </div>
+
+                    <!-- 選單 8：滿額禮物解鎖區擺位 (10種) -->
+                    <div class="form-group">
+                        <label for="blessingLoc">選單 8. 滿額禮物區擺位 (10種)：</label>
+                        <select id="blessingLoc">
+                            <option value="loc-cart" selected>1. 購物車正下方</option>
+                            <option value="loc-bottom">2. 頁面最底部獨立橫幅</option>
+                            <option value="loc-top">3. 頂部跑馬燈公告欄</option>
+                            <option value="loc-ai">4. AI 鏡頭區正下方</option>
+                            <option value="loc-floating">5. 畫面右下角懸浮按鈕</option>
+                            <option value="loc-product">6. 商品展示區頂部</option>
+                            <option value="loc-header">7. 主標題欄內部融入</option>
+                            <option value="loc-sidebar-top">8. 側邊欄最上方顯眼處</option>
+                            <option value="loc-checkout-above">9. 結帳按鈕正上方</option>
+                            <option value="loc-footer">10. 頁尾版權上方獨立區</option>
+                        </select>
+                    </div>
+
+                    <!-- 選單 9：全站字體風格 (10種) -->
+                    <div class="form-group">
+                        <label for="fontTheme">選單 9. 全站字體風格 (10種)：</label>
+                        <select id="fontTheme">
+                            <option value="font-cute" selected>1. 繪本圓體風格</option>
+                            <option value="font-bold">2. 重磅時尚黑體</option>
+                            <option value="font-serif">3. 典雅人文明體</option>
+                            <option value="font-pixel">4. 8-Bit 復古電玩體</option>
+                            <option value="font-handwriting">5. 手寫隨性童趣體</option>
+                            <option value="font-tech">6. 未來感極簡科技體</option>
+                            <option value="font-condensed">7. 緊湊型美式標題體</option>
+                            <option value="font-gothic">8. 哥德古典花體</option>
+                            <option value="font-soft">9. 柔和溫暖圓黑體</option>
+                            <option value="font-shadow">10. 雙色立體陰影體</option>
+                        </select>
+                    </div>
+
+                    <!-- 選單 10：按鈕互動流光特效 (10種) -->
+                    <div class="form-group">
+                        <label for="btnHover">選單 10. 按鈕互動特效 (10種)：</label>
+                        <select id="btnHover">
+                            <option value="btn-gold" selected>1. 🌟 魔法金光掃過</option>
+                            <option value="btn-press">2. 🔘 3D 下壓實體感</option>
+                            <option value="btn-glow">3. 💡 霓虹外發光暈</option>
+                            <option value="btn-ripple">4. 🌊 水波紋擴散</option>
+                            <option value="btn-border">5. 🔲 邊框流光繞行</option>
+                            <option value="btn-shake">6. 🔔 懸浮輕微震動</option>
+                            <option value="btn-scale">7. 🚀 漸進膨脹放大</option>
+                            <option value="btn-gradient">8. 🌈 漸層色動態滑動</option>
+                            <option value="btn-invert">9. ☯️ 反色翻轉效果</option>
+                            <option value="btn-sparkle">10. ✨ 星芒爆發顆粒</option>
+                        </select>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- 右側：商品資料與生成 -->
+        <div>
+            <div class="section-card">
+                <div class="section-title"><i class="fa-solid fa-boxes-stacked"></i> 3. 商品清單與金額設定</div>
+                <div id="product-list"></div>
+                <button class="btn-add" onclick="addProductForm()">+ 新增商品品項</button>
+            </div>
+
+            <button class="btn-generate" onclick="generateAndDownload()">🚀 生成全新排版 HTML 網頁</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const themeConfigs = {
+        lavender: { primary: "#7D3C98", light: "#EBDEF0", border: "#BB8FCE", bg: "#F5EEF8", headerBg: "linear-gradient(135deg, #8E24AA, #4A0E4E)" },
+        rose: { primary: "#C2185B", light: "#FADBD8", border: "#F5B7B1", bg: "#FDEDEC", headerBg: "linear-gradient(135deg, #EC407A, #880E4F)" },
+        whitetea: { primary: "#0E6655", light: "#E8F8F5", border: "#A3E4D7", bg: "#E8F8F5", headerBg: "linear-gradient(135deg, #26A69A, #004D40)" },
+        peach: { primary: "#BA4A00", light: "#EDBB99", border: "#F5CBA7", bg: "#FDF2E9", headerBg: "linear-gradient(135deg, #FF7043, #BF360C)" },
+        nightpurple: { primary: "#4A235A", light: "#D7BDE2", border: "#AF7AC5", bg: "#F4ECF7", headerBg: "linear-gradient(135deg, #7B1FA2, #311B92)" },
+        lemongrass: { primary: "#1E8449", light: "#D4EFDF", border: "#A9DFBF", bg: "#EAFAF1", headerBg: "linear-gradient(135deg, #66BB6A, #1B5E20)" },
+        citrus: { primary: "#CA6F1E", light: "#FAD7A0", border: "#F8C471", bg: "#FEF9E7", headerBg: "linear-gradient(135deg, #FFA726, #E65100)" },
+        olive: { primary: "#4D5656", light: "#D5DBDB", border: "#A6ACAF", bg: "#F4F6F6", headerBg: "linear-gradient(135deg, #78909C, #263238)" },
+        enzyme: { primary: "#117A65", light: "#A2D9CE", border: "#73C6B6", bg: "#E8F6F3", headerBg: "linear-gradient(135deg, #26C6DA, #006064)" },
+        bamboo: { primary: "#145A32", light: "#ABEBC6", border: "#58D68D", bg: "#E8F8F5", headerBg: "linear-gradient(135deg, #2E7D32, #0D5302)" },
+        ocean: { primary: "#1B4F72", light: "#AED6F1", border: "#85C1E9", bg: "#EBF5FB", headerBg: "linear-gradient(135deg, #42A5F5, #0D47A1)" },
+        mint: { primary: "#0E6655", light: "#A3E4D7", border: "#76D7C4", bg: "#E8F8F5", headerBg: "linear-gradient(135deg, #26A69A, #004D40)" },
+        deepsea: { primary: "#154360", light: "#A9CCE3", border: "#7FB3D5", bg: "#EAF2F8", headerBg: "linear-gradient(135deg, #1E88E5, #002171)" },
+        sky: { primary: "#21618C", light: "#5DADE2", border: "#85C1E9", bg: "#EBF5FB", headerBg: "linear-gradient(135deg, #29B6F6, #01579B)" },
+        fog: { primary: "#424949", light: "#CCD1D1", border: "#B2BABB", bg: "#F2F3F4", headerBg: "linear-gradient(135deg, #78909C, #37474F)" },
+        magic: { primary: "#7D3C98", light: "#EBDEF0", border: "#BB8FCE", bg: "#F5EEF8", headerBg: "linear-gradient(135deg, #AB47BC, #4A148C)" },
+        sunshine: { primary: "#B9770E", light: "#F9E79F", border: "#F7DC6F", bg: "#FEF9E7", headerBg: "linear-gradient(135deg, #FBC02D, #F57F17)" },
+        modern: { primary: "#1B2631", light: "#AEB6BF", border: "#85929E", bg: "#EAECEE", headerBg: "linear-gradient(135deg, #424242, #212121)" },
+        wood: { primary: "#6E2C00", light: "#EDBB99", border: "#DC7633", bg: "#FBEEE6", headerBg: "linear-gradient(135deg, #8D6E63, #3E2723)" },
+        tech: { primary: "#2E4053", light: "#ABB2B9", border: "#85929E", bg: "#EAECEE", headerBg: "linear-gradient(135deg, #37474F, #263238)" }
+    };
+
+    const defaultProducts = [
+        { name: "驅塵氏黏塵滾輪", price: 6, imgUrl: "https://www.farcent.com.tw/files/products/Product%20Pictures/W0/P-WW8602XXF.png" },
+        { name: "驅塵氏抗菌濕拖巾-木質麝香", price: 4, imgUrl: "https://www.farcent.com.tw/files/products/Product%20Pictures/W0/P-WW7068WXF.png" },
+        { name: "驅塵氏雙軌密封夾鏈袋(中)", price: 5, imgUrl: "https://www.farcent.com.tw/files/products/Product%20Pictures/W0/P-WW7782XXF.png" },
+        { name: "驅塵氏香氛環保清潔袋-薰衣草(中)(3入)", price: 4, imgUrl: "https://www.farcent.com.tw/files/products/Product%20Pictures/W0/P-WW7917VBF.png" }
+    ];
+
+    const productContainer = document.getElementById('product-list');
+
+    function addProductForm(data = { name: '', price: 5, imgUrl: '' }) {
+        const div = document.createElement('div');
+        div.className = 'product-item';
+        div.innerHTML = `
+            <button class="btn-remove" onclick="this.parentElement.remove()">刪除</button>
+            <div style="margin-bottom:6px;"><label>商品名稱：</label><input type="text" class="prod-name" value="${data.name}" required></div>
+            <div style="margin-bottom:6px;"><label>金額 (金幣)：</label><input type="number" class="prod-price" value="${data.price}" min="1" required></div>
+            <div><label>圖片網址：</label><input type="url" class="prod-img" value="${data.imgUrl}" placeholder="https://..." required></div>
+        `;
+        productContainer.appendChild(div);
+    }
+    defaultProducts.forEach(p => addProductForm(p));
+
+    function generateAndDownload() {
+        const storeName = document.getElementById('storeName').value;
+        const promoText = document.getElementById('promoText').value;
+        let modelUrl = document.getElementById('modelUrl').value.trim();
+        if (!modelUrl.endsWith('/')) modelUrl += '/';
+
+        // 讀取 10 個下拉選單設定
+        const optLayoutArch = document.getElementById('layoutArch').value;
+        const themeKey = document.getElementById('styleTheme').value;
+        const theme = themeConfigs[themeKey] || themeConfigs.lavender;
+        
+        const optAiCamStyle = document.getElementById('aiCamStyle').value;
+        const optCartItemStyle = document.getElementById('cartItemStyle').value;
+        const optProductGrid = document.getElementById('productGrid').value;
+        const optAnimLevel = document.getElementById('animLevel').value;
+        const optBgTexture = document.getElementById('bgTexture').value;
+        const optBlessingLoc = document.getElementById('blessingLoc').value;
+        const optFontTheme = document.getElementById('fontTheme').value;
+        const optBtnHover = document.getElementById('btnHover').value;
+
+        const productItems = document.querySelectorAll('.product-item');
+        const products = [];
+        productItems.forEach(item => {
+            const name = item.querySelector('.prod-name').value;
+            const price = parseInt(item.querySelector('.prod-price').value) || 0;
+            const imgUrl = item.querySelector('.prod-img').value;
+            if (name) products.push({ name, price, imgUrl });
+        });
+
+        const template = `<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${storeName}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: ${theme.primary};
+            --light: ${theme.light};
+            --border: ${theme.border};
+            --bg: ${theme.bg};
+            --header-bg: ${theme.headerBg};
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans TC', sans-serif; }
+        
+        /* 選單 7: 10種背景質感 */
+        body {
+            background-color: var(--bg);
+            ${optBgTexture === 'texture-stars' ? 'background-image: radial-gradient(rgba(0,0,0,0.08) 12%, transparent 12%); background-size: 18px 18px;' : ''}
+            ${optBgTexture === 'texture-grid' ? 'background-image: linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px); background-size: 16px 16px;' : ''}
+            ${optBgTexture === 'texture-smooth' ? 'background-image: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 80%);' : ''}
+            ${optBgTexture === 'texture-dots' ? 'background-image: radial-gradient(var(--border) 20%, transparent 20%); background-size: 12px 12px;' : ''}
+            ${optBgTexture === 'texture-stripes' ? 'background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.02), rgba(0,0,0,0.02) 10px, transparent 10px, transparent 20px);' : ''}
+            ${optBgTexture === 'texture-noise' ? 'background-image: radial-gradient(#000 0.5px, transparent 0.5px); background-size: 8px 8px; opacity: 0.95;' : ''}
+            ${optBgTexture === 'texture-hex' ? 'background-image: radial-gradient(circle, var(--border) 1px, transparent 1px); background-size: 24px 24px;' : ''}
+            ${optBgTexture === 'texture-wave' ? 'background-image: repeating-radial-gradient(circle at 0 0, transparent 0, var(--bg) 10px), repeating-linear-gradient(rgba(0,0,0,0.03), rgba(0,0,0,0.03));' : ''}
+            ${optBgTexture === 'texture-bubbles' ? 'background-image: radial-gradient(circle, rgba(255,255,255,0.9) 10%, transparent 20%); background-size: 30px 30px;' : ''}
+            ${optBgTexture === 'texture-darkmagic' ? 'background-color: #0d0614; color: #E0D0FF; background-image: radial-gradient(#8E24AA 1px, transparent 0); background-size: 20px 20px;' : ''}
+            color: #2C3E50; padding-bottom: 50px;
+        }
+
+        header {
+            background: var(--header-bg); padding: 35px 20px; text-align: center; color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        
+        /* 選單 9: 10種字體風格 */
+        header h1 {
+            font-size: 2.2rem; margin-bottom: 8px;
+            ${optFontTheme === 'font-cute' ? 'font-weight: 900; letter-spacing: 1px;' : ''}
+            ${optFontTheme === 'font-bold' ? 'font-weight: 900; text-transform: uppercase;' : ''}
+            ${optFontTheme === 'font-serif' ? 'font-family: serif; font-weight: bold;' : ''}
+            ${optFontTheme === 'font-pixel' ? 'font-family: monospace; letter-spacing: -1px;' : ''}
+            ${optFontTheme === 'font-handwriting' ? 'font-style: italic; font-weight: 700;' : ''}
+            ${optFontTheme === 'font-tech' ? 'font-family: sans-serif; letter-spacing: 3px; font-weight: 300;' : ''}
+            ${optFontTheme === 'font-condensed' ? 'transform: scaleY(1.1); font-weight: 900;' : ''}
+            ${optFontTheme === 'font-gothic' ? 'font-family: Georgia, serif; font-weight: bold;' : ''}
+            ${optFontTheme === 'font-soft' ? 'font-weight: 500; border-radius: 10px;' : ''}
+            ${optFontTheme === 'font-shadow' ? 'text-shadow: 3px 3px 0px rgba(0,0,0,0.3);' : ''}
+        }
+        header p { display: inline-block; background: rgba(255,255,255,0.22); padding: 5px 18px; border-radius: 20px; font-weight: bold; }
+
+        .app-container { max-width: 1200px; margin: 25px auto; padding: 0 15px; }
+
+        /* 選單 1: 10種核心網頁版面架構 */
+        .layout-classic { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .layout-classic .area-products { grid-column: span 2; }
+
+        .layout-reversed { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .layout-reversed .area-cart { order: -1; }
+        .layout-reversed .area-products { grid-column: span 2; }
+
+        .layout-stacked { display: flex; flex-direction: column; gap: 20px; }
+        .layout-stacked #webcam-container { max-width: 480px; }
+
+        .layout-sidebar { display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
+        .layout-sidebar .left-sidebar { display: flex; flex-direction: column; gap: 20px; }
+        .layout-sidebar .right-main { display: flex; flex-direction: column; gap: 20px; }
+
+        .layout-topcart { display: flex; flex-direction: column; gap: 20px; }
+        .layout-topcart .area-cart { order: -2; }
+        
+        .layout-focusai { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 15px; }
+        .layout-focusai .area-ai { grid-column: 2; grid-row: 1; }
+        .layout-focusai .area-cart { grid-column: 3; grid-row: 1; }
+        .layout-focusai .area-products { grid-column: 1; grid-row: 1; }
+
+        .layout-bottomai { display: flex; flex-direction: column; gap: 20px; }
+        .layout-bottomai .area-ai { order: 3; }
+
+        .layout-split3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+
+        .layout-cardgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+        .layout-mobilefirst { display: flex; flex-direction: column; max-width: 500px; margin: 0 auto; gap: 15px; }
+
+        @media (max-width: 850px) {
+            .layout-classic, .layout-reversed, .layout-sidebar, .layout-focusai, .layout-split3, .layout-cardgrid { display: flex; flex-direction: column; }
+        }
+
+        /* 選單 6: 10種懸浮動效 */
+        .card {
+            background: white; padding: 20px; border-radius: 16px; border: 2px solid var(--border);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.04); transition: all 0.3s;
+            ${optAnimLevel === 'anim-soft' ? '&:hover { transform: translateY(-5px); }' : ''}
+            ${optAnimLevel === 'anim-bouncy' ? '&:hover { transform: scale(1.02); }' : ''}
+            ${optAnimLevel === 'anim-pulse' ? '&:hover { transform: scale(1.01); box-shadow: 0 0 15px var(--border); }' : ''}
+            ${optAnimLevel === 'anim-shake' ? '&:hover { transform: rotate(1deg); }' : ''}
+            ${optAnimLevel === 'anim-flip' ? '&:hover { transform: perspective(600px) rotateY(4deg); }' : ''}
+            ${optAnimLevel === 'anim-zoom' ? '&:hover { transform: scale(1.03); z-index: 2; }' : ''}
+            ${optAnimLevel === 'anim-slide' ? '&:hover { transform: translateX(6px); }' : ''}
+            ${optAnimLevel === 'anim-glow' ? '&:hover { box-shadow: 0 0 20px var(--primary); }' : ''}
+            ${optAnimLevel === 'anim-tilt' ? '&:hover { transform: perspective(500px) rotateX(3deg); }' : ''}
+        }
+        .card-title { font-size: 1.25rem; font-weight: 900; color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+
+        /* 選單 10: 10種按鈕特效 */
+        .btn {
+            background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 10px;
+            font-size: 1rem; font-weight: bold; cursor: pointer; width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px;
+            transition: all 0.2s; position: relative; overflow: hidden;
+        }
+        ${optBtnHover === 'btn-gold' ? '.btn::after { content:""; position:absolute; top:-50%; left:-50%; width:200%; height:200%; background: linear-gradient(60deg, transparent, rgba(255,215,0,0.4), transparent); transform: rotate(30deg); transition: 0.5s; } .btn:hover::after { left: 100%; }' : ''}
+        ${optBtnHover === 'btn-press' ? '.btn:active { transform: translateY(3px); }' : ''}
+        ${optBtnHover === 'btn-glow' ? '.btn:hover { box-shadow: 0 0 15px var(--primary); }' : ''}
+        ${optBtnHover === 'btn-ripple' ? '.btn:hover { filter: brightness(1.2); }' : ''}
+        ${optBtnHover === 'btn-border' ? '.btn { border: 2px solid white; } .btn:hover { background: transparent; color: var(--primary); border-color: var(--primary); }' : ''}
+        ${optBtnHover === 'btn-shake' ? '.btn:hover { transform: shake 0.5s; }' : ''}
+        ${optBtnHover === 'btn-scale' ? '.btn:hover { transform: scale(1.05); }' : ''}
+        ${optBtnHover === 'btn-gradient' ? '.btn { background-size: 200% auto; background-image: linear-gradient(to right, var(--primary) 0%, #8E24AA 50%, var(--primary) 100%); } .btn:hover { background-position: right center; }' : ''}
+        ${optBtnHover === 'btn-invert' ? '.btn:hover { background: white; color: var(--primary); border: 2px solid var(--primary); }' : ''}
+        ${optBtnHover === 'btn-sparkle' ? '.btn:hover { box-shadow: 0 0 10px #FFD700; }' : ''}
+
+        /* 選單 3: 10種 AI 鏡頭容器造型 */
+        #webcam-container {
+            width: 100%; aspect-ratio: 4/3; margin: 12px auto 0 auto; overflow: hidden; position: relative;
+            ${optAiCamStyle === 'cam-circle' ? 'border-radius: 50%; max-width: 250px; border: 5px solid var(--border); box-shadow: 0 0 20px rgba(0,0,0,0.1);' : ''}
+            ${optAiCamStyle === 'cam-polaroid' ? 'border-radius: 8px; border: 12px solid #FFF; box-shadow: 0 8px 16px rgba(0,0,0,0.15); background:#FFF;' : ''}
+            ${optAiCamStyle === 'cam-neon' ? 'border-radius: 10px; border: 3px solid var(--primary); box-shadow: 0 0 10px var(--primary);' : ''}
+            ${optAiCamStyle === 'cam-flat' ? 'border-radius: 12px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.08);' : ''}
+            ${optAiCamStyle === 'cam-hex' ? 'clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); border: 2px solid var(--primary);' : ''}
+            ${optAiCamStyle === 'cam-stamp' ? 'border: 6px dashed var(--border); border-radius: 4px; padding: 4px;' : ''}
+            ${optAiCamStyle === 'cam-mirror' ? 'border-radius: 50px; border: 8px solid #FFD700; box-shadow: 0 0 15px rgba(255,215,0,0.5);' : ''}
+            ${optAiCamStyle === 'cam-tv' ? 'border-radius: 20px; border: 10px solid #5D4037; background: #333;' : ''}
+            ${optAiCamStyle === 'cam-capsule' ? 'border-radius: 100px; border: 4px solid var(--primary);' : ''}
+            ${optAiCamStyle === 'cam-terminal' ? 'border-radius: 0px; border: 2px solid #00FF00; background: #000;' : ''}
+        }
+        #webcam-container canvas { width: 100% !important; height: 100% !important; object-fit: cover; }
+        .prediction-row { background: #FAFAFA; border-radius: 6px; padding: 6px 10px; margin-top: 6px; }
+        .prediction-label { display: flex; justify-content: space-between; font-weight: bold; font-size: 0.85rem; }
+        .progress-bar-bg { background: #EAECEE; height: 6px; border-radius: 10px; overflow: hidden; margin-top: 3px; }
+        .progress-bar-fill { background: var(--primary); height: 100%; width: 0%; transition: width 0.2s; }
+
+        /* 選單 4: 10種購物車項目風格 */
+        .cart-list { height: 280px; overflow-y: auto; border: 1px solid #EAECEE; border-radius: 10px; padding: 10px; background: #FAFAFA; margin-bottom: 12px; }
+        .cart-item {
+            padding: 8px 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
+            ${optCartItemStyle === 'cart-relief' ? 'background: white; border-radius: 8px; box-shadow: 0 3px 0px var(--border); border: 1px solid #EAECEE;' : ''}
+            ${optCartItemStyle === 'cart-glass' ? 'background: rgba(255,255,255,0.7); backdrop-filter: blur(4px); border-radius: 8px; border: 1px solid white;' : ''}
+            ${optCartItemStyle === 'cart-minimal' ? 'background: white; border-bottom: 2px solid #EAECEE;' : ''}
+            ${optCartItemStyle === 'cart-badge' ? 'background: var(--light); border-radius: 20px;' : ''}
+            ${optCartItemStyle === 'cart-retro' ? 'background: #FFF; border: 2px solid #000; box-shadow: 3px 3px 0px #000;' : ''}
+            ${optCartItemStyle === 'cart-ticket' ? 'background: #FFF; border-left: 5px dashed var(--primary); border-right: 1px solid #DDD;' : ''}
+            ${optCartItemStyle === 'cart-neon' ? 'background: #111; color: #FFF; border: 1px solid var(--primary); box-shadow: 0 0 5px var(--primary);' : ''}
+            ${optCartItemStyle === 'cart-paper' ? 'background: #FFFDE7; border: 1px solid #FFF59D; transform: rotate(-0.5deg);' : ''}
+            ${optCartItemStyle === 'cart-gradient' ? 'background: linear-gradient(90deg, #FFF, var(--light)); border-radius: 10px;' : ''}
+            ${optCartItemStyle === 'cart-pill' ? 'background: var(--light); border: 1px solid var(--border); border-radius: 50px;' : ''}
+        }
+        .qty-btn { background: #EAECEE; border: none; width: 22px; height: 22px; border-radius: 50%; cursor: pointer; font-weight: bold; }
+
+        /* 選單 5: 10種商品展示櫃排列 */
+        .product-grid {
+            display: grid; gap: 12px;
+            ${optProductGrid === 'grid-2col' ? 'grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));' : ''}
+            ${optProductGrid === 'grid-3col' ? 'grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));' : ''}
+            ${optProductGrid === 'grid-4col' ? 'grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));' : ''}
+            ${optProductGrid === 'grid-1col' ? 'grid-template-columns: 1fr;' : ''}
+            ${optProductGrid === 'grid-staggered' ? 'grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); align-items: start;' : ''}
+            ${optProductGrid === 'grid-horizontal' ? 'display: flex; overflow-x: auto; padding-bottom: 10px;' : ''}
+            ${optProductGrid === 'grid-circle' ? 'grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));' : ''}
+            ${optProductGrid === 'grid-compact' ? 'grid-template-columns: 1fr; gap: 4px;' : ''}
+            ${optProductGrid === 'grid-listview' ? 'grid-template-columns: 1fr;' : ''}
+            ${optProductGrid === 'grid-magazine' ? 'grid-template-columns: repeat(2, 1fr);' : ''}
+        }
+        .product-card {
+            background: #FFF; border: 1px solid #EAECEE; border-radius: 10px; padding: 10px; text-align: center;
+            cursor: pointer; transition: transform 0.2s;
+            ${optProductGrid === 'grid-horizontal' ? 'min-width: 150px;' : ''}
+            ${optProductGrid === 'grid-circle' ? 'border-radius: 50%; width: 130px; height: 130px; padding: 15px;' : ''}
+        }
+        .product-card:hover { transform: translateY(-3px); border-color: var(--border); }
+        .product-icon { width: 100%; height: 85px; object-fit: contain; margin-bottom: 6px; }
+
+        /* 選單 8: 10種滿額禮物區塊擺位風格 */
+        .blessing-box {
+            text-align: center; padding: 12px; border-radius: 12px; background: var(--light);
+            border: 2px dashed var(--border); opacity: 0.5; transition: all 0.3s; margin-top: 10px;
+        }
+        .blessing-box.unlocked { opacity: 1; filter: drop-shadow(0 0 6px rgba(241, 196, 15, 0.5)); }
+
+        .petal { position: fixed; top: -20px; pointer-events: none; z-index: 9999; animation: fall linear forwards; }
+        @keyframes fall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(105vh) rotate(720deg); opacity: 0; } }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 999; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        .modal-window { background: white; padding: 25px; border-radius: 16px; max-width: 380px; width: 90%; text-align: center; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>${storeName}</h1>
+        <p>${promoText}</p>
+        ${optBlessingLoc === 'loc-header' ? `
+        <div class="blessing-box" id="blessing-section" style="margin-top:15px; background:rgba(255,255,255,0.2); border-color:white; color:white;">
+            <span id="blessing-title">🔒 滿 20 金幣解鎖精靈評語</span>
+            <div id="blessing-display" style="font-weight: bold; margin-top: 3px;"></div>
+        </div>` : ''}
+    </header>
+
+    <div class="app-container">
+        ${optBlessingLoc === 'loc-top' ? `
+        <div class="blessing-box" id="blessing-section" style="margin-bottom:15px;">
+            <span id="blessing-title">🔒 滿 20 金幣解鎖精靈評語</span>
+            <div id="blessing-display" style="font-weight: bold; margin-top: 3px; color: var(--primary);"></div>
+        </div>` : ''}
+
+        ${optLayoutArch === 'layout-sidebar' ? '<div class="layout-sidebar"><div class="left-sidebar">' : `<div class="${optLayoutArch}">`}
+
+            <!-- AI 鏡頭區塊 -->
+            <div class="card area-ai">
+                <div class="card-title"><i class="fa-solid fa-wand-magic-sparkles"></i> 召喚魔法陣 (AI 鏡頭)</div>
+                <button class="btn" onclick="startWebcam()"><i class="fa-solid fa-camera"></i> 啟動魔法水晶球</button>
+                <div id="webcam-container" style="display: none;"></div>
+                <div id="result-container"></div>
+                ${optBlessingLoc === 'loc-ai' ? `
+                <div class="blessing-box" id="blessing-section">
+                    <h5 id="blessing-title">🔒 滿 20 金幣解鎖精靈評語</h5>
+                    <div id="blessing-display" style="font-weight: bold; margin-top: 5px; color: var(--primary); font-size:0.9rem;"></div>
+                </div>` : ''}
+            </div>
+
+            <!-- 購物車與結帳區塊 -->
+            <div class="card area-cart">
+                ${optBlessingLoc === 'loc-sidebar-top' ? `
+                <div class="blessing-box" id="blessing-section" style="margin-bottom:12px;">
+                    <h5 id="blessing-title">🔒 滿 20 金幣解鎖精靈評語</h5>
+                    <div id="blessing-display" style="font-weight: bold; margin-top: 5px; color: var(--primary); font-size:0.9rem;"></div>
+                </div>` : ''}
+
+                <div class="card-title"><i class="fa-solid fa-cart-shopping"></i> 我的清潔百寶袋</div>
+                <div class="cart-list" id="cart-items-wrapper"></div>
+                <div style="font-size: 1.2rem; font-weight: 900; margin-bottom: 10px; text-align:right;">
+                    總計：<span id="magic-total" style="color: #E74C3C;">0 金幣</span>
+                </div>
+
+                ${optBlessingLoc === 'loc-checkout-above' ? `
+                <div class="blessing-box" id="blessing-section" style="margin-bottom:10px;">
+                    <h5 id="blessing-title">🔒 滿 20 金幣解鎖精靈評語</h5>
+                    <div id="blessing-display" style="font-weight: bold; margin-top: 5px; color: var(--primary); font-size:0.9rem;"></div>
+                </div>` : ''}
+
+                <button class="btn" onclick="triggerCheckout()"><i class="fa-solid fa-sparkles"></i> 詠唱結帳咒語</button>
+
+                ${optBlessingLoc === 'loc-cart' ? `
+                <div class="blessing-box" id="blessing-section">
+                    <h5 id="blessing-title">🔒 滿 20 金幣解鎖精靈評語</h5>
+                    <div id="blessing-display" style="font-weight: bold; margin-top: 5px; color: var(--primary); font-size:0.9rem;"></div>
+                </div>` : ''}
+            </div>
+
+        ${optLayoutArch === 'layout-sidebar' ? '</div><div class="right-main">' : ''}
+
+            <!-- 商品展示櫃 -->
+            <div class="card area-products">
+                ${optBlessingLoc === 'loc-product' ? `
+                <div class="blessing-box" id="blessing-section" style="margin-bottom:12px;">
+                    <h5 id="blessing-title">🔒 滿 20 金幣解鎖精靈評語</h5>
+                    <div id="blessing-display" style="font-weight: bold; margin-top: 5px; color: var(--primary); font-size:0.9rem;"></div>
+                </div>` : ''}
+                <div class="card-title"><i class="fa-solid fa-broom"></i> 精靈展示櫃 (點選召喚)</div>
+                <div class="product-grid" id="dynamic-product-grid"></div>
+            </div>
+
+            ${optBlessingLoc === 'loc-bottom' ? `
+            <div class="card area-blessing" style="grid-column: span 2;">
+                <div class="blessing-box" id="blessing-section">
+                    <h4 id="blessing-title">🔒 滿 20 金幣解鎖精靈評語</h4>
+                    <div id="blessing-display" style="font-weight: bold; margin-top: 6px; color: var(--primary);"></div>
+                </div>
+            </div>` : ''}
+
+        ${optLayoutArch === 'layout-sidebar' ? '</div></div>' : '</div>'}
+
+        ${optBlessingLoc === 'loc-floating' ? `
+        <div style="position:fixed; bottom:20px; right:20px; z-index:99;">
+            <div class="blessing-box" id="blessing-section" style="background:white; box-shadow:0 4px 15px rgba(0,0,0,0.2);">
+                <h5 id="blessing-title">🔒 滿 20 金幣解鎖</h5>
+                <div id="blessing-display" style="font-weight: bold; margin-top: 3px; color: var(--primary); font-size:0.85rem;"></div>
+            </div>
+        </div>` : ''}
+
+        ${optBlessingLoc === 'loc-footer' ? `
+        <div class="blessing-box" id="blessing-section" style="margin-top:20px;">
+            <h5 id="blessing-title">🔒 滿 20 金幣解鎖精靈評語</h5>
+            <div id="blessing-display" style="font-weight: bold; margin-top: 5px; color: var(--primary);"></div>
+        </div>` : ''}
+    </div>
+
+    <!-- 結帳彈窗 -->
+    <div class="modal-overlay" id="success-modal">
+        <div class="modal-window">
+            <i class="fa-solid fa-crown" style="font-size: 3.5rem; color: #F1C40F; margin-bottom: 10px;"></i>
+            <h2>清掃任務達成！</h2>
+            <p style="margin: 12px 0; color:#555;">🎉 恭喜你成功召喚驅塵神器，家裡變得閃亮晶晶！</p>
+            <button class="btn" onclick="closeModalWindow()">太棒了！</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"><\/script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"><\/script>
+    <script>
+        const CONFIG_MODEL_URL = ${JSON.stringify(modelUrl)};
+        const configProducts = ${JSON.stringify(products)};
+        const blessingWords = ["🧹 哇！地板乾淨到可以當鏡子照了！", "✨ 灰塵怪獸被你嚇得拔腿就跑！", "🌿 乾淨的家會引來幸運精靈喔！"];
+
+        const itemDatabase = {};
+        const myCart = {};
+        const gridWrapper = document.getElementById('dynamic-product-grid');
+
+        configProducts.forEach((prod) => {
+            itemDatabase[prod.name] = { price: prod.price, imgUrl: prod.imgUrl };
+            myCart[prod.name] = 0;
+            const div = document.createElement('div');
+            div.className = 'product-card';
+            div.onclick = () => addProductLogic(prod.name);
+            div.innerHTML = \`
+                <img src="\${prod.imgUrl}" class="product-icon">
+                <div style="font-weight:bold; font-size:0.9rem;">\${prod.name}</div>
+                <div style="color:#E67E22; font-weight:900; margin-top:3px;">\${prod.price} 金幣</div>
+            \`;
+            gridWrapper.appendChild(div);
+        });
+
+        let model, webcam, labelContainer, maxPredictions;
+        let isCamStarted = false;
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        function makeBeepSound() {
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.frequency.value = 1000; gain.gain.value = 0.1;
+            osc.connect(gain); gain.connect(audioContext.destination);
+            osc.start(); osc.stop(audioContext.currentTime + 0.1);
+        }
+
+        function speakMagicWord(msg) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const speech = new SpeechSynthesisUtterance(msg);
+                speech.lang = 'zh-TW';
+                window.speechSynthesis.speak(speech);
+            }
+        }
+
+        let lastItem = "", lastTime = 0;
+        function addProductLogic(name) {
+            if (myCart[name] === undefined) return;
+            if (myCart[name] === 0) speakMagicWord("放入" + name);
+            else makeBeepSound();
+            myCart[name]++;
+            renderCart();
+        }
+
+        async function startWebcam() {
+            if (isCamStarted) return;
+            document.getElementById('webcam-container').style.display = 'block';
+            model = await tmImage.load(CONFIG_MODEL_URL + "model.json", CONFIG_MODEL_URL + "metadata.json");
+            maxPredictions = model.getTotalClasses();
+            webcam = new tmImage.Webcam(320, 240, true);
+            await webcam.setup(); await webcam.play();
+            window.requestAnimationFrame(webcamLoop);
+            document.getElementById("webcam-container").appendChild(webcam.canvas);
+            labelContainer = document.getElementById("result-container");
+            labelContainer.innerHTML = "";
+            for (let i = 0; i < maxPredictions; i++) {
+                const row = document.createElement("div");
+                row.className = "prediction-row";
+                row.innerHTML = \`<div class="prediction-label"><span class="item-name">..</span><span class="item-score">0%</span></div><div class="progress-bar-bg"><div class="progress-bar-fill"></div></div>\`;
+                labelContainer.appendChild(row);
+            }
+            isCamStarted = true;
+        }
+
+        async function webcamLoop() {
+            webcam.update();
+            const predictions = await model.predict(webcam.canvas);
+            const now = Date.now();
+            for (let i = 0; i < maxPredictions; i++) {
+                const name = predictions[i].className.trim();
+                const score = predictions[i].probability;
+                if (labelContainer.childNodes[i]) {
+                    labelContainer.childNodes[i].querySelector('.item-name').innerText = name;
+                    labelContainer.childNodes[i].querySelector('.item-score').innerText = (score * 100).toFixed(0) + "%";
+                    labelContainer.childNodes[i].querySelector('.progress-bar-fill').style.width = (score * 100) + "%";
+                }
+                if (score > 0.90 && itemDatabase[name] && (name !== lastItem || now - lastTime > 4000)) {
+                    lastItem = name; lastTime = now;
+                    addProductLogic(name);
+                }
+            }
+            window.requestAnimationFrame(webcamLoop);
+        }
+
+        function renderCart() {
+            const wrapper = document.getElementById('cart-items-wrapper');
+            wrapper.innerHTML = "";
+            let sum = 0, count = 0;
+
+            for (let name in myCart) {
+                let qty = myCart[name];
+                if (qty > 0) {
+                    count++;
+                    let price = itemDatabase[name].price;
+                    sum += price * qty;
+                    const item = document.createElement('div');
+                    item.className = 'cart-item';
+                    item.innerHTML = \`
+                        <div><strong>\${name}</strong> <span style="font-size:0.8rem; opacity:0.8;">(\${price}金幣)</span></div>
+                        <div>
+                            <button class="qty-btn" onclick="modQty('\${name}', -1)">-</button>
+                            <span style="margin: 0 4px; font-weight:bold;">\${qty}</span>
+                            <button class="qty-btn" onclick="modQty('\${name}', 1)">+</button>
+                        </div>
+                    \`;
+                    wrapper.appendChild(item);
+                }
+            }
+            if (count === 0) wrapper.innerHTML = '<p style="text-align:center; color:#999; padding:15px; font-size:0.85rem;">百寶袋空空如也...</p>';
+            document.getElementById('magic-total').innerText = sum + " 金幣";
+
+            const bBox = document.getElementById('blessing-section');
+            if (bBox) {
+                if (sum >= 20) {
+                    bBox.classList.add('unlocked');
+                    document.getElementById('blessing-title').innerText = "✨ 已獲得精靈評語";
+                    document.getElementById('blessing-display').innerText = blessingWords[Math.floor(Math.random()*blessingWords.length)];
+                } else {
+                    bBox.classList.remove('unlocked');
+                    document.getElementById('blessing-title').innerText = "🔒 滿 20 金幣解鎖精靈評語";
+                    document.getElementById('blessing-display').innerText = "";
+                }
+            }
+        }
+
+        function modQty(name, amt) {
+            myCart[name] += amt;
+            if (myCart[name] < 0) myCart[name] = 0;
+            renderCart();
+        }
+
+        function createFlowerRain() {
+            for (let i = 0; i < 35; i++) {
+                const petal = document.createElement('div');
+                petal.className = 'petal';
+                petal.innerText = '🌸';
+                petal.style.left = Math.random() * 100 + 'vw';
+                petal.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                document.body.appendChild(petal);
+                setTimeout(() => petal.remove(), 4000);
+            }
+        }
+
+        function triggerCheckout() {
+            let total = parseInt(document.getElementById('magic-total').innerText);
+            if (total === 0) return alert("百寶袋還是空的喔！");
+            speakMagicWord("清掃挑戰成功！");
+            document.getElementById('success-modal').classList.add('show');
+            createFlowerRain();
+        }
+
+        function closeModalWindow() {
+            document.getElementById('success-modal').classList.remove('show');
+            for (let k in myCart) myCart[k] = 0;
+            renderCart();
+        }
+        renderCart();
+    <\/script>
+</body>
+</html>`;
+
+        const blob = new Blob([template], { type: 'text/html' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'index.html';
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
+</script>
+</body>
+</html>
