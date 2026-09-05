@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>國小小設計師：網路商店排版與購物車設計講義</title>
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --secondary-color: #F5A623;
+            --bg-color: #F8F9FA;
+            --card-bg: #FFFFFF;
+            --text-color: #333333;
+        }
+
+        body {
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+            line-height: 1.6;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+        }
+
+        /* 講義區塊樣式 */
+        .handout-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .section-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        h1 { margin: 0 0 10px 0; font-size: 24px; }
+        h2 { color: var(--primary-color); border-bottom: 2px solid var(--primary-color); padding-bottom: 8px; margin-top: 0; }
+
+        ul { padding-left: 20px; }
+        li { margin-bottom: 8px; }
+
+        /* 切換按鈕區 */
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        .demo-control {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .btn-toggle {
+            background-color: #e0e0e0;
+            color: #333;
+            border: 2px solid #ccc;
+            padding: 6px 14px;
+            font-size: 13px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn-toggle.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .btn-cart-toggle.active {
+            background-color: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+
+        /* 商店外框 */
+        .shop-preview-wrapper {
+            position: relative;
+            border: 3px solid #DDD;
+            border-radius: 12px;
+            background: white;
+            overflow: hidden;
+            min-height: 520px;
+        }
+
+        /* 商店 Header */
+        .shop-header {
+            background-color: #333;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .shop-logo { font-weight: bold; font-size: 18px; color: var(--secondary-color); }
+        .shop-nav { display: flex; gap: 15px; font-size: 14px; align-items: center; }
+
+        /* 商品卡片與區域設定 */
+        .product-card {
+            border: 1px solid #EEE;
+            border-radius: 8px;
+            padding: 12px;
+            background: #FFF;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .product-img {
+            background-color: #E0E0E0;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            flex-shrink: 0;
+        }
+
+        .product-info { display: flex; flex-direction: column; justify-content: center; }
+        .product-title { font-weight: bold; font-size: 15px; margin: 3px 0; }
+        .product-price { color: #E74C3C; font-weight: bold; margin-bottom: 5px; }
+        .product-desc { font-size: 12px; color: #666; margin-bottom: 8px; }
+        .btn-buy {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* 商店商品 layout (預設 grid) */
+        .layout-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; }
+        .layout-grid .product-card { text-align: center; }
+        .layout-grid .product-img { width: 100%; height: 90px; margin-bottom: 8px; }
+        .layout-grid .btn-buy { width: 100%; }
+
+        .layout-magazine { display: flex; flex-direction: column; gap: 15px; padding: 15px; }
+        .layout-magazine .product-card { display: flex; flex-direction: row; align-items: center; gap: 15px; }
+        .layout-magazine .product-card:nth-child(even) { flex-direction: row-reverse; }
+        .layout-magazine .product-img { width: 140px; height: 100px; }
+        .layout-magazine .product-info { flex: 1; }
+
+        .layout-hero { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 15px; }
+        .layout-hero .product-card:first-child { grid-column: 1 / -1; display: flex; gap: 15px; background: #FFF9E6; }
+        .layout-hero .product-card:first-child .product-img { width: 150px; height: 100px; }
+        .layout-hero .product-card:not(:first-child) { text-align: center; }
+        .layout-hero .product-card:not(:first-child) .product-img { width: 100%; height: 80px; }
+
+        .layout-slider { display: flex; overflow-x: auto; gap: 12px; padding: 15px; }
+        .layout-slider .product-card { min-width: 180px; text-align: center; }
+        .layout-slider .product-img { width: 100%; height: 80px; }
+
+        /* ==================== 4 種購物車排版樣式 ==================== */
+
+        /* 購物車通用元件 */
+        .cart-box-common {
+            background: #FFF8E7;
+            border: 2px dashed var(--secondary-color);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+        .cart-title { font-weight: bold; margin-bottom: 8px; display: flex; justify-content: space-between; }
+
+        /* 1. 頂部橫條式 (Top Bar) */
+        .cart-style-topbar {
+            background: #FFF3CD;
+            border-bottom: 2px solid var(--secondary-color);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        /* 2. 側邊抽屜式 (Drawer Panel) */
+        .cart-style-drawer {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            width: 220px;
+            height: calc(100% - 50px);
+            background: #FFF;
+            box-shadow: -4px 0 10px rgba(0,0,0,0.1);
+            padding: 15px;
+            box-sizing: border-box;
+            z-index: 10;
+        }
+
+        /* 3. 底部浮動式 (Floating Bottom Bar) */
+        .cart-style-floating {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 85%;
+            background: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            z-index: 10;
+            font-size: 13px;
+        }
+
+        /* 4. 右側固定欄 (Sidebar Column) */
+        .cart-container-sidebar {
+            display: flex;
+        }
+        .cart-container-sidebar .shop-main-content {
+            flex: 1;
+        }
+        .cart-style-sidebar {
+            width: 200px;
+            background: #FAFAFA;
+            border-left: 1px solid #DDD;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        /* 頁尾 Footer */
+        .shop-footer {
+            background: #F1F1F1;
+            text-align: center;
+            padding: 12px;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #DDD;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="handout-header">
+        <h1>🛒 小小 UI 設計師：商店與購物車排版實戰</h1>
+        <p>學習主題：商品視覺排版與 4 種購物車介面風格</p>
+    </div>
+
+    <div class="section-card">
+        <h2>一、 4 種購物車排版樣式</h2>
+        <ul>
+            <li><b>1. 頂部橫條式</b>：放在網頁最上方，結帳金額一目瞭然，不佔用商品展示區域。</li>
+            <li><b>2. 側邊抽屜式</b>：平時隱藏或浮動在右側，點擊時像抽屜一樣拉出，適合手機與現代網頁。</li>
+            <li><b>3. 底部浮動列</b>：吸附在螢幕最下方（懸浮感），讓顧客隨時能看到總金額並快速結帳。</li>
+            <li><b>4. 右側固定欄</b>：佔據網頁右邊一整欄，讓顧客邊逛商品、邊看購物車裡有什麼，體驗非常直覺。</li>
+        </ul>
+    </div>
+
+    <div class="section-card">
+        <h2>二、 互動示範（切換商店裝潢與購物車風格）</h2>
+
+        <div class="control-group">
+            <div class="control-title">🎨 選擇商品排版樣式：</div>
+            <div class="demo-control">
+                <button id="btnGrid" class="btn-toggle active" onclick="switchShopLayout('grid')">田字格 (2x2)</button>
+                <button id="btnMagazine" class="btn-toggle" onclick="switchShopLayout('magazine')">故事雜誌型</button>
+                <button id="btnHero" class="btn-toggle" onclick="switchShopLayout('hero')">焦點主打型</button>
+                <button id="btnSlider" class="btn-toggle" onclick="switchShopLayout('slider')">水平滑動型</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <div class="control-title">🛒 選擇購物車排版樣式：</div>
+            <div class="demo-control">
+                <button id="btnCartTopbar" class="btn-toggle btn-cart-toggle active" onclick="switchCartLayout('topbar')">1. 頂部橫條式</button>
+                <button id="btnCartDrawer" class="btn-toggle btn-cart-toggle" onclick="switchCartLayout('drawer')">2. 側邊抽屜式</button>
+                <button id="btnCartFloating" class="btn-toggle btn-cart-toggle" onclick="switchCartLayout('floating')">3. 底部浮動列</button>
+                <button id="btnCartSidebar" class="btn-toggle btn-cart-toggle" onclick="switchCartLayout('sidebar')">4. 右側固定欄</button>
+            </div>
+        </div>
+
+        <div id="shopWrapper" class="shop-preview-wrapper">
+            
+            <div class="shop-header">
+                <div class="shop-logo">🚀 未來學習奇幻館</div>
+                <div class="shop-nav">
+                    <span>🔍 搜尋</span>
+                    <span>🛒 購物車 <b style="color:var(--secondary-color)">(2)</b></span>
+                </div>
+            </div>
+
+            <div id="cartTopbar" class="cart-style-topbar">
+                <span>🛒 購物車清單：已選購 <b>2</b> 件商品</span>
+                <span>小計：<b style="color:#E74C3C">$400</b></span>
+                <button class="btn-buy" style="width: auto; padding: 4px 12px;">前往結帳 ➔</button>
+            </div>
+
+            <div id="shopMainBody" style="position: relative;">
+                
+                <div class="shop-main-content">
+                    <div id="shopContent" class="layout-grid">
+                        <div class="product-card">
+                            <div class="product-img">🚀</div>
+                            <div class="product-info">
+                                <div class="product-title">宇宙探索輕量背包</div>
+                                <div class="product-price">NT$ 200</div>
+                                <div class="product-desc">裝再多課本也不會累！</div>
+                                <button class="btn-buy">放入購物車</button>
+                            </div>
+                        </div>
+
+                        <div class="product-card">
+                            <div class="product-img">🖊️</div>
+                            <div class="product-info">
+                                <div class="product-title">隱形魔法擦擦筆</div>
+                                <div class="product-price">NT$ 200</div>
+                                <div class="product-desc">寫錯字不用怕，輕輕一擦乾淨！</div>
+                                <button class="btn-buy">放入購物車</button>
+                            </div>
+                        </div>
+
+                        <div class="product-card">
+                            <div class="product-img">🥤</div>
+                            <div class="product-info">
+                                <div class="product-title">極地保溫冰霸水壺</div>
+                                <div class="product-price">NT$ 200</div>
+                                <div class="product-desc">打開就能喝到最冰涼的水！</div>
+                                <button class="btn-buy">放入購物車</button>
+                            </div>
+                        </div>
+
+                        <div class="product-card">
+                            <div class="product-img">📐</div>
+                            <div class="product-info">
+                                <div class="product-title">變形金剛多功能直尺</div>
+                                <div class="product-price">NT$ 200</div>
+                                <div class="product-desc">軟Q材質掉地上絕對不會碎裂。</div>
+                                <button class="btn-buy">放入購物車</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="cartDrawer" class="cart-style-drawer" style="display:none;">
+                    <div class="cart-title">
+                        <span>🛒 購物車</span>
+                        <span style="cursor:pointer; color:#999;" onclick="switchCartLayout('topbar')">✖</span>
+                    </div>
+                    <p style="font-size:12px; color:#555;">・宇宙探索輕量背包 x 1</p>
+                    <p style="font-size:12px; color:#555;">・極地保溫冰霸水壺 x 1</p>
+                    <hr>
+                    <p><b>總金額：$400</b></p>
+                    <button class="btn-buy" style="width:100%;">立刻結帳</button>
+                </div>
+
+                <div id="cartSidebar" class="cart-style-sidebar" style="display:none;">
+                    <div class="cart-title">🛒 購物清單 (2)</div>
+                    <ul style="padding-left:15px; font-size:12px; color:#444;">
+                        <li>輕量背包 ($200)</li>
+                        <li>冰霸水壺 ($200)</li>
+                    </ul>
+                    <hr>
+                    <div style="font-weight:bold; color:#E74C3C; margin-bottom:10px;">總計：$400</div>
+                    <button class="btn-buy" style="width:100%;">結帳</button>
+                </div>
+
+            </div>
+
+            <div id="cartFloating" class="cart-style-floating" style="display:none;">
+                <span>🛒 購物車內有 <b>2</b> 件商品（總計 $400）</span>
+                <button class="btn-buy" style="background:#F5A623; width:auto;">去結帳 ➔</button>
+            </div>
+
+            <div class="shop-footer">
+                🛡️ 全館商品皆享 7 天鑑賞期 | 🚚 全館滿 200 免運費
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // 切換商品排版
+    function switchShopLayout(type) {
+        var content = document.getElementById('shopContent');
+        content.className = 'layout-' + type;
+
+        document.getElementById('btnGrid').className = 'btn-toggle' + (type === 'grid' ? ' active' : '');
+        document.getElementById('btnMagazine').className = 'btn-toggle' + (type === 'magazine' ? ' active' : '');
+        document.getElementById('btnHero').className = 'btn-toggle' + (type === 'hero' ? ' active' : '');
+        document.getElementById('btnSlider').className = 'btn-toggle' + (type === 'slider' ? ' active' : '');
+    }
+
+    // 切換購物車排版
+    function switchCartLayout(type) {
+        // 隱藏所有購物車元件
+        document.getElementById('cartTopbar').style.display = 'none';
+        document.getElementById('cartDrawer').style.display = 'none';
+        document.getElementById('cartFloating').style.display = 'none';
+        document.getElementById('cartSidebar').style.display = 'none';
+        document.getElementById('shopMainBody').className = '';
+
+        // 顯示指定的購物車元件
+        if(type === 'topbar') {
+            document.getElementById('cartTopbar').style.display = 'flex';
+        } else if(type === 'drawer') {
+            document.getElementById('cartDrawer').style.display = 'block';
+        } else if(type === 'floating') {
+            document.getElementById('cartFloating').style.display = 'flex';
+        } else if(type === 'sidebar') {
+            document.getElementById('cartSidebar').style.display = 'block';
+            document.getElementById('shopMainBody').className = 'cart-container-sidebar';
+        }
+
+        // 更新購物車按鈕 Active 狀態
+        document.getElementById('btnCartTopbar').className = 'btn-toggle btn-cart-toggle' + (type === 'topbar' ? ' active' : '');
+        document.getElementById('btnCartDrawer').className = 'btn-toggle btn-cart-toggle' + (type === 'drawer' ? ' active' : '');
+        document.getElementById('btnCartFloating').className = 'btn-toggle btn-cart-toggle' + (type === 'floating' ? ' active' : '');
+        document.getElementById('btnCartSidebar').className = 'btn-toggle btn-cart-toggle' + (type === 'sidebar' ? ' active' : '');
+    }
+</script>
+
+</body>
+</html>
