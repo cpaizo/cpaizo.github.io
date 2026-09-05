@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小學生 AI 網頁設計提示詞產生器</title>
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --secondary-color: #F5A623;
+            --bg-color: #F0F4F8;
+            --card-bg: #FFFFFF;
+        }
+
+        body {
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .step-box {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 2px solid #E1E8ED;
+            border-radius: 10px;
+            background: #FAFBFD;
+        }
+
+        .step-title {
+            font-weight: bold;
+            font-size: 16px;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #CCC;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .option-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .option-btn {
+            padding: 10px;
+            border: 2px solid #DDD;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .option-btn:hover {
+            border-color: var(--primary-color);
+        }
+
+        .option-btn.selected {
+            background-color: #EBF3FC;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        /* 提示詞輸出區 */
+        .result-box {
+            background: #FFF9E6;
+            border: 2px dashed var(--secondary-color);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .prompt-text {
+            background: white;
+            padding: 10px;
+            border: 1px solid #DDD;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            margin-top: 8px;
+        }
+
+        .btn-copy {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 8px;
+            float: right;
+        }
+
+        .btn-copy:hover {
+            background: #E09216;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🎨 網路商店提示詞（Prompt）產生器</h1>
+
+    <div class="step-box">
+        <div class="step-title">步驟 1：輸入商店主題與色彩風格</div>
+        <div class="input-group">
+            <input type="text" id="shopTheme" placeholder="例如：太空文具店、夢幻甜點屋、恐龍玩具店" oninput="generatePrompt()">
+            <input type="text" id="colorTheme" placeholder="色彩偏好：例如 馬卡龍粉色、科技藍色、活潑黃色" oninput="generatePrompt()">
+        </div>
+    </div>
+
+    <div class="step-box">
+        <div class="step-title">步驟 2：選擇 4 種商品的裝潢排版</div>
+        <div class="option-grid">
+            <div class="option-btn selected" onclick="selectOption('layout', 'grid', this)">1. 田字格型 (2x2)</div>
+            <div class="option-btn" onclick="selectOption('layout', 'magazine', this)">2. 故事雜誌型 (Z字)</div>
+            <div class="option-btn" onclick="selectOption('layout', 'hero', this)">3. 焦點主打型 (1大3小)</div>
+            <div class="option-btn" onclick="selectOption('layout', 'slider', this)">4. 水平滑動型 (櫥窗)</div>
+        </div>
+    </div>
+
+    <div class="step-box">
+        <div class="step-title">步驟 3：選擇購物車位置</div>
+        <div class="option-grid">
+            <div class="option-btn selected" onclick="selectOption('cart', 'topbar', this)">1. 頂部橫條式</div>
+            <div class="option-btn" onclick="selectOption('cart', 'drawer', this)">2. 側邊抽屜式</div>
+            <div class="option-btn" onclick="selectOption('cart', 'floating', this)">3. 底部浮動列</div>
+            <div class="option-btn" onclick="selectOption('cart', 'sidebar', this)">4. 右側固定欄</div>
+        </div>
+    </div>
+
+    <div class="result-box">
+        <div class="step-title" style="color:#D35400;">✨ 生成的中文提示詞：</div>
+        <div id="zhPrompt" class="prompt-text">請填寫上方選項...</div>
+
+        <div class="step-title" style="color:#D35400; margin-top:15px;">🚀 生成的英文 Prompt（AI 繪圖效果最好）：</div>
+        <div id="enPrompt" class="prompt-text">Generating...</div>
+        <button class="btn-copy" onclick="copyEnglishPrompt()">複製英文 Prompt</button>
+        <div style="clear:both;"></div>
+    </div>
+</div>
+
+<script>
+    // 預設資料對照表
+    const config = {
+        layout: 'grid',
+        cart: 'topbar',
+        
+        // 排版文本對照
+        layoutMap: {
+            grid: {
+                zh: '中央以 2x2 網格（田字格）整齊排列著 4 個商品卡片',
+                en: '2x2 grid layout in the center showcasing 4 product cards'
+            },
+            magazine: {
+                zh: '採用單欄 Z 字型故事雜誌排版，由上到下交錯展示 4 個商品',
+                en: 'single-column Z-shape magazine layout with 4 products arranged in alternating left-and-right positions'
+            },
+            hero: {
+                zh: '頂部有一個放大的焦點主打商品卡片，下方橫向排列 3 個較小商品卡片',
+                en: 'hero section with 1 large featured product card at the top, followed by 3 smaller product cards below'
+            },
+            slider: {
+                zh: '採用橫向滑動的櫥窗展售排版，展示 4 個商品卡片',
+                en: 'horizontal scrolling carousel layout displaying 4 product cards'
+            }
+        },
+
+        // 購物車文本對照
+        cartMap: {
+            topbar: {
+                zh: '網頁最上方有一個頂部橫條購物車，顯示已選件數與結帳金額',
+                en: 'a top bar shopping cart at the very top displaying item count and price summary'
+            },
+            drawer: {
+                zh: '右側有一個從邊緣伸出的側邊抽屜式購物車，顯示商品清單與結帳按鈕',
+                en: 'a right-side slide-out drawer shopping cart showing selected items and a checkout button'
+            },
+            floating: {
+                zh: '螢幕最下方懸浮著一個膠囊狀的購物車列，顯示購物金額與結帳按鈕',
+                en: 'a floating bottom navigation bar for the shopping cart with price summary and a checkout button'
+            },
+            sidebar: {
+                zh: '網頁右側設有一欄獨立且固定的購物車專用欄位',
+                en: 'a dedicated fixed right sidebar column for the shopping cart'
+            }
+        }
+    };
+
+    function selectOption(type, value, element) {
+        config[type] = value;
+        
+        // 切換按鈕的 selected 樣式
+        const parent = element.parentElement;
+        const buttons = parent.querySelectorAll('.option-btn');
+        buttons.forEach(btn => btn.classList.remove('selected'));
+        element.classList.add('selected');
+
+        generatePrompt();
+    }
+
+    function generatePrompt() {
+        const theme = document.getElementById('shopTheme').value.trim() || '可愛文具';
+        const color = document.getElementById('colorTheme').value.trim() || '柔和馬卡龍色系';
+
+        const layoutInfo = config.layoutMap[config.layout];
+        const cartInfo = config.cartMap[config.cart];
+
+        // 組合中文提示詞
+        const zh = `一個乾淨且現代的【${theme}】電商網站 UI 設計圖。色彩風格採用【${color}】。畫面整體排版：${layoutInfo.zh}。購物車位置：${cartInfo.zh}。向量插畫風格，UI/UX 介面設計，高解析度，網頁範例展現。`;
+
+        // 組合英文 Prompt
+        const en = `Clean and modern e-commerce website UI design for a "${theme}" store. Color palette: ${color}. Layout features: ${layoutInfo.en}. Shopping cart feature: ${cartInfo.en}. High quality, vector illustration style, modern web page design, UI/UX concept, Figma style.`;
+
+        document.getElementById('zhPrompt').innerText = zh;
+        document.getElementById('enPrompt').innerText = en;
+    }
+
+    function copyEnglishPrompt() {
+        const text = document.getElementById('enPrompt').innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('複製成功！可以貼到 Midjourney 或 Bing Image Creator 生成圖片囉！');
+        });
+    }
+
+    // 初始化執行一次
+    generatePrompt();
+</script>
+
+</body>
+</html>
