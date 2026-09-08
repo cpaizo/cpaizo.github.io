@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>國中作業繳交入口網</title>
-    <!-- 引入 PapaParse 用於解析 CSV -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         :root {
@@ -24,7 +23,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
         }
 
         body {
@@ -59,7 +58,6 @@
             font-size: 0.95rem;
         }
 
-        /* 篩選與搜尋欄 */
         .controls {
             display: flex;
             flex-wrap: wrap;
@@ -90,10 +88,7 @@
             transition: all 0.2s ease;
         }
 
-        .tab-btn:hover {
-            background-color: #e2e8f0;
-        }
-
+        .tab-btn:hover { background-color: #e2e8f0; }
         .tab-btn.active {
             background-color: var(--primary-color);
             color: white;
@@ -113,14 +108,12 @@
             border-radius: 6px;
             font-size: 0.95rem;
             outline: none;
-            transition: border-color 0.2s;
         }
 
         .search-box input:focus {
             border-color: var(--primary-color);
         }
 
-        /* 作業列表 */
         .assignment-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -200,11 +193,8 @@
             transition: background 0.2s;
         }
 
-        .submit-btn:hover {
-            background-color: var(--primary-hover);
-        }
+        .submit-btn:hover { background-color: var(--primary-hover); }
 
-        /* 提示與載入中狀態 */
         .status-msg {
             text-align: center;
             padding: 40px;
@@ -237,26 +227,25 @@
         <p>點擊對應作業即可前往表單上傳作業檔案</p>
     </header>
 
-    <!-- 控制列：分頁與搜尋 -->
     <div class="controls">
         <div class="tabs">
+            <!-- 已將按鈕文字與傳入參數統一為「7年級」去空格 -->
             <button class="tab-btn active" onclick="filterGrade('全部')">全部作業</button>
-            <button class="tab-btn" onclick="filterGrade('7年級')">7 年級</button>
-            <button class="tab-btn" onclick="filterGrade('8年級')">8 年級</button>
-            <button class="tab-btn" onclick="filterGrade('9年級')">9 年級</button>
+            <button class="tab-btn" onclick="filterGrade('7年級')">7年級</button>
+            <button class="tab-btn" onclick="filterGrade('8年級')">8年級</button>
+            <button class="tab-btn" onclick="filterGrade('9年級')">9年級</button>
         </div>
         <div class="search-box">
             <input type="text" id="searchInput" oninput="handleSearch()" placeholder="搜尋作業名稱或班級...">
         </div>
     </div>
 
-    <!-- 作業列表容器 -->
     <div class="assignment-grid" id="assignmentGrid">
         <div class="status-msg">正在讀取作業資料庫 (link.csv)...</div>
     </div>
 
     <footer>
-        <p></p>
+        <p>資料來源：link.csv ｜ 更新作業內容只需修改 CSV 檔即可同步更新</p>
     </footer>
 </div>
 
@@ -264,13 +253,11 @@
     let allData = [];
     let currentGrade = '全部';
 
-    // 頁面載入時讀取 CSV 檔案
     document.addEventListener('DOMContentLoaded', () => {
         loadCSVData();
     });
 
     function loadCSVData() {
-        // 加時間戳記避免瀏覽器快取 (Cache-busting)
         const csvPath = 'link.csv?t=' + new Date().getTime();
 
         Papa.parse(csvPath, {
@@ -279,7 +266,15 @@
             skipEmptyLines: true,
             complete: function(results) {
                 if (results.data && results.data.length > 0) {
-                    allData = results.data;
+                    // 自動清理標頭與資料的隱形 BOM 及前後空白
+                    allData = results.data.map(row => {
+                        const cleanRow = {};
+                        Object.keys(row).forEach(key => {
+                            const cleanKey = key.replace(/^\uFEFF/, '').trim();
+                            cleanRow[cleanKey] = row[key] ? row[key].trim() : '';
+                        });
+                        return cleanRow;
+                    });
                     renderAssignments();
                 } else {
                     showError('CSV 檔案內沒有資料或格式不正確。');
@@ -296,12 +291,9 @@
         const grid = document.getElementById('assignmentGrid');
         const searchKeyword = document.getElementById('searchInput').value.trim().toLowerCase();
 
-        // 進行篩選 (年級 + 關鍵字)
         const filtered = allData.filter(item => {
-            // 年級過濾
-            const matchGrade = (currentGrade === '全部') || (item['年級'] && item['年級'].trim() === currentGrade);
+            const matchGrade = (currentGrade === '全部') || (item['年級'] === currentGrade);
             
-            // 關鍵字搜尋 (搜尋 作業名稱, 年級, 備註)
             const title = item['作業名稱'] || '';
             const grade = item['年級'] || '';
             const note = item['備註說明'] || item['備註'] || '';
@@ -318,15 +310,13 @@
             return;
         }
 
-        // 渲染卡片
         grid.innerHTML = filtered.map(item => {
-            const grade = item['年級'] ? item['年級'].trim() : '通用';
+            const grade = item['年級'] || '通用';
             const title = item['作業名稱'] || '未命名作業';
             const link = item['作業連結'] || '#';
             const deadline = item['截止日期'] ? `截止時間：${item['截止日期']}` : '';
             const note = item['備註說明'] || item['備註'] || '無特殊說明';
 
-            // 根據年級設定 Badge 顏色
             let badgeClass = 'badge-default';
             if (grade.includes('7')) badgeClass = 'badge-7';
             else if (grade.includes('8')) badgeClass = 'badge-8';
@@ -353,10 +343,9 @@
     function filterGrade(grade) {
         currentGrade = grade;
         
-        // 更新 Tab 按鈕狀態
         const buttons = document.querySelectorAll('.tab-btn');
         buttons.forEach(btn => {
-            if (btn.innerText.includes(grade) || (grade === '全部' && btn.innerText.includes('全部'))) {
+            if (btn.innerText.trim() === grade || (grade === '全部' && btn.innerText.includes('全部'))) {
                 btn.classList.add('active');
             } else {
                 btn.classList.remove('active');
@@ -375,7 +364,6 @@
         grid.innerHTML = `<div class="status-msg error-msg">❌ ${msg}</div>`;
     }
 
-    // 防止 XSS 攻擊轉義字元
     function escapeHTML(str) {
         return String(str)
             .replace(/&/g, '&amp;')
