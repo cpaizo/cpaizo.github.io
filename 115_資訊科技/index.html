@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>國中作業繳交入口網</title>
+    <!-- 引入 PapaParse 用於解析 CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2b6cb0;
+            --primary-hover: #2c5282;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --text-muted: #718096;
+            --border-color: #e2e8f0;
+            --badge-7th: #319795;
+            --badge-8th: #dd6b20;
+            --badge-9th: #805ad5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* 篩選與搜尋欄 */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            background-color: #edf2f7;
+            color: var(--text-color);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover {
+            background-color: #e2e8f0;
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .search-box {
+            position: relative;
+            flex-grow: 1;
+            max-width: 300px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary-color);
+        }
+
+        /* 作業列表 */
+        .assignment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .badge {
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .badge-7 { background-color: var(--badge-7th); }
+        .badge-8 { background-color: var(--badge-8th); }
+        .badge-9 { background-color: var(--badge-9th); }
+        .badge-default { background-color: var(--primary-color); }
+
+        .deadline {
+            font-size: 0.85rem;
+            color: #e53e3e;
+            font-weight: 500;
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #1a202c;
+        }
+
+        .card-note {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+            flex-grow: 1;
+            background: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border-left: 3px solid #cbd5e0;
+        }
+
+        .submit-btn {
+            display: block;
+            text-align: center;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .submit-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* 提示與載入中狀態 */
+        .status-msg {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            background: white;
+            border-radius: 10px;
+            grid-column: 1 / -1;
+        }
+
+        .error-msg {
+            color: #c53030;
+            background: #fff5f5;
+            border: 1px solid #feb2b2;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>📚 國中作業繳交入口網</h1>
+        <p>點擊對應作業即可前往表單上傳作業檔案</p>
+    </header>
+
+    <!-- 控制列：分頁與搜尋 -->
+    <div class="controls">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="filterGrade('全部')">全部作業</button>
+            <button class="tab-btn" onclick="filterGrade('7年級')">7 年級</button>
+            <button class="tab-btn" onclick="filterGrade('8年級')">8 年級</button>
+            <button class="tab-btn" onclick="filterGrade('9年級')">9 年級</button>
+        </div>
+        <div class="search-box">
+            <input type="text" id="searchInput" oninput="handleSearch()" placeholder="搜尋作業名稱或班級...">
+        </div>
+    </div>
+
+    <!-- 作業列表容器 -->
+    <div class="assignment-grid" id="assignmentGrid">
+        <div class="status-msg">正在讀取作業資料庫 (link.csv)...</div>
+    </div>
+
+    <footer>
+        <p></p>
+    </footer>
+</div>
+
+<script>
+    let allData = [];
+    let currentGrade = '全部';
+
+    // 頁面載入時讀取 CSV 檔案
+    document.addEventListener('DOMContentLoaded', () => {
+        loadCSVData();
+    });
+
+    function loadCSVData() {
+        // 加時間戳記避免瀏覽器快取 (Cache-busting)
+        const csvPath = 'link.csv?t=' + new Date().getTime();
+
+        Papa.parse(csvPath, {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
+            complete: function(results) {
+                if (results.data && results.data.length > 0) {
+                    allData = results.data;
+                    renderAssignments();
+                } else {
+                    showError('CSV 檔案內沒有資料或格式不正確。');
+                }
+            },
+            error: function(err) {
+                console.error(err);
+                showError('讀取 link.csv 失敗。請確保 link.csv 與本網頁放在同一個資料夾，且使用網頁伺服器開啟。');
+            }
+        });
+    }
+
+    function renderAssignments() {
+        const grid = document.getElementById('assignmentGrid');
+        const searchKeyword = document.getElementById('searchInput').value.trim().toLowerCase();
+
+        // 進行篩選 (年級 + 關鍵字)
+        const filtered = allData.filter(item => {
+            // 年級過濾
+            const matchGrade = (currentGrade === '全部') || (item['年級'] && item['年級'].trim() === currentGrade);
+            
+            // 關鍵字搜尋 (搜尋 作業名稱, 年級, 備註)
+            const title = item['作業名稱'] || '';
+            const grade = item['年級'] || '';
+            const note = item['備註說明'] || item['備註'] || '';
+            
+            const matchSearch = title.toLowerCase().includes(searchKeyword) ||
+                                grade.toLowerCase().includes(searchKeyword) ||
+                                note.toLowerCase().includes(searchKeyword);
+
+            return matchGrade && matchSearch;
+        });
+
+        if (filtered.length === 0) {
+            grid.innerHTML = '<div class="status-msg">目前沒有符合條件的作業。</div>';
+            return;
+        }
+
+        // 渲染卡片
+        grid.innerHTML = filtered.map(item => {
+            const grade = item['年級'] ? item['年級'].trim() : '通用';
+            const title = item['作業名稱'] || '未命名作業';
+            const link = item['作業連結'] || '#';
+            const deadline = item['截止日期'] ? `截止時間：${item['截止日期']}` : '';
+            const note = item['備註說明'] || item['備註'] || '無特殊說明';
+
+            // 根據年級設定 Badge 顏色
+            let badgeClass = 'badge-default';
+            if (grade.includes('7')) badgeClass = 'badge-7';
+            else if (grade.includes('8')) badgeClass = 'badge-8';
+            else if (grade.includes('9')) badgeClass = 'badge-9';
+
+            return `
+                <div class="card">
+                    <div>
+                        <div class="card-header">
+                            <span class="badge ${badgeClass}">${grade}</span>
+                            ${deadline ? `<span class="deadline">${deadline}</span>` : ''}
+                        </div>
+                        <div class="card-title">${escapeHTML(title)}</div>
+                        <div class="card-note">${escapeHTML(note)}</div>
+                    </div>
+                    <a href="${escapeHTML(link)}" target="_blank" rel="noopener noreferrer" class="submit-btn">
+                        🚀 點此前往繳交作業
+                    </a>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function filterGrade(grade) {
+        currentGrade = grade;
+        
+        // 更新 Tab 按鈕狀態
+        const buttons = document.querySelectorAll('.tab-btn');
+        buttons.forEach(btn => {
+            if (btn.innerText.includes(grade) || (grade === '全部' && btn.innerText.includes('全部'))) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        renderAssignments();
+    }
+
+    function handleSearch() {
+        renderAssignments();
+    }
+
+    function showError(msg) {
+        const grid = document.getElementById('assignmentGrid');
+        grid.innerHTML = `<div class="status-msg error-msg">❌ ${msg}</div>`;
+    }
+
+    // 防止 XSS 攻擊轉義字元
+    function escapeHTML(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+</script>
+
+</body>
+</html>
