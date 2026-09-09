@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>教學網頁連結總覽</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", "PingFang TC", "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            margin: 40px auto 20px auto;
+            padding: 20px;
+            flex: 1;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+            font-size: 28px;
+        }
+
+        .link-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .link-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #ffffff;
+            padding: 18px 25px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #2c3e50;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            border-left: 5px solid #3498db;
+        }
+
+        .link-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            background-color: #3498db;
+            color: #ffffff;
+        }
+
+        .link-card .arrow {
+            font-size: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .link-card:hover .arrow {
+            transform: translateX(5px);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px 10px;
+            color: #7f8c8d;
+            font-size: 14px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        footer .disclaimer-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px auto;
+                padding: 10px;
+            }
+            .link-card {
+                padding: 15px 20px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>教學網頁導覽目錄</h1>
+        
+        <div class="link-list">
+            <a href="https://cpaizo.github.io/farcent/%E7%94%A2%E5%93%81%E7%B6%B2%E5%9D%80%E7%B6%B2%E9%A0%81.html" target="_blank" rel="noopener noreferrer" class="link-card">
+                <span>00. 產品網址網頁</span>
+                <span class="arrow">➔</span>
+            </a>
+
+            <a href="https://cpaizo.github.io/farcent/01%E9%A6%99%E6%B0%9B%E5%8E%BB%E5%91%B3.html" target="_blank" rel="noopener noreferrer" class="link-card">
+                <span>01. 香氛去味</span>
+                <span class="arrow">➔</span>
+            </a>
+
+            <a href="https://cpaizo.github.io/farcent/02%E5%A4%A9%E7%84%B6%E6%B8%85%E6%BD%94%E6%B4%97%E5%8A%91.html" target="_blank" rel="noopener noreferrer" class="link-card">
+                <span>02. 天然清潔洗劑</span>
+                <span class="arrow">➔</span>
+            </a>
+
+            <a href="https://cpaizo.github.io/farcent/03%E9%99%A4%E6%BF%95%E9%98%B2%E9%9C%89.html" target="_blank" rel="noopener noreferrer" class="link-card">
+                <span>03. 除濕防黴</span>
+                <span class="arrow">➔</span>
+            </a>
+
+            <a href="https://cpaizo.github.io/farcent/04%E5%B1%85%E5%AE%B6%E6%89%93%E6%8E%83%E5%B7%A5%E5%85%B7.html" target="_blank" rel="noopener noreferrer" class="link-card">
+                <span>04. 居家打掃工具</span>
+                <span class="arrow">➔</span>
+            </a>
+        </div>
+    </div>
+
+    <footer>
+        <div class="disclaimer-title">【教學示範聲明】</div>
+        <p>本網站僅供資訊教學與功能模擬測試使用，非真實營運之網路商店。</p>
+    </footer>
+
+</body>
+</html>
