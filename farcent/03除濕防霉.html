@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💧 克潮靈：乾爽防霉魔法城堡 💧</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1B4F72;
+            --light: #AED6F1;
+            --border: #85C1E9;
+            --bg: #EBF5FB;
+            --header-bg: linear-gradient(135deg, #42A5F5, #0D47A1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans TC', sans-serif; }
+        
+        /* 選單 7: 10種背景質感 */
+        body {
+            background-color: var(--bg);
+            
+            
+            
+            
+            
+            
+            
+            background-image: repeating-radial-gradient(circle at 0 0, transparent 0, var(--bg) 10px), repeating-linear-gradient(rgba(0,0,0,0.03), rgba(0,0,0,0.03));
+            
+            
+            color: #2C3E50; padding-bottom: 20px;
+        }
+
+        header {
+            background: var(--header-bg); padding: 35px 20px; text-align: center; color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        
+        /* 選單 9: 10種字體風格 */
+        header h1 {
+            font-size: 2.2rem; margin-bottom: 8px;
+            
+            
+            font-family: serif; font-weight: bold;
+            
+            
+            
+            
+            
+            
+            
+        }
+        header p { display: inline-block; background: rgba(255,255,255,0.22); padding: 5px 18px; border-radius: 20px; font-weight: bold; }
+
+        .app-container { max-width: 1200px; margin: 25px auto; padding: 0 15px; }
+
+        /* 選單 1: 10種核心網頁版面架構 */
+        .layout-classic { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .layout-classic .area-products { grid-column: span 2; }
+
+        .layout-reversed { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .layout-reversed .area-cart { order: -1; }
+        .layout-reversed .area-products { grid-column: span 2; }
+
+        .layout-stacked { display: flex; flex-direction: column; gap: 20px; }
+        .layout-stacked #webcam-container { max-width: 480px; }
+
+        .layout-sidebar { display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
+        .layout-sidebar .left-sidebar { display: flex; flex-direction: column; gap: 20px; }
+        .layout-sidebar .right-main { display: flex; flex-direction: column; gap: 20px; }
+
+        .layout-topcart { display: flex; flex-direction: column; gap: 20px; }
+        .layout-topcart .area-cart { order: -2; }
+        
+        .layout-focusai { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 15px; }
+        .layout-focusai .area-ai { grid-column: 2; grid-row: 1; }
+        .layout-focusai .area-cart { grid-column: 3; grid-row: 1; }
+        .layout-focusai .area-products { grid-column: 1; grid-row: 1; }
+
+        .layout-bottomai { display: flex; flex-direction: column; gap: 20px; }
+        .layout-bottomai .area-ai { order: 3; }
+
+        .layout-split3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+
+        .layout-cardgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+        .layout-mobilefirst { display: flex; flex-direction: column; max-width: 500px; margin: 0 auto; gap: 15px; }
+
+        @media (max-width: 850px) {
+            .layout-classic, .layout-reversed, .layout-sidebar, .layout-focusai, .layout-split3, .layout-cardgrid { display: flex; flex-direction: column; }
+        }
+
+        /* 選單 6: 10種懸浮動效 */
+        .card {
+            background: white; padding: 20px; border-radius: 16px; border: 2px solid var(--border);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.04); transition: all 0.3s;
+            
+            
+            
+            
+            
+            
+            &:hover { transform: translateX(6px); }
+            
+            
+        }
+        .card-title { font-size: 1.25rem; font-weight: 900; color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+
+        /* 選單 10: 10種按鈕特效 */
+        .btn {
+            background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 10px;
+            font-size: 1rem; font-weight: bold; cursor: pointer; width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px;
+            transition: all 0.2s; position: relative; overflow: hidden;
+        }
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        .btn:hover { box-shadow: 0 0 10px #FFD700; }
+
+        /* 選單 3: 10種 AI 鏡頭容器造型 */
+        #webcam-container {
+            width: 100%; aspect-ratio: 4/3; margin: 12px auto 0 auto; overflow: hidden; position: relative;
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            border-radius: 0px; border: 2px solid #00FF00; background: #000;
+        }
+        #webcam-container canvas { width: 100% !important; height: 100% !important; object-fit: cover; }
+        .prediction-row { background: #FAFAFA; border-radius: 6px; padding: 6px 10px; margin-top: 6px; }
+        .prediction-label { display: flex; justify-content: space-between; font-weight: bold; font-size: 0.85rem; }
+        .progress-bar-bg { background: #EAECEE; height: 6px; border-radius: 10px; overflow: hidden; margin-top: 3px; }
+        .progress-bar-fill { background: var(--primary); height: 100%; width: 0%; transition: width 0.2s; }
+
+        /* 選單 4: 10種購物車項目風格 */
+        .cart-list { height: 280px; overflow-y: auto; border: 1px solid #EAECEE; border-radius: 10px; padding: 10px; background: #FAFAFA; margin-bottom: 12px; }
+        .cart-item {
+            padding: 8px 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
+            
+            background: rgba(255,255,255,0.7); backdrop-filter: blur(4px); border-radius: 8px; border: 1px solid white;
+            
+            
+            
+            
+            
+            
+            
+            
+        }
+        .qty-btn { background: #EAECEE; border: none; width: 22px; height: 22px; border-radius: 50%; cursor: pointer; font-weight: bold; }
+
+        /* 選單 5: 10種商品展示櫃排列 */
+        .product-grid {
+            display: grid; gap: 12px;
+            
+            
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            
+            
+            
+            
+            
+            
+            
+        }
+        .product-card {
+            background: #FFF; border: 1px solid #EAECEE; border-radius: 10px; padding: 10px; text-align: center;
+            cursor: pointer; transition: transform 0.2s;
+            
+            
+        }
+        .product-card:hover { transform: translateY(-3px); border-color: var(--border); }
+        .product-icon { width: 100%; height: 85px; object-fit: contain; margin-bottom: 6px; }
+
+        /* 選單 8: 10種滿額禮物區塊擺位風格 */
+        .blessing-box {
+            text-align: center; padding: 12px; border-radius: 12px; background: var(--light);
+            border: 2px dashed var(--border); opacity: 0.5; transition: all 0.3s; margin-top: 10px;
+        }
+        .blessing-box.unlocked { opacity: 1; filter: drop-shadow(0 0 6px rgba(241, 196, 15, 0.5)); }
+
+        .petal { position: fixed; top: -20px; pointer-events: none; z-index: 9999; animation: fall linear forwards; font-size: 24px; }
+        @keyframes fall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(105vh) rotate(720deg); opacity: 0; } }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 999; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        .modal-window { background: white; padding: 25px; border-radius: 16px; max-width: 380px; width: 90%; text-align: center; }
+
+        /* 頁尾教學宣告樣式 */
+        footer {
+            max-width: 1200px; margin: 30px auto 0 auto; text-align: center; padding: 15px 20px;
+            color: #7F8C8D; font-size: 0.85rem; border-top: 1px solid rgba(0,0,0,0.1); white-space: pre-line;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>💧 克潮靈：乾爽防霉魔法城堡 💧</h1>
+        <p>✨ 啟動吸水防霉魔法陣！召喚乾爽精靈，把家裡的溼氣怪獸通通吸光光！ ✨</p>
+        
+    </header>
+
+    <div class="app-container">
+        
+
+        <div class="layout-classic">
+
+            <!-- AI 鏡頭區塊 -->
+            <div class="card area-ai">
+                <div class="card-title"><i class="fa-solid fa-wand-magic-sparkles"></i> 召喚魔法陣 (AI 鏡頭)</div>
+                <button class="btn" onclick="startWebcam()"><i class="fa-solid fa-camera"></i> 啟動魔法水晶球</button>
+                <div id="webcam-container" style="display: none;"></div>
+                <div id="result-container"></div>
+                
+            </div>
+
+            <!-- 購物車與結帳區塊 -->
+            <div class="card area-cart">
+                
+
+                <div class="card-title"><i class="fa-solid fa-cart-shopping"></i> 我的乾爽收集袋</div>
+                <div class="cart-list" id="cart-items-wrapper"></div>
+                <div style="font-size: 1.2rem; font-weight: 900; margin-bottom: 10px; text-align:right;">
+                    總計：<span id="magic-total" style="color: #E74C3C;">0 金幣</span>
+                </div>
+
+                
+
+                <button class="btn" onclick="triggerCheckout()"><i class="fa-solid fa-sparkles"></i> 詠唱結帳咒語</button>
+
+                
+                <div class="blessing-box" id="blessing-section">
+                    <h5 id="blessing-title">🔒 滿 20 金幣解鎖精靈評語</h5>
+                    <div id="blessing-display" style="font-weight: bold; margin-top: 5px; color: var(--primary); font-size:0.9rem;"></div>
+                </div>
+            </div>
+
+        
+
+            <!-- 商品展示櫃 -->
+            <div class="card area-products">
+                
+                <div class="card-title"><i class="fa-solid fa-broom"></i> 精靈展示櫃 (點選召喚)</div>
+                <div class="product-grid" id="dynamic-product-grid"></div>
+            </div>
+
+            
+
+        </div>
+
+        
+
+        
+    </div>
+
+    <!-- 結帳彈窗 -->
+    <div class="modal-overlay" id="success-modal">
+        <div class="modal-window">
+            <i class="fa-solid fa-crown" style="font-size: 3.5rem; color: #F1C40F; margin-bottom: 10px;"></i>
+            <h2>防霉任務達成！</h2>
+            <p style="margin: 12px 0; color:#555;">🎉 恭喜你成功召喚克潮靈防霉神器，讓衣櫃與房間保持乾爽安心無黴菌！</p>
+            <button class="btn" onclick="closeModalWindow()">太棒了！</button>
+        </div>
+    </div>
+
+    <!-- 頁尾教學宣告 -->
+    <footer>
+        【教學示範聲明】
+本網站僅供資訊教學與功能模擬測試使用，非真實營運之網路商店。
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    <script>
+        const CONFIG_MODEL_URL = "https://teachablemachine.withgoogle.com/models/VTvRju9rw/";
+        const configProducts = [{"name":"克潮靈櫥櫃用除濕劑-玫瑰香","price":3,"imgUrl":"https://cpaizo.github.io/farcent/photos/03%E9%99%A4%E6%BF%95%E9%98%B2%E9%9C%89/01%E5%85%8B%E6%BD%AE%E9%9D%88%E6%AB%A5%E6%AB%83%E7%94%A8%E9%99%A4%E6%BF%95%E5%8A%91-%E7%8E%AB%E7%91%B0%E9%A6%99.png"},{"name":"克潮靈集水袋除濕盒-去霉味","price":2,"imgUrl":"https://cpaizo.github.io/farcent/photos/03%E9%99%A4%E6%BF%95%E9%98%B2%E9%9C%89/02%E5%85%8B%E6%BD%AE%E9%9D%88%E9%9B%86%E6%B0%B4%E8%A2%8B%E9%99%A4%E6%BF%95%E7%9B%92-%E5%8E%BB%E9%9C%89%E5%91%B3.png"},{"name":"克潮靈吊掛式除濕袋-晨露香氛","price":1,"imgUrl":"https://cpaizo.github.io/farcent/photos/03%E9%99%A4%E6%BF%95%E9%98%B2%E9%9C%89/03%E5%85%8B%E6%BD%AE%E9%9D%88%E5%90%8A%E6%8E%9B%E5%BC%8F%E9%99%A4%E6%BF%95%E8%A2%8B-%E6%99%A8%E9%9C%B2%E9%A6%99%E6%B0%9B.png"},{"name":"克潮靈環保除濕桶-無香","price":1,"imgUrl":"https://cpaizo.github.io/farcent/photos/03%E9%99%A4%E6%BF%95%E9%98%B2%E9%9C%89/04%E5%85%8B%E6%BD%AE%E9%9D%88%E7%92%B0%E4%BF%9D%E9%99%A4%E6%BF%95%E6%A1%B6-%E7%84%A1%E9%A6%99.png"}];
+        const blessingWords = ["💧 哇！溼氣通通被吸走了，房間變得好乾爽！","✨ 黴菌怪獸被防霉魔法嚇得不敢靠近了！","☀️ 滿屋爽朗，連乾爽精靈都開心得露營開派對了！"];
+        const CONFIG_CART_EMPTY_MSG = "收集袋空空如也，快來挑選吸水防霉寶物吧...";
+        const CONFIG_EFFECT_ICON = "🪙";
+        const CONFIG_CHECKOUT_TITLE = "防霉任務達成！";
+
+        const itemDatabase = {};
+        const myCart = {};
+        const gridWrapper = document.getElementById('dynamic-product-grid');
+
+        configProducts.forEach((prod) => {
+            itemDatabase[prod.name] = { price: prod.price, imgUrl: prod.imgUrl };
+            myCart[prod.name] = 0;
+            const div = document.createElement('div');
+            div.className = 'product-card';
+            div.onclick = () => addProductLogic(prod.name);
+            div.innerHTML = `
+                <img src="${prod.imgUrl}" class="product-icon">
+                <div style="font-weight:bold; font-size:0.9rem;">${prod.name}</div>
+                <div style="color:#E67E22; font-weight:900; margin-top:3px;">${prod.price} 金幣</div>
+            `;
+            gridWrapper.appendChild(div);
+        });
+
+        let model, webcam, labelContainer, maxPredictions;
+        let isCamStarted = false;
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        function makeBeepSound() {
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.frequency.value = 1000; gain.gain.value = 0.1;
+            osc.connect(gain); gain.connect(audioContext.destination);
+            osc.start(); osc.stop(audioContext.currentTime + 0.1);
+        }
+
+        function speakMagicWord(msg) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const speech = new SpeechSynthesisUtterance(msg);
+                speech.lang = 'zh-TW';
+                window.speechSynthesis.speak(speech);
+            }
+        }
+
+        let lastItem = "", lastTime = 0;
+        function addProductLogic(name) {
+            if (myCart[name] === undefined) return;
+            if (myCart[name] === 0) speakMagicWord("放入" + name);
+            else makeBeepSound();
+            myCart[name]++;
+            renderCart();
+        }
+
+        async function startWebcam() {
+            if (isCamStarted) return;
+            document.getElementById('webcam-container').style.display = 'block';
+            model = await tmImage.load(CONFIG_MODEL_URL + "model.json", CONFIG_MODEL_URL + "metadata.json");
+            maxPredictions = model.getTotalClasses();
+            webcam = new tmImage.Webcam(320, 240, true);
+            await webcam.setup(); await webcam.play();
+            window.requestAnimationFrame(webcamLoop);
+            document.getElementById("webcam-container").appendChild(webcam.canvas);
+            labelContainer = document.getElementById("result-container");
+            labelContainer.innerHTML = "";
+            for (let i = 0; i < maxPredictions; i++) {
+                const row = document.createElement("div");
+                row.className = "prediction-row";
+                row.innerHTML = `<div class="prediction-label"><span class="item-name">..</span><span class="item-score">0%</span></div><div class="progress-bar-bg"><div class="progress-bar-fill"></div></div>`;
+                labelContainer.appendChild(row);
+            }
+            isCamStarted = true;
+        }
+
+        async function webcamLoop() {
+            webcam.update();
+            const predictions = await model.predict(webcam.canvas);
+            const now = Date.now();
+            for (let i = 0; i < maxPredictions; i++) {
+                const name = predictions[i].className.trim();
+                const score = predictions[i].probability;
+                if (labelContainer.childNodes[i]) {
+                    labelContainer.childNodes[i].querySelector('.item-name').innerText = name;
+                    labelContainer.childNodes[i].querySelector('.item-score').innerText = (score * 100).toFixed(0) + "%";
+                    labelContainer.childNodes[i].querySelector('.progress-bar-fill').style.width = (score * 100) + "%";
+                }
+                if (score > 0.90 && itemDatabase[name] && (name !== lastItem || now - lastTime > 4000)) {
+                    lastItem = name; lastTime = now;
+                    addProductLogic(name);
+                }
+            }
+            window.requestAnimationFrame(webcamLoop);
+        }
+
+        function renderCart() {
+            const wrapper = document.getElementById('cart-items-wrapper');
+            wrapper.innerHTML = "";
+            let sum = 0, count = 0;
+
+            for (let name in myCart) {
+                let qty = myCart[name];
+                if (qty > 0) {
+                    count++;
+                    let price = itemDatabase[name].price;
+                    sum += price * qty;
+                    const item = document.createElement('div');
+                    item.className = 'cart-item';
+                    item.innerHTML = `
+                        <div><strong>${name}</strong> <span style="font-size:0.8rem; opacity:0.8;">(${price}金幣)</span></div>
+                        <div>
+                            <button class="qty-btn" onclick="modQty('${name}', -1)">-</button>
+                            <span style="margin: 0 4px; font-weight:bold;">${qty}</span>
+                            <button class="qty-btn" onclick="modQty('${name}', 1)">+</button>
+                        </div>
+                    `;
+                    wrapper.appendChild(item);
+                }
+            }
+            if (count === 0) wrapper.innerHTML = `<p style="text-align:center; color:#999; padding:15px; font-size:0.85rem;">${CONFIG_CART_EMPTY_MSG}</p>`;
+            document.getElementById('magic-total').innerText = sum + " 金幣";
+
+            const bBox = document.getElementById('blessing-section');
+            if (bBox) {
+                if (sum >= 20) {
+                    bBox.classList.add('unlocked');
+                    document.getElementById('blessing-title').innerText = "✨ 已獲得精靈評語";
+                    document.getElementById('blessing-display').innerText = blessingWords[Math.floor(Math.random()*blessingWords.length)];
+                } else {
+                    bBox.classList.remove('unlocked');
+                    document.getElementById('blessing-title').innerText = "🔒 滿 20 金幣解鎖精靈評語";
+                    document.getElementById('blessing-display').innerText = "";
+                }
+            }
+        }
+
+        function modQty(name, amt) {
+            myCart[name] += amt;
+            if (myCart[name] < 0) myCart[name] = 0;
+            renderCart();
+        }
+
+        function createEffectRain() {
+            for (let i = 0; i < 35; i++) {
+                const item = document.createElement('div');
+                item.className = 'petal';
+                item.innerText = CONFIG_EFFECT_ICON;
+                item.style.left = Math.random() * 100 + 'vw';
+                item.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                document.body.appendChild(item);
+                setTimeout(() => item.remove(), 4000);
+            }
+        }
+
+        function triggerCheckout() {
+            let total = parseInt(document.getElementById('magic-total').innerText);
+            if (total === 0) return alert("百寶袋還是空的喔！");
+            speakMagicWord(CONFIG_CHECKOUT_TITLE);
+            document.getElementById('success-modal').classList.add('show');
+            createEffectRain();
+        }
+
+        function closeModalWindow() {
+            document.getElementById('success-modal').classList.remove('show');
+            for (let k in myCart) myCart[k] = 0;
+            renderCart();
+        }
+        renderCart();
+    </script>
+</body>
+</html>
