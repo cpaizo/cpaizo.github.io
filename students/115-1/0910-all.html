@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>忠山實小 - 學生中秋節作品展示展覽館</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'PingFang TC', 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
+            background: linear-gradient(135deg, #0b132b 0%, #1c2541 50%, #3a506b 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 背景閃爍星空 Canvas */
+        #canvas-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .header {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .header .badge {
+            display: inline-block;
+            background: linear-gradient(90deg, #f59e0b, #ef4444);
+            color: #ffffff;
+            font-weight: bold;
+            padding: 6px 20px;
+            border-radius: 50px;
+            font-size: 1rem;
+            letter-spacing: 1.5px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: #fbbf24;
+            text-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #cbd5e1;
+        }
+
+        /* 學生卡片網格 */
+        .grid-container {
+            position: relative;
+            z-index: 10;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(251, 191, 36, 0.25);
+            border-radius: 20px;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: all 0.35s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .card:hover::before {
+            left: 100%;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(251, 191, 36, 0.8);
+            box-shadow: 0 15px 35px rgba(251, 191, 36, 0.25);
+        }
+
+        .avatar {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+        }
+
+        .student-name {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+
+        .project-tag {
+            font-size: 0.9rem;
+            color: #fbbf24;
+            background: rgba(251, 191, 36, 0.15);
+            padding: 4px 12px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .btn-view {
+            display: inline-block;
+            width: 100%;
+            padding: 12px 0;
+            background: linear-gradient(135deg, #fbbf24, #d97706);
+            color: #1c2541;
+            font-weight: bold;
+            font-size: 1rem;
+            text-decoration: none;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+        }
+
+        .btn-view:hover {
+            background: linear-gradient(135deg, #fef08a, #f59e0b);
+            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.5);
+        }
+
+        footer {
+            position: relative;
+            z-index: 10;
+            margin-top: auto;
+            font-size: 0.9rem;
+            color: #94a3b8;
+            text-align: center;
+            padding-top: 20px;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 600px) {
+            .header h1 { font-size: 1.8rem; }
+            .grid-container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="canvas-bg"></canvas>
+
+    <div class="header">
+        <div class="badge">忠山實小 115-1 學年度</div>
+        <h1>🌕 學生中秋節作品展示館 🥮</h1>
+        <p>點擊下方卡片即可欣賞同學們精采的中秋創意作品</p>
+    </div>
+
+    <div class="grid-container">
+        <div class="card">
+            <div class="avatar">🐰</div>
+            <div class="student-name">余品靚</div>
+            <div class="project-tag">中秋節主題作品</div>
+            <a href="https://cpaizo.github.io/students/115-1/0910余品靚.html" target="_blank" class="btn-view">開啟作品網站 🚀</a>
+        </div>
+        
+        <div class="card">
+            <div class="avatar">🐰</div>
+            <div class="student-name">吳寬</div>
+            <div class="project-tag">中秋節主題作品</div>
+            <a href="https://cpaizo.github.io/students/115-1/0910吳寬.html" target="_blank" class="btn-view">開啟作品網站 🚀</a>
+        </div>
+        
+        <div class="card">
+            <div class="avatar">🐰</div>
+            <div class="student-name">張倢鈞</div>
+            <div class="project-tag">中秋節主題作品</div>
+            <a href="https://cpaizo.github.io/students/115-1/0910張倢鈞.html" target="_blank" class="btn-view">開啟作品網站 🚀</a>
+        </div>
+        
+        <div class="card">
+            <div class="avatar">🐰</div>
+            <div class="student-name">張芯嫙</div>
+            <div class="project-tag">中秋節主題作品</div>
+            <a href="https://cpaizo.github.io/students/115-1/0910張芯嫙.html" target="_blank" class="btn-view">開啟作品網站 🚀</a>
+        </div>
+        
+        <div class="card">
+            <div class="avatar">🐰</div>
+            <div class="student-name">盧晨希</div>
+            <div class="project-tag">中秋節主題作品</div>
+            <a href="https://cpaizo.github.io/students/115-1/0910盧晨希.html" target="_blank" class="btn-view">開啟作品網站 🚀</a>
+        </div>
+    </div>
+
+    <footer>
+        © 忠山實小 學生數位作品集展覽頁面
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('canvas-bg');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const particles = [];
+        for (let i = 0; i < 70; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 2 + 0.5,
+                alpha: Math.random(),
+                speed: Math.random() * 0.02 + 0.005,
+                direction: Math.random() > 0.5 ? 1 : -1
+            });
+        }
+
+        function animateBg() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.alpha += p.speed * p.direction;
+                if (p.alpha >= 1 || p.alpha <= 0.2) p.direction *= -1;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 253, 208, ${p.alpha})`;
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = '#fbbf24';
+                ctx.fill();
+            });
+            requestAnimationFrame(animateBg);
+        }
+        animateBg();
+    </script>
+</body>
+</html>
