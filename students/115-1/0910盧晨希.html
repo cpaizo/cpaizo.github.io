@@ -1,0 +1,165 @@
+<img src="photos/中秋20.jpg" >
+
+<img src="photos/中秋20.jpg"  width="600px">
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中秋團圓 佳節快樂</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+            background: linear-gradient(135deg, #0b1d3a 0%, #1a365d 50%, #2a4365 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 背景星空閃爍動畫 */
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: radial-gradient(2px 2px at 20px 30px, #fff, rgba(0,0,0,0)),
+                        radial-gradient(2px 2px at 40px 70px, #ffe0b2, rgba(0,0,0,0)),
+                        radial-gradient(1px 1px at 90px 40px, #fff, rgba(0,0,0,0)),
+                        radial-gradient(2px 2px at 160px 120px, #ffd180, rgba(0,0,0,0));
+            background-repeat: repeat;
+            background-size: 200px 200px;
+            opacity: 0.6;
+            animation: twinkle 4s infinite alternate;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.3; }
+            100% { opacity: 0.8; }
+        }
+
+        /* 升起的天燈 */
+        .lantern {
+            position: absolute;
+            bottom: -50px;
+            width: 26px;
+            height: 36px;
+            background: rgba(255, 183, 77, 0.85);
+            border-radius: 8px 8px 12px 12px;
+            box-shadow: 0 0 15px #ffb74d, inset 0 0 10px #ffe082;
+            animation: floatUp 12s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(0.8); opacity: 0; }
+            10% { opacity: 0.9; }
+            90% { opacity: 0.8; }
+            100% { transform: translateY(-110vh) scale(1.2); opacity: 0; }
+        }
+
+        /* 卡片主體 */
+        .card-container {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 24px;
+            padding: 30px;
+            max-width: 650px;
+            width: 90%;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5),
+                        0 0 30px rgba(255, 215, 0, 0.15);
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            animation: fadeIn 1.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 圖片容器與微縮放效果 */
+        .img-wrapper {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+            margin-bottom: 22px;
+        }
+
+        .img-wrapper img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: transform 0.6s ease;
+        }
+
+        .img-wrapper:hover img {
+            transform: scale(1.04);
+        }
+
+        /* 主標題 */
+        h1 {
+            font-size: 1.8rem;
+            color: #ffe082;
+            text-shadow: 0 0 12px rgba(255, 224, 130, 0.6);
+            margin-bottom: 16px;
+            letter-spacing: 2px;
+        }
+
+        /* 文章內容區 */
+        .article {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: #f0f4f8;
+            text-align: justify;
+            text-justify: inter-ideograph;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 20px 24px;
+            border-radius: 12px;
+            border-left: 4px solid #ffd54f;
+        }
+
+        @media (max-width: 480px) {
+            .card-container { padding: 20px; }
+            h1 { font-size: 1.5rem; }
+            .article { font-size: 0.95rem; padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 背景動態元素 -->
+    <div class="stars"></div>
+    <div class="lantern" style="left: 10%; animation-delay: 0s; animation-duration: 10s;"></div>
+    <div class="lantern" style="left: 25%; animation-delay: 3s; animation-duration: 14s;"></div>
+    <div class="lantern" style="left: 70%; animation-delay: 1.5s; animation-duration: 11s;"></div>
+    <div class="lantern" style="left: 85%; animation-delay: 5s; animation-duration: 13s;"></div>
+
+    <!-- 主展示卡片 -->
+    <div class="card-container">
+        <div class="img-wrapper">
+            <img src="photos/中秋20.jpg" alt="中秋團圓動態圖">
+        </div>
+        <h1>月圓人團圓 歡慶中秋節</h1>
+        <div class="article">
+            皓月當空，金黃圓月高懸夜空，照亮古色古香的熱鬧街景。小男孩手提精緻的玉兔花燈，懷裡緊捧著美味月餅，滿臉洋溢著純真燦爛的笑容。街頭巷尾張燈結綵，家家人影綽綽、歡聲笑語，共同祈求吉祥平安。這溫馨美好的景象，映照出中秋佳節最珍貴的團圓與幸福。
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 忠山實小中秋佳節 - 勿怪與天燈祈福</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(to bottom, #0b132b, #1c2541, #3a506b);
+            color: #fff;
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            padding: 20px;
+            cursor: pointer;
+        }
+
+        /* 滿月與光暈效果 */
+        .moon {
+            position: absolute;
+            top: 40px;
+            right: 80px;
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, #fffed6 60%, #ffd700 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 40px #ffd700, 0 0 80px rgba(255, 215, 0, 0.6);
+            animation: pulse 4s infinite alternate ease-in-out;
+            z-index: 1;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 30px #ffd700; }
+            100% { transform: scale(1.05); box-shadow: 0 0 60px #ffd700, 0 0 90px #ffea75; }
+        }
+
+        /* 背景自動升空天燈 */
+        .sky-lantern {
+            position: absolute;
+            width: 28px;
+            height: 40px;
+            background: linear-gradient(to bottom, #ff7b00, #ffae00, #ff3c00);
+            border-radius: 8px 8px 12px 12px;
+            box-shadow: 0 0 15px #ff9e00, 0 0 25px #ff3c00;
+            opacity: 0.85;
+            pointer-events: none;
+            z-index: 2;
+            animation: floatUp linear infinite;
+        }
+
+        .sky-lantern::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 4px;
+            background: #ffe600;
+            border-radius: 2px;
+            box-shadow: 0 0 8px #ffe600;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(105vh) translateX(0) scale(0.8);
+                opacity: 0;
+            }
+            10% { opacity: 0.9; }
+            90% { opacity: 0.9; }
+            100% {
+                transform: translateY(-20vh) translateX(50px) scale(1.1);
+                opacity: 0;
+            }
+        }
+
+        /* 點擊產生的星星 */
+        .click-star {
+            position: absolute;
+            pointer-events: none;
+            color: #ffea00;
+            font-size: 24px;
+            text-shadow: 0 0 10px #ffea00, 0 0 20px #ffaa00;
+            z-index: 999;
+            animation: starBurst 0.8s ease-out forwards;
+        }
+
+        @keyframes starBurst {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(0.5) rotate(0deg);
+            }
+            50% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.8) rotate(180deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -80px) scale(0.2) rotate(360deg);
+            }
+        }
+
+        /* 點擊位置產生的升空天燈 */
+        .click-lantern {
+            position: absolute;
+            width: 24px;
+            height: 34px;
+            background: linear-gradient(to bottom, #ff9e00, #ff5200);
+            border-radius: 6px 6px 10px 10px;
+            box-shadow: 0 0 12px #ff9e00;
+            pointer-events: none;
+            z-index: 998;
+            animation: clickFloat 2.5s ease-out forwards;
+        }
+
+        @keyframes clickFloat {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(0.6);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -200px) scale(1.2);
+            }
+        }
+
+        /* 主展卡 */
+        .container {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 215, 0, 0.4);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 650px;
+            width: 100%;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            animation: fadeIn 1.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .badge {
+            display: inline-block;
+            background: #e63946;
+            color: #fff;
+            font-size: 0.9rem;
+            padding: 4px 12px;
+            border-radius: 50px;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 8px rgba(230, 57, 70, 0.5);
+        }
+
+        h1 {
+            color: #ffe66d;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+        }
+
+        .img-box {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            border: 2px solid #ffb703;
+            transition: transform 0.3s ease;
+        }
+
+        .img-box:hover {
+            transform: scale(1.02);
+        }
+
+        .img-box img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #f8f9fa;
+            text-align: justify;
+            text-justify: inter-ideograph;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 18px 22px;
+            border-radius: 10px;
+            border-left: 4px solid #ffb703;
+        }
+
+        .footer-note {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #ffea75;
+            letter-spacing: 1px;
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @media (max-width: 600px) {
+            .moon { width: 80px; height: 80px; right: 20px; top: 20px; }
+            h1 { font-size: 1.4rem; }
+            .container { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 背景動態滿月 -->
+    <div class="moon"></div>
+
+    <!-- 主內容區 -->
+    <div class="container">
+        <span class="badge">忠山實小 2026 中秋特別企劃</span>
+        <h1>月圓人團圓，勿怪與天燈祈福</h1>
+
+        <div class="img-box">
+            <img src="photos/中秋節張芯嫙.jpg" alt="2026忠山實小中秋節勿怪與天燈畫作">
+        </div>
+
+        <div class="content">
+            2026年中秋佳節，忠山實小迎來了一群特別的貴客！來自《地縛少年花子君》的粉紅「勿怪」們活潑地聚集在校園牌樓前。牠們手拎兔子燈籠、品嚐特製月餅，放飛點點天燈祈福。在明月高懸與天燈升空的溫馨秋夜裡，傳遞著最真摯浪漫的佳節祝福！
+        </div>
+
+        <p class="footer-note">✨ 點擊畫面任意位置，放飛天燈與璀璨星星！ ✨</p>
+    </div>
+
+    <script>
+        // 自動生成背景天燈
+        function createSkyLanterns() {
+            const count = 12;
+            for (let i = 0; i < count; i++) {
+                const lantern = document.createElement('div');
+                lantern.className = 'sky-lantern';
+                lantern.style.left = `${Math.random() * 100}vw`;
+                lantern.style.animationDuration = `${Math.random() * 8 + 8}s`;
+                lantern.style.animationDelay = `${Math.random() * 10}s`;
+                document.body.appendChild(lantern);
+            }
+        }
+        createSkyLanterns();
+
+        // 點擊事件：生成星星與天燈
+        document.addEventListener('click', function(e) {
+            // 產生星星
+            const starCount = 4;
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'click-star';
+                star.innerHTML = '★';
+                
+                const offsetX = (Math.random() - 0.5) * 50;
+                const offsetY = (Math.random() - 0.5) * 50;
+                star.style.left = `${e.clientX + offsetX}px`;
+                star.style.top = `${e.clientY + offsetY}px`;
+                
+                const size = Math.random() * 18 + 14;
+                star.style.fontSize = `${size}px`;
+
+                document.body.appendChild(star);
+                setTimeout(() => { star.remove(); }, 800);
+            }
+
+            // 產生放飛天燈
+            const lantern = document.createElement('div');
+            lantern.className = 'click-lantern';
+            lantern.style.left = `${e.clientX}px`;
+            lantern.style.top = `${e.clientY}px`;
+            document.body.appendChild(lantern);
+
+            setTimeout(() => { lantern.remove(); }, 2500);
+        });
+    </script>
+</body>
+</html>

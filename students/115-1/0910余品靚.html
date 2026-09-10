@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>忠山實小 賽博天燈中秋特輯</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+      background: #05070f;
+      cursor: pointer;
+    }
+
+    /* 酷炫動態背景桌布 */
+    .bg-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, #1a0b36 0%, #05070f 100%);
+      z-index: 1;
+    }
+
+    /* 動態霓虹大月亮 */
+    .cyber-moon {
+      position: absolute;
+      top: 8%;
+      right: 12%;
+      width: 180px;
+      height: 180px;
+      background: radial-gradient(circle, #fff 40%, #ff007f 80%, #00f0ff 100%);
+      border-radius: 50%;
+      box-shadow: 0 0 50px #ff007f, 0 0 100px #00f0ff;
+      animation: moonPulse 3s ease-in-out infinite alternate;
+      z-index: 1;
+    }
+
+    @keyframes moonPulse {
+      0% { transform: scale(1); box-shadow: 0 0 40px #ff007f, 0 0 80px #00f0ff; }
+      100% { transform: scale(1.08); box-shadow: 0 0 70px #00f0ff, 0 0 120px #ff007f; }
+    }
+
+    /* Canvas 背景粒子 */
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+    }
+
+    /* 前景酷炫卡片 (居中) */
+    .card-container {
+      position: relative;
+      z-index: 10;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      pointer-events: none;
+    }
+
+    .card {
+      pointer-events: auto;
+      background: rgba(15, 23, 42, 0.85);
+      border: 2px solid #00f0ff;
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.5), inset 0 0 20px rgba(255, 0, 127, 0.4);
+      border-radius: 24px;
+      padding: 30px 35px;
+      max-width: 520px;
+      width: 100%;
+      text-align: center;
+      backdrop-filter: blur(16px);
+      animation: floatCard 4s ease-in-out infinite;
+    }
+
+    @keyframes floatCard {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-12px); }
+    }
+
+    .badge {
+      display: inline-block;
+      background: linear-gradient(90deg, #00f0ff, #ff007f);
+      color: #fff;
+      font-weight: 900;
+      padding: 6px 18px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      letter-spacing: 2px;
+      margin-bottom: 15px;
+      text-shadow: 0 0 5px #000;
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.6);
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 900;
+      background: linear-gradient(to right, #00f0ff, #ffffff, #ff007f);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 15px;
+      letter-spacing: 3px;
+    }
+
+    /* 中央圖片容器與樣式 */
+    .img-box {
+      width: 100%;
+      margin: 0 auto 20px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 2px solid #ff007f;
+      box-shadow: 0 0 20px rgba(255, 0, 127, 0.6), 0 0 10px rgba(0, 240, 255, 0.4);
+      background: #000;
+    }
+
+    .img-box img {
+      width: 100%;
+      max-width: 600px;
+      height: auto;
+      display: block;
+      object-fit: cover;
+    }
+
+    .content {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: #e2e8f0;
+      text-align: justify;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 15px 20px;
+      border-radius: 16px;
+      border-left: 4px solid #ff007f;
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      background: linear-gradient(45deg, #ff007f, #00f0ff);
+      border: none;
+      color: #fff;
+      padding: 12px 30px;
+      font-size: 1.05rem;
+      font-weight: bold;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(255, 0, 127, 0.6);
+      transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 0 35px rgba(0, 240, 255, 0.9);
+    }
+
+    /* 酷炫動態天燈 CSS 樣式 */
+    .sky-lantern {
+      position: absolute;
+      width: 50px;
+      height: 65px;
+      background: linear-gradient(to bottom, rgba(255, 120, 0, 0.95), rgba(255, 0, 100, 0.85));
+      border-radius: 8px 8px 15px 15px;
+      box-shadow: 0 0 20px #ff7700, 0 0 40px #ff0055, inset 0 -10px 15px #ffe600;
+      z-index: 5;
+      pointer-events: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: bold;
+      text-shadow: 0 0 5px #000;
+      writing-mode: vertical-lr;
+      animation: floatUp 9s linear forwards;
+    }
+
+    .sky-lantern::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      width: 16px;
+      height: 8px;
+      background: #ffea00;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #ffea00, 0 0 20px #ff4500;
+    }
+
+    @keyframes floatUp {
+      0% {
+        opacity: 0.9;
+        transform: translateY(0) scale(0.6) rotate(0deg);
+      }
+      50% {
+        transform: translateY(-55vh) scale(0.95) rotate(var(--random-rotate, 6deg));
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-120vh) scale(0.4) rotate(var(--random-rotate-end, -6deg));
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-container">
+    <div class="cyber-moon"></div>
+    <canvas id="canvas"></canvas>
+  </div>
+
+  <div class="card-container">
+    <div class="card">
+      <div class="badge">🔥 忠山實小 宇宙特輯</div>
+      <h1>中秋節快樂！</h1>
+
+      <!-- 放置圖片並居中展示 -->
+      <div class="img-box">
+        <img src="photos/中秋節余品靚.jpg" width="600px" alt="中秋節特輯圖片">
+      </div>
+
+      <div class="content">
+        忠山實小中秋Buff全面加持！開局直接開啟「烤肉滿血模式」，熱量自動轉化為快樂值！柚子帽戴上瞬間氣場拉滿，尊榮感直接飆升！祝大家戰力爆表、連勝不斷，中秋節嗨翻全場，這波直接Skr爆！⚡
+      </div>
+
+      <button class="btn" onclick="burstLanterns(event)">點擊施放祈福天燈 🏮</button>
+    </div>
+  </div>
+
+  <script>
+    const wishes = ["中秋快樂", "忠山實小", "戰力爆表", "歐氣滿滿", "萬事順意", "Skr~", "滿血通關"];
+    let activeLanterns = [];
+
+    function createLantern(targetX, targetY) {
+      // 離散碰撞檢測：如果點擊位置距離現有天燈太近，自動偏移 X 軸與 Y 軸
+      let finalX = targetX;
+      let finalY = targetY;
+
+      activeLanterns.forEach(l => {
+        const dist = Math.hypot(l.x - finalX, l.y - finalY);
+        if (dist < 70) { 
+          // 如果距離小於 70px，強制往兩側推開
+          const offset = (Math.random() > 0.5 ? 1 : -1) * (80 + Math.random() * 40);
+          finalX += offset;
+          finalY += (Math.random() - 0.5) * 30;
+        }
+      });
+
+      const lantern = document.createElement('div');
+      lantern.className = 'sky-lantern';
+      lantern.style.left = `${finalX - 25}px`;
+      lantern.style.top = `${finalY - 30}px`;
+      
+      // 隨機旋轉傾斜度，使上升過程更自然散開
+      const randomRot = (Math.random() * 12 - 6) + 'deg';
+      const randomRotEnd = (Math.random() * 16 - 8) + 'deg';
+      lantern.style.setProperty('--random-rotate', randomRot);
+      lantern.style.setProperty('--random-rotate-end', randomRotEnd);
+
+      // 隨機祝福語
+      const randomWish = wishes[Math.floor(Math.random() * wishes.length)];
+      lantern.innerText = randomWish;
+
+      document.body.appendChild(lantern);
+
+      // 紀錄天燈位置
+      const lanternObj = { x: finalX, y: finalY, el: lantern };
+      activeLanterns.push(lanternObj);
+
+      // 3 秒後解除距離紀錄，9 秒後移除 DOM
+      setTimeout(() => {
+        activeLanterns = activeLanterns.filter(item => item !== lanternObj);
+      }, 3000);
+
+      setTimeout(() => {
+        lantern.remove();
+      }, 9000);
+    }
+
+    // 全螢幕點擊事件
+    document.addEventListener('click', (e) => {
+      createLantern(e.clientX, e.clientY);
+    });
+
+    // 按鈕群發天燈（加大擴散範圍）
+    function burstLanterns(e) {
+      e.stopPropagation();
+      const buttonRect = e.target.getBoundingClientRect();
+      const startX = buttonRect.left + buttonRect.width / 2;
+      const startY = buttonRect.top - 20;
+
+      // 5 個天燈以扇形擺開發射
+      const offsets = [-180, -90, 0, 90, 180];
+      offsets.forEach((offset, index) => {
+        setTimeout(() => {
+          createLantern(startX + offset + (Math.random() * 20 - 10), startY + (Math.random() * 30 - 15));
+        }, index * 180);
+      });
+    }
+
+    // Canvas 背景星空粒子
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const particles = [];
+    for (let i = 0; i < 60; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        radius: Math.random() * 2 + 1,
+        color: Math.random() > 0.5 ? '#00f0ff' : '#ff007f',
+        speedY: Math.random() * -0.8 - 0.3,
+        speedX: (Math.random() - 0.5) * 0.4
+      });
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.y += p.speedY;
+        p.x += p.speedX;
+
+        if (p.y < 0) {
+          p.y = canvas.height;
+          p.x = Math.random() * canvas.width;
+        }
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = p.color;
+        ctx.fill();
+      });
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>

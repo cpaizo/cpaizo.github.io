@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中山實小 2026 中秋賞月接月餅小遊戲</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0b1325;
+            font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        /* 遊戲畫布與主容器 */
+        #game-wrapper {
+            position: relative;
+            width: 800px;
+            height: 500px;
+            border: 4px solid #fceabb;
+            border-radius: 16px;
+            box-shadow: 0 0 30px rgba(252, 234, 187, 0.3);
+            overflow: hidden;
+            background: linear-gradient(to bottom, #0f172a, #1e293b);
+        }
+
+        /* 留存視覺圖檔背景（使用優化視覺樣式） */
+        #bg-art {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.35; /* 遊玩時維持質感背景 */
+            transition: opacity 0.5s;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+        }
+
+        /* UI 資訊層 */
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 3;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 15px 20px;
+        }
+
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.7);
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(252, 234, 187, 0.3);
+            backdrop-filter: blur(4px);
+        }
+
+        .title-text {
+            font-size: 18px;
+            font-weight: bold;
+            color: #fceabb;
+            text-shadow: 0 0 8px rgba(252, 234, 187, 0.6);
+        }
+
+        .stats-text {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        /* 詩詞告示欄 */
+        #poem-banner {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid #f8b500;
+            padding: 10px 15px;
+            border-radius: 10px;
+            text-align: center;
+            color: #ffeaa7;
+            font-size: 15px;
+            text-shadow: 1px 1px 2px #000;
+            backdrop-filter: blur(4px);
+            margin-bottom: 5px;
+        }
+
+        /* 開始/結束 彈出螢幕 */
+        .overlay-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            background: rgba(11, 19, 37, 0.88);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 30px;
+            backdrop-filter: blur(6px);
+        }
+
+        .overlay-card {
+            background: rgba(30, 41, 59, 0.9);
+            border: 2px solid #f8b500;
+            padding: 25px 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            max-width: 500px;
+        }
+
+        h1 {
+            margin: 0 0 10px 0;
+            color: #fceabb;
+            font-size: 26px;
+            text-shadow: 0 0 10px rgba(248, 181, 0, 0.5);
+        }
+
+        p {
+            color: #e2e8f0;
+            font-size: 15px;
+            line-height: 1.6;
+            margin: 10px 0;
+        }
+
+        .btn-start {
+            margin-top: 20px;
+            padding: 12px 35px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e293b;
+            background: linear-gradient(135deg, #f8b500, #fceabb);
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(248, 181, 0, 0.4);
+            transition: all 0.2s ease-in-out;
+            pointer-events: auto;
+        }
+
+        .btn-start:hover {
+            transform: scale(1.06);
+            box-shadow: 0 6px 18px rgba(248, 181, 0, 0.6);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-wrapper">
+        <!-- 視覺背景保留 -->
+        <div id="bg-art" style="background-image: url('https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=80');"></div>
+
+        <canvas id="gameCanvas" width="800" height="500"></canvas>
+
+        <div id="ui-layer">
+            <div class="header-info">
+                <div class="title-text">🏫 中山實小｜祝您 2026 中秋節快樂</div>
+                <div class="stats-text">得分: <span id="score">0</span> &nbsp;|&nbsp; 生命: <span id="lives">❤️❤️❤️</span></div>
+            </div>
+
+            <div id="poem-banner">
+                「今宵何處覓佳人？滿月明空照不寐。」—— 明代 · 吳寬《過中秋》
+            </div>
+        </div>
+
+        <!-- 開始遊戲前畫面（不直接開始） -->
+        <div id="start-screen" class="overlay-screen">
+            <div class="overlay-card">
+                <h1>🥮 中山實小 2026 中秋賞月</h1>
+                <p><b>致敬明代詩人吳寬中秋詩意</b></p>
+                <p style="text-align: left; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px;">
+                    🎮 <b>玩法說明：</b><br>
+                    1. 左右移動滑鼠（或按鍵盤 ◄ ► 鍵）控制<b>可愛公仔</b>。<br>
+                    2. <b>慢速降落</b>，輕鬆接住掉落的<b>中秋月餅 🥮</b>。<br>
+                    3. 避開掉落的<b>烏雲 ☁️</b>。<br>
+                    4. 每收集一定分數會解鎖吳寬詩詞佳句！
+                </p>
+                <button class="btn-start" onclick="startGame()">開始遊戲</button>
+            </div>
+        </div>
+
+        <!-- 結算畫面 -->
+        <div id="end-screen" class="overlay-screen hidden">
+            <div class="overlay-card">
+                <h1 style="color: #ff7675;">賞月圓滿結束</h1>
+                <p style="font-size: 18px;">最終得分：<span id="final-score" style="color:#f8b500; font-weight:bold;">0</span></p>
+                <p id="final-poem" style="color: #ffeaa7; font-style: italic;"></p>
+                <button class="btn-start" onclick="startGame()">再玩一次</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // 吳寬中秋詩詞作品集
+        const poems = [
+            "「今宵何處覓佳人？滿月明空照不寐。」—— 吳寬《過中秋》",
+            "「青天故遣月娛人，特為中秋月轉瑩。」—— 吳寬《中秋夜登仲山新樓賞月》",
+            "「團團餅餌家家如，矮屋仰觀殊不稱。」—— 吳寬《中秋夜登仲山新樓賞月》",
+            "「桂彩中秋特地圓，況當餘閏魄澄鮮。」—— 吳寬《閏中秋月帖子》",
+            "🎉 中山實小祝您 2026 中秋節快樂，闔家團圓幸福！"
+        ];
+
+        let score = 0;
+        let lives = 3;
+        let gameActive = false;
+        let currentPoemIndex = 0;
+
+        // 可愛公仔玩家角色
+        const player = {
+            x: 360,
+            y: 410,
+            width: 80,
+            height: 60,
+            speed: 8
+        };
+
+        let items = [];
+        let leftPressed = false;
+        let rightPressed = false;
+
+        // 控制鍵盤輸入
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') leftPressed = true;
+            if (e.key === 'ArrowRight') rightPressed = true;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft') leftPressed = false;
+            if (e.key === 'ArrowRight') rightPressed = false;
+        });
+
+        // 支援滑鼠控制
+        canvas.addEventListener('mousemove', (e) => {
+            if (!gameActive) return;
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            player.x = mouseX - player.width / 2;
+        });
+
+        // 開始遊戲函數
+        function startGame() {
+            score = 0;
+            lives = 3;
+            items = [];
+            gameActive = true;
+            currentPoemIndex = 0;
+
+            document.getElementById('score').innerText = score;
+            document.getElementById('lives').innerText = '❤️❤️❤️';
+            document.getElementById('poem-banner').innerText = poems[0];
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.add('hidden');
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // 生成月餅/烏雲（調慢頻率）
+        function createItem() {
+            // 約每 1 秒產生一個
+            if (Math.random() < 0.018) {
+                const isCloud = Math.random() < 0.25; // 25% 機率為烏雲
+                items.push({
+                    x: Math.random() * (canvas.width - 40) + 10,
+                    y: -30,
+                    size: 32,
+                    speed: 1.2 + Math.random() * 0.8, // 速度大幅減慢 (1.2 ~ 2.0)
+                    isCloud: isCloud
+                });
+            }
+        }
+
+        function update() {
+            if (!gameActive) return;
+
+            // 移動控制邊界
+            if (leftPressed && player.x > 0) player.x -= player.speed;
+            if (rightPressed && player.x < canvas.width - player.width) player.x += player.speed;
+
+            // 限制邊界
+            player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+
+            createItem();
+
+            for (let i = 0; i < items.length; i++) {
+                let item = items[i];
+                item.y += item.speed;
+
+                // 碰撞檢測
+                if (
+                    item.y + item.size >= player.y &&
+                    item.x + item.size >= player.x &&
+                    item.x <= player.x + player.width
+                ) {
+                    if (item.isCloud) {
+                        lives--;
+                        document.getElementById('lives').innerText = '❤️'.repeat(Math.max(0, lives));
+                        if (lives <= 0) gameOver();
+                    } else {
+                        score += 10;
+                        document.getElementById('score').innerText = score;
+
+                        // 得分更換詩詞
+                        if (score % 30 === 0) {
+                            currentPoemIndex = (currentPoemIndex + 1) % poems.length;
+                            document.getElementById('poem-banner').innerText = poems[currentPoemIndex];
+                        }
+                    }
+                    items.splice(i, 1);
+                    i--;
+                    continue;
+                }
+
+                // 落到底部移除
+                if (item.y > canvas.height) {
+                    items.splice(i, 1);
+                    i--;
+                }
+            }
+        }
+
+        function drawPlayer() {
+            // 繪製可愛公仔（接月餅小人）
+            ctx.fillStyle = '#ff7675';
+            ctx.beginPath();
+            ctx.roundRect(player.x, player.y + 20, player.width, 35, 10);
+            ctx.fill();
+
+            // 公仔標籤
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 13px Microsoft JhengHei';
+            ctx.fillText('🐰 中山實小', player.x + 8, player.y + 42);
+        }
+
+        function drawItems() {
+            for (let item of items) {
+                ctx.font = '30px Arial';
+                if (item.isCloud) {
+                    ctx.fillText('☁️', item.x, item.y + 25);
+                } else {
+                    ctx.fillText('🥮', item.x, item.y + 25);
+                }
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 繪製月亮光暈
+            ctx.fillStyle = 'rgba(252, 252, 213, 0.8)';
+            ctx.beginPath();
+            ctx.arc(700, 80, 40, 0, Math.PI * 2);
+            ctx.fill();
+
+            drawPlayer();
+            drawItems();
+        }
+
+        function gameLoop() {
+            if (!gameActive) return;
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function gameOver() {
+            gameActive = false;
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('final-poem').innerText = poems[currentPoemIndex];
+            document.getElementById('end-screen').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
