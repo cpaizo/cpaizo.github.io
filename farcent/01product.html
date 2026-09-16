@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>香氛去味 — 靜謐與質感的空間美學</title>
+    <!-- 引入 Google Fonts 高質感襯線體與無襯線體 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f7f6f2; /* 高級大地暖灰底色 */
+            --card-bg: #ffffff;
+            --primary-text: #1c1917;
+            --secondary-text: #78716c;
+            --accent-gold: #b45309;
+            --border-color: #e7e5e4;
+            --tag-bg: #f5f5f4;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--primary-text);
+            line-height: 1.7;
+            padding: 60px 20px 60px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .header {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 70px;
+        }
+
+        .header .subtitle {
+            font-family: 'Cinzel', serif;
+            font-size: 0.85rem;
+            letter-spacing: 4px;
+            color: var(--accent-gold);
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .header h1 {
+            font-family: 'Noto Serif TC', serif;
+            font-size: 2.5rem;
+            color: var(--primary-text);
+            letter-spacing: 3px;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .header p {
+            color: var(--secondary-text);
+            font-size: 1.05rem;
+            letter-spacing: 1px;
+            font-weight: 300;
+        }
+
+        /* 改為 2*2 網格排列 */
+        .shop-container {
+            max-width: 1240px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+        }
+
+        /* 針對窄螢幕/手機的響應式調整 (可選) */
+        @media (max-width: 768px) {
+            .shop-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .product-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(231, 229, 228, 0.8);
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            border-color: rgba(180, 83, 9, 0.3);
+        }
+
+        .img-wrapper {
+            width: 100%;
+            height: 320px;
+            background-color: #fafaf9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            position: relative;
+            border-bottom: 1px solid #f5f5f4;
+        }
+
+        .img-wrapper img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+            filter: drop-shadow(0 8px 12px rgba(0,0,0,0.04));
+        }
+
+        .product-card:hover .img-wrapper img {
+            transform: scale(1.06);
+        }
+
+        .badge {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: var(--primary-text);
+            color: #ffffff;
+            font-size: 0.72rem;
+            font-weight: 500;
+            padding: 5px 14px;
+            border-radius: 20px;
+            letter-spacing: 2px;
+        }
+
+        .content-box {
+            padding: 32px 28px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .product-title {
+            font-family: 'Noto Serif TC', serif;
+            font-size: 1.35rem;
+            color: var(--primary-text);
+            margin-bottom: 14px;
+            font-weight: 600;
+            line-height: 1.4;
+            letter-spacing: 0.5px;
+        }
+
+        .intro-text {
+            font-size: 0.92rem;
+            color: var(--secondary-text);
+            margin-bottom: 24px;
+            font-weight: 300;
+            line-height: 1.8;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .section-heading {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--primary-text);
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .features-list {
+            font-size: 0.88rem;
+            color: var(--secondary-text);
+            padding-left: 18px;
+            margin-bottom: 28px;
+            flex-grow: 1;
+        }
+
+        .features-list li {
+            margin-bottom: 8px;
+            font-weight: 300;
+            line-height: 1.6;
+        }
+
+        .features-list strong {
+            color: var(--primary-text);
+            font-weight: 500;
+        }
+
+        .card-footer {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .spec-tag {
+            font-size: 0.8rem;
+            color: var(--secondary-text);
+            background-color: var(--tag-bg);
+            padding: 6px 14px;
+            border-radius: 4px;
+            font-weight: 400;
+            letter-spacing: 1px;
+        }
+
+        /* 頁尾示範聲明樣式 */
+        .footer-notice {
+            max-width: 1240px;
+            margin: 80px auto 0;
+            padding-top: 30px;
+            border-top: 1px dashed var(--border-color);
+            text-align: center;
+            color: var(--secondary-text);
+        }
+
+        .footer-notice h3 {
+            font-size: 1rem;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            color: var(--accent-gold);
+            font-weight: 600;
+        }
+
+        .footer-notice p {
+            font-size: 0.88rem;
+            letter-spacing: 1px;
+            font-weight: 300;
+        }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="subtitle">Aroma & Purification</div>
+    <h1>香氛去味</h1>
+    <p>嚴選國際級精品調香與專利消臭技術，靜靜為空間疊加質感氛圍</p>
+</header>
+
+<main class="shop-container">
+
+    <!-- 產品 1 -->
+    <article class="product-card">
+        <div class="img-wrapper">
+            <span class="badge">經典清新</span>
+            <img src="https://cpaizo.github.io/farcent/photos/01%E9%A6%99%E6%B0%9B%E5%8E%BB%E5%91%B3/01%E8%8A%B1%E4%BB%99%E5%AD%90%E8%8A%B1%E8%AA%9E%E9%A6%99%E8%86%8F-%E6%AA%B8%E6%AA%AC.png" alt="去味大師 花語香膏 — 檸檬">
+        </div>
+        <div class="content-box">
+            <h2 class="product-title">去味大師 花語香膏 — 檸檬</h2>
+            <p class="intro-text">選用鮮萃檸檬果香調，透過獨家精萃技術保留果實清爽動人的自然香氣。結合專利消臭因子，能有效分解空間中的各種異味，為家居環境注入如陽光般耀眼明亮的光采氛圍。</p>
+
+            <div class="section-heading">工藝特色</div>
+            <ul class="features-list">
+                <li><strong>鮮萃果香：</strong>還原檸檬鮮切時的清新酸甜，香氣自然淡雅。</li>
+                <li><strong>強效消臭：</strong>專利消臭技術，有效包覆並中和生活異味。</li>
+                <li><strong>安全無毒：</strong>通過 IFRA 國際認證，無添加有害成分。</li>
+                <li><strong>穩定釋放：</strong>固態膏體設計不溢漏，持續釋放香氣 4～6 週。</li>
+            </ul>
+
+            <div class="card-footer">
+                <span class="spec-tag">120g / 罐</span>
+            </div>
+        </div>
+    </article>
+
+    <!-- 產品 2 -->
+    <article class="product-card">
+        <div class="img-wrapper">
+            <span class="badge">在地意象</span>
+            <img src="https://cpaizo.github.io/farcent/photos/01%E9%A6%99%E6%B0%9B%E5%8E%BB%E5%91%B3/02%E5%8E%BB%E5%91%B3%E5%A4%A7%E5%B8%AB%E7%A7%91%E6%8A%80%E7%A4%A6%E6%99%B6%E9%A6%99%E5%8C%85-%E6%97%A5%E6%9C%88%E6%BD%AD%E7%B4%85%E7%8E%89.png" alt="去味大師 科技礦晶香包 — 日月潭紅玉">
+        </div>
+        <div class="content-box">
+            <h2 class="product-title">去味大師 科技礦晶香包 — 日月潭紅玉</h2>
+            <p class="intro-text">以日月潭紅玉紅茶為靈感之蜜製茶香調，融合在地植萃與奈米科技礦晶。打造具在地文化特色的輕奢香氛，強效淨化空間異味與有害氣體。</p>
+
+            <div class="section-heading">工藝特色</div>
+            <ul class="features-list">
+                <li><strong>頂空鮮萃技術：</strong>不破壞植物原貌萃取，還原茶香純淨氣息。</li>
+                <li><strong>空氣淨化 UP+：</strong>奈米礦晶吸附甲醛，專利成分徹底分解臭源。</li>
+                <li><strong>國際安全認證：</strong>符合 IFRA 國際認證，使用安全安心。</li>
+                <li><strong>長效擴香：</strong>乾淨無粉塵，持續散發怡人茶香約 6 週。</li>
+            </ul>
+
+            <div class="card-footer">
+                <span class="spec-tag">11g × 3入 / 盒</span>
+            </div>
+        </div>
+    </article>
+
+    <!-- 產品 3 -->
+    <article class="product-card">
+        <div class="img-wrapper">
+            <span class="badge">法式精品</span>
+            <img src="https://cpaizo.github.io/farcent/photos/01%E9%A6%99%E6%B0%9B%E5%8E%BB%E5%91%B3/03Farcent%E9%A6%99%E6%B0%B4%E5%AE%A4%E5%85%A7%E6%93%B4%E9%A6%99-%E5%B0%8F%E8%92%BC%E8%98%AD&%E8%8B%B1%E5%9C%8B%E6%A2%A8.png" alt="Farcent 法頌 香水室內擴香 — 小蒼蘭與英國梨">
+        </div>
+        <div class="content-box">
+            <h2 class="product-title">Farcent 法頌 香水室內擴香 — 小蒼蘭與英國梨</h2>
+            <p class="intro-text">國際級調香師精選經典精品香水香型，時尚清新花果調。簡約質感瓶身搭配高質感擴香棒，完美裝點居家精品氛圍。</p>
+
+            <div class="section-heading">工藝特色</div>
+            <ul class="features-list">
+                <li><strong>精品法式調香：</strong>嚴選國際大廠香精，具備豐富前中後調層次。</li>
+                <li><strong>森林級淨味：</strong>添加日本專利百種植物萃取，有效分解異味。</li>
+                <li><strong>嚴格認證：</strong>符合 IFRA 國際標準，成分安心安全。</li>
+                <li><strong>持續擴香：</strong>穩定散發奢華香氛約 4～8 星期。</li>
+            </ul>
+
+            <div class="card-footer">
+                <span class="spec-tag">120ml / 瓶</span>
+            </div>
+        </div>
+    </article>
+
+    <!-- 產品 4 -->
+    <article class="product-card">
+        <div class="img-wrapper">
+            <span class="badge">沉穩木質</span>
+            <img src="https://cpaizo.github.io/farcent/photos/01%E9%A6%99%E6%B0%9B%E5%8E%BB%E5%91%B3/04Farcent%E9%A6%99%E6%B0%B4%E6%B3%95%E9%A0%8C%E7%B2%BE%E6%B2%B9%E6%93%B4%E9%A6%99-%E8%92%BC%E6%9C%A8%E6%9D%9C%E6%9D%BE.png" alt="LE FARCENT 木質調精油室內擴香 — 蒼木杜松">
+        </div>
+        <div class="content-box">
+            <h2 class="product-title">LE FARCENT 木質調精油室內擴香 — 蒼木杜松</h2>
+            <p class="intro-text">由知名設計團隊操刀包裝，展現中性沉穩、深邃內斂的木質調風格。添加草本與木質精油，結合專利正向愉悅氣息，為空間注入靜謐與穩定的能量。</p>
+
+            <div class="section-heading">工藝特色</div>
+            <ul class="features-list">
+                <li><strong>WELLMOTION™ 技術：</strong>藉由嗅覺刺激正向腦波，舒緩日常壓力。</li>
+                <li><strong>沉穩木質香氣：</strong>專為客廳、辦公與高端飯店空間打造。</li>
+                <li><strong>170ml 大容量：</strong>優雅環繞擴香，持香可達約 90 天。</li>
+                <li><strong>品質保證：</strong>通過 IFRA 國際認證，成分純淨溫和。</li>
+            </ul>
+
+            <div class="card-footer">
+                <span class="spec-tag">170ml / 瓶</span>
+            </div>
+        </div>
+    </article>
+
+</main>
+
+<footer class="footer-notice">
+    <h3>【教學示範聲明】</h3>
+    <p>本網站僅供資訊教學與功能模擬測試使用，非真實營運之網路商店。</p>
+</footer>
+
+</body>
+</html>

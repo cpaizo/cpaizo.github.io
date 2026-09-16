@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>居家打掃工具</title>
+  <style>
+    :root {
+      --primary-color: #008751;
+      --accent-color: #ff9800;
+      --bg-color: #f4f7f5;
+      --card-bg: #ffffff;
+      --text-color: #333333;
+      --text-muted: #666666;
+      --border-color: #e0e0e0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.5;
+    }
+
+    header {
+      background-color: var(--primary-color);
+      color: white;
+      text-align: center;
+      padding: 24px 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      letter-spacing: 1px;
+    }
+
+    header p {
+      font-size: 0.95rem;
+      margin-top: 6px;
+      opacity: 0.9;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 30px auto;
+      padding: 0 16px;
+    }
+
+    /* 2x2 Grid Layout */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .product-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .product-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .product-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-image-wrap {
+      width: 100%;
+      height: 240px;
+      background-color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .product-image {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .product-info {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+
+    .product-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--primary-color);
+      margin-bottom: 12px;
+    }
+
+    .features-list {
+      list-style: none;
+      margin-bottom: 16px;
+      flex-grow: 1;
+    }
+
+    .features-list li {
+      font-size: 0.9rem;
+      color: var(--text-color);
+      margin-bottom: 6px;
+      position: relative;
+      padding-left: 16px;
+    }
+
+    .features-list li::before {
+      content: "•";
+      color: var(--primary-color);
+      font-weight: bold;
+      position: absolute;
+      left: 0;
+    }
+
+    .spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin-top: auto;
+    }
+
+    .spec-table th, .spec-table td {
+      border: 1px solid var(--border-color);
+      padding: 6px 10px;
+      text-align: left;
+    }
+
+    .spec-table th {
+      background-color: #f9f9f9;
+      color: var(--text-muted);
+      width: 35%;
+      font-weight: 600;
+    }
+
+    footer {
+      background-color: #e9ecef;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 24px 16px;
+      margin-top: 50px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .disclaimer {
+      font-size: 0.85rem;
+      color: #721c24;
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+      display: inline-block;
+      padding: 10px 16px;
+      border-radius: 6px;
+      max-width: 600px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>居家打掃工具</h1>
+    <p>聰明打掃‧輕鬆保鮮‧高品質居家生活首選</p>
+  </header>
+
+  <div class="container">
+    <div class="product-grid">
+
+      <!-- Product 1 -->
+      <div class="product-card">
+        <div class="product-image-wrap">
+          <img src="https://cpaizo.github.io/farcent/photos/04%E5%B1%85%E5%AE%B6%E6%89%93%E6%8E%83%E5%B7%A5%E5%85%B7/01%E9%A9%85%E5%A1%B5%E6%B0%8F%E9%BB%8F%E5%A1%B5%E6%BB%BE%E8%BC%AA.png" alt="驅塵氏黏塵滾輪" class="product-image">
+        </div>
+        <div class="product-info">
+          <h2 class="product-title">1. 驅塵氏黏塵滾輪</h2>
+          <ul class="features-list">
+            <li><strong>特殊斜撕</strong>：斜撕切口設計，順手易撕不卡手。</li>
+            <li><strong>超強黏力</strong>：專利高黏性膠紙，輕鬆抓取毛髮、灰塵與碎屑。</li>
+            <li><strong>多元適用</strong>：適用於地毯、沙發、床單及衣物等織物表面。</li>
+          </ul>
+          <table class="spec-table">
+            <tr>
+              <th>尺寸</th>
+              <td>紙幅約 16 cm</td>
+            </tr>
+            <tr>
+              <th>內容物</th>
+              <td>握把桿 1 支 + 膠捲 1 捲</td>
+            </tr>
+            <tr>
+              <th>主要成分</th>
+              <td>聚丙烯（PP）、單面矽油塗布紙、熱熔膠</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Product 2 -->
+      <div class="product-card">
+        <div class="product-image-wrap">
+          <img src="https://cpaizo.github.io/farcent/photos/04%E5%B1%85%E5%AE%B6%E6%89%93%E6%8E%83%E5%B7%A5%E5%85%B7/02%E9%A9%85%E5%A1%B5%E6%B0%8F%E6%8A%97%E8%8F%8C%E6%BF%95%E6%8B%96%E5%B7%BE-%E6%9C%A8%E8%B3%AA%E9%BA%9D%E9%A6%99.png" alt="驅塵氏抗菌濕拖巾-木質麝香" class="product-image">
+        </div>
+        <div class="product-info">
+          <h2 class="product-title">2. 驅塵氏抗菌濕拖巾-木質麝香</h2>
+          <ul class="features-list">
+            <li><strong>雙面去污</strong>：網格織紋設計，雙面皆可使用，清掃效率高。</li>
+            <li><strong>抗菌去味</strong>：添加抗菌配方，有效抑制細菌並帶走異味。</li>
+            <li><strong>即用即丟</strong>：免洗抹布，避免二次污染與細菌滋生。</li>
+          </ul>
+          <table class="spec-table">
+            <tr>
+              <th>尺寸</th>
+              <td>約 20 cm × 28.5 cm</td>
+            </tr>
+            <tr>
+              <th>內容物</th>
+              <td>12 片 / 包</td>
+            </tr>
+            <tr>
+              <th>主要成分</th>
+              <td>柔軟水針不織布、抗菌劑、香精、界面活性劑</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Product 3 -->
+      <div class="product-card">
+        <div class="product-image-wrap">
+          <img src="https://cpaizo.github.io/farcent/photos/04%E5%B1%85%E5%AE%B6%E6%89%93%E6%8E%83%E5%B7%A5%E5%85%B7/03%E9%A9%85%E5%A1%B5%E6%B0%8F%E9%9B%99%E8%BB%8C%E5%AF%86%E5%B0%81%E5%A4%BE%E9%8F%88%E8%A2%8B(%E4%B8%AD).png" alt="驅塵氏雙軌密封夾鏈袋(中)" class="product-image">
+        </div>
+        <div class="product-info">
+          <h2 class="product-title">3. 驅塵氏雙軌密封夾鏈袋(中)</h2>
+          <ul class="features-list">
+            <li><strong>極致鎖鮮</strong>：120小時超強鎖鮮力（牛肉冷凍測試氧化程度降低約11%）。</li>
+            <li><strong>雙重密封</strong>：雙軌夾鏈防潮阻水（堅果常溫測試防潮提升41%）。</li>
+            <li><strong>強韌耐用</strong>：橫向耐撕裂性提升至 140%。</li>
+            <li><strong>安全無毒</strong>：無塑化劑、不含雙酚 A，符合歐盟標準與 16 項檢測。</li>
+          </ul>
+          <table class="spec-table">
+            <tr>
+              <th>尺寸</th>
+              <td>19 cm × 20.5 cm</td>
+            </tr>
+            <tr>
+              <th>內容物</th>
+              <td>35 張 / 盒</td>
+            </tr>
+            <tr>
+              <th>主要成分</th>
+              <td>LDPE（低密度聚乙烯）</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Product 4 -->
+      <div class="product-card">
+        <div class="product-image-wrap">
+          <img src="https://cpaizo.github.io/farcent/photos/04%E5%B1%85%E5%AE%B6%E6%89%93%E6%8E%83%E5%B7%A5%E5%85%B7/04%E9%A9%85%E5%A1%B5%E6%B0%8F%E9%9D%9C%E9%9B%BB%E9%99%A4%E5%A1%B5%E7%B4%99(%E7%84%A1%E9%A6%99).png" alt="驅塵氏靜電除塵紙(無香)" class="product-image">
+        </div>
+        <div class="product-info">
+          <h2 class="product-title">4. 驅塵氏靜電除塵紙(無香)</h2>
+          <ul class="features-list">
+            <li><strong>4D鎖塵科技</strong>：蜂巢結構鎖定微塵，牢牢抓住毛髮不落屑。</li>
+            <li><strong>高性價比</strong>：支援雙面擦拭，可單用或搭配拖把使用。</li>
+            <li><strong>2倍蓬鬆厚實</strong>：立體蓬鬆纖維，服貼地面超耐磨。</li>
+            <li><strong>熱銷肯定</strong>：台灣銷售 No.1，獲 99.9% 使用好評。</li>
+          </ul>
+          <table class="spec-table">
+            <tr>
+              <th>尺寸</th>
+              <td>21 cm × 28.5 cm</td>
+            </tr>
+            <tr>
+              <th>內容物</th>
+              <td>25 片 / 包</td>
+            </tr>
+            <tr>
+              <th>主要成分</th>
+              <td>聚丙烯</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    <div class="disclaimer">
+      <strong>【教學示範聲明】</strong><br>
+      本網站僅供資訊教學與功能模擬測試使用，非真實營運之網路商店。
+    </div>
+  </footer>
+
+</body>
+</html>

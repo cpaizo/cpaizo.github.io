@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>茶樹莊園天然清潔系列 - 網路商店</title>
+    <style>
+        :root {
+            --primary-color: #2e7d32;
+            --primary-hover: #1b5e20;
+            --bg-color: #f4f6f4;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --text-muted: #666666;
+            --border-color: #e0e0e0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "PingFang TC", "Microsoft JhengHei", "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            flex: 1;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .product-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 250px;
+            background-color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .product-image img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .product-content {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-title {
+            font-size: 1.25rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .product-features {
+            list-style: none;
+            margin-bottom: 10px;
+            flex-grow: 1;
+        }
+
+        .product-features li {
+            position: relative;
+            padding-left: 18px;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        .product-features li::before {
+            content: "•";
+            color: var(--primary-color);
+            font-weight: bold;
+            font-size: 1.2rem;
+            position: absolute;
+            left: 0;
+            top: -2px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        footer p {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>茶樹莊園 天然清潔系列</h1>
+        <p>植萃抗菌 · 自然純淨 · 給家人最安心的防護</p>
+    </header>
+
+    <div class="container">
+        <!-- 商品 1 -->
+        <div class="product-card">
+            <div class="product-image">
+                <img src="https://cpaizo.github.io/farcent/photos/02%E5%A4%A9%E7%84%B6%E6%B8%85%E6%BD%94%E6%B4%97%E5%8A%91/01%E8%8C%B6%E6%A8%B9%E8%8E%8A%E5%9C%92%E8%8C%B6%E6%A8%B9%E6%AA%B8%E6%AA%AC%E6%8A%97%E8%8F%8C%E6%B4%97%E6%89%8B%E6%85%95%E6%96%AF.png" alt="茶樹莊園 茶樹檸檬抗菌洗手慕斯">
+            </div>
+            <div class="product-content">
+                <h2 class="product-title">1. 茶樹莊園 茶樹檸檬抗菌洗手慕斯</h2>
+                <ul class="product-features">
+                    <li><strong>產品特色：</strong>添加澳洲茶樹精油，主打植萃抗菌 NO.1，經 SGS 檢驗抑菌力達 99.9%。</li>
+                    <li><strong>成分與安全性：</strong>無添加螢光劑、矽靈、皂鹼與香料，成分溫和滋潤，安心不乾澀。</li>
+                    <li><strong>規格與香味：</strong>正裝 500g，茶樹檸檬香味。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 商品 2 -->
+        <div class="product-card">
+            <div class="product-image">
+                <img src="https://cpaizo.github.io/farcent/photos/02%E5%A4%A9%E7%84%B6%E6%B8%85%E6%BD%94%E6%B4%97%E5%8A%91/02%E8%8C%B6%E6%A8%B9%E8%8E%8A%E5%9C%92%E8%8C%B6%E6%A8%B9%E5%A4%A9%E7%84%B6%E6%BF%83%E7%B8%AE%E6%8A%97%E8%8F%8C%E6%B4%97%E8%A1%A3%E7%B2%BE.png" alt="茶樹莊園 茶樹天然濃縮抗菌洗衣精">
+            </div>
+            <div class="product-content">
+                <h2 class="product-title">2. 茶樹莊園 茶樹天然濃縮抗菌洗衣精</h2>
+                <ul class="product-features">
+                    <li><strong>規格：</strong>2,000g </li>
+                    <li><strong>產品特色：</strong>添加 100% 澳洲茶樹精油與超濃縮潔淨因子，具防霉效果並可抵抗 6 大常見菌種。</li>
+                    <li><strong>檢測與安全：</strong>經第三方實驗室檢測 99% 抗 HCoV 229E 人類冠狀病毒、經第三方公證單位檢測得產品抑菌力達 99.9%（有效對抗大腸桿菌、金黃色葡萄球菌、肺炎桿菌、黑黴菌、卡他莫拉菌、白色念珠菌等 6 大常見病菌），生物分解度達 95% 以上。中性溫和，無添加色素、磷、壬基酚、甲醛及三氯沙。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 商品 3 -->
+        <div class="product-card">
+            <div class="product-image">
+                <img src="https://cpaizo.github.io/farcent/photos/02%E5%A4%A9%E7%84%B6%E6%B8%85%E6%BD%94%E6%B4%97%E5%8A%91/03%E8%8C%B6%E6%A8%B9%E8%8E%8A%E5%9C%926X%E6%BF%83%E7%B8%AE%E7%A7%91%E6%8A%80%E6%B4%97%E8%A1%A3%E7%90%83-%E6%8A%97%E8%8F%8C%E9%98%B2%E8%9F%8E.png" alt="茶樹莊園 6X濃縮科技洗衣球（抗菌防蟎）">
+            </div>
+            <div class="product-content">
+                <h2 class="product-title">3. 茶樹莊園 6X濃縮科技洗衣球（抗菌防蟎）</h2>
+                <ul class="product-features">
+                    <li><strong>產品特色：</strong>主打打擊過敏源，兼具防蟎、抗菌與深層潔淨效果。</li>
+                    <li><strong>核心技術：</strong>採用歐洲 3.9 倍超濃縮洗淨製程與微膠囊緩釋留香技術（持香可達 7 天）；添加澳洲茶樹精油，抗菌、抗冠狀病毒與抗塵蟎率達 99%。</li>
+                    <li><strong>環保認證：</strong>取得美國 USDA 綠色商品認證（生物基成分 62%），生物分解度 95% 以上。</li>
+                    <li><strong>數量：</strong>26 顆</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 商品 4 -->
+        <div class="product-card">
+            <div class="product-image">
+                <img src="https://cpaizo.github.io/farcent/photos/02%E5%A4%A9%E7%84%B6%E6%B8%85%E6%BD%94%E6%B4%97%E5%8A%91/04%E8%8C%B6%E6%A8%B9%E8%8E%8A%E5%9C%92%E9%9B%99%E6%95%88%E8%94%AC%E6%9E%9C%E9%A3%9F%E5%99%A8%E6%B4%97%E6%BB%8C%E6%B6%B2-%E9%85%B5%E7%B4%A0%E6%B2%B9%E5%88%87.png" alt="茶樹莊園 雙效蔬果食器洗滌液（酵素油切）">
+            </div>
+            <div class="product-content">
+                <h2 class="product-title">4. 茶樹莊園 雙效蔬果食器洗滌液（酵素油切）</h2>
+                <ul class="product-features">
+                    <li><strong>配方特色：</strong>結合檸檬及柑橘精油與雙酵油切因子，主打高效解垢與極淨去油。</li>
+                    <li><strong>用途與安全性：</strong>適用於清洗碗盤與洗滌蔬果。通過美國 AS 實驗室 50 人親膚臨床測試（低敏無刺激）並符合美國 USDA 生質認證，溫和不咬手。</li>
+                    <li><strong>容量規格：</strong>正裝 1000g。</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p><strong>【教學示範聲明】</strong></p>
+        <p>本網站僅供資訊教學與功能模擬測試使用，非真實營運之網路商店。</p>
+    </footer>
+
+</body>
+</html>
