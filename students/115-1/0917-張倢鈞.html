@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <title>阿黃：不要再打了啦！</title>
+  <title>超可愛哭哭柴犬</title>
   <style>
     * {
       box-sizing: border-box;
@@ -15,243 +15,260 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      background-color: #1a1c23;
+      background-color: #fff9f0;
       overflow: hidden;
       cursor: none;
-      font-family: sans-serif;
+      font-family: system-ui, -apple-system, sans-serif;
     }
 
     .ui-container {
-      margin-bottom: 30px;
+      margin-bottom: 25px;
       text-align: center;
     }
 
-    /* 頂部主標題 */
     .game-title {
-      color: #ffe156;
-      font-size: 32px;
-      font-weight: 900;
-      margin: 0 0 15px 0;
-      text-shadow: 2px 3px 6px rgba(0, 0, 0, 0.6);
-      letter-spacing: 1.5px;
+      color: #795548;
+      font-size: 26px;
+      font-weight: 800;
+      margin: 0 0 12px 0;
     }
 
     .hp-bar-bg {
-      width: 320px;
-      height: 26px;
-      background-color: #2a2d3d;
-      border-radius: 13px;
-      border: 3px solid #4a4e69;
+      width: 260px;
+      height: 18px;
+      background-color: #e0d0c0;
+      border-radius: 9px;
       overflow: hidden;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
       margin: 0 auto;
     }
     .hp-bar-fill {
       width: 100%;
       height: 100%;
-      background: linear-gradient(90deg, #ff4757, #ff6b81);
+      background-color: #ff9800;
       transition: width 0.1s ease-out;
     }
     .hp-text {
-      color: #f1f2f6;
-      font-size: 22px;
+      color: #8d6e63;
+      font-size: 15px;
       font-weight: bold;
-      margin-top: 10px;
+      margin-top: 8px;
     }
 
     .btn-wrapper {
       position: relative;
     }
 
-    /* 暖黃果凍怪獸造型 */
-    .monster-btn {
+    /* 可愛圓滾滾柴犬頭部 */
+    .shiba-btn {
       width: 220px;
-      height: 220px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 35% 35%, #ffe156, #ff9f1c);
-      border: 6px solid #ffffff;
+      height: 200px;
+      background-color: #ffa726;
+      border-radius: 50% 50% 45% 45%;
+      border: 5px solid #fb8c00;
       outline: none;
       cursor: none;
       position: relative;
-      box-shadow: 0 20px 35px rgba(255, 159, 28, 0.35),
-                  0 15px 25px rgba(0, 0, 0, 0.5),
-                  inset 0 10px 15px rgba(255, 255, 255, 0.6);
-      transition: transform 0.08s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transition: transform 0.08s ease;
       display: flex;
       justify-content: center;
       align-items: center;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.08);
     }
 
-    /* 腮紅 */
+    /* 圓潤的短耳朵 */
+    .ear {
+      position: absolute;
+      top: -12px;
+      width: 50px;
+      height: 50px;
+      background-color: #ffa726;
+      border: 5px solid #fb8c00;
+      border-radius: 10px 40px 0 0;
+    }
+    .ear.left {
+      left: 15px;
+      transform: rotate(-15deg);
+    }
+    .ear.right {
+      right: 15px;
+      transform: rotate(15deg) scaleX(-1);
+    }
+
+    .ear-inner {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      width: 24px;
+      height: 24px;
+      background-color: #ffcc80;
+      border-radius: 5px 20px 0 0;
+    }
+
+    /* 腮幫子白包子臉 */
+    .face-white {
+      position: absolute;
+      bottom: 0;
+      width: 170px;
+      height: 110px;
+      background-color: #ffffff;
+      border-radius: 60px 60px 45% 45%;
+    }
+
+    /* 豆豆眉毛 */
+    .eyebrow {
+      position: absolute;
+      top: 45px;
+      width: 26px;
+      height: 20px;
+      background-color: #ffffff;
+      border-radius: 50%;
+    }
+    .eyebrow.left { left: 45px; }
+    .eyebrow.right { right: 45px; }
+
+    /* 粉嫩腮紅 */
     .blush {
       position: absolute;
-      width: 28px;
+      top: 95px;
+      width: 24px;
       height: 14px;
-      background: rgba(255, 71, 87, 0.4);
+      background-color: #ffab91;
       border-radius: 50%;
-      top: 85px;
+      opacity: 0.6;
     }
-    .blush.left { left: 40px; }
-    .blush.right { right: 40px; }
+    .blush.left { left: 25px; }
+    .blush.right { right: 25px; }
 
-    /* 平時眼睛 */
+    /* 水汪汪大眼睛 */
     .eye {
-      width: 35px;
-      height: 35px;
-      background: white;
-      border-radius: 50%;
       position: absolute;
-      top: 50px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      top: 72px;
+      width: 22px;
+      height: 26px;
+      background-color: #3e2723;
+      border-radius: 50%;
+      z-index: 2;
     }
-    .eye.left { left: 50px; }
-    .eye.right { right: 50px; }
-    .pupil {
-      width: 18px;
-      height: 18px;
-      background: #2f3542;
+    .eye.left { left: 52px; }
+    .eye.right { right: 52px; }
+
+    /* 眼中光澤 */
+    .eye::after {
+      content: '';
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      width: 8px;
+      height: 8px;
+      background-color: #ffffff;
       border-radius: 50%;
     }
 
-    /* 平時嘴巴 */
+    /* 鼻子與嘴巴 */
+    .nose {
+      position: absolute;
+      top: 100px;
+      width: 20px;
+      height: 14px;
+      background-color: #3e2723;
+      border-radius: 40% 40% 50% 50%;
+      z-index: 2;
+    }
+
     .mouth {
-      width: 46px;
-      height: 24px;
-      background: #ff4757;
-      border-bottom-left-radius: 23px;
-      border-bottom-right-radius: 23px;
       position: absolute;
-      bottom: 50px;
-      transition: all 0.05s;
+      top: 112px;
+      width: 26px;
+      height: 10px;
+      border-bottom: 3px solid #3e2723;
+      border-radius: 0 0 13px 13px;
+      z-index: 2;
     }
 
-    /* 被打時變哭哭臉 */
-    .monster-btn.crying .eye {
-      background: transparent;
-      border-radius: 0;
-      box-shadow: none;
-    }
-    .monster-btn.crying .eye::before {
-      content: '＞';
-      font-size: 32px;
-      font-weight: 900;
-      color: #2f3542;
-      position: absolute;
-    }
-    .monster-btn.crying .eye.left::before { transform: rotate(90deg); }
-    .monster-btn.crying .eye.right::before { transform: rotate(90deg); }
-    .monster-btn.crying .pupil { display: none; }
-
-    .monster-btn.crying .mouth {
-      height: 18px;
-      border-radius: 0;
-      border-top-left-radius: 23px;
-      border-top-right-radius: 23px;
-      background: #ff4757;
-      bottom: 55px;
-    }
-
-    /* 眼淚 */
+    /* 眼淚（預設隱藏） */
     .tear {
       position: absolute;
-      width: 12px;
-      height: 18px;
-      background: #70a1ff;
-      border-radius: 50%;
-      top: 85px;
+      top: 92px;
+      width: 10px;
+      height: 14px;
+      background-color: #4fc3f7;
+      border-radius: 50% 50% 50% 50% / 80% 80% 30% 30%;
+      opacity: 0;
+      z-index: 3;
+      transition: opacity 0.1s;
+    }
+    .tear.left { left: 45px; }
+    .tear.right { right: 45px; }
+
+    /* --- 被打時的哭哭樣貌 --- */
+    .shiba-btn.crying .eye {
+      height: 6px;
+      top: 80px;
+      background-color: #3e2723;
+      border-radius: 3px;
+    }
+    .shiba-btn.crying .eye::after {
       display: none;
     }
-    .tear.left { left: 60px; }
-    .tear.right { right: 60px; }
-
-    .monster-btn.crying .tear {
-      display: block;
-      animation: dropTear 0.3s ease-in infinite;
+    .shiba-btn.crying .mouth {
+      width: 18px;
+      height: 12px;
+      border: none;
+      background-color: #3e2723;
+      border-radius: 50%;
+      top: 114px;
+    }
+    .shiba-btn.crying .tear {
+      opacity: 1;
+      animation: dropTear 0.3s infinite ease-in;
     }
 
     @keyframes dropTear {
-      0% { transform: translateY(0) scale(1); opacity: 1; }
-      100% { transform: translateY(25px) scale(0.5); opacity: 0; }
+      0% { transform: translateY(0); }
+      100% { transform: translateY(12px); opacity: 0; }
     }
 
-    .monster-btn.hit {
-      transform: scale(0.88) translateY(12px);
-    }
-
-    .monster-btn.respawn {
-      animation: shake 0.3s ease-in-out;
-    }
-
-    @keyframes shake {
-      0% { transform: scale(0.8) rotate(0deg); }
-      50% { transform: scale(1.1) rotate(10deg); }
-      100% { transform: scale(1) rotate(0deg); }
+    .shiba-btn.hit {
+      transform: scale(0.9) translateY(10px);
     }
 
     .dmg-num {
       position: absolute;
-      font-weight: 900;
-      font-size: 32px;
-      color: #ffda79;
-      text-shadow: 2px 2px 0 #000;
+      font-weight: 800;
+      font-size: 26px;
+      color: #ff7043;
       pointer-events: none;
-      animation: floatUp 0.6s ease-out forwards;
+      animation: floatUp 0.4s ease-out forwards;
       z-index: 999;
     }
 
-    .dmg-num.crit {
-      font-size: 42px;
-      color: #ff5252;
-      text-shadow: 3px 3px 0 #000;
-    }
-
     @keyframes floatUp {
-      0% { opacity: 1; transform: translateY(0) scale(1); }
-      50% { transform: translateY(-30px) scale(1.3); }
-      100% { opacity: 0; transform: translateY(-60px) scale(0.8); }
+      0% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-35px); }
     }
 
-    .particle {
-      position: absolute;
-      width: 12px;
-      height: 12px;
-      border-radius: 3px;
-      pointer-events: none;
-      animation: explode 0.5s ease-out forwards;
-      z-index: 998;
-    }
-
-    @keyframes explode {
-      0% { opacity: 1; transform: translate(0, 0) scale(1); }
-      100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0.2) rotate(360deg); }
-    }
-
+    /* 可愛小木槌 */
     #hammer {
       position: fixed;
       top: 0;
       left: 0;
-      width: 120px;
-      height: 120px;
+      width: 90px;
+      height: 90px;
       pointer-events: none;
       z-index: 9999;
-      transform-origin: 90% 80%;
-      transition: transform 0.05s ease-out;
-      filter: drop-shadow(5px 10px 8px rgba(0,0,0,0.5));
+      transform-origin: 80% 80%;
+      transition: transform 0.04s ease-out;
     }
 
     #hammer.swung {
-      transform: rotate(-65deg) scale(1.1) translateY(10px) !important;
+      transform: rotate(-55deg) translateY(8px) !important;
     }
   </style>
 </head>
 <body>
 
-  <!-- UI 區域：標題放在最前方 -->
   <div class="ui-container">
-    <h1 class="game-title">阿黃：不要再打了啦！</h1>
+    <h1 class="game-title">不要打柴柴 Q_Q</h1>
     <div class="hp-bar-bg">
       <div class="hp-bar-fill" id="hp-fill"></div>
     </div>
@@ -259,28 +276,26 @@
   </div>
 
   <div class="btn-wrapper" id="wrapper">
-    <button class="monster-btn" id="btn">
-      <div class="eye left"><div class="pupil"></div></div>
-      <div class="eye right"><div class="pupil"></div></div>
+    <button class="shiba-btn" id="btn">
+      <div class="ear left"><div class="ear-inner"></div></div>
+      <div class="ear right"><div class="ear-inner"></div></div>
+      <div class="face-white"></div>
+      <div class="eyebrow left"></div>
+      <div class="eyebrow right"></div>
       <div class="blush left"></div>
       <div class="blush right"></div>
+      <div class="eye left"></div>
+      <div class="eye right"></div>
       <div class="tear left"></div>
       <div class="tear right"></div>
+      <div class="nose"></div>
       <div class="mouth"></div>
     </button>
   </div>
 
   <svg id="hammer" viewBox="0 0 100 100">
-    <rect x="42" y="35" width="16" height="60" rx="5" fill="#8d5524" stroke="#5c3818" stroke-width="2"/>
-    <rect x="45" y="40" width="4" height="50" fill="#a0683a" opacity="0.5"/>
-    <line x1="42" y1="80" x2="58" y2="80" stroke="#3d230d" stroke-width="2"/>
-    <line x1="42" y1="85" x2="58" y2="85" stroke="#3d230d" stroke-width="2"/>
-    <rect x="10" y="12" width="80" height="30" rx="6" fill="#b07d4f" stroke="#5c3818" stroke-width="2.5"/>
-    <rect x="22" y="12" width="6" height="30" fill="#d4af37"/>
-    <rect x="72" y="12" width="6" height="30" fill="#d4af37"/>
-    <rect x="5" y="10" width="8" height="34" rx="3" fill="#e0e0e0" stroke="#888" stroke-width="1.5"/>
-    <rect x="87" y="10" width="8" height="34" rx="3" fill="#e0e0e0" stroke="#888" stroke-width="1.5"/>
-    <rect x="13" y="15" width="74" height="5" fill="#ffffff" opacity="0.3"/>
+    <rect x="42" y="35" width="14" height="50" rx="4" fill="#a1887f"/>
+    <rect x="12" y="16" width="76" height="24" rx="6" fill="#8d6e63"/>
   </svg>
 
   <script>
@@ -292,30 +307,11 @@
 
     let maxHp = 100;
     let currentHp = 100;
-
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    
-    function playHitSound(isCrit) {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      
-      osc.type = isCrit ? 'sawtooth' : 'triangle';
-      osc.frequency.setValueAtTime(isCrit ? 180 : 120, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(35, audioCtx.currentTime + 0.15);
-      
-      gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-      
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.15);
-    }
+    let resetTimer = null;
 
     window.addEventListener('mousemove', (e) => {
-      hammer.style.left = `${e.clientX - 90}px`;
-      hammer.style.top = `${e.clientY - 80}px`;
+      hammer.style.left = `${e.clientX - 65}px`;
+      hammer.style.top = `${e.clientY - 55}px`;
     });
 
     window.addEventListener('mousedown', () => hammer.classList.add('swung'));
@@ -327,71 +323,42 @@
 
     btn.addEventListener('mouseup', () => {
       btn.classList.remove('hit');
-      setTimeout(() => {
+      clearTimeout(resetTimer);
+      resetTimer = setTimeout(() => {
         btn.classList.remove('crying');
-      }, 200);
+      }, 400);
     });
 
     btn.addEventListener('click', (e) => {
-      const isCrit = Math.random() < 0.25;
-      const damage = isCrit ? 25 : 10;
-      
-      currentHp -= damage;
-      if (currentHp < 0) currentHp = 0;
+      const damage = 10;
+      currentHp = Math.max(0, currentHp - damage);
 
-      playHitSound(isCrit);
-      createDmgText(e, damage, isCrit);
-      createParticles(e);
+      createDmgText(e, damage);
 
       const percentage = (currentHp / maxHp) * 100;
       hpFill.style.width = `${percentage}%`;
       hpText.innerText = `HP: ${currentHp} / ${maxHp}`;
 
       if (currentHp === 0) {
-        btn.classList.add('respawn');
-        hpText.innerText = "✨ 阿黃求饒了！壓力全消！";
-        
+        hpText.innerText = "柴柴哭哭秀秀中...";
         setTimeout(() => {
           currentHp = maxHp;
           hpFill.style.width = '100%';
           hpText.innerText = `HP: ${currentHp} / ${maxHp}`;
-          btn.classList.remove('respawn');
         }, 600);
       }
     });
 
-    function createDmgText(e, dmg, isCrit) {
+    function createDmgText(e, dmg) {
       const rect = wrapper.getBoundingClientRect();
       const num = document.createElement('div');
-      num.className = `dmg-num ${isCrit ? 'crit' : ''}`;
-      num.innerText = isCrit ? `CRIT -${dmg}!` : `-${dmg}`;
-      
-      num.style.left = `${e.clientX - rect.left - 20}px`;
-      num.style.top = `${e.clientY - rect.top - 40}px`;
+      num.className = 'dmg-num';
+      num.innerText = `-${dmg}`;
+      num.style.left = `${e.clientX - rect.left - 10}px`;
+      num.style.top = `${e.clientY - rect.top - 30}px`;
       
       wrapper.appendChild(num);
-      setTimeout(() => num.remove(), 600);
-    }
-
-    function createParticles(e) {
-      const rect = wrapper.getBoundingClientRect();
-      const colors = ['#ffe156', '#ff9f1c', '#70a1ff', '#ffffff'];
-      
-      for (let i = 0; i < 8; i++) {
-        const p = document.createElement('div');
-        p.className = 'particle';
-        p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-        p.style.left = `${e.clientX - rect.left}px`;
-        p.style.top = `${e.clientY - rect.top}px`;
-        
-        const tx = (Math.random() - 0.5) * 160;
-        const ty = (Math.random() - 0.5) * 160;
-        p.style.setProperty('--tx', `${tx}px`);
-        p.style.setProperty('--ty', `${ty}px`);
-        
-        wrapper.appendChild(p);
-        setTimeout(() => p.remove(), 500);
-      }
+      setTimeout(() => num.remove(), 400);
     }
   </script>
 </body>
