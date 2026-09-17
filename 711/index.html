@@ -251,8 +251,8 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-  // ⚠️ 請填入您 GAS 部署出的 Web App URL (結尾為 /exec)
-  const GAS_URL = "https://script.google.com/macros/s/YOUR_GAS_DEPLOYMENT_ID/exec";
+  // ✅ 已帶入您正確的 GAS 部署網址
+  const GAS_URL = "https://script.google.com/macros/s/AKfycby0-Z4sELBuIitYrn0B6tb8jfx_HhB_NVc11giEPDeR6reVi8A1HSl47dir-j3A_wN3qw/exec";
 
   let currentLogs = [];
   let currentSummary = {};
@@ -500,8 +500,10 @@
       note: document.getElementById('note').value
     };
 
+    // 使用 text/plain 格式避免觸發 CORS 預檢請求
     fetch(GAS_URL, {
       method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ action: 'saveWorkLog', formData: formData })
     })
     .then(res => res.json())
@@ -515,7 +517,7 @@
     .catch(err => {
       saveBtn.disabled = false;
       saveBtn.innerText = '儲存工時紀錄';
-      alert('儲存失敗');
+      alert('儲存失敗：' + err);
     });
   });
 
@@ -556,6 +558,7 @@
 
     fetch(GAS_URL, {
       method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ action: 'deleteWorkLog', id: id, password: pwd })
     })
     .then(res => res.json())
