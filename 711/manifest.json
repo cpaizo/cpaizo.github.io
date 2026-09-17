@@ -1,0 +1,21 @@
+{
+  "name": "7-ELEVEN 門市工時管理系統",
+  "short_name": "門市工時",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#E2231A",
+  "icons": [
+    {
+      "src": "https://cpaizo.github.io/photos/appicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cpaizo.github.io/photos/appicon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
