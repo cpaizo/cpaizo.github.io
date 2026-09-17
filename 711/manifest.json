@@ -1,7 +1,8 @@
 {
   "name": "7-ELEVEN 門市工時管理系統",
   "short_name": "門市工時",
-  "start_url": "./",
+  "start_url": "/711/",
+  "scope": "/711/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#E2231A",
