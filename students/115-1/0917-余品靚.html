@@ -1,0 +1,330 @@
+<h1 style="color: #D9C672;">我是標題</h1>
+<p style="color: #54D979;">我是内~文~</p>
+<p style="color: #365AD9;">我是段落嘻嘻嘻</p>
+<body style="background-color: #D98D75;">
+
+<button style="background-color: #D9C314;font-size: 20px;" onclick="alert('打給賀')">
+	點偶
+</button>
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高質感立體按鈕 - 真實玻璃擊碎特效</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #0d0d11, #1e1e24);
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+            overflow: hidden;
+            cursor: none;
+        }
+
+        /* ---------------- 自訂滑鼠槌子 ---------------- */
+        #cursor-hammer {
+            position: fixed;
+            font-size: 80px;
+            pointer-events: none;
+            z-index: 99999;
+            transform-origin: 80% 80%;
+            margin-left: -55px;
+            margin-top: -65px;
+            transition: transform 0.08s ease-out;
+            filter: drop-shadow(4px 10px 8px rgba(0,0,0,0.6));
+            user-select: none;
+        }
+
+        #cursor-hammer.swing {
+            transform: rotate(-60deg) scale(1.15);
+        }
+
+        /* ---------------- 高質感立體按鈕 (位置放下面一點) ---------------- */
+        .btn-container {
+            position: absolute;
+            top: 70%; /* 調整原本的 50% 為 70%，讓按鈕位置靠下 */
+            left: 50%;
+            transform: translate(-50%, -50%);
+            perspective: 1000px;
+            z-index: 10;
+        }
+
+        .btn-3d {
+            position: relative;
+            padding: 22px 60px;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 3px;
+            color: #3b2d00;
+            cursor: none;
+            border: none;
+            border-radius: 20px;
+            background: linear-gradient(180deg, #FFE853 0%, #D9C314 50%, #9E8B00 100%);
+            box-shadow: 
+                0 10px 0 #685b00, 
+                0 20px 30px rgba(0, 0, 0, 0.6), 
+                inset 0 3px 3px rgba(255, 255, 255, 0.9), 
+                inset 0 -4px 4px rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            user-select: none;
+            outline: none;
+        }
+
+        .btn-3d:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.06);
+        }
+
+        .btn-3d:active {
+            transform: translateY(7px);
+            box-shadow: 
+                0 3px 0 #685b00,
+                0 6px 12px rgba(0, 0, 0, 0.4),
+                inset 0 2px 2px rgba(255, 255, 255, 0.7),
+                inset 0 -2px 3px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn-3d.restore {
+            animation: respawn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.27) forwards;
+        }
+
+        @keyframes respawn {
+            0% {
+                opacity: 0;
+                transform: scale(0.2) rotateX(-20deg);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) rotateX(0deg);
+            }
+        }
+
+        /* ---------------- Canvas 畫布 ---------------- */
+        #break-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 按鈕容器 -->
+    <div class="btn-container">
+        <button class="btn-3d" id="smashBtn">點偶</button>
+    </div>
+
+    <!-- 滑鼠槌子游標 -->
+    <div id="cursor-hammer">🔨</div>
+
+    <!-- 碎裂 Canvas -->
+    <canvas id="break-canvas"></canvas>
+
+    <script>
+        const btn = document.getElementById('smashBtn');
+        const hammer = document.getElementById('cursor-hammer');
+        const canvas = document.getElementById('break-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let shards = [];
+        let isAnimating = false;
+        let animationFrameId = null;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // 1. 滑鼠跟隨
+        document.addEventListener('mousemove', (e) => {
+            hammer.style.left = e.clientX + 'px';
+            hammer.style.top = e.clientY + 'px';
+        });
+
+        // 2. 點擊揮鎚動畫
+        document.addEventListener('mousedown', () => hammer.classList.add('swing'));
+        document.addEventListener('mouseup', () => hammer.classList.remove('swing'));
+
+        btn.addEventListener('click', (e) => {
+            if (isAnimating) return;
+            isAnimating = true;
+
+            const rect = btn.getBoundingClientRect();
+            const clickX = e.clientX;
+            const clickY = e.clientY;
+
+            // 畫面震動效果
+            document.body.style.transform = 'translate(6px, -6px)';
+            setTimeout(() => document.body.style.transform = 'translate(-4px, 4px)', 30);
+            setTimeout(() => document.body.style.transform = 'none', 70);
+
+            // 隱藏按鈕
+            btn.style.visibility = 'hidden';
+            btn.classList.remove('restore');
+
+            // 產生玻璃碎裂效果
+            generateGlassShatter(rect, clickX, clickY);
+        });
+
+        // 3. 生成玻璃碎裂效果 (環狀 + 放射狀切分)
+        function generateGlassShatter(rect, hitX, hitY) {
+            shards = [];
+            const numRays = 16;     // 放射線數量
+            const numRings = 4;     // 環狀層數
+
+            const angles = [];
+            for (let i = 0; i < numRays; i++) {
+                angles.push((Math.PI * 2 / numRays) * i + (Math.random() - 0.5) * 0.2);
+            }
+            angles.push(angles[0] + Math.PI * 2);
+
+            const radii = [0];
+            const maxRadius = Math.max(rect.width, rect.height) * 1.2;
+            for (let r = 1; r <= numRings; r++) {
+                radii.push((maxRadius / numRings) * r * (0.8 + Math.random() * 0.4));
+            }
+
+            // 構建多邊形碎片
+            for (let r = 0; r < numRings; r++) {
+                const rInner = radii[r];
+                const rOuter = radii[r + 1];
+
+                for (let a = 0; a < numRays; a++) {
+                    const a1 = angles[a];
+                    const a2 = angles[a + 1];
+
+                    // 四個頂點相對打擊點的座標
+                    const p1 = { x: Math.cos(a1) * rInner, y: Math.sin(a1) * rInner };
+                    const p2 = { x: Math.cos(a2) * rInner, y: Math.sin(a2) * rInner };
+                    const p3 = { x: Math.cos(a2) * rOuter, y: Math.sin(a2) * rOuter };
+                    const p4 = { x: Math.cos(a1) * rOuter, y: Math.sin(a1) * rOuter };
+
+                    // 重心
+                    const cx = hitX + (p1.x + p2.x + p3.x + p4.x) / 4;
+                    const cy = hitY + (p1.y + p2.y + p3.y + p4.y) / 4;
+
+                    // 爆炸方向與力量
+                    const angle = Math.atan2(cy - hitY, cx - hitX);
+                    const force = (1 - r / numRings) * 12 + Math.random() * 6;
+
+                    shards.push({
+                        vertices: [
+                            { x: p1.x + hitX - cx, y: p1.y + hitY - cy },
+                            { x: p2.x + hitX - cx, y: p2.y + hitY - cy },
+                            { x: p3.x + hitX - cx, y: p3.y + hitY - cy },
+                            { x: p4.x + hitX - cx, y: p4.y + hitY - cy }
+                        ],
+                        x: cx,
+                        y: cy,
+                        vx: Math.cos(angle) * force + (Math.random() - 0.5) * 3,
+                        vy: Math.sin(angle) * force - Math.random() * 4,
+                        gravity: 0.35 + Math.random() * 0.25,
+                        rotation: 0,
+                        vRot: (Math.random() - 0.5) * 0.3,
+                        scaleX: 1,
+                        vScaleX: (Math.random() - 0.5) * 0.08,
+                        alpha: 1,
+                        glassColor: Math.random() > 0.3 
+                            ? `rgba(220, 240, 255, ${0.25 + Math.random() * 0.35})` 
+                            : `rgba(255, 255, 255, ${0.4 + Math.random() * 0.4})`
+                    });
+                }
+            }
+
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            requestAnimationFrame(animateShards);
+        }
+
+        // 4. 動畫渲染與物理更新
+        function animateShards() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let activeCount = 0;
+
+            shards.forEach(s => {
+                if (s.y < canvas.height + 200 && s.alpha > 0) {
+                    activeCount++;
+
+                    // 物理移動
+                    s.x += s.vx;
+                    s.y += s.vy;
+                    s.vy += s.gravity;
+                    s.vx *= 0.98;
+                    s.rotation += s.vRot;
+                    s.scaleX += s.vScaleX;
+
+                    if (Math.abs(s.scaleX) > 1) s.vScaleX *= -1;
+
+                    // 落下淡出
+                    if (s.y > canvas.height - 200) {
+                        s.alpha -= 0.025;
+                    }
+
+                    ctx.save();
+                    ctx.translate(s.x, s.y);
+                    ctx.rotate(s.rotation);
+                    ctx.scale(s.scaleX, 1);
+                    ctx.globalAlpha = Math.max(0, s.alpha);
+
+                    // 繪製玻璃碎片主體
+                    ctx.beginPath();
+                    ctx.moveTo(s.vertices[0].x, s.vertices[0].y);
+                    for (let i = 1; i < s.vertices.length; i++) {
+                        ctx.lineTo(s.vertices[i].x, s.vertices[i].y);
+                    }
+                    ctx.closePath();
+
+                    ctx.fillStyle = s.glassColor;
+                    ctx.fill();
+
+                    // 玻璃高光邊框
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+
+                    // 反光切線亮點
+                    ctx.beginPath();
+                    ctx.moveTo(s.vertices[0].x, s.vertices[0].y);
+                    ctx.lineTo(s.vertices[1].x, s.vertices[1].y);
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 1)';
+                    ctx.lineWidth = 2.5;
+                    ctx.stroke();
+
+                    ctx.restore();
+                }
+            });
+
+            if (activeCount > 0) {
+                animationFrameId = requestAnimationFrame(animateShards);
+            } else {
+                restoreButton();
+            }
+        }
+
+        // 5. 按鈕重新出現
+        function restoreButton() {
+            setTimeout(() => {
+                btn.style.visibility = 'visible';
+                btn.classList.add('restore');
+                isAnimating = false;
+            }, 200);
+        }
+    </script>
+</body>
+</html>

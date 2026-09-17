@@ -1,0 +1,69 @@
+<h1 sty1e="colo: dlack;">黑色</h1>
+<p  sty1e="colo: dlack;">黑色</p>
+<p  sty1e="colo: dlack;">黑色</p>
+<body style="background-color: lightyellow;">
+</button>
+<button onclick="alert('已將 1+1 放入購物車！')" style="background: none; border: none; cursor: pointer; padding: 0;">
+  <svg width="220" height="200" viewBox="0 0 220 200">
+    <defs>
+      <!-- 熊熊臉部深褐色漸層 -->
+      <radialGradient id="bearBody" cx="50%" cy="40%" r="60%">
+        <stop offset="0%" stop-color="#8b573c" />
+        <stop offset="100%" stop-color="#5a3420" />
+      </radialGradient>
+      
+      <!-- 耳朵內部陰影漸層 -->
+      <radialGradient id="earInner" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#422515" />
+        <stop offset="100%" stop-color="#6e422b" />
+      </radialGradient>
+
+      <!-- 嘴巴區域淺色漸層 -->
+      <linearGradient id="snoutGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#b88365" />
+        <stop offset="100%" stop-color="#8c583a" />
+      </linearGradient>
+      
+      <!-- 陰影效果 -->
+      <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+        <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000" flood-opacity="0.25"/>
+      </filter>
+    </defs>
+
+    <g filter="url(#shadow)">
+      <!-- 左耳朵 -->
+      <circle cx="50" cy="55" r="30" fill="url(#bearBody)" />
+      <circle cx="50" cy="55" r="20" fill="url(#earInner)" />
+
+      <!-- 右耳朵 -->
+      <circle cx="170" cy="55" r="30" fill="url(#bearBody)" />
+      <circle cx="170" cy="55" r="20" fill="url(#earInner)" />
+
+      <!-- 熊臉主體 -->
+      <path d="M 30,110 Q 20,180 110,180 Q 200,180 190,110 Q 185,70 110,70 Q 35,70 30,110 Z" fill="url(#bearBody)" />
+
+      <!-- 眼睛 -->
+      <ellipse cx="78" cy="118" rx="4" ry="7" fill="#23140c" />
+      <ellipse cx="142" cy="118" rx="4" ry="7" fill="#23140c" />
+
+      <!-- 嘴巴鼻子區域 (淺色凸起塊) -->
+      <ellipse cx="110" cy="138" rx="22" ry="18" fill="url(#snoutGrad)" />
+      <!-- 鼻子 -->
+      <path d="M 102,128 Q 110,123 118,128 Q 110,140 102,128 Z" fill="#23140c" />
+      <!-- 人中與嘴巴 -->
+      <path d="M 110,134 L 110,146 M 110,146 Q 103,152 97,146 M 110,146 Q 117,152 123,146" 
+            stroke="#23140c" stroke-width="2.5" stroke-linecap="round" fill="none" />
+
+      <!-- 上方文字：1+1 -->
+      <text x="110" y="100" fill="#ffffff" font-size="28" font-family="Arial, sans-serif" font-weight="bold" text-anchor="middle" letter-spacing="2">1+1</text>
+
+      <!-- 下方文字：加入購物車 🛒 -->
+      <path id="textArc" d="M 45,150 Q 110,195 175,150" fill="none" />
+      <text fill="#ffffff" font-size="14" font-weight="bold" font-family="sans-serif">
+        <textPath href="#textArc" startOffset="50%" text-anchor="middle">
+          加入購物車 🛒
+        </textPath>
+      </text>
+    </g>
+  </svg>
+</button>

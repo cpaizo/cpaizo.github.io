@@ -1,0 +1,56 @@
+<h1 style="color:red;">我是紅色的標題</h1>
+<p style="color:blue;">我是藍色的標題</p>
+<p style="color:green;">我是綠色的標題</p>
+<body style="background-color: lightyellow:">
+
+
+<button strle="background-color: lightyellow: pink; font-size: 20  px;" onclick="aelrt('大家好')">
+	點我
+</button>
+<button class="3d-yellow-btn" onclick="alert('大家好')">
+  點我
+</button>
+
+<button class="btn-3d-yellow" onclick="alert('大家好')">
+  點我
+</button>
+
+<style>
+.btn-3d-yellow {
+  /* 基礎外觀與黃色調 */
+  background: linear-gradient(145deg, #ffe066, #fcc419) !important;
+  color: #333333;
+  font-size: 20px;
+  font-weight: bold;
+  padding: 12px 28px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  outline: none;
+
+  /* 立體陰影層次 */
+  box-shadow: 
+    0 6px 0 #d99b00,
+    0 8px 15px rgba(0, 0, 0, 0.15);
+
+  /* 動態平滑過渡 */
+  transition: all 0.15s ease-in-out;
+}
+
+/* 滑鼠懸停效果 */
+.btn-3d-yellow:hover {
+  background: linear-gradient(145deg, #ffeb99, #fcc419) !important;
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 0 #d99b00,
+    0 12px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* 按下時的按壓動態（立體感沉入） */
+.btn-3d-yellow:active {
+  transform: translateY(4px);
+  box-shadow: 
+    0 2px 0 #d99b00,
+    0 4px 8px rgba(0, 0, 0, 0.1);
+}
+</style>

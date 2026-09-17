@@ -1,0 +1,270 @@
+<h1 style="color: white;">我是白色</h1>
+<p style="color: black;">我是黑色</p>
+<p style="color: blue;">我是藍色</p>
+
+<body style="background-color: lightyellow;">
+
+<!--淺藍色的按鈕-->
+<button style="background-color: pink; font-size: 20 px;" onclick="alert('勿怪出默')">點我
+
+</button>
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>立體貓爪攻擊按鈕 - 背景撕裂效果</title>
+  <style>
+    /* 全局重置與基礎樣式 */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: #2b2e38; /* 暗色背景能突顯撕裂光芒與陰影 */
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* 網頁撕裂背景層容器 */
+    #scratch-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none; /* 不影響滑鼠點擊按鈕 */
+      z-index: 1;
+    }
+
+    /* 動態爪痕主體 */
+    .scratch-mark {
+      position: absolute;
+      width: 320px;
+      height: 160px;
+      transform: translate(-50%, -50%) rotate(-15deg);
+      opacity: 1;
+      animation: scratchAnim 0.8s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+    }
+
+    /* 單道爪痕切口 */
+    .claw-line {
+      position: absolute;
+      background: linear-gradient(90deg, transparent 0%, #ff4b4b 20%, #ffffff 50%, #ff4b4b 80%, transparent 100%);
+      height: 6px;
+      border-radius: 50%;
+      box-shadow: 
+        0 0 15px #ff2222,
+        0 0 30px #ff0000,
+        inset 0 0 8px #000;
+      transform: skewX(-45deg);
+    }
+
+    .claw-line:nth-child(1) { top: 10px; left: 10px; width: 280px; height: 7px; }
+    .claw-line:nth-child(2) { top: 40px; left: 30px; width: 300px; height: 9px; }
+    .claw-line:nth-child(3) { top: 75px; left: 20px; width: 290px; height: 8px; }
+    .claw-line:nth-child(4) { top: 110px; left: 40px; width: 250px; height: 6px; }
+
+    /* 背景畫面劇烈震動效果 */
+    @keyframes screenShake {
+      0% { transform: translate(0, 0); }
+      20% { transform: translate(-12px, 8px) rotate(-1deg); }
+      40% { transform: translate(10px, -10px) rotate(1deg); }
+      60% { transform: translate(-8px, -4px); }
+      80% { transform: translate(5px, 4px); }
+      100% { transform: translate(0, 0); }
+    }
+
+    .shake {
+      animation: screenShake 0.35s ease-in-out;
+    }
+
+    /* 爪痕淡出消失動畫 */
+    @keyframes scratchAnim {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.6) rotate(-20deg);
+      }
+      15% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.1) rotate(-15deg);
+      }
+      80% {
+        opacity: 0.9;
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1.15) rotate(-12deg);
+      }
+    }
+
+    /* 立體質感按鈕主體 */
+    .btn-container {
+      position: relative;
+      z-index: 10;
+    }
+
+    .btn-3d {
+      position: relative;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      padding: 18px 48px;
+      font-size: 20px;
+      font-weight: bold;
+      color: #ffffff;
+      text-decoration: none;
+      letter-spacing: 2px;
+      
+      background: linear-gradient(135deg, #ff5e62 0%, #ff9966 100%);
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      outline: none;
+      overflow: hidden;
+      user-select: none;
+
+      /* 立體厚度與懸浮陰影 */
+      box-shadow: 
+        0px 8px 0px #cc3333,
+        0px 15px 25px rgba(255, 94, 98, 0.45),
+        inset 0px 2px 2px rgba(255, 255, 255, 0.5),
+        inset 0px -2px 2px rgba(0, 0, 0, 0.2);
+
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+
+    .btn-3d span {
+      position: relative;
+      z-index: 2;
+      text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    /* 按鈕高光 */
+    .btn-3d::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 45%;
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0));
+      border-radius: 16px 16px 0 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* 按鈕內部貓爪圖案 */
+    .btn-3d::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 80px;
+      height: 80px;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="rgba(255, 255, 255, 0.4)"><path d="M50 42c-8 0-14 7-14 15 0 10 9 18 14 23 5-5 14-13 14-23 0-8-6-15-14-15z"/><circle cx="28" cy="40" r="7"/><circle cx="43" cy="30" r="7"/><circle cx="57" cy="30" r="7"/><circle cx="72" cy="40" r="7"/></svg>');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      transform: translate(-50%, -50%) scale(0.2);
+      opacity: 0;
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.27), opacity 0.15s ease;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Hover 上浮 */
+    .btn-3d:hover {
+      transform: translateY(-2px);
+      box-shadow: 
+        0px 10px 0px #cc3333,
+        0px 20px 30px rgba(255, 94, 98, 0.55),
+        inset 0px 2px 2px rgba(255, 255, 255, 0.6);
+    }
+
+    /* Active 下沉 + 顯示按鈕貓爪 */
+    .btn-3d:active {
+      transform: translateY(6px);
+      box-shadow: 
+        0px 2px 0px #cc3333,
+        0px 5px 10px rgba(255, 94, 98, 0.3),
+        inset 0px 1px 1px rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-3d:active::after {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1.1);
+    }
+  </style>
+</head>
+<body id="body">
+
+  <!-- 爪痕生成區域 -->
+  <div id="scratch-container"></div>
+
+  <!-- 立體按鈕 -->
+  <div class="btn-container">
+    <button class="btn-3d" id="attackBtn">
+      <span>🐾 召喚貓爪攻擊</span>
+    </button>
+  </div>
+
+  <script>
+    const attackBtn = document.getElementById('attackBtn');
+    const container = document.getElementById('scratch-container');
+    const body = document.getElementById('body');
+
+    attackBtn.addEventListener('mousedown', (e) => {
+      // 1. 觸發畫面震撼效果
+      body.classList.remove('shake');
+      void body.offsetWidth; // 重置 CSS 動畫
+      body.classList.add('shake');
+
+      // 2. 隨機生成 1~2 道爪痕撕裂效果
+      const count = Math.floor(Math.random() * 2) + 1;
+
+      for (let i = 0; i < count; i++) {
+        createScratch(e.clientX, e.clientY);
+      }
+    });
+
+    function createScratch(originX, originY) {
+      const scratch = document.createElement('div');
+      scratch.className = 'scratch-mark';
+
+      // 隨機偏移與旋轉，讓每次撕裂看起來獨一無二
+      const offsetX = (Math.random() - 0.5) * 180;
+      const offsetY = (Math.random() - 0.5) * 180;
+      const angle = (Math.random() - 0.5) * 60;
+
+      scratch.style.left = `${originX + offsetX}px`;
+      scratch.style.top = `${originY + offsetY}px`;
+      scratch.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+
+      // 加入 4 道貓爪撕裂痕
+      scratch.innerHTML = `
+        <div class="claw-line"></div>
+        <div class="claw-line"></div>
+        <div class="claw-line"></div>
+        <div class="claw-line"></div>
+      `;
+
+      container.appendChild(scratch);
+
+      // 動畫結束後自動清除元素
+      setTimeout(() => {
+        scratch.remove();
+      }, 800);
+    }
+  </script>
+
+</body>
+</html>

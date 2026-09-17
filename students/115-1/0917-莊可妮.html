@@ -1,0 +1,241 @@
+<h1 style="color:red;">我是紅色的標題</h1>
+<p style="color:blue;">我是藍色的段落</p>
+<p style="color:green;">我是綠色的段落</p>
+<body style="background-color: lightyellow;">
+	<button style="background-color: pink;font-size:20px;"onclick="alert('大家好')">
+		點我
+		</button>
+
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>立體動態高質感按鈕</title>
+    <style>
+        body {
+            background-color: lightyellow;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        /* 高質感 3D 動態按鈕樣式 */
+        .btn-3d-luxury {
+            /* 基礎尺寸與文字 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffffff;
+            padding: 12px 36px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            outline: none;
+            position: relative;
+            overflow: hidden;
+            
+            /* 粉紅金屬漸層質感 */
+            background: linear-gradient(145deg, #ff94b9, #ff5c8d);
+            
+            /* 多層次 3D 立體陰影 (邊框光澤 + 下方立體影) */
+            box-shadow: 
+                0 8px 15px rgba(230, 0, 75, 0.3),
+                0 4px 0px #d43b67,
+                inset 0 2px 2px rgba(255, 255, 255, 0.7),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+                
+            /* 滑順動畫轉場 */
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 按鈕表面亮光掃過效果 */
+        .btn-3d-luxury::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                120deg,
+                transparent,
+                rgba(255, 255, 255, 0.5),
+                transparent
+            );
+            transition: left 0.6s ease;
+        }
+
+        /* 滑鼠懸停 (Hover) 動態：微上浮、發光加強、流光掃過 */
+        .btn-3d-luxury:hover {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 12px 20px rgba(230, 0, 75, 0.4),
+                0 6px 0px #d43b67,
+                inset 0 2px 3px rgba(255, 255, 255, 0.9),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-3d-luxury:hover::before {
+            left: 100%;
+        }
+
+        /* 點擊按壓 (Active) 動態：真實按鈕下壓質感 */
+        .btn-3d-luxury:active {
+            transform: translateY(3px);
+            box-shadow: 
+                0 3px 6px rgba(230, 0, 75, 0.2),
+                0 1px 0px #d43b67,
+                inset 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body style="background-color: lightyellow;">
+
+    <h1 style="color:red;">我是紅色的標題</h1>
+    <p style="color:blue;">我是藍色的段落</p>
+    <p style="color:green;">我是綠色的段落</p>
+
+    <!-- 升級後的 3D 動態高質感按鈕 -->
+    <button class="btn-3d-luxury" onclick="alert('大家好')">
+        點我
+    </button>
+
+</body>
+</html>
+HTML
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>立體動態高質感倉鼠按鈕</title>
+    <style>
+        body {
+            background-color: lightyellow;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        /* 高質感 3D 動態按鈕樣式 */
+        .btn-3d-luxury {
+            /* 尺寸與彈性布局 */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 28px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            outline: none;
+            position: relative;
+            overflow: hidden;
+            
+            /* 粉紅金屬漸層質感 */
+            background: linear-gradient(145deg, #ff94b9, #ff5c8d);
+            
+            /* 多層次 3D 立體陰影 */
+            box-shadow: 
+                0 8px 15px rgba(230, 0, 75, 0.3),
+                0 4px 0px #d43b67,
+                inset 0 2px 2px rgba(255, 255, 255, 0.7),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+                
+            /* 滑順動畫轉場 */
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            user-select: none;
+        }
+
+        /* 灰色小倉鼠 SVG 視覺與 Emoji 組合 */
+        .hamster-icon {
+            width: 32px;
+            height: 32px;
+            filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
+            transition: transform 0.2s ease;
+        }
+
+        /* 按鈕表面亮光掃過效果 */
+        .btn-3d-luxury::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                120deg,
+                transparent,
+                rgba(255, 255, 255, 0.5),
+                transparent
+            );
+            transition: left 0.6s ease;
+        }
+
+        /* 滑鼠懸停 (Hover) 動態：按鈕與倉鼠微浮動 */
+        .btn-3d-luxury:hover {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 12px 20px rgba(230, 0, 75, 0.4),
+                0 6px 0px #d43b67,
+                inset 0 2px 3px rgba(255, 255, 255, 0.9),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-3d-luxury:hover .hamster-icon {
+            transform: scale(1.15) rotate(-5deg); /* 懸停時倉鼠稍微放大扭動 */
+        }
+
+        .btn-3d-luxury:hover::before {
+            left: 100%;
+        }
+
+        /* 點擊按壓 (Active) 動態 */
+        .btn-3d-luxury:active {
+            transform: translateY(3px);
+            box-shadow: 
+                0 3px 6px rgba(230, 0, 75, 0.2),
+                0 1px 0px #d43b67,
+                inset 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-3d-luxury:active .hamster-icon {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body style="background-color: lightyellow;">
+
+    <h1 style="color:red;">我是紅色的標題</h1>
+    <p style="color:blue;">我是藍色的段落</p>
+    <p style="color:green;">我是綠色的段落</p>
+
+    <!-- 替換為灰色小倉鼠的 3D 動態按鈕 -->
+    <button class="btn-3d-luxury" onclick="alert('大家好')">
+        <!-- SVG 向量灰色小倉鼠 -->
+        <svg class="hamster-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- 耳朵 -->
+            <circle cx="18" cy="18" r="7" fill="#888888"/>
+            <circle cx="18" cy="18" r="4" fill="#FFB6C1"/>
+            <circle cx="46" cy="18" r="7" fill="#888888"/>
+            <circle cx="46" cy="18" r="4" fill="#FFB6C1"/>
+            <!-- 身體/頭部 -->
+            <ellipse cx="32" cy="36" rx="20" ry="18" fill="#9E9E9E"/>
+            <!-- 肚皮/臉頰高光 -->
+            <ellipse cx="32" cy="40" rx="14" ry="11" fill="#E0E0E0"/>
+            <!-- 眼睛 -->
+            <circle cx="24" cy="32" r="2.5" fill="#212121"/>
+            <circle cx="25" cy="31" r="0.8" fill="#FFFFFF"/>
+            <circle cx="40" cy="32" r="2.5" fill="#212121"/>
+            <circle cx="41" cy="31" r="0.8" fill="#FFFFFF"/>
+            <!-- 鼻子與腮紅 -->
+            <polygon points="30,36 34,36 32,38" fill="#FF8A80"/>
+            <circle cx="19" cy="37" r="3" fill="#FF8A80" opacity="0.5"/>
+            <circle cx="45" cy="37" r="3" fill="#FF8A80" opacity="0.5"/>
+            <!-- 小手 -->
+            <ellipse cx="26" cy="45" rx="3" ry="2" fill="#E0E0E0"/>
+            <ellipse cx="38" cy="45" rx="3" ry="2" fill="#E0E0E0"/>
+        </svg>
+    </button>
+
+</body>
+</html>
