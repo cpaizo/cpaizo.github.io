@@ -14,9 +14,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>立體貓爪攻擊按鈕 - 背景撕裂效果</title>
+  <title>全螢幕玻璃裂痕震碎 - 巨貓襲擊版</title>
   <style>
-    /* 全局重置與基礎樣式 */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -28,127 +27,61 @@
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      background-color: #2b2e38; /* 暗色背景能突顯撕裂光芒與陰影 */
+      background-color: #f0f3f8;
       font-family: Arial, sans-serif;
       overflow: hidden;
       position: relative;
     }
 
-    /* 網頁撕裂背景層容器 */
-    #scratch-container {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      pointer-events: none; /* 不影響滑鼠點擊按鈕 */
-      z-index: 1;
+    /* 螢幕震動動畫 */
+    .screen-shake {
+      animation: shake 0.35s cubic-bezier(.36,.07,.19,.97) both;
     }
 
-    /* 動態爪痕主體 */
-    .scratch-mark {
-      position: absolute;
-      width: 320px;
-      height: 160px;
-      transform: translate(-50%, -50%) rotate(-15deg);
-      opacity: 1;
-      animation: scratchAnim 0.8s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+    @keyframes shake {
+      10%, 90% { transform: translate3d(-3px, -3px, 0); }
+      20%, 80% { transform: translate3d(5px, 5px, 0); }
+      30%, 50%, 70% { transform: translate3d(-7px, 3px, 0); }
+      40%, 60% { transform: translate3d(7px, -3px, 0); }
     }
 
-    /* 單道爪痕切口 */
-    .claw-line {
-      position: absolute;
-      background: linear-gradient(90deg, transparent 0%, #ff4b4b 20%, #ffffff 50%, #ff4b4b 80%, transparent 100%);
-      height: 6px;
-      border-radius: 50%;
-      box-shadow: 
-        0 0 15px #ff2222,
-        0 0 30px #ff0000,
-        inset 0 0 8px #000;
-      transform: skewX(-45deg);
-    }
-
-    .claw-line:nth-child(1) { top: 10px; left: 10px; width: 280px; height: 7px; }
-    .claw-line:nth-child(2) { top: 40px; left: 30px; width: 300px; height: 9px; }
-    .claw-line:nth-child(3) { top: 75px; left: 20px; width: 290px; height: 8px; }
-    .claw-line:nth-child(4) { top: 110px; left: 40px; width: 250px; height: 6px; }
-
-    /* 背景畫面劇烈震動效果 */
-    @keyframes screenShake {
-      0% { transform: translate(0, 0); }
-      20% { transform: translate(-12px, 8px) rotate(-1deg); }
-      40% { transform: translate(10px, -10px) rotate(1deg); }
-      60% { transform: translate(-8px, -4px); }
-      80% { transform: translate(5px, 4px); }
-      100% { transform: translate(0, 0); }
-    }
-
-    .shake {
-      animation: screenShake 0.35s ease-in-out;
-    }
-
-    /* 爪痕淡出消失動畫 */
-    @keyframes scratchAnim {
-      0% {
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(0.6) rotate(-20deg);
-      }
-      15% {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1.1) rotate(-15deg);
-      }
-      80% {
-        opacity: 0.9;
-      }
-      100% {
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(1.15) rotate(-12deg);
-      }
-    }
-
-    /* 立體質感按鈕主體 */
-    .btn-container {
-      position: relative;
-      z-index: 10;
-    }
-
+    /* 1. 立體質感按鈕 */
     .btn-3d {
       position: relative;
       display: inline-flex;
       justify-content: center;
       align-items: center;
-      padding: 18px 48px;
-      font-size: 20px;
+      padding: 22px 52px;
+      font-size: 22px;
       font-weight: bold;
       color: #ffffff;
       text-decoration: none;
+      text-transform: uppercase;
       letter-spacing: 2px;
-      
-      background: linear-gradient(135deg, #ff5e62 0%, #ff9966 100%);
+      background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
       border: none;
       border-radius: 16px;
       cursor: pointer;
       outline: none;
-      overflow: hidden;
       user-select: none;
+      z-index: 10;
 
-      /* 立體厚度與懸浮陰影 */
       box-shadow: 
-        0px 8px 0px #cc3333,
-        0px 15px 25px rgba(255, 94, 98, 0.45),
-        inset 0px 2px 2px rgba(255, 255, 255, 0.5),
-        inset 0px -2px 2px rgba(0, 0, 0, 0.2);
+        0px 8px 0px #d64545,
+        0px 15px 20px rgba(238, 90, 36, 0.35),
+        inset 0px 2px 2px rgba(255, 255, 255, 0.4),
+        inset 0px -2px 2px rgba(0, 0, 0, 0.15);
 
-      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), 
+                  box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .btn-3d span {
       position: relative;
       z-index: 2;
-      text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
+      text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.2);
     }
 
-    /* 按鈕高光 */
     .btn-3d::before {
       content: '';
       position: absolute;
@@ -156,113 +89,256 @@
       left: 0;
       width: 100%;
       height: 45%;
-      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0));
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0));
       border-radius: 16px 16px 0 0;
       pointer-events: none;
       z-index: 1;
     }
 
-    /* 按鈕內部貓爪圖案 */
-    .btn-3d::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 80px;
-      height: 80px;
-      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="rgba(255, 255, 255, 0.4)"><path d="M50 42c-8 0-14 7-14 15 0 10 9 18 14 23 5-5 14-13 14-23 0-8-6-15-14-15z"/><circle cx="28" cy="40" r="7"/><circle cx="43" cy="30" r="7"/><circle cx="57" cy="30" r="7"/><circle cx="72" cy="40" r="7"/></svg>');
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center;
-      transform: translate(-50%, -50%) scale(0.2);
-      opacity: 0;
-      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.27), opacity 0.15s ease;
-      z-index: 1;
-      pointer-events: none;
-    }
-
-    /* Hover 上浮 */
     .btn-3d:hover {
       transform: translateY(-2px);
       box-shadow: 
-        0px 10px 0px #cc3333,
-        0px 20px 30px rgba(255, 94, 98, 0.55),
-        inset 0px 2px 2px rgba(255, 255, 255, 0.6);
+        0px 10px 0px #d64545,
+        0px 20px 25px rgba(238, 90, 36, 0.45),
+        inset 0px 2px 2px rgba(255, 255, 255, 0.5),
+        inset 0px -2px 2px rgba(0, 0, 0, 0.15);
     }
 
-    /* Active 下沉 + 顯示按鈕貓爪 */
     .btn-3d:active {
       transform: translateY(6px);
       box-shadow: 
-        0px 2px 0px #cc3333,
-        0px 5px 10px rgba(255, 94, 98, 0.3),
-        inset 0px 1px 1px rgba(255, 255, 255, 0.2);
+        0px 2px 0px #d64545,
+        0px 5px 10px rgba(238, 90, 36, 0.3),
+        inset 0px 1px 1px rgba(255, 255, 255, 0.2),
+        inset 0px -1px 1px rgba(0, 0, 0, 0.2);
     }
 
-    .btn-3d:active::after {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1.1);
+    /* 2. 全螢幕特效容器 */
+    .full-glass-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 5;
+      animation: fadeOut 0.8s forwards 2.6s;
+    }
+
+    /* 蛛網裂痕動畫 */
+    .crack-line {
+      stroke-dasharray: 1000;
+      stroke-dashoffset: 1000;
+      animation: crackSpread 0.12s ease-out forwards;
+    }
+
+    /* 全螢幕碎片崩落 */
+    .glass-shard {
+      transform-origin: center;
+      animation: shardFall 1s cubic-bezier(0.25, 1, 0.5, 1) 0.1s forwards;
+    }
+
+    /* 巨型貓咪登場 */
+    .giant-cat {
+      transform-origin: 50% 90%;
+      transform: translateY(300px) scale(0.3);
+      opacity: 0;
+      animation: giantCatAttack 1s cubic-bezier(0.175, 0.885, 0.32, 1.2) 0.15s forwards;
+    }
+
+    .cat-paw-left {
+      transform-origin: 150px 300px;
+      animation: scratchLeft 0.2s ease-in-out 0.25s infinite alternate;
+    }
+
+    .cat-paw-right {
+      transform-origin: 450px 300px;
+      animation: scratchRight 0.2s ease-in-out 0.25s infinite alternate;
+    }
+
+    @keyframes crackSpread {
+      to { stroke-dashoffset: 0; }
+    }
+
+    @keyframes shardFall {
+      0% {
+        opacity: 1;
+        transform: translate(0, 0) rotate(0deg);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(0.7);
+      }
+    }
+
+    @keyframes giantCatAttack {
+      0% {
+        transform: translateY(300px) scale(0.3);
+        opacity: 0;
+      }
+      35% {
+        transform: translateY(-30px) scale(1.1);
+        opacity: 1;
+      }
+      70% {
+        transform: translateY(0px) scale(1.05);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(350px) scale(0.4);
+        opacity: 0;
+      }
+    }
+
+    @keyframes scratchLeft {
+      0% { transform: rotate(0deg) translateY(0); }
+      100% { transform: rotate(-30deg) translateY(-25px); }
+    }
+
+    @keyframes scratchRight {
+      0% { transform: rotate(0deg) translateY(0); }
+      100% { transform: rotate(30deg) translateY(-25px); }
+    }
+
+    @keyframes fadeOut {
+      to { opacity: 0; }
     }
   </style>
 </head>
-<body id="body">
+<body>
 
-  <!-- 爪痕生成區域 -->
-  <div id="scratch-container"></div>
-
-  <!-- 立體按鈕 -->
-  <div class="btn-container">
-    <button class="btn-3d" id="attackBtn">
-      <span>🐾 召喚貓爪攻擊</span>
-    </button>
-  </div>
+  <button class="btn-3d" id="attackBtn">
+    <span>炸裂螢幕！貓咪襲擊</span>
+  </button>
 
   <script>
-    const attackBtn = document.getElementById('attackBtn');
-    const container = document.getElementById('scratch-container');
-    const body = document.getElementById('body');
+    const btn = document.getElementById('attackBtn');
 
-    attackBtn.addEventListener('mousedown', (e) => {
-      // 1. 觸發畫面震撼效果
-      body.classList.remove('shake');
-      void body.offsetWidth; // 重置 CSS 動畫
-      body.classList.add('shake');
-
-      // 2. 隨機生成 1~2 道爪痕撕裂效果
-      const count = Math.floor(Math.random() * 2) + 1;
-
-      for (let i = 0; i < count; i++) {
-        createScratch(e.clientX, e.clientY);
-      }
+    btn.addEventListener('click', (e) => {
+      triggerFullShatter(e);
     });
 
-    function createScratch(originX, originY) {
-      const scratch = document.createElement('div');
-      scratch.className = 'scratch-mark';
+    function triggerFullShatter(e) {
+      document.body.classList.remove('screen-shake');
+      void document.body.offsetWidth;
+      document.body.classList.add('screen-shake');
 
-      // 隨機偏移與旋轉，讓每次撕裂看起來獨一無二
-      const offsetX = (Math.random() - 0.5) * 180;
-      const offsetY = (Math.random() - 0.5) * 180;
-      const angle = (Math.random() - 0.5) * 60;
+      const container = document.createElement('div');
+      container.className = 'full-glass-container';
 
-      scratch.style.left = `${originX + offsetX}px`;
-      scratch.style.top = `${originY + offsetY}px`;
-      scratch.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+      // 以點擊按鈕的位置為裂痕中心
+      const cx = e.clientX || window.innerWidth / 2;
+      const cy = e.clientY || window.innerHeight / 2;
 
-      // 加入 4 道貓爪撕裂痕
-      scratch.innerHTML = `
-        <div class="claw-line"></div>
-        <div class="claw-line"></div>
-        <div class="claw-line"></div>
-        <div class="claw-line"></div>
+      // 1. 生成放射狀蛛網裂痕 SVG 線條
+      let crackPaths = '';
+      const numRays = 12;
+      for (let i = 0; i < numRays; i++) {
+        const angle = (i * (360 / numRays) + (Math.random() * 20 - 10)) * (Math.PI / 180);
+        const len = Math.max(window.innerWidth, window.innerHeight);
+        const ex = cx + Math.cos(angle) * len;
+        const ey = cy + Math.sin(angle) * len;
+
+        // 閃電折線效果
+        const mx1 = cx + Math.cos(angle) * (len * 0.3) + (Math.random() - 0.5) * 40;
+        const my1 = cy + Math.sin(angle) * (len * 0.3) + (Math.random() - 0.5) * 40;
+        const mx2 = cx + Math.cos(angle) * (len * 0.6) + (Math.random() - 0.5) * 60;
+        const my2 = cy + Math.sin(angle) * (len * 0.6) + (Math.random() - 0.5) * 60;
+
+        crackPaths += `<path class="crack-line" d="M ${cx} ${cy} L ${mx1} ${my1} L ${mx2} ${my2} L ${ex} ${ey}" stroke="rgba(255, 255, 255, 0.95)" stroke-width="2.5" fill="none" />`;
+      }
+
+      // 環狀蛛網連線
+      for (let r = 100; r < 600; r += 120) {
+        crackPaths += `<circle class="crack-line" cx="${cx}" cy="${cy}" r="${r}" stroke="rgba(255, 255, 255, 0.6)" stroke-width="1.5" stroke-dasharray="15 10" fill="none" />`;
+      }
+
+      // 2. 生成全螢幕網格崩落碎片
+      let shardsSVG = '';
+      const rows = 5;
+      const cols = 6;
+      const w = 100 / cols;
+      const h = 100 / rows;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const x1 = c * w;
+          const y1 = r * h;
+          const x2 = (c + 1) * w;
+          const y2 = (r + 1) * h;
+
+          const ox = (Math.random() - 0.5) * 4;
+          const oy = (Math.random() - 0.5) * 4;
+
+          const tx = (Math.random() - 0.5) * 400;
+          const ty = Math.random() * 350 + 150;
+          const rot = (Math.random() - 0.5) * 180;
+
+          shardsSVG += `
+            <polygon class="glass-shard" 
+                     points="${x1}%,${y1}% ${x2+ox}%,${y1+oy}% ${x2}%,${y2}% ${x1-ox}%,${y2-oy}%" 
+                     fill="rgba(255, 255, 255, 0.35)" 
+                     stroke="rgba(255, 255, 255, 0.8)" 
+                     stroke-width="1.5"
+                     style="--tx: ${tx}px; --ty: ${ty}px; --rot: ${rot}deg;" />
+          `;
+        }
+      }
+
+      container.innerHTML = `
+        <svg width="100%" height="100%">
+          <!-- 黑色深淵破口底色 -->
+          <rect width="100%" height="100%" fill="rgba(13, 17, 23, 0.7)" />
+
+          <!-- 巨型貓咪 -->
+          <g class="giant-cat">
+            <g transform="translate(${window.innerWidth / 2 - 300}, ${window.innerHeight / 2 - 250})">
+              <polygon points="150,150 70,20 230,90" fill="#ffa726" />
+              <polygon points="140,140 85,45 200,90" fill="#ff7043" />
+              <polygon points="450,150 530,20 370,90" fill="#ffa726" />
+              <polygon points="460,140 515,45 400,90" fill="#ff7043" />
+
+              <ellipse cx="300" cy="220" rx="180" ry="140" fill="#ffa726" />
+              <path d="M 160 300 C 160 440, 440 440, 440 300 Z" fill="#ffa726" />
+
+              <ellipse cx="230" cy="200" rx="24" ry="32" fill="#2d3436" />
+              <ellipse cx="370" cy="200" rx="24" ry="32" fill="#2d3436" />
+              <circle cx="238" cy="190" r="10" fill="#ffffff" />
+              <circle cx="378" cy="190" r="10" fill="#ffffff" />
+              <polygon points="300,230 280,255 320,255" fill="#ff7043" />
+              
+              <path d="M 180 230 L 60 210 M 180 245 L 70 260 M 420 230 L 540 210 M 420 245 L 530 260" stroke="#2d3436" stroke-width="6" stroke-linecap="round" />
+
+              <g class="cat-paw-left">
+                <rect x="110" y="280" width="80" height="120" rx="40" fill="#ffa726" />
+                <circle cx="150" cy="380" r="40" fill="#ffffff" />
+                <circle cx="150" cy="385" r="20" fill="#ff7043" />
+              </g>
+              <g class="cat-paw-right">
+                <rect x="410" y="280" width="80" height="120" rx="40" fill="#ffa726" />
+                <circle cx="450" cy="380" r="40" fill="#ffffff" />
+                <circle cx="450" cy="385" r="20" fill="#ff7043" />
+              </g>
+            </g>
+          </g>
+
+          <!-- 全螢幕閃電蛛網裂痕 -->
+          <g>
+            ${crackPaths}
+          </g>
+
+          <!-- 崩落飛散玻璃碎片 -->
+          <g>
+            ${shardsSVG}
+          </g>
+        </svg>
       `;
 
-      container.appendChild(scratch);
+      document.body.appendChild(container);
 
-      // 動畫結束後自動清除元素
       setTimeout(() => {
-        scratch.remove();
-      }, 800);
+        container.remove();
+      }, 3400);
     }
   </script>
 
