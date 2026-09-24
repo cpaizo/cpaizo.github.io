@@ -1,1 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>線上頒獎典禮系統</title>
+  <!-- 引入免費 MQTT 即時通訊套件 -->
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 0; height: 100vh;
+      background: #0f172a; color: #fff;
+      font-family: system-ui, -apple-system, sans-serif;
+      overflow: hidden; display: flex;
+      flex-direction: column; align-items: center; justify-content: center;
+    }
 
+    /* 控台 UI (Send) */
+    #send-ui { text-align: center; display: none; max-width: 800px; padding: 20px; }
+    .award-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-top: 25px; }
+    .btn-award {
+      padding: 20px 10px; font-size: 20px; font-weight: bold;
+      background: #1e293b; color: #38bdf8; border: 2px solid #38bdf8;
+      border-radius: 12px; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-award:hover { background: #38bdf8; color: #0f172a; box-shadow: 0 0 15px rgba(56, 189, 248, 0.5); }
+    .btn-award:active { transform: scale(0.95); }
+
+    /* 主畫面 UI (Got) */
+    #got-ui { text-align: center; display: none; width: 100%; height: 100%; position: relative; }
+
+    /* 動畫元件 */
+    .owl { position: absolute; top: 35%; right: -150px; font-size: 100px; pointer-events: none; z-index: 20; }
+    #award-modal {
+      display: none; position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%); z-index: 10; text-align: center;
+      animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    #certificate-img {
+      max-width: 80vw; max-height: 70vh; border-radius: 12px;
+      box-shadow: 0 0 50px rgba(251, 191, 36, 0.4); border: 4px solid #fbbf24;
+    }
+    .btn-reset { margin-top: 20px; padding: 10px 25px; font-size: 16px; background: #ef4444; color: white; border: none; border-radius: 20px; cursor: pointer; }
+
+    @keyframes popIn {
+      from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+      to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 發送端 UI (控台) -->
+  <div id="send-ui">
+    <h1>🎛️ 主辦單位頒獎控制台</h1>
+    <p style="color: #94a3b8;">點擊名次，貓頭鷹將帶出該名次獎狀 (1.png ~ 10.png)</p>
+    <div class="award-grid">
+      <button class="btn-award" onclick="triggerAward(1)">第 1 名</button>
+      <button class="btn-award" onclick="triggerAward(2)">第 2 名</button>
+      <button class="btn-award" onclick="triggerAward(3)">第 3 名</button>
+      <button class="btn-award" onclick="triggerAward(4)">第 4 名</button>
+      <button class="btn-award" onclick="triggerAward(5)">第 5 名</button>
+      <button class="btn-award" onclick="triggerAward(6)">第 6 名</button>
+      <button class="btn-award" onclick="triggerAward(7)">第 7 名</button>
+      <button class="btn-award" onclick="triggerAward(8)">第 8 名</button>
+      <button class="btn-award" onclick="triggerAward(9)">第 9 名</button>
+      <button class="btn-award" onclick="triggerAward(10)">第 10 名</button>
+    </div>
+    <p id="status-msg" style="margin-top: 20px; color: #38bdf8;"></p>
+  </div>
+
+  <!-- 接收端 UI (大螢幕) -->
+  <div id="got-ui">
+    <h1 style="color: #64748b; margin-top: 40px;">🏆 線上頒獎典禮現場</h1>
+    <div id="award-modal">
+      <img id="certificate-img" src="" alt="獎狀">
+      <br>
+      <button class="btn-reset" onclick="hideCertificate()">準備下一位頒獎</button>
+    </div>
+  </div>
+
+  <!-- 貓頭鷹 -->
+  <div id="owl" class="owl">🦉</div>
+
+  <script>
+    // 💡 已更新為專屬頻道名稱
+    const TOPIC = 'coding_assoc_2026_ceremony_secret_owl_98721';
+    
+    // 免費公共 MQTT 伺服器
+    const client = mqtt.connect('wss://broker.hivemq.com:8884/mqtt');
+
+    // 辨識網址參數
+    const urlParams = new URLSearchParams(window.location.search);
+    const role = urlParams.get('role'); // "send" 或 "got"
+
+    if (role === 'send') {
+      document.title = "頒獎控台 (Send)";
+      document.getElementById('send-ui').style.display = 'block';
+    } else {
+      document.title = "頒獎典禮大螢幕 (Got)";
+      document.getElementById('got-ui').style.display = 'block';
+    }
+
+    client.on('connect', () => {
+      console.log('MQTT 即時連線成功！');
+      if (role !== 'send') {
+        client.subscribe(TOPIC);
+      }
+    });
+
+    // 控台觸發邏輯
+    let isFlying = false;
+    function triggerAward(rank) {
+      if (isFlying) return;
+      isFlying = true;
+
+      document.getElementById('status-msg').innerText = `正在頒發 第 ${rank} 名...`;
+      const owl = document.getElementById('owl');
+      let startX = window.innerWidth + 100;
+      let currentX = startX;
+      const speed = 16;
+
+      function animate() {
+        currentX -= speed;
+        owl.style.transform = `translateX(${currentX - startX}px)`;
+
+        if (currentX < -150) {
+          client.publish(TOPIC, JSON.stringify({ action: 'show_award', rank: rank }));
+          setTimeout(() => {
+            owl.style.transform = 'translateX(0px)';
+            document.getElementById('status-msg').innerText = `第 ${rank} 名 獎狀已送出！`;
+            isFlying = false;
+          }, 500);
+        } else {
+          requestAnimationFrame(animate);
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+
+    // 大螢幕接收邏輯
+    client.on('message', (topic, message) => {
+      const data = JSON.parse(message.toString());
+      if (data.action === 'show_award') {
+        startGotAnimation(data.rank);
+      }
+    });
+
+    function startGotAnimation(rank) {
+      document.getElementById('award-modal').style.display = 'none';
+      const owl = document.getElementById('owl');
+      let startX = window.innerWidth + 100;
+      let targetX = window.innerWidth / 2 - 50;
+      let currentX = startX;
+      const speed = 16;
+
+      function animate() {
+        currentX -= speed;
+        owl.style.transform = `translateX(${currentX - startX}px)`;
+
+        if (currentX <= targetX) {
+          const certImg = document.getElementById('certificate-img');
+          certImg.src = `${rank}.png`;
+          certImg.onload = () => {
+            document.getElementById('award-modal').style.display = 'block';
+          };
+        } else {
+          requestAnimationFrame(animate);
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+
+    function hideCertificate() {
+      document.getElementById('award-modal').style.display = 'none';
+      document.getElementById('owl').style.transform = 'translateX(0px)';
+    }
+  </script>
+</body>
+</html>
