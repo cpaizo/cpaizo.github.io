@@ -3,42 +3,176 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>線上頒獎典禮系統</title>
+  <title>2026 國際少年程式AI程式邏輯競賽 - 線上頒獎典禮 | International Youth Coding & AI Logic Competition</title>
   <!-- 引入免費 MQTT 即時通訊套件 -->
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
   <style>
     * { box-sizing: border-box; }
+    
     body {
       margin: 0; padding: 0; height: 100vh;
-      background: #0f172a; color: #fff;
-      font-family: system-ui, -apple-system, sans-serif;
-      overflow: hidden; display: flex;
-      flex-direction: column; align-items: center; justify-content: center;
+      /* 深邃科技感微漸層背景 */
+      background: radial-gradient(circle at center, #1e293b 0%, #0f172a 70%, #020617 100%);
+      color: #fff;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      overflow: hidden; 
+      display: flex;
+      flex-direction: column; 
+      align-items: center; 
+      justify-content: center;
     }
 
-    /* 控台 UI (Send) */
-    #send-ui { text-align: center; display: none; max-width: 800px; padding: 20px; }
-    .award-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-top: 25px; }
-    .btn-award {
-      padding: 20px 10px; font-size: 20px; font-weight: bold;
-      background: #1e293b; color: #38bdf8; border: 2px solid #38bdf8;
-      border-radius: 12px; cursor: pointer; transition: all 0.2s;
+    /* 頂部標題區 (共通) */
+    .header-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 5px;
     }
-    .btn-award:hover { background: #38bdf8; color: #0f172a; box-shadow: 0 0 15px rgba(56, 189, 248, 0.5); }
-    .btn-award:active { transform: scale(0.95); }
+
+    .brand-logo {
+      height: 60px;
+      width: auto;
+      filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));
+    }
+
+    .title-group {
+      text-align: center;
+    }
+
+    .main-title-zh {
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 30px rgba(56, 189, 248, 0.3);
+      margin: 0;
+      line-height: 1.2;
+    }
+
+    .main-title-en {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: #38bdf8;
+      margin-top: 4px;
+      text-transform: uppercase;
+    }
+
+    /* 控台 UI (Send) 高質感玻璃面板 */
+    #send-ui {
+      text-align: center;
+      display: none;
+      max-width: 950px;
+      width: 90%;
+      padding: 35px 40px;
+      background: rgba(30, 41, 59, 0.6);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    .subtitle-bilingual {
+      color: #94a3b8;
+      font-size: 14px;
+      margin-top: 10px;
+      margin-bottom: 20px;
+    }
+
+    .award-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    /* 未頒發狀態按鈕 (預設藍色科技光感) */
+    .btn-award {
+      padding: 16px 8px;
+      font-weight: 700;
+      background: linear-gradient(145deg, #1e293b, #0f172a);
+      color: #38bdf8;
+      border: 1.5px solid #0284c7;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+    }
+
+    .btn-award .rank-zh { font-size: 18px; }
+    .btn-award .rank-en { font-size: 12px; font-weight: 500; opacity: 0.9; }
+
+    .btn-award:hover {
+      background: linear-gradient(145deg, #0284c7, #0369a1);
+      color: #fff;
+      border-color: #38bdf8;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.6);
+      transform: translateY(-2px);
+    }
+
+    .btn-award:active {
+      transform: translateY(1px);
+    }
+
+    /* 已頒發狀態按鈕 (金黃色尊榮感) */
+    .btn-award.awarded {
+      background: linear-gradient(145deg, #78350f, #451a03);
+      color: #fbbf24;
+      border-color: #f59e0b;
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+    }
+
+    .btn-award.awarded:hover {
+      background: linear-gradient(145deg, #b45309, #78350f);
+      color: #fff;
+      border-color: #fde047;
+      box-shadow: 0 0 25px rgba(251, 191, 36, 0.7);
+    }
+
+    .award-tag {
+      font-size: 11px;
+      margin-top: 4px;
+      opacity: 0.8;
+      font-weight: normal;
+    }
 
     /* 主畫面 UI (Got) */
-    #got-ui { text-align: center; display: none; width: 100%; height: 100%; position: relative; }
+    #got-ui {
+      text-align: center;
+      display: none;
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    .got-header {
+      position: absolute;
+      top: 35px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      z-index: 5;
+    }
 
     /* 貓頭鷹動態圖檔樣式 */
     .owl-container {
       position: absolute;
       top: 35%;
       right: -180px;
-      width: 120px;
-      height: 120px;
+      width: 130px;
+      height: 130px;
       pointer-events: none;
       z-index: 20;
+      filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.5));
     }
 
     .owl-img {
@@ -49,18 +183,87 @@
 
     /* 獎狀彈窗 */
     #award-modal {
-      display: none; position: absolute; top: 50%; left: 50%;
-      transform: translate(-50%, -50%); z-index: 10; text-align: center;
+      display: none;
+      position: absolute;
+      top: 54%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      text-align: center;
       animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
+
     #certificate-img {
-      max-width: 80vw; max-height: 70vh; border-radius: 12px;
-      box-shadow: 0 0 50px rgba(251, 191, 36, 0.4); border: 4px solid #fbbf24;
+      max-width: 82vw;
+      max-height: 65vh;
+      border-radius: 16px;
+      box-shadow: 0 0 60px rgba(251, 191, 36, 0.35), 0 20px 40px rgba(0, 0, 0, 0.8);
+      border: 3px solid #fbbf24;
     }
-    .btn-reset { margin-top: 20px; padding: 10px 25px; font-size: 16px; background: #ef4444; color: white; border: none; border-radius: 20px; cursor: pointer; }
+
+    /* 控制按鈕容器 */
+    .modal-actions {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+    }
+
+    /* 準備下一位按鈕 */
+    .btn-reset {
+      padding: 12px 30px;
+      font-size: 15px;
+      font-weight: bold;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+      transition: all 0.2s;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .btn-reset:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.7);
+    }
+
+    /* 下載獎狀按鈕 */
+    .btn-download {
+      padding: 12px 30px;
+      font-size: 15px;
+      font-weight: bold;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+      transition: all 0.2s;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .btn-download:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 25px rgba(16, 185, 129, 0.7);
+    }
+
+    .btn-subtext {
+      font-size: 11px;
+      font-weight: normal;
+      opacity: 0.9;
+    }
 
     @keyframes popIn {
-      from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+      from { transform: translate(-50%, -50%) scale(0.6); opacity: 0; }
       to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
     }
   </style>
@@ -69,30 +272,105 @@
 
   <!-- 發送端 UI (控台) -->
   <div id="send-ui">
-    <h1>🎛️ 主辦單位頒獎控制台</h1>
-    <p style="color: #94a3b8;">點擊名次，貓頭鷹將帶出該名次獎狀 (1.png ~ 10.png)</p>
-    <div class="award-grid">
-      <button class="btn-award" onclick="triggerAward(1)">第 1 名</button>
-      <button class="btn-award" onclick="triggerAward(2)">第 2 名</button>
-      <button class="btn-award" onclick="triggerAward(3)">第 3 名</button>
-      <button class="btn-award" onclick="triggerAward(4)">第 4 名</button>
-      <button class="btn-award" onclick="triggerAward(5)">第 5 名</button>
-      <button class="btn-award" onclick="triggerAward(6)">第 6 名</button>
-      <button class="btn-award" onclick="triggerAward(7)">第 7 名</button>
-      <button class="btn-award" onclick="triggerAward(8)">第 8 名</button>
-      <button class="btn-award" onclick="triggerAward(9)">第 9 名</button>
-      <button class="btn-award" onclick="triggerAward(10)">第 10 名</button>
+    <div class="header-container">
+      <img src="logo_coding.png" alt="社團法人科丁聯盟協會 Logo" class="brand-logo" onerror="this.style.display='none'">
+      <div class="title-group">
+        <h1 class="main-title-zh">2026 國際少年程式 AI 程式邏輯競賽</h1>
+        <div class="main-title-en">2026 International Youth Coding & AI Logic Competition</div>
+      </div>
     </div>
-    <p id="status-msg" style="margin-top: 20px; color: #38bdf8;"></p>
+    
+    <p class="subtitle-bilingual">
+      🏆 頒獎典禮控制台（點擊即可頒發名次，可重複點擊）<br>
+      <span style="font-size: 12px; opacity: 0.8;">Award Control Panel (Click to trigger award presentation)</span>
+    </p>
+    
+    <div class="award-grid">
+      <button id="btn-rank-1" class="btn-award" onclick="triggerAward(1)">
+        <span class="rank-zh">第 1 名</span>
+        <span class="rank-en">1st Place</span>
+        <span class="award-tag" id="tag-1">未頒發 / Pending</span>
+      </button>
+      <button id="btn-rank-2" class="btn-award" onclick="triggerAward(2)">
+        <span class="rank-zh">第 2 名</span>
+        <span class="rank-en">2nd Place</span>
+        <span class="award-tag" id="tag-2">未頒發 / Pending</span>
+      </button>
+      <button id="btn-rank-3" class="btn-award" onclick="triggerAward(3)">
+        <span class="rank-zh">第 3 名</span>
+        <span class="rank-en">3rd Place</span>
+        <span class="award-tag" id="tag-3">未頒發 / Pending</span>
+      </button>
+      <button id="btn-rank-4" class="btn-award" onclick="triggerAward(4)">
+        <span class="rank-zh">第 4 名</span>
+        <span class="rank-en">4th Place</span>
+        <span class="award-tag" id="tag-4">未頒發 / Pending</span>
+      </button>
+      <button id="btn-rank-5" class="btn-award" onclick="triggerAward(5)">
+        <span class="rank-zh">第 5 名</span>
+        <span class="rank-en">5th Place</span>
+        <span class="award-tag" id="tag-5">未頒發 / Pending</span>
+      </button>
+      <button id="btn-rank-6" class="btn-award" onclick="triggerAward(6)">
+        <span class="rank-zh">第 6 名</span>
+        <span class="rank-en">6th Place</span>
+        <span class="award-tag" id="tag-6">未頒發 / Pending</span>
+      </button>
+      <button id="btn-rank-7" class="btn-award" onclick="triggerAward(7)">
+        <span class="rank-zh">第 7 名</span>
+        <span class="rank-en">7th Place</span>
+        <span class="award-tag" id="tag-7">未頒發 / Pending</span>
+      </button>
+      <button id="btn-rank-8" class="btn-award" onclick="triggerAward(8)">
+        <span class="rank-zh">第 8 名</span>
+        <span class="rank-en">8th Place</span>
+        <span class="award-tag" id="tag-8">未頒發 / Pending</span>
+      </button>
+      <button id="btn-rank-9" class="btn-award" onclick="triggerAward(9)">
+        <span class="rank-zh">第 9 名</span>
+        <span class="rank-en">9th Place</span>
+        <span class="award-tag" id="tag-9">未頒發 / Pending</span>
+      </button>
+      <button id="btn-rank-10" class="btn-award" onclick="triggerAward(10)">
+        <span class="rank-zh">第 10 名</span>
+        <span class="rank-en">10th Place</span>
+        <span class="award-tag" id="tag-10">未頒發 / Pending</span>
+      </button>
+    </div>
+    
+    <p id="status-msg" style="margin-top: 25px; color: #38bdf8; font-weight: bold; min-height: 24px; font-size: 15px;"></p>
   </div>
 
   <!-- 接收端 UI (大螢幕) -->
   <div id="got-ui">
-    <h1 style="color: #64748b; margin-top: 40px;">🏆 線上頒獎典禮現場</h1>
+    <div class="got-header">
+      <div class="header-container">
+        <img src="logo_coding.png" alt="社團法人科丁聯盟協會 Logo" class="brand-logo" onerror="this.style.display='none'">
+        <div class="title-group">
+          <h1 class="main-title-zh">2026 國際少年程式 AI 程式邏輯競賽</h1>
+          <div class="main-title-en">2026 International Youth Coding & AI Logic Competition</div>
+        </div>
+      </div>
+      <p style="color: #64748b; margin-top: 6px; font-size: 16px; letter-spacing: 3px;">
+        線上頒獎典禮現場 | Virtual Award Ceremony
+      </p>
+    </div>
+
     <div id="award-modal">
-      <img id="certificate-img" src="" alt="獎狀">
+      <img id="certificate-img" src="" alt="Certificate 獎狀">
       <br>
-      <button class="btn-reset" onclick="hideCertificate()">準備下一位頒獎</button>
+      <div class="modal-actions">
+        <!-- 下載獎狀按鈕 (新分頁開啟) -->
+        <button class="btn-download" onclick="downloadCertificate()">
+          <span>📥 開啟並下載獎狀</span>
+          <span class="btn-subtext">Download Certificate</span>
+        </button>
+        <!-- 準備下一位按鈕 -->
+        <button class="btn-reset" onclick="hideCertificate()">
+          <span>準備下一位頒獎</span>
+          <span class="btn-subtext">Next Award</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -109,10 +387,10 @@
     const role = urlParams.get('role');
 
     if (role === 'send') {
-      document.title = "頒獎控台 (Send)";
+      document.title = "頒獎控台 | Award Control Panel - 2026 國際少年程式AI程式邏輯競賽";
       document.getElementById('send-ui').style.display = 'block';
     } else {
-      document.title = "頒獎典禮大螢幕 (Got)";
+      document.title = "線上頒獎典禮 | Award Ceremony - 2026 國際少年程式AI程式邏輯競賽";
       document.getElementById('got-ui').style.display = 'block';
     }
 
@@ -123,7 +401,7 @@
       }
     });
 
-    // ----------------- 貓頭鷹連續揮翅動畫 (Code_1.png ~ Code_4.png) -----------------
+    // ----------------- 貓頭鷹揮翅動畫 (Code_1.png ~ Code_4.png) -----------------
     let flapInterval = null;
     function startFlapping() {
       let frameIndex = 1;
@@ -144,7 +422,6 @@
       document.getElementById('owl-sprite').src = 'Code_1.png';
     }
 
-    // 全域動畫 Cancel Token，用來強制中斷上一輪動畫
     let currentAnimationId = null;
 
     // ----------------- 發送端 (Send) 邏輯 -----------------
@@ -154,10 +431,18 @@
       if (isFlying) return;
       isFlying = true;
 
-      // 💡 關鍵：一按下按鈕，立刻通知接收端「清除畫面與舊獎狀」
+      // 更新控台按鈕樣式 (改為已頒發狀態)
+      const btn = document.getElementById(`btn-rank-${rank}`);
+      const tag = document.getElementById(`tag-${rank}`);
+      if (btn && tag) {
+        btn.classList.add('awarded');
+        tag.innerText = '✓ 已頒發 / Awarded';
+      }
+
+      // 廣播清除畫面訊號
       client.publish(TOPIC, JSON.stringify({ action: 'clear_screen' }));
 
-      document.getElementById('status-msg').innerText = `正在頒發 第 ${rank} 名...`;
+      document.getElementById('status-msg').innerText = `正在頒發 第 ${rank} 名... / Presenting Rank ${rank}...`;
       const owl = document.getElementById('owl');
       
       let startX = window.innerWidth + 180;
@@ -175,13 +460,12 @@
         owl.style.transform = `translate(${currentX - startX}px, ${waveY}px)`;
 
         if (currentX < -180) {
-          // 控台貓頭鷹飛完後，發送「顯示新獎狀」訊號給接收端
           client.publish(TOPIC, JSON.stringify({ action: 'show_award', rank: rank }));
           stopFlapping();
 
           setTimeout(() => {
             owl.style.transform = 'translate(0px, 0px)';
-            document.getElementById('status-msg').innerText = `第 ${rank} 名 獎狀已送出！`;
+            document.getElementById('status-msg').innerText = `第 ${rank} 名 獎狀已成功送出！ / Rank ${rank} Certificate Sent!`;
             isFlying = false;
           }, 300);
         } else {
@@ -196,7 +480,6 @@
       const data = JSON.parse(message.toString());
       
       if (data.action === 'clear_screen') {
-        // 收到清除訊號：立刻隱藏獎狀、停止貓頭鷹並歸位
         resetGotScreen();
       } else if (data.action === 'show_award') {
         startGotAnimation(data.rank);
@@ -205,6 +488,7 @@
 
     let currentGotX = 0;
     let startX = 0;
+    let currentCurrentRank = null;
 
     function resetGotScreen() {
       if (currentAnimationId) {
@@ -218,12 +502,13 @@
     }
 
     function startGotAnimation(rank) {
-      resetGotScreen(); // 確保開始前狀態是完全乾淨的
+      resetGotScreen();
+      currentCurrentRank = rank;
 
       const owl = document.getElementById('owl');
       
       startX = window.innerWidth + 180;
-      let targetX = window.innerWidth / 2 - 60;
+      let targetX = window.innerWidth / 2 - 65;
       currentGotX = startX;
       const speed = 12;
       let angle = 0;
@@ -246,7 +531,7 @@
             document.getElementById('award-modal').style.display = 'block';
           };
           certImg.onerror = () => {
-            alert(`找不到 ${rank}.png 圖片，請確認圖檔已放入專案目錄！`);
+            alert(`找不到 ${rank}.png 圖片，請確認圖檔已放入專案目錄！ / Image ${rank}.png not found!`);
           };
         } else {
           currentAnimationId = requestAnimationFrame(animate);
@@ -255,7 +540,6 @@
       currentAnimationId = requestAnimationFrame(animate);
     }
 
-    // 接收端手動點擊「準備下一位頒獎」按鈕退場
     function hideCertificate() {
       document.getElementById('award-modal').style.display = 'none';
       const owl = document.getElementById('owl');
@@ -279,6 +563,20 @@
         }
       }
       currentAnimationId = requestAnimationFrame(flyOut);
+    }
+
+    // ----------------- 獎狀下載邏輯 (新分頁開啟) -----------------
+    function downloadCertificate() {
+      const certImg = document.getElementById('certificate-img');
+      if (!certImg.src) return;
+
+      const link = document.createElement('a');
+      link.href = certImg.src;
+      link.target = '_blank'; // 在新分頁開啟
+      link.download = `Award_Rank_${currentCurrentRank || 'Certificate'}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   </script>
 </body>
