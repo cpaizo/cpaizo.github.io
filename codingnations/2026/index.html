@@ -30,8 +30,24 @@
     /* 主畫面 UI (Got) */
     #got-ui { text-align: center; display: none; width: 100%; height: 100%; position: relative; }
 
-    /* 動畫元件 */
-    .owl { position: absolute; top: 35%; right: -150px; font-size: 100px; pointer-events: none; z-index: 20; }
+    /* 貓頭鷹動態圖檔樣式 */
+    .owl-container {
+      position: absolute;
+      top: 35%;
+      right: -180px;
+      width: 120px;
+      height: 120px;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    .owl-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    /* 獎狀彈窗 */
     #award-modal {
       display: none; position: absolute; top: 50%; left: 50%;
       transform: translate(-50%, -50%); z-index: 10; text-align: center;
@@ -80,19 +96,17 @@
     </div>
   </div>
 
-  <!-- 貓頭鷹 -->
-  <div id="owl" class="owl">🦉</div>
+  <!-- 貓頭鷹動態元件 -->
+  <div id="owl" class="owl-container">
+    <img id="owl-sprite" class="owl-img" src="Code_1.png" alt="Owl">
+  </div>
 
   <script>
-    // 💡 已更新為專屬頻道名稱
     const TOPIC = 'coding_assoc_2026_ceremony_secret_owl_98721';
-    
-    // 免費公共 MQTT 伺服器
     const client = mqtt.connect('wss://broker.hivemq.com:8884/mqtt');
 
-    // 辨識網址參數
     const urlParams = new URLSearchParams(window.location.search);
-    const role = urlParams.get('role'); // "send" 或 "got"
+    const role = urlParams.get('role');
 
     if (role === 'send') {
       document.title = "頒獎控台 (Send)";
@@ -109,29 +123,67 @@
       }
     });
 
-    // 控台觸發邏輯
+    // ----------------- 貓頭鷹連續揮翅動畫 (Code_1.png ~ Code_4.png) -----------------
+    let flapInterval = null;
+    function startFlapping() {
+      let frameIndex = 1;
+      const owlSprite = document.getElementById('owl-sprite');
+      if (flapInterval) clearInterval(flapInterval);
+      
+      flapInterval = setInterval(() => {
+        frameIndex = (frameIndex % 4) + 1;
+        owlSprite.src = `Code_${frameIndex}.png`;
+      }, 100);
+    }
+
+    function stopFlapping() {
+      if (flapInterval) {
+        clearInterval(flapInterval);
+        flapInterval = null;
+      }
+      document.getElementById('owl-sprite').src = 'Code_1.png';
+    }
+
+    // 全域動畫 Cancel Token，用來強制中斷上一輪動畫
+    let currentAnimationId = null;
+
+    // ----------------- 發送端 (Send) 邏輯 -----------------
     let isFlying = false;
+
     function triggerAward(rank) {
       if (isFlying) return;
       isFlying = true;
 
+      // 💡 關鍵：一按下按鈕，立刻通知接收端「清除畫面與舊獎狀」
+      client.publish(TOPIC, JSON.stringify({ action: 'clear_screen' }));
+
       document.getElementById('status-msg').innerText = `正在頒發 第 ${rank} 名...`;
       const owl = document.getElementById('owl');
-      let startX = window.innerWidth + 100;
+      
+      let startX = window.innerWidth + 180;
       let currentX = startX;
-      const speed = 16;
+      const speed = 12;
+      let angle = 0;
+
+      startFlapping();
 
       function animate() {
         currentX -= speed;
-        owl.style.transform = `translateX(${currentX - startX}px)`;
+        angle += 0.08; 
+        let waveY = Math.sin(angle) * 45;
 
-        if (currentX < -150) {
+        owl.style.transform = `translate(${currentX - startX}px, ${waveY}px)`;
+
+        if (currentX < -180) {
+          // 控台貓頭鷹飛完後，發送「顯示新獎狀」訊號給接收端
           client.publish(TOPIC, JSON.stringify({ action: 'show_award', rank: rank }));
+          stopFlapping();
+
           setTimeout(() => {
-            owl.style.transform = 'translateX(0px)';
+            owl.style.transform = 'translate(0px, 0px)';
             document.getElementById('status-msg').innerText = `第 ${rank} 名 獎狀已送出！`;
             isFlying = false;
-          }, 500);
+          }, 300);
         } else {
           requestAnimationFrame(animate);
         }
@@ -139,42 +191,94 @@
       requestAnimationFrame(animate);
     }
 
-    // 大螢幕接收邏輯
+    // ----------------- 接收端 (Got) 邏輯 -----------------
     client.on('message', (topic, message) => {
       const data = JSON.parse(message.toString());
-      if (data.action === 'show_award') {
+      
+      if (data.action === 'clear_screen') {
+        // 收到清除訊號：立刻隱藏獎狀、停止貓頭鷹並歸位
+        resetGotScreen();
+      } else if (data.action === 'show_award') {
         startGotAnimation(data.rank);
       }
     });
 
-    function startGotAnimation(rank) {
+    let currentGotX = 0;
+    let startX = 0;
+
+    function resetGotScreen() {
+      if (currentAnimationId) {
+        cancelAnimationFrame(currentAnimationId);
+        currentAnimationId = null;
+      }
+      stopFlapping();
       document.getElementById('award-modal').style.display = 'none';
       const owl = document.getElementById('owl');
-      let startX = window.innerWidth + 100;
-      let targetX = window.innerWidth / 2 - 50;
-      let currentX = startX;
-      const speed = 16;
+      owl.style.transform = 'translate(0px, 0px)';
+    }
+
+    function startGotAnimation(rank) {
+      resetGotScreen(); // 確保開始前狀態是完全乾淨的
+
+      const owl = document.getElementById('owl');
+      
+      startX = window.innerWidth + 180;
+      let targetX = window.innerWidth / 2 - 60;
+      currentGotX = startX;
+      const speed = 12;
+      let angle = 0;
+
+      startFlapping();
 
       function animate() {
-        currentX -= speed;
-        owl.style.transform = `translateX(${currentX - startX}px)`;
+        currentGotX -= speed;
+        angle += 0.08;
+        let waveY = Math.sin(angle) * 45;
 
-        if (currentX <= targetX) {
+        owl.style.transform = `translate(${currentGotX - startX}px, ${waveY}px)`;
+
+        if (currentGotX <= targetX) {
+          stopFlapping();
+
           const certImg = document.getElementById('certificate-img');
           certImg.src = `${rank}.png`;
           certImg.onload = () => {
             document.getElementById('award-modal').style.display = 'block';
           };
+          certImg.onerror = () => {
+            alert(`找不到 ${rank}.png 圖片，請確認圖檔已放入專案目錄！`);
+          };
         } else {
-          requestAnimationFrame(animate);
+          currentAnimationId = requestAnimationFrame(animate);
         }
       }
-      requestAnimationFrame(animate);
+      currentAnimationId = requestAnimationFrame(animate);
     }
 
+    // 接收端手動點擊「準備下一位頒獎」按鈕退場
     function hideCertificate() {
       document.getElementById('award-modal').style.display = 'none';
-      document.getElementById('owl').style.transform = 'translateX(0px)';
+      const owl = document.getElementById('owl');
+      const speed = 12;
+      let angle = 0;
+
+      startFlapping();
+
+      function flyOut() {
+        currentGotX -= speed;
+        angle += 0.08;
+        let waveY = Math.sin(angle) * 45;
+
+        owl.style.transform = `translate(${currentGotX - startX}px, ${waveY}px)`;
+
+        if (currentGotX < -180) {
+          stopFlapping();
+          owl.style.transform = 'translate(0px, 0px)';
+        } else {
+          currentAnimationId = requestAnimationFrame(flyOut);
+        }
+      }
+      currentAnimationId = requestAnimationFrame(flyOut);
     }
   </script>
 </body>
