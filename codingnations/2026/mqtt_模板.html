@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>線上頒獎典禮網頁模板產生器 | Ceremony Template Generator</title>
+  <style>
+    :root {
+      --bg-primary: #0f172a;
+      --bg-card: rgba(30, 41, 59, 0.7);
+      --border-color: rgba(255, 255, 255, 0.12);
+      --accent-blue: #38bdf8;
+      --accent-green: #10b981;
+      --accent-purple: #a855f7;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      background: radial-gradient(circle at center, #1e293b 0%, #0f172a 70%, #020617 100%);
+      color: var(--text-main);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    header h1 {
+      font-size: 28px;
+      margin: 0 0 8px 0;
+      background: linear-gradient(135deg, #ffffff 0%, #38bdf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    header p {
+      color: var(--text-sub);
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-top: 0;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent-blue);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #e2e8f0;
+    }
+
+    label span.hint {
+      font-size: 11px;
+      color: var(--text-sub);
+      font-weight: normal;
+      margin-left: 4px;
+    }
+
+    input[type="text"], input[type="number"], select {
+      width: 100%;
+      padding: 10px 14px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    input[type="text"]:focus, input[type="number"]:focus, select:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .rank-input-card {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .rank-input-card h4 {
+      margin: 0 0 8px 0;
+      font-size: 13px;
+      color: var(--accent-blue);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #fff;
+    }
+
+    .btn-success:hover {
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .btn-purple {
+      background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+      color: #fff;
+    }
+
+    .btn-purple:hover {
+      box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
+      transform: translateY(-1px);
+    }
+
+    textarea#code-output {
+      width: 100%;
+      height: 480px;
+      background: #090d16;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      color: #38bdf8;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 12px;
+      padding: 14px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    /* 訊息提示 */
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #10b981;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+      display: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>🛠️ 線上頒獎典禮 - 網頁模板生成器</h1>
+      <p>請學生輸入下方 7 個自訂欄位，即可自動打包產生完整的 MQTT 頒獎典禮 HTML 程式碼！</p>
+    </header>
+
+    <div class="main-grid">
+      <!-- 左側：設定表單 -->
+      <div class="card">
+        <div class="card-title">⚙️ 頒獎典禮參數設定</div>
+
+        <!-- 1. Logo -->
+        <div class="form-group">
+          <label>1. Logo 圖片網址連結 <span class="hint">(例如: logo_coding.png 或 HTTP 圖片網址)</span></label>
+          <input type="text" id="cfg-logo" value="logo_coding.png">
+        </div>
+
+        <!-- 2. Title -->
+        <div class="form-group grid-2">
+          <div>
+            <label>2. 中文標題</label>
+            <input type="text" id="cfg-title-zh" value="2026 國際少年程式 AI 程式邏輯競賽">
+          </div>
+          <div>
+            <label>英文標題</label>
+            <input type="text" id="cfg-title-en" value="2026 International Youth Coding & AI Logic Competition">
+          </div>
+        </div>
+
+        <!-- 3. 控制台名稱 -->
+        <div class="form-group grid-2">
+          <div>
+            <label>3. 🏆 控台提示文字 (中文)</label>
+            <input type="text" id="cfg-panel-zh" value="🏆 頒獎典禮控制台（點擊即可頒發名次，可重複點擊）">
+          </div>
+          <div>
+            <label>控台提示文字 (英文)</label>
+            <input type="text" id="cfg-panel-en" value="Award Control Panel (Click to trigger award presentation)">
+          </div>
+        </div>
+
+        <!-- 7. MQTT TOPIC -->
+        <div class="form-group">
+          <label>7. MQTT TOPIC 頻道名稱 <span class="hint">(建議每個小組設定不重複的名稱)</span></label>
+          <input type="text" id="cfg-topic" value="coding_assoc_2026_ceremony_secret_owl_98721">
+        </div>
+
+        <!-- 5. 頒獎圖片動畫網址 (吉祥物) -->
+        <div class="form-group">
+          <label>5. 頒獎吉祥物動畫檔前綴網址 <span class="hint">(例如: Code_ ，程式會自動載入 Code_1.png~Code_4.png)</span></label>
+          <input type="text" id="cfg-owl-prefix" value="Code_">
+        </div>
+
+        <!-- 4. 名次選擇 -->
+        <div class="form-group">
+          <label>4. 頒發名次數量 (1~10 名)</label>
+          <select id="cfg-rank-count" onchange="renderRankInputs()">
+            <option value="1">1 個名次</option>
+            <option value="2">2 個名次</option>
+            <option value="3" selected>3 個名次 (前3名)</option>
+            <option value="4">4 個名次</option>
+            <option value="5">5 個名次</option>
+            <option value="6">6 個名次</option>
+            <option value="7">7 個名次</option>
+            <option value="8">8 個名次</option>
+            <option value="9">9 個名次</option>
+            <option value="10">10 個名次</option>
+          </select>
+        </div>
+
+        <!-- 6. 各名次名稱與獎狀網址動態區域 -->
+        <div style="margin-top: 15px;">
+          <label style="color: var(--accent-blue); margin-bottom: 10px;">名次稱呼與 6. 獎狀圖檔網址設定：</label>
+          <div id="rank-inputs-container"></div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="generateCode()">⚡ 產生 HTML 程式碼</button>
+        </div>
+      </div>
+
+      <!-- 右側：程式碼輸出與預覽 -->
+      <div class="card">
+        <div class="card-title">💻 產生的 HTML 原始碼</div>
+        <textarea id="code-output" readonly placeholder="點擊「產生 HTML 程式碼」後，這裡將顯示完整的 HTML Code..."></textarea>
+
+        <div class="btn-group">
+          <button class="btn btn-purple" onclick="copyCode()">📋 複製原始碼</button>
+          <button class="btn btn-success" onclick="downloadHTML()">💾 下載 index.html</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast">已成功複製到剪貼簿！</div>
+
+  <script>
+    // 預設 1~10 名的預設中文與英文名稱
+    const defaultRankNames = [
+      { zh: "第 1 名", en: "1st Place", img: "1.png" },
+      { zh: "第 2 名", en: "2nd Place", img: "2.png" },
+      { zh: "第 3 名", en: "3rd Place", img: "3.png" },
+      { zh: "第 4 名", en: "4th Place", img: "4.png" },
+      { zh: "第 5 名", en: "5th Place", img: "5.png" },
+      { zh: "第 6 名", en: "6th Place", img: "6.png" },
+      { zh: "第 7 名", en: "7th Place", img: "7.png" },
+      { zh: "第 8 名", en: "8th Place", img: "8.png" },
+      { zh: "第 9 名", en: "9th Place", img: "9.png" },
+      { zh: "第 10 名", en: "10th Place", img: "10.png" }
+    ];
+
+    // 動態渲染名次輸入框
+    function renderRankInputs() {
+      const count = parseInt(document.getElementById('cfg-rank-count').value);
+      const container = document.getElementById('rank-inputs-container');
+      container.innerHTML = '';
+
+      for (let i = 0; i < count; i++) {
+        const def = defaultRankNames[i];
+        const card = document.createElement('div');
+        card.className = 'rank-input-card';
+        card.innerHTML = `
+          <h4>🏆 名次 ${i + 1}</h4>
+          <div class="grid-2" style="margin-bottom: 8px;">
+            <input type="text" id="rank-zh-${i+1}" value="${def.zh}" placeholder="中文名稱 (例: 第一名)">
+            <input type="text" id="rank-en-${i+1}" value="${def.en}" placeholder="英文名稱 (例: 1st Place)">
+          </div>
+          <div>
+            <input type="text" id="rank-img-${i+1}" value="${def.img}" placeholder="獎狀圖片網址 (例: ${i+1}.png)">
+          </div>
+        `;
+        container.appendChild(card);
+      }
+    }
+
+    // 產生 HTML 程式碼
+    function generateCode() {
+      const logo = document.getElementById('cfg-logo').value;
+      const titleZh = document.getElementById('cfg-title-zh').value;
+      const titleEn = document.getElementById('cfg-title-en').value;
+      const panelZh = document.getElementById('cfg-panel-zh').value;
+      const panelEn = document.getElementById('cfg-panel-en').value;
+      const topic = document.getElementById('cfg-topic').value;
+      const owlPrefix = document.getElementById('cfg-owl-prefix').value;
+      const rankCount = parseInt(document.getElementById('cfg-rank-count').value);
+
+      // 收集名次資料與獎狀對照表
+      let buttonsHTML = '';
+      let rankImageMapObj = {};
+
+      for (let i = 1; i <= rankCount; i++) {
+        const zh = document.getElementById(`rank-zh-${i}`).value || `第 ${i} 名`;
+        const en = document.getElementById(`rank-en-${i}`).value || `${i} Place`;
+        const img = document.getElementById(`rank-img-${i}`).value || `${i}.png`;
+
+        rankImageMapObj[i] = img;
+
+        buttonsHTML += `
+      <button id="btn-rank-${i}" class="btn-award" onclick="triggerAward(${i})">
+        <span class="rank-zh">${zh}</span>
+        <span class="rank-en">${en}</span>
+        <span class="award-tag" id="tag-${i}">未頒發 / Pending</span>
+      </button>`;
+      }
+
+      // 組合完整的 HTML 範本
+      const finalHTML = `<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${titleZh} - 線上頒獎典禮 | ${titleEn}</title>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"><\/script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 0; height: 100vh;
+      background: radial-gradient(circle at center, #1e293b 0%, #0f172a 70%, #020617 100%);
+      color: #fff; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .header-container { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 5px; }
+    .brand-logo { height: 60px; width: auto; filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2)); }
+    .title-group { text-align: center; }
+    .main-title-zh {
+      font-size: 30px; font-weight: 800; letter-spacing: 2px;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #94a3b8 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 30px rgba(56, 189, 248, 0.3); margin: 0; line-height: 1.2;
+    }
+    .main-title-en { font-size: 14px; font-weight: 600; letter-spacing: 1px; color: #38bdf8; margin-top: 4px; text-transform: uppercase; }
+    #send-ui {
+      text-align: center; display: none; max-width: 950px; width: 90%; padding: 35px 40px;
+      background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+    .subtitle-bilingual { color: #94a3b8; font-size: 14px; margin-top: 10px; margin-bottom: 20px; }
+    .award-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-top: 20px; }
+    .btn-award {
+      padding: 16px 8px; font-weight: 700; background: linear-gradient(145deg, #1e293b, #0f172a);
+      color: #38bdf8; border: 1.5px solid #0284c7; border-radius: 16px; cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    }
+    .btn-award .rank-zh { font-size: 18px; }
+    .btn-award .rank-en { font-size: 12px; font-weight: 500; opacity: 0.9; }
+    .btn-award:hover { background: linear-gradient(145deg, #0284c7, #0369a1); color: #fff; border-color: #38bdf8; box-shadow: 0 0 20px rgba(56, 189, 248, 0.6); transform: translateY(-2px); }
+    .btn-award.awarded { background: linear-gradient(145deg, #78350f, #451a03); color: #fbbf24; border-color: #f59e0b; box-shadow: 0 0 15px rgba(245, 158, 11, 0.3); }
+    .btn-award.awarded:hover { background: linear-gradient(145deg, #b45309, #78350f); color: #fff; border-color: #fde047; box-shadow: 0 0 25px rgba(251, 191, 36, 0.7); }
+    .award-tag { font-size: 11px; margin-top: 4px; opacity: 0.8; font-weight: normal; }
+    #got-ui { text-align: center; display: none; width: 100%; height: 100%; position: relative; }
+    .got-header { position: absolute; top: 35px; left: 50%; transform: translateX(-50%); width: 100%; z-index: 5; }
+    .owl-container { position: absolute; top: 35%; right: -180px; width: 130px; height: 130px; pointer-events: none; z-index: 20; filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.5)); }
+    .owl-img { width: 100%; height: 100%; object-fit: contain; }
+    #award-modal { display: none; position: absolute; top: 54%; left: 50%; transform: translate(-50%, -50%); z-index: 10; text-align: center; animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    #certificate-img { max-width: 82vw; max-height: 65vh; border-radius: 16px; box-shadow: 0 0 60px rgba(251, 191, 36, 0.35), 0 20px 40px rgba(0, 0, 0, 0.8); border: 3px solid #fbbf24; }
+    .modal-actions { margin-top: 20px; display: flex; justify-content: center; align-items: center; gap: 15px; }
+    .btn-reset, .btn-download { padding: 12px 30px; font-size: 15px; font-weight: bold; color: white; border: none; border-radius: 30px; cursor: pointer; transition: all 0.2s; display: inline-flex; flex-direction: column; align-items: center; gap: 2px; }
+    .btn-reset { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); }
+    .btn-reset:hover { transform: scale(1.05); box-shadow: 0 0 25px rgba(239, 68, 68, 0.7); }
+    .btn-download { background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
+    .btn-download:hover { transform: scale(1.05); box-shadow: 0 0 25px rgba(16, 185, 129, 0.7); }
+    .btn-subtext { font-size: 11px; font-weight: normal; opacity: 0.9; }
+    @keyframes popIn { from { transform: translate(-50%, -50%) scale(0.6); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+  </style>
+</head>
+<body>
+
+  <!-- 發送端 UI (控台) -->
+  <div id="send-ui">
+    <div class="header-container">
+      <img src="${logo}" alt="Logo" class="brand-logo" onerror="this.style.display='none'">
+      <div class="title-group">
+        <h1 class="main-title-zh">${titleZh}</h1>
+        <div class="main-title-en">${titleEn}</div>
+      </div>
+    </div>
+    
+    <p class="subtitle-bilingual">
+      ${panelZh}<br>
+      <span style="font-size: 12px; opacity: 0.8;">${panelEn}</span>
+    </p>
+    
+    <div class="award-grid">${buttonsHTML}
+    </div>
+    
+    <p id="status-msg" style="margin-top: 25px; color: #38bdf8; font-weight: bold; min-height: 24px; font-size: 15px;"></p>
+  </div>
+
+  <!-- 接收端 UI (大螢幕) -->
+  <div id="got-ui">
+    <div class="got-header">
+      <div class="header-container">
+        <img src="${logo}" alt="Logo" class="brand-logo" onerror="this.style.display='none'">
+        <div class="title-group">
+          <h1 class="main-title-zh">${titleZh}</h1>
+          <div class="main-title-en">${titleEn}</div>
+        </div>
+      </div>
+      <p style="color: #64748b; margin-top: 6px; font-size: 16px; letter-spacing: 3px;">
+        線上頒獎典禮現場 | Virtual Award Ceremony
+      </p>
+    </div>
+
+    <div id="award-modal">
+      <img id="certificate-img" src="" alt="Certificate 獎狀">
+      <br>
+      <div class="modal-actions">
+        <button class="btn-download" onclick="downloadCertificate()">
+          <span>📥 開啟並下載獎狀</span>
+          <span class="btn-subtext">Download Certificate</span>
+        </button>
+        <button class="btn-reset" onclick="hideCertificate()">
+          <span>準備下一位頒獎</span>
+          <span class="btn-subtext">Next Award</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 吉祥物動態元件 -->
+  <div id="owl" class="owl-container">
+    <img id="owl-sprite" class="owl-img" src="${owlPrefix}1.png" alt="Mascot">
+  </div>
+
+  <script>
+    const TOPIC = '${topic}';
+    const rankImageMap = ${JSON.stringify(rankImageMapObj, null, 2)};
+    const owlPrefix = '${owlPrefix}';
+
+    const client = mqtt.connect('wss://broker.hivemq.com:8884/mqtt');
+    const urlParams = new URLSearchParams(window.location.search);
+    const role = urlParams.get('role');
+
+    if (role === 'send') {
+      document.title = "頒獎控台 | ${titleZh}";
+      document.getElementById('send-ui').style.display = 'block';
+    } else {
+      document.title = "線上頒獎典禮 | ${titleZh}";
+      document.getElementById('got-ui').style.display = 'block';
+    }
+
+    client.on('connect', () => {
+      console.log('MQTT 即時連線成功！');
+      if (role !== 'send') client.subscribe(TOPIC);
+    });
+
+    let flapInterval = null;
+    function startFlapping() {
+      let frameIndex = 1;
+      const owlSprite = document.getElementById('owl-sprite');
+      if (flapInterval) clearInterval(flapInterval);
+      flapInterval = setInterval(() => {
+        frameIndex = (frameIndex % 4) + 1;
+        owlSprite.src = \`\${owlPrefix}\${frameIndex}.png\`;
+      }, 100);
+    }
+
+    function stopFlapping() {
+      if (flapInterval) { clearInterval(flapInterval); flapInterval = null; }
+      document.getElementById('owl-sprite').src = \`\${owlPrefix}1.png\`;
+    }
+
+    let currentAnimationId = null;
+    let isFlying = false;
+
+    function triggerAward(rank) {
+      if (isFlying) return;
+      isFlying = true;
+
+      const btn = document.getElementById(\`btn-rank-\${rank}\`);
+      const tag = document.getElementById(\`tag-\${rank}\`);
+      if (btn && tag) {
+        btn.classList.add('awarded');
+        tag.innerText = '✓ 已頒發 / Awarded';
+      }
+
+      client.publish(TOPIC, JSON.stringify({ action: 'clear_screen' }));
+      document.getElementById('status-msg').innerText = \`正在頒發 第 \${rank} 名... / Presenting Rank \${rank}...\`;
+      
+      const owl = document.getElementById('owl');
+      let startX = window.innerWidth + 180;
+      let currentX = startX;
+      const speed = 12;
+      let angle = 0;
+
+      startFlapping();
+
+      function animate() {
+        currentX -= speed;
+        angle += 0.08;
+        let waveY = Math.sin(angle) * 45;
+        owl.style.transform = \`translate(\${currentX - startX}px, \${waveY}px)\`;
+
+        if (currentX < -180) {
+          client.publish(TOPIC, JSON.stringify({ action: 'show_award', rank: rank }));
+          stopFlapping();
+          setTimeout(() => {
+            owl.style.transform = 'translate(0px, 0px)';
+            document.getElementById('status-msg').innerText = \`第 \${rank} 名 獎狀已成功送出！ / Rank \${rank} Certificate Sent!\`;
+            isFlying = false;
+          }, 300);
+        } else {
+          requestAnimationFrame(animate);
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+
+    client.on('message', (topic, message) => {
+      const data = JSON.parse(message.toString());
+      if (data.action === 'clear_screen') {
+        resetGotScreen();
+      } else if (data.action === 'show_award') {
+        startGotAnimation(data.rank);
+      }
+    });
+
+    let currentGotX = 0;
+    let startX = 0;
+    let currentCurrentRank = null;
+
+    function resetGotScreen() {
+      if (currentAnimationId) { cancelAnimationFrame(currentAnimationId); currentAnimationId = null; }
+      stopFlapping();
+      document.getElementById('award-modal').style.display = 'none';
+      document.getElementById('owl').style.transform = 'translate(0px, 0px)';
+    }
+
+    function startGotAnimation(rank) {
+      resetGotScreen();
+      currentCurrentRank = rank;
+      const owl = document.getElementById('owl');
+      startX = window.innerWidth + 180;
+      let targetX = window.innerWidth / 2 - 65;
+      currentGotX = startX;
+      const speed = 12;
+      let angle = 0;
+
+      startFlapping();
+
+      function animate() {
+        currentGotX -= speed;
+        angle += 0.08;
+        let waveY = Math.sin(angle) * 45;
+        owl.style.transform = \`translate(\${currentGotX - startX}px, \${waveY}px)\`;
+
+        if (currentGotX <= targetX) {
+          stopFlapping();
+          const certImg = document.getElementById('certificate-img');
+          certImg.src = rankImageMap[rank] || \`\${rank}.png\`;
+          certImg.onload = () => { document.getElementById('award-modal').style.display = 'block'; };
+          certImg.onerror = () => { alert(\`找不到獎狀圖片: \${certImg.src}\`); };
+        } else {
+          currentAnimationId = requestAnimationFrame(animate);
+        }
+      }
+      currentAnimationId = requestAnimationFrame(animate);
+    }
+
+    function hideCertificate() {
+      document.getElementById('award-modal').style.display = 'none';
+      const owl = document.getElementById('owl');
+      const speed = 12;
+      let angle = 0;
+
+      startFlapping();
+
+      function flyOut() {
+        currentGotX -= speed;
+        angle += 0.08;
+        let waveY = Math.sin(angle) * 45;
+        owl.style.transform = \`translate(\${currentGotX - startX}px, \${waveY}px)\`;
+
+        if (currentGotX < -180) {
+          stopFlapping();
+          owl.style.transform = 'translate(0px, 0px)';
+        } else {
+          currentAnimationId = requestAnimationFrame(flyOut);
+        }
+      }
+      currentAnimationId = requestAnimationFrame(flyOut);
+    }
+
+    function downloadCertificate() {
+      const certImg = document.getElementById('certificate-img');
+      if (!certImg.src) return;
+      const link = document.createElement('a');
+      link.href = certImg.src;
+      link.target = '_blank';
+      link.download = \`Award_Rank_\${currentCurrentRank || 'Certificate'}.png\`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  <\/script>
+</body>
+</html>`;
+
+      document.getElementById('code-output').value = finalHTML;
+    }
+
+    // 複製程式碼
+    function copyCode() {
+      const textarea = document.getElementById('code-output');
+      if (!textarea.value) {
+        alert('請先點擊「產生 HTML 程式碼」！');
+        return;
+      }
+      textarea.select();
+      document.execCommand('copy');
+
+      const toast = document.getElementById('toast');
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 2000);
+    }
+
+    // 下載成 HTML 檔案
+    function downloadHTML() {
+      const code = document.getElementById('code-output').value;
+      if (!code) {
+        alert('請先點擊「產生 HTML 程式碼」！');
+        return;
+      }
+      const blob = new Blob([code], { type: 'text/html' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'index.html';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    // 初始化渲染
+    window.onload = () => {
+      renderRankInputs();
+      generateCode();
+    };
+  </script>
+</body>
+</html>
