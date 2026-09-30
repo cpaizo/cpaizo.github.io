@@ -1,7 +1,6 @@
 // 您的 GAS API Web App URL
 const API_URL = "https://script.google.com/macros/s/AKfycbxzU4Fpt9gnMtC883fED6bOxPxdjCSqLD1IB0rBUDlFPDio2186ruz2OkP-fZFbVYMTpw/exec";
 
-// 初始化：預設今日日期並載入數據
 document.addEventListener("DOMContentLoaded", () => {
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('sch-date').value = today;
@@ -12,7 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
   registerServiceWorker();
 });
 
-// 分頁切換
 function switchTab(tabName) {
   document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
@@ -21,40 +19,54 @@ function switchTab(tabName) {
   document.getElementById(`tab-${tabName}`).classList.add('active');
 }
 
-// 讀取儀表板總覽數據
-async function loadDashboard() {
+// 自動重試 Fetch (防止 GAS 休眠彈窗)
+async function fetchWithRetry(url, options = {}, retries = 3, backoff = 1000) {
   try {
-    const res = await fetch(API_URL);
-    const data = await res.json();
-    
-    if (data.success) {
-      // 更新頂部卡片數據
-      document.getElementById('stat-used').innerText = `${data.summary.hoursUsed} / ${data.summary.totalHoursPurchased}`;
-      document.getElementById('stat-remaining').innerText = `${data.summary.remainingHours} 小時`;
-      document.getElementById('stat-pending-exp').innerText = `$${data.summary.pendingExpensesAmount}`;
-      
-      // 渲染歷史列表
-      renderHistory(data);
-    } else {
-      alert(`載入失敗：${data.message}`);
-    }
+    const response = await fetch(url, options);
+    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+    return await response.json();
   } catch (err) {
-    alert('無法連線至 API，請檢查網路狀態或 GAS 部署設定');
+    if (retries > 0) {
+      console.warn(`API 連線重試中... 剩餘次數: ${retries}`);
+      await new Promise(resolve => setTimeout(resolve, backoff));
+      return fetchWithRetry(url, options, retries - 1, backoff * 1.5);
+    } else {
+      throw err;
+    }
   }
 }
 
-// 渲染歷史列表 (帶防呆與前後空格清理)
+async function loadDashboard() {
+  try {
+    const data = await fetchWithRetry(API_URL);
+    
+    if (data && data.success) {
+      const summary = data.summary || {};
+      
+      const hoursUsed = summary.hoursUsed || 0;
+      const totalHours = summary.totalHoursPurchased || 0;
+      document.getElementById('stat-used').innerText = `${hoursUsed} / ${totalHours}`;
+      document.getElementById('stat-remaining').innerText = `${summary.remainingHours || 0} 小時`;
+      
+      const parkingBal = summary.remainingParkingBalance;
+      document.getElementById('stat-parking-bal').innerText = `$${parkingBal !== undefined && !isNaN(parkingBal) ? parkingBal : 0}`;
+      
+      renderHistory(data);
+    }
+  } catch (err) {
+    console.error('API 讀取失敗:', err);
+  }
+}
+
 function renderHistory(data) {
   const listEl = document.getElementById('history-list');
   let html = '<h4>排課清單與考勤確認</h4>';
   
-  // A. 排課紀錄
-  if (data.schedules.length === 0) {
+  if (!data.schedules || data.schedules.length === 0) {
     html += '<p style="color:#999;font-size:13px;">尚無排課紀錄</p>';
   } else {
     data.schedules.forEach(item => {
       const currentStatus = String(item.status || '').trim();
-      
       let badgeClass = 'badge-pending';
       if (currentStatus === '已完成' || currentStatus === '已上課') {
         badgeClass = 'badge-done';
@@ -85,14 +97,13 @@ function renderHistory(data) {
     });
   }
 
-  // B. 代墊費用紀錄 (停車費 / 材料費)
-  html += '<h4 style="margin-top:20px;">代墊費用明細 (停車費 / 材料費)</h4>';
-  if (data.expenses.length === 0) {
+  html += '<h4 style="margin-top:20px;">代墊/扣費明細 (停車費 / 材料費)</h4>';
+  if (!data.expenses || data.expenses.length === 0) {
     html += '<p style="color:#999;font-size:13px;">尚無費用紀錄</p>';
   } else {
     data.expenses.forEach(item => {
       const currentStatus = String(item.status || '').trim();
-      let badgeClass = currentStatus === '已結清' ? 'badge-done' : 'badge-pending';
+      let badgeClass = currentStatus === '已結清' || currentStatus === '已扣款' ? 'badge-done' : 'badge-pending';
       let payBtn = '';
       if (currentStatus === '未結清') {
         payBtn = `<button onclick="payExpense('${item.expense_id}')" style="margin-top:6px; padding:4px 8px; font-size:12px; background:var(--warning); width:auto;">💵 標記家長已給付</button>`;
@@ -110,15 +121,16 @@ function renderHistory(data) {
     });
   }
 
-  // C. 預繳儲值紀錄
   html += '<h4 style="margin-top:20px;">預繳儲值歷史紀錄</h4>';
-  if (data.transactions.length === 0) {
+  if (!data.transactions || data.transactions.length === 0) {
     html += '<p style="color:#999;font-size:13px;">尚無儲值紀錄</p>';
   } else {
     data.transactions.forEach(item => {
+      const typeStr = item.type ? `[${item.type}] ` : '';
+      const hrsStr = item.hours_added > 0 ? ` (+${item.hours_added}小時)` : '';
       html += `
         <div class="list-item">
-          <div><strong>${item.date}</strong> 收鐘點費 $${item.amount_paid} (+${item.hours_added}小時)</div>
+          <div><strong>${item.date}</strong> ${typeStr}收 $${item.amount_paid}${hrsStr}</div>
           <div style="font-size:12px;color:#666;">${item.note || '無備註'}</div>
         </div>`;
     });
@@ -127,7 +139,6 @@ function renderHistory(data) {
   listEl.innerHTML = html;
 }
 
-// 通用 POST 資料送出函式
 async function sendData(action, payload, btnId) {
   const btn = document.getElementById(btnId);
   btn.disabled = true;
@@ -154,7 +165,6 @@ async function sendData(action, payload, btnId) {
   }
 }
 
-// 更改課程狀態 (完成 / 取消)
 async function updateScheduleStatus(scheduleId, actionType) {
   const confirmMsg = actionType === 'completeSchedule' ? '確定標記此堂課為「已上課」並扣除額度嗎？' : '確定取消此堂課嗎？';
   if (!confirm(confirmMsg)) return;
@@ -179,7 +189,6 @@ async function updateScheduleStatus(scheduleId, actionType) {
   }
 }
 
-// 結清單筆費用
 async function payExpense(expenseId) {
   if (!confirm('確認已收到家長支付的此筆費用了嗎？')) return;
 
@@ -203,7 +212,6 @@ async function payExpense(expenseId) {
   }
 }
 
-// 表單事件監聽 (預約排課)
 document.getElementById('form-schedule').addEventListener('submit', (e) => {
   e.preventDefault();
   sendData('addSchedule', {
@@ -216,10 +224,10 @@ document.getElementById('form-schedule').addEventListener('submit', (e) => {
   }, 'btn-sch');
 });
 
-// 表單事件監聽 (收鐘點費/儲值)
 document.getElementById('form-deposit').addEventListener('submit', (e) => {
   e.preventDefault();
   sendData('addTransaction', {
+    type: document.getElementById('dep-type').value,
     date: document.getElementById('dep-date').value.replace(/-/g, '/'),
     amount_paid: document.getElementById('dep-amount').value,
     hourly_rate: document.getElementById('dep-rate').value,
@@ -227,7 +235,6 @@ document.getElementById('form-deposit').addEventListener('submit', (e) => {
   }, 'btn-dep');
 });
 
-// 表單事件監聽 (登記代墊費用)
 document.getElementById('form-expense').addEventListener('submit', (e) => {
   e.preventDefault();
   sendData('addExpense', {
@@ -238,7 +245,6 @@ document.getElementById('form-expense').addEventListener('submit', (e) => {
   }, 'btn-exp');
 });
 
-// PWA Service Worker 註冊
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
