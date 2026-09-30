@@ -146,15 +146,15 @@
       <div class="grid-3">
         <div class="stat-box">
           <div class="stat-value" id="stat-used" style="color: #666;">--</div>
-          <div class="stat-label">已使用額度</div>
+          <div class="stat-label">已使用時數</div>
         </div>
         <div class="stat-box">
           <div class="stat-value" id="stat-remaining">--</div>
-          <div class="stat-label">剩餘額度</div>
+          <div class="stat-label">剩餘鐘點時數</div>
         </div>
         <div class="stat-box">
-          <div class="stat-value" id="stat-pending-exp" style="color: var(--warning);">$--</div>
-          <div class="stat-label">未結清費用</div>
+          <div class="stat-value" id="stat-parking-bal" style="color: var(--success);">$--</div>
+          <div class="stat-label">停車費剩餘金額</div>
         </div>
       </div>
     </div>
@@ -190,7 +190,7 @@
           <input type="number" id="sch-hours" value="3" step="0.5" required>
         </div>
         <div class="form-group">
-          <label><input type="checkbox" id="sch-parking" checked style="width:auto;"> 自動計入停車費 ($40/小時)</label>
+          <label><input type="checkbox" id="sch-parking" checked style="width:auto;"> 自動扣除停車費 ($40/小時)</label>
         </div>
         <div class="form-group">
           <label>備註</label>
@@ -200,25 +200,32 @@
       </form>
     </div>
 
-    <!-- 2. 儲值表單 -->
+    <!-- 2. 儲值表單 (支援鐘點費與停車費) -->
     <div id="tab-deposit" class="tab-content card">
-      <h3 style="margin-top:0;">收鐘點費 / 儲值</h3>
+      <h3 style="margin-top:0;">家長預繳 / 儲值</h3>
       <form id="form-deposit">
+        <div class="form-group">
+          <label>儲值項目</label>
+          <select id="dep-type" onchange="toggleDepositFields()">
+            <option value="鐘點費">鐘點費 (換算時數)</option>
+            <option value="停車費">停車費預付金 ($500 / $1000)</option>
+          </select>
+        </div>
         <div class="form-group">
           <label>繳費日期</label>
           <input type="date" id="dep-date" required>
         </div>
         <div class="form-group">
-          <label>實收鐘點費 ($)</label>
+          <label>實收金額 ($)</label>
           <input type="number" id="dep-amount" value="15000" required>
         </div>
-        <div class="form-group">
+        <div class="form-group" id="group-rate">
           <label>鐘點單價 ($/小時)</label>
           <input type="number" id="dep-rate" value="1000" required>
         </div>
         <div class="form-group">
           <label>備註</label>
-          <input type="text" id="dep-note" placeholder="例如：預收 15 小時鐘點費">
+          <input type="text" id="dep-note" placeholder="例如：預收 15 小時鐘點費 或 停車費預付金">
         </div>
         <button type="submit" id="btn-dep">確認儲值</button>
       </form>
@@ -226,7 +233,7 @@
 
     <!-- 3. 代墊費用表單 -->
     <div id="tab-expense" class="tab-content card">
-      <h3 style="margin-top:0;">登記代墊費用</h3>
+      <h3 style="margin-top:0;">登記額外費用 (如材料費)</h3>
       <form id="form-expense">
         <div class="form-group">
           <label>發生日期</label>
@@ -247,7 +254,7 @@
           <label>備註</label>
           <input type="text" id="exp-note" placeholder="例如：Micro:bit 開發板/材料費用">
         </div>
-        <button type="submit" id="btn-exp">新增費用</button>
+        <button type="submit" id="btn-exp">新增費用扣款</button>
       </form>
     </div>
 
@@ -259,5 +266,20 @@
   </div>
 
   <script src="app.js"></script>
+  <script>
+    function toggleDepositFields() {
+      const type = document.getElementById('dep-type').value;
+      const rateGroup = document.getElementById('group-rate');
+      const amountInput = document.getElementById('dep-amount');
+      
+      if (type === '停車費') {
+        rateGroup.style.display = 'none';
+        amountInput.value = '1000';
+      } else {
+        rateGroup.style.display = 'block';
+        amountInput.value = '15000';
+      }
+    }
+  </script>
 </body>
 </html>
