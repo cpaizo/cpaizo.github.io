@@ -43,7 +43,7 @@ async function loadDashboard() {
   }
 }
 
-// 渲染歷史列表 (包含排課確認、取消、代墊費用給付處理)
+// 渲染歷史列表 (帶防呆與前後空格清理)
 function renderHistory(data) {
   const listEl = document.getElementById('history-list');
   let html = '<h4>排課清單與考勤確認</h4>';
@@ -53,9 +53,17 @@ function renderHistory(data) {
     html += '<p style="color:#999;font-size:13px;">尚無排課紀錄</p>';
   } else {
     data.schedules.forEach(item => {
-      let badgeClass = item.status === '已完成' ? 'badge-done' : (item.status === '已取消' ? 'badge-cancel' : 'badge-pending');
+      const currentStatus = String(item.status || '').trim();
+      
+      let badgeClass = 'badge-pending';
+      if (currentStatus === '已完成' || currentStatus === '已上課') {
+        badgeClass = 'badge-done';
+      } else if (currentStatus === '已取消') {
+        badgeClass = 'badge-cancel';
+      }
+
       let actionBtns = '';
-      if (item.status === '已排定') {
+      if (currentStatus === '已排定') {
         actionBtns = `
           <div style="margin-top:8px; display:flex; gap:8px;">
             <button onclick="updateScheduleStatus('${item.schedule_id}', 'completeSchedule')" style="padding:6px; font-size:12px; background:var(--success);">✅ 確認已上課</button>
@@ -67,7 +75,7 @@ function renderHistory(data) {
         <div class="list-item" style="padding: 10px 0; border-bottom: 1px solid #EEE;">
           <div style="display:flex; justify-content:space-between; align-items:center;">
             <div><strong>${item.date}</strong> (${item.start_time} ~ ${item.end_time})</div>
-            <span class="badge ${badgeClass}">${item.status}</span>
+            <span class="badge ${badgeClass}">${currentStatus}</span>
           </div>
           <div style="font-size:13px; color:#555; margin-top:4px;">
             時數：${item.hours} 小時 ${item.note ? '| ' + item.note : ''}
@@ -83,9 +91,10 @@ function renderHistory(data) {
     html += '<p style="color:#999;font-size:13px;">尚無費用紀錄</p>';
   } else {
     data.expenses.forEach(item => {
-      let badgeClass = item.status === '已結清' ? 'badge-done' : 'badge-pending';
+      const currentStatus = String(item.status || '').trim();
+      let badgeClass = currentStatus === '已結清' ? 'badge-done' : 'badge-pending';
       let payBtn = '';
-      if (item.status === '未結清') {
+      if (currentStatus === '未結清') {
         payBtn = `<button onclick="payExpense('${item.expense_id}')" style="margin-top:6px; padding:4px 8px; font-size:12px; background:var(--warning); width:auto;">💵 標記家長已給付</button>`;
       }
 
@@ -93,7 +102,7 @@ function renderHistory(data) {
         <div class="list-item" style="padding: 10px 0; border-bottom: 1px solid #EEE;">
           <div style="display:flex; justify-content:space-between; align-items:center;">
             <div><strong>${item.date}</strong> [${item.category}] $${item.amount}</div>
-            <span class="badge ${badgeClass}">${item.status}</span>
+            <span class="badge ${badgeClass}">${currentStatus}</span>
           </div>
           <div style="font-size:12px;color:#666;margin-top:2px;">${item.note || '無備註'}</div>
           ${payBtn}
@@ -133,7 +142,7 @@ async function sendData(action, payload, btnId) {
 
     if (result.success) {
       alert(result.message);
-      loadDashboard(); // 送出成功後更新儀表板
+      loadDashboard();
     } else {
       alert(`失敗：${result.message}`);
     }
@@ -170,7 +179,7 @@ async function updateScheduleStatus(scheduleId, actionType) {
   }
 }
 
-// 結清單筆費用 (停車費/材料費)
+// 結清單筆費用
 async function payExpense(expenseId) {
   if (!confirm('確認已收到家長支付的此筆費用了嗎？')) return;
 
