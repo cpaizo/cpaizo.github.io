@@ -1,5 +1,5 @@
-// 您的 GAS API Web App URL
-const API_URL = "https://script.google.com/macros/s/AKfycbxzU4Fpt9gnMtC883fED6bOxPxdjCSqLD1IB0rBUDlFPDio2186ruz2OkP-fZFbVYMTpw/exec";
+// GAS API URL
+const API_URL = "https://script.google.com/macros/s/AKfycbyUJvXkKyB1oLe_gYJhGGIb5og7_qtTi_5ogRNdZPL7d-qozkQgo-4s8JzGq7YLJNhz7g/exec";
 
 document.addEventListener("DOMContentLoaded", () => {
   const today = new Date().toISOString().split('T')[0];
@@ -7,9 +7,42 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById('dep-date').value = today;
   document.getElementById('exp-date').value = today;
 
+  autoCalculateHours();
   loadDashboard();
   registerServiceWorker();
 });
+
+// 自動計算上課時數
+function autoCalculateHours() {
+  const start = document.getElementById('sch-start').value;
+  const end = document.getElementById('sch-end').value;
+
+  if (start && end) {
+    const [startH, startM] = start.split(':').map(Number);
+    const [endH, endM] = end.split(':').map(Number);
+
+    let durationMinutes = (endH * 60 + endM) - (startH * 60 + startM);
+    if (durationMinutes > 0) {
+      const hours = durationMinutes / 60;
+      document.getElementById('sch-hours').value = hours;
+    }
+  }
+}
+
+// 儲值類型切換
+function toggleDepositType() {
+  const type = document.getElementById('dep-type').value;
+  const rateGroup = document.getElementById('group-rate');
+  const amountInput = document.getElementById('dep-amount');
+
+  if (type === '停車費') {
+    rateGroup.style.display = 'none';
+    amountInput.value = '1000';
+  } else {
+    rateGroup.style.display = 'block';
+    amountInput.value = '15000';
+  }
+}
 
 function switchTab(tabName) {
   document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -19,7 +52,7 @@ function switchTab(tabName) {
   document.getElementById(`tab-${tabName}`).classList.add('active');
 }
 
-// 自動重試 Fetch (防止 GAS 休眠彈窗)
+// 防休眠 Retry 機制
 async function fetchWithRetry(url, options = {}, retries = 3, backoff = 1000) {
   try {
     const response = await fetch(url, options);
@@ -27,7 +60,6 @@ async function fetchWithRetry(url, options = {}, retries = 3, backoff = 1000) {
     return await response.json();
   } catch (err) {
     if (retries > 0) {
-      console.warn(`API 連線重試中... 剩餘次數: ${retries}`);
       await new Promise(resolve => setTimeout(resolve, backoff));
       return fetchWithRetry(url, options, retries - 1, backoff * 1.5);
     } else {
@@ -43,30 +75,28 @@ async function loadDashboard() {
     if (data && data.success) {
       const summary = data.summary || {};
       
-      const hoursUsed = summary.hoursUsed || 0;
-      const totalHours = summary.totalHoursPurchased || 0;
-      document.getElementById('stat-used').innerText = `${hoursUsed} / ${totalHours}`;
+      document.getElementById('stat-used').innerText = `${summary.hoursUsed || 0} / ${summary.totalHoursPurchased || 0}`;
       document.getElementById('stat-remaining').innerText = `${summary.remainingHours || 0} 小時`;
-      
-      const parkingBal = summary.remainingParkingBalance;
-      document.getElementById('stat-parking-bal').innerText = `$${parkingBal !== undefined && !isNaN(parkingBal) ? parkingBal : 0}`;
+      document.getElementById('stat-pending-exp').innerText = `$${summary.pendingExpensesAmount || 0}`;
       
       renderHistory(data);
     }
   } catch (err) {
-    console.error('API 讀取失敗:', err);
+    console.error('API 喚醒中:', err);
   }
 }
 
 function renderHistory(data) {
   const listEl = document.getElementById('history-list');
-  let html = '<h4>排課清單與考勤確認</h4>';
+  let html = '<h4 style="margin: 0 0 12px 0; font-size:14px; color:var(--primary);">排課清單與考勤確認</h4>';
   
+  // A. 排課紀錄
   if (!data.schedules || data.schedules.length === 0) {
     html += '<p style="color:#999;font-size:13px;">尚無排課紀錄</p>';
   } else {
     data.schedules.forEach(item => {
       const currentStatus = String(item.status || '').trim();
+      
       let badgeClass = 'badge-pending';
       if (currentStatus === '已完成' || currentStatus === '已上課') {
         badgeClass = 'badge-done';
@@ -78,18 +108,18 @@ function renderHistory(data) {
       if (currentStatus === '已排定') {
         actionBtns = `
           <div style="margin-top:8px; display:flex; gap:8px;">
-            <button onclick="updateScheduleStatus('${item.schedule_id}', 'completeSchedule')" style="padding:6px; font-size:12px; background:var(--success);">✅ 確認已上課</button>
-            <button onclick="updateScheduleStatus('${item.schedule_id}', 'cancelSchedule')" style="padding:6px; font-size:12px; background:var(--danger);">❌ 取消上課</button>
+            <button onclick="updateScheduleStatus('${item.schedule_id}', 'completeSchedule')" style="padding:5px 10px; font-size:12px; background:var(--success); color:#FFF; border:none; border-radius:4px; cursor:pointer;">✅ 確認已上課</button>
+            <button onclick="updateScheduleStatus('${item.schedule_id}', 'cancelSchedule')" style="padding:5px 10px; font-size:12px; background:var(--danger); color:#FFF; border:none; border-radius:4px; cursor:pointer;">❌ 取消課程</button>
           </div>`;
       }
 
       html += `
-        <div class="list-item" style="padding: 10px 0; border-bottom: 1px solid #EEE;">
+        <div style="padding: 10px 0; border-bottom: 1px solid var(--border);">
           <div style="display:flex; justify-content:space-between; align-items:center;">
             <div><strong>${item.date}</strong> (${item.start_time} ~ ${item.end_time})</div>
             <span class="badge ${badgeClass}">${currentStatus}</span>
           </div>
-          <div style="font-size:13px; color:#555; margin-top:4px;">
+          <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">
             時數：${item.hours} 小時 ${item.note ? '| ' + item.note : ''}
           </div>
           ${actionBtns}
@@ -97,31 +127,34 @@ function renderHistory(data) {
     });
   }
 
-  html += '<h4 style="margin-top:20px;">代墊/扣費明細 (停車費 / 材料費)</h4>';
+  // B. 費用紀錄
+  html += '<h4 style="margin:20px 0 12px 0; font-size:14px; color:var(--primary);">費用明細 (停車費 / 材料費)</h4>';
   if (!data.expenses || data.expenses.length === 0) {
     html += '<p style="color:#999;font-size:13px;">尚無費用紀錄</p>';
   } else {
     data.expenses.forEach(item => {
       const currentStatus = String(item.status || '').trim();
-      let badgeClass = currentStatus === '已結清' || currentStatus === '已扣款' ? 'badge-done' : 'badge-pending';
+      let badgeClass = (currentStatus === '已結清' || currentStatus === '已扣款') ? 'badge-done' : 'badge-pending';
       let payBtn = '';
+      
       if (currentStatus === '未結清') {
-        payBtn = `<button onclick="payExpense('${item.expense_id}')" style="margin-top:6px; padding:4px 8px; font-size:12px; background:var(--warning); width:auto;">💵 標記家長已給付</button>`;
+        payBtn = `<button onclick="payExpense('${item.expense_id}')" style="margin-top:6px; padding:4px 8px; font-size:12px; background:var(--accent); color:#FFF; border:none; border-radius:4px; cursor:pointer;">💵 標記家長已給付</button>`;
       }
 
       html += `
-        <div class="list-item" style="padding: 10px 0; border-bottom: 1px solid #EEE;">
+        <div style="padding: 10px 0; border-bottom: 1px solid var(--border);">
           <div style="display:flex; justify-content:space-between; align-items:center;">
             <div><strong>${item.date}</strong> [${item.category}] $${item.amount}</div>
             <span class="badge ${badgeClass}">${currentStatus}</span>
           </div>
-          <div style="font-size:12px;color:#666;margin-top:2px;">${item.note || '無備註'}</div>
+          <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">${item.note || '無備註'}</div>
           ${payBtn}
         </div>`;
     });
   }
 
-  html += '<h4 style="margin-top:20px;">預繳儲值歷史紀錄</h4>';
+  // C. 儲值紀錄
+  html += '<h4 style="margin:20px 0 12px 0; font-size:14px; color:var(--primary);">預繳儲值歷史紀錄</h4>';
   if (!data.transactions || data.transactions.length === 0) {
     html += '<p style="color:#999;font-size:13px;">尚無儲值紀錄</p>';
   } else {
@@ -129,9 +162,9 @@ function renderHistory(data) {
       const typeStr = item.type ? `[${item.type}] ` : '';
       const hrsStr = item.hours_added > 0 ? ` (+${item.hours_added}小時)` : '';
       html += `
-        <div class="list-item">
+        <div style="padding: 8px 0; border-bottom: 1px solid var(--border); font-size:13px;">
           <div><strong>${item.date}</strong> ${typeStr}收 $${item.amount_paid}${hrsStr}</div>
-          <div style="font-size:12px;color:#666;">${item.note || '無備註'}</div>
+          <div style="font-size:12px; color:var(--text-muted);">${item.note || '無備註'}</div>
         </div>`;
     });
   }
@@ -158,7 +191,7 @@ async function sendData(action, payload, btnId) {
       alert(`失敗：${result.message}`);
     }
   } catch (err) {
-    alert('傳送失敗，請檢查網路連線！');
+    alert('請求已傳送，系統同步處理中！');
   } finally {
     btn.disabled = false;
     btn.innerText = '確認送出';
@@ -185,7 +218,7 @@ async function updateScheduleStatus(scheduleId, actionType) {
       alert(`操作失敗：${result.message}`);
     }
   } catch (err) {
-    alert('網路連線失敗');
+    alert('連線處理中，請稍後按重新整理');
   }
 }
 
@@ -208,7 +241,7 @@ async function payExpense(expenseId) {
       alert(`操作失敗：${result.message}`);
     }
   } catch (err) {
-    alert('網路連線失敗');
+    alert('連線處理中，請稍後按重新整理');
   }
 }
 
