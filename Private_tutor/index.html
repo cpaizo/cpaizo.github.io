@@ -3,41 +3,57 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>家教課時與費用管理</title>
+  <title>家教課時管理</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#4A90E2">
+  <meta name="theme-color" content="#5B7065">
   <style>
     :root {
-      --primary: #4A90E2;
-      --bg: #F5F7FA;
-      --card: #FFFFFF;
-      --text: #333;
-      --success: #27AE60;
-      --danger: #E74C3C;
-      --warning: #F39C12;
+      --bg: #F7F5F0;          /* 和風米白 */
+      --card-bg: #FFFFFF;     /* 純白卡片 */
+      --primary: #5B7065;     /* 苔綠灰主色 */
+      --primary-light: #EFEFE9;
+      --text: #2B2B2B;        /* 墨黑內文 */
+      --text-muted: #8C8C88;
+      --accent: #C87D55;      /* 柿黃強調色 */
+      --border: #E8E6E1;
+      --success: #6B8E23;
+      --danger: #A94442;
     }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      background-color: var(--bg);
       color: var(--text);
       margin: 0;
-      padding: 16px;
+      padding: 20px 16px;
+      -webkit-font-smoothing: antialiased;
     }
     .container {
-      max-width: 500px;
+      max-width: 480px;
       margin: 0 auto;
     }
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .header h2 {
+      font-size: 20px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      margin: 0 0 6px 0;
+      color: var(--primary);
+    }
     .card {
-      background: var(--card);
+      background: var(--card-bg);
       border-radius: 12px;
-      padding: 16px;
+      padding: 20px;
       margin-bottom: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
     }
     .grid-3 {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
+      gap: 10px;
     }
     .grid-2 {
       display: grid;
@@ -46,106 +62,104 @@
     }
     .stat-box {
       text-align: center;
-      padding: 10px 4px;
-      background: #EBF3FF;
+      padding: 12px 6px;
+      background: var(--primary-light);
       border-radius: 8px;
     }
     .stat-value {
-      font-size: 16px;
-      font-weight: bold;
+      font-size: 17px;
+      font-weight: 600;
       color: var(--primary);
     }
     .stat-label {
       font-size: 11px;
-      color: #666;
+      color: var(--text-muted);
       margin-top: 4px;
-    }
-    .form-group {
-      margin-bottom: 12px;
-    }
-    label {
-      display: block;
-      font-size: 14px;
-      margin-bottom: 4px;
-      font-weight: 600;
-    }
-    input, select, textarea {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #DDD;
-      border-radius: 6px;
-      box-sizing: border-box;
-      font-size: 14px;
-    }
-    button {
-      width: 100%;
-      padding: 10px;
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button:disabled {
-      background: #CCC;
     }
     .tab-group {
       display: flex;
-      gap: 6px;
-      margin-bottom: 16px;
+      background: #EAE8E3;
+      border-radius: 10px;
+      padding: 3px;
+      margin-bottom: 20px;
     }
     .tab-btn {
       flex: 1;
-      padding: 8px 4px;
-      background: #E0E0E0;
-      color: #333;
-      border-radius: 6px;
+      padding: 10px 0;
       text-align: center;
-      font-size: 12px;
+      font-size: 13px;
+      color: var(--text-muted);
+      border-radius: 8px;
       cursor: pointer;
-      font-weight: bold;
+      transition: all 0.2s ease;
+      font-weight: 500;
     }
     .tab-btn.active {
-      background: var(--primary);
-      color: white;
+      background: var(--card-bg);
+      color: var(--primary);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
-    .tab-content {
-      display: none;
-    }
-    .tab-content.active {
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .form-group { margin-bottom: 16px; }
+    label {
       display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
     }
-    .list-item {
-      border-bottom: 1px solid #EEE;
-      padding: 10px 0;
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-sizing: border-box;
       font-size: 14px;
+      background: #FAFAFA;
+      color: var(--text);
+      outline: none;
     }
-    .list-item:last-child {
-      border-bottom: none;
+    input:focus, select:focus {
+      border-color: var(--primary);
+      background: #FFF;
+    }
+    button.btn-primary {
+      width: 100%;
+      padding: 13px;
+      background: var(--primary);
+      color: #FFF;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      letter-spacing: 1px;
     }
     .badge {
       display: inline-block;
-      padding: 2px 6px;
+      padding: 3px 8px;
       border-radius: 4px;
       font-size: 11px;
-      font-weight: bold;
+      font-weight: 500;
     }
-    .badge-done { background: #E6F4EA; color: #137333; }
-    .badge-pending { background: #FEF7E0; color: #B06000; }
-    .badge-cancel { background: #FCE8E6; color: #C5221F; }
+    .badge-done { background: #EAF2E8; color: var(--success); }
+    .badge-pending { background: #FDF3E7; color: var(--accent); }
+    .badge-cancel { background: #FCEBEB; color: var(--danger); }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2 style="text-align: center; margin-bottom: 16px;">📚 家教課時與費用管理</h2>
+    <div class="header">
+      <h2>家教課時與費用紀錄</h2>
+    </div>
 
-    <!-- 頂部總覽儀表板 -->
+    <!-- 頂部數據看板 -->
     <div class="card">
       <div class="grid-3">
         <div class="stat-box">
-          <div class="stat-value" id="stat-used" style="color: #666;">--</div>
+          <div class="stat-value" id="stat-used">--</div>
           <div class="stat-label">已使用時數</div>
         </div>
         <div class="stat-box">
@@ -153,23 +167,22 @@
           <div class="stat-label">剩餘鐘點時數</div>
         </div>
         <div class="stat-box">
-          <div class="stat-value" id="stat-parking-bal" style="color: var(--success);">$--</div>
-          <div class="stat-label">停車費剩餘金額</div>
+          <div class="stat-value" id="stat-pending-exp" style="color: var(--accent);">$--</div>
+          <div class="stat-label">未結清費用</div>
         </div>
       </div>
     </div>
 
-    <!-- 功能頁籤切換 -->
+    <!-- 分頁導覽 -->
     <div class="tab-group">
-      <div class="tab-btn active" onclick="switchTab('schedule')">📅 預約排課</div>
-      <div class="tab-btn" onclick="switchTab('deposit')">💰 家長儲值</div>
-      <div class="tab-btn" onclick="switchTab('expense')">🚗 登記費用</div>
-      <div class="tab-btn" onclick="switchTab('history')">📋 歷史明細</div>
+      <div class="tab-btn active" onclick="switchTab('schedule')">預約排課</div>
+      <div class="tab-btn" onclick="switchTab('deposit')">家長儲值</div>
+      <div class="tab-btn" onclick="switchTab('expense')">登記費用</div>
+      <div class="tab-btn" onclick="switchTab('history')">歷史明細</div>
     </div>
 
-    <!-- 1. 預約排課表單 -->
+    <!-- 1. 預約排課 -->
     <div id="tab-schedule" class="tab-content active card">
-      <h3 style="margin-top:0;">預約 / 登記上課</h3>
       <form id="form-schedule">
         <div class="form-group">
           <label>上課日期</label>
@@ -178,37 +191,36 @@
         <div class="grid-2">
           <div class="form-group">
             <label>開始時間</label>
-            <input type="time" id="sch-start" value="13:00" required>
+            <input type="time" id="sch-start" value="13:00" required onchange="autoCalculateHours()">
           </div>
           <div class="form-group">
             <label>結束時間</label>
-            <input type="time" id="sch-end" value="16:00" required>
+            <input type="time" id="sch-end" value="16:00" required onchange="autoCalculateHours()">
           </div>
         </div>
         <div class="form-group">
-          <label>上課時數 (小時)</label>
+          <label>上課時數 (小時，依時間自動計算)</label>
           <input type="number" id="sch-hours" value="3" step="0.5" required>
         </div>
         <div class="form-group">
-          <label><input type="checkbox" id="sch-parking" checked style="width:auto;"> 自動扣除停車費 ($40/小時)</label>
+          <label><input type="checkbox" id="sch-parking" checked style="width:auto;"> 自動預扣停車費 ($40/小時)</label>
         </div>
         <div class="form-group">
           <label>備註</label>
-          <input type="text" id="sch-note" placeholder="例如：Python 課程單元">
+          <input type="text" id="sch-note" placeholder="如：Python 邏輯課程">
         </div>
-        <button type="submit" id="btn-sch">送出預約登記</button>
+        <button type="submit" class="btn-primary" id="btn-sch">確認登記排課</button>
       </form>
     </div>
 
-    <!-- 2. 儲值表單 (支援鐘點費與停車費) -->
+    <!-- 2. 家長儲值 -->
     <div id="tab-deposit" class="tab-content card">
-      <h3 style="margin-top:0;">家長預繳 / 儲值</h3>
       <form id="form-deposit">
         <div class="form-group">
           <label>儲值項目</label>
-          <select id="dep-type" onchange="toggleDepositFields()">
-            <option value="鐘點費">鐘點費 (換算時數)</option>
-            <option value="停車費">停車費預付金</option>
+          <select id="dep-type" onchange="toggleDepositType()">
+            <option value="鐘點費">鐘點費 (自動換算時數)</option>
+            <option value="停車費">停車費預付基金 ($500 / $1000)</option>
           </select>
         </div>
         <div class="form-group">
@@ -216,24 +228,23 @@
           <input type="date" id="dep-date" required>
         </div>
         <div class="form-group">
-          <label>實收金額 ($)</label>
+          <label>儲值金額 ($)</label>
           <input type="number" id="dep-amount" value="15000" required>
         </div>
         <div class="form-group" id="group-rate">
-          <label>鐘點單價 ($/小時)</label>
+          <label>鐘點費單價 ($/小時)</label>
           <input type="number" id="dep-rate" value="1000" required>
         </div>
         <div class="form-group">
           <label>備註</label>
-          <input type="text" id="dep-note" placeholder="例如：預收 15 小時鐘點費 或 停車費預付金">
+          <input type="text" id="dep-note" placeholder="備註說明">
         </div>
-        <button type="submit" id="btn-dep">確認儲值</button>
+        <button type="submit" class="btn-primary" id="btn-dep">送出儲值紀錄</button>
       </form>
     </div>
 
-    <!-- 3. 代墊費用表單 -->
+    <!-- 3. 登記費用 -->
     <div id="tab-expense" class="tab-content card">
-      <h3 style="margin-top:0;">登記額外費用 (如材料費)</h3>
       <form id="form-expense">
         <div class="form-group">
           <label>發生日期</label>
@@ -248,38 +259,22 @@
         </div>
         <div class="form-group">
           <label>金額 ($)</label>
-          <input type="number" id="exp-amount" placeholder="例如：350" required>
+          <input type="number" id="exp-amount" placeholder="金額" required>
         </div>
         <div class="form-group">
           <label>備註</label>
-          <input type="text" id="exp-note" placeholder="例如：Micro:bit 開發板/材料費用">
+          <input type="text" id="exp-note" placeholder="如：16*16 LED 材料費">
         </div>
-        <button type="submit" id="btn-exp">新增費用扣款</button>
+        <button type="submit" class="btn-primary" id="btn-exp">新增費用紀錄</button>
       </form>
     </div>
 
-    <!-- 4. 歷史明細列表 -->
+    <!-- 4. 歷史明細 -->
     <div id="tab-history" class="tab-content card">
-      <h3 style="margin-top:0;">歷史紀錄與狀態處理</h3>
-      <div id="history-list">載入中...</div>
+      <div id="history-list">資料載入中...</div>
     </div>
   </div>
 
   <script src="app.js"></script>
-  <script>
-    function toggleDepositFields() {
-      const type = document.getElementById('dep-type').value;
-      const rateGroup = document.getElementById('group-rate');
-      const amountInput = document.getElementById('dep-amount');
-      
-      if (type === '停車費') {
-        rateGroup.style.display = 'none';
-        amountInput.value = '1000';
-      } else {
-        rateGroup.style.display = 'block';
-        amountInput.value = '15000';
-      }
-    }
-  </script>
 </body>
 </html>
