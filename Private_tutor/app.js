@@ -1,5 +1,5 @@
 // 您的 GAS API Web App URL
-const API_URL = "https://script.google.com/macros/s/AKfycbyuPAwNou5jE7GGwzfZXzePItYXO2ES55djA1FC6EV2GXZvr2fFBSSO7xrXPOoz6LJ3Pg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzgkGAl3TEYiSm_cRoZcsjvi81Pm-8ZQO1T4X1IYUEbUMAZcyoqfFDUwncoafSS_l2uAg/exec";
 
 // 初始化：預設今日日期並載入數據
 document.addEventListener("DOMContentLoaded", () => {
