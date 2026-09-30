@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>家教課時管理</title>
+  <title>家教課時與費用管理</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#5B7065">
   <style>
@@ -137,6 +137,22 @@
       cursor: pointer;
       letter-spacing: 1px;
     }
+    .sub-tab-btn {
+      padding: 8px 6px;
+      font-size: 12px;
+      background: #EAE8E3;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .sub-tab-btn.active {
+      background: var(--primary);
+      color: #FFF;
+      border-color: var(--primary);
+    }
     .badge {
       display: inline-block;
       padding: 3px 8px;
@@ -173,7 +189,7 @@
       </div>
     </div>
 
-    <!-- 分頁導覽 -->
+    <!-- 主分頁導覽 -->
     <div class="tab-group">
       <div class="tab-btn active" onclick="switchTab('schedule')">預約排課</div>
       <div class="tab-btn" onclick="switchTab('deposit')">家長儲值</div>
@@ -269,9 +285,16 @@
       </form>
     </div>
 
-    <!-- 4. 歷史明細 -->
+    <!-- 4. 歷史明細 (拆分為四按鈕切換) -->
     <div id="tab-history" class="tab-content card">
-      <div id="history-list">資料載入中...</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">
+        <button type="button" class="sub-tab-btn active" onclick="switchSubTab('schedules')">📅 排課清單與考勤</button>
+        <button type="button" class="sub-tab-btn" onclick="switchSubTab('parking')">🅿️ 停車費明細</button>
+        <button type="button" class="sub-tab-btn" onclick="switchSubTab('materials')">🛠️ 材料費明細</button>
+        <button type="button" class="sub-tab-btn" onclick="switchSubTab('transactions')">💰 預繳儲值歷史</button>
+      </div>
+
+      <div id="history-sub-content">資料載入中...</div>
     </div>
   </div>
 
