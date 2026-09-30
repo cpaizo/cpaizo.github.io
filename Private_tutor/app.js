@@ -1,11 +1,29 @@
 // GAS API URL
 const API_URL = "https://script.google.com/macros/s/AKfycbyUJvXkKyB1oLe_gYJhGGIb5og7_qtTi_5ogRNdZPL7d-qozkQgo-4s8JzGq7YLJNhz7g/exec";
 
+// 全域變數
+let globalDashboardData = null;
+let currentSubTab = 'schedules';
+
 document.addEventListener("DOMContentLoaded", () => {
   const today = new Date().toISOString().split('T')[0];
-  document.getElementById('sch-date').value = today;
-  document.getElementById('dep-date').value = today;
-  document.getElementById('exp-date').value = today;
+  
+  const schDate = document.getElementById('sch-date');
+  const depDate = document.getElementById('dep-date');
+  const expDate = document.getElementById('exp-date');
+
+  if (schDate) schDate.value = today;
+  if (depDate) depDate.value = today;
+  if (expDate) expDate.value = today;
+
+  // 綁定事件監聽器 (避免 inline onchange undefined 報錯)
+  const schStart = document.getElementById('sch-start');
+  const schEnd = document.getElementById('sch-end');
+  if (schStart) schStart.addEventListener('change', autoCalculateHours);
+  if (schEnd) schEnd.addEventListener('change', autoCalculateHours);
+
+  const depType = document.getElementById('dep-type');
+  if (depType) depType.addEventListener('change', toggleDepositType);
 
   autoCalculateHours();
   loadDashboard();
@@ -14,45 +32,71 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // 自動計算上課時數
 function autoCalculateHours() {
-  const start = document.getElementById('sch-start').value;
-  const end = document.getElementById('sch-end').value;
+  const startEl = document.getElementById('sch-start');
+  const endEl = document.getElementById('sch-end');
+  const hoursEl = document.getElementById('sch-hours');
 
-  if (start && end) {
-    const [startH, startM] = start.split(':').map(Number);
-    const [endH, endM] = end.split(':').map(Number);
+  if (startEl && endEl && hoursEl) {
+    const start = startEl.value;
+    const end = endEl.value;
 
-    let durationMinutes = (endH * 60 + endM) - (startH * 60 + startM);
-    if (durationMinutes > 0) {
-      const hours = durationMinutes / 60;
-      document.getElementById('sch-hours').value = hours;
+    if (start && end) {
+      const [startH, startM] = start.split(':').map(Number);
+      const [endH, endM] = end.split(':').map(Number);
+
+      let durationMinutes = (endH * 60 + endM) - (startH * 60 + startM);
+      if (durationMinutes > 0) {
+        hoursEl.value = durationMinutes / 60;
+      }
     }
   }
 }
 
 // 儲值類型切換
 function toggleDepositType() {
-  const type = document.getElementById('dep-type').value;
+  const typeEl = document.getElementById('dep-type');
   const rateGroup = document.getElementById('group-rate');
   const amountInput = document.getElementById('dep-amount');
 
-  if (type === '停車費') {
-    rateGroup.style.display = 'none';
-    amountInput.value = '1000';
-  } else {
-    rateGroup.style.display = 'block';
-    amountInput.value = '15000';
+  if (typeEl && rateGroup && amountInput) {
+    if (typeEl.value === '停車費') {
+      rateGroup.style.display = 'none';
+      amountInput.value = '1000';
+    } else {
+      rateGroup.style.display = 'block';
+      amountInput.value = '15000';
+    }
   }
 }
 
+// 切換主要 Tab
 function switchTab(tabName) {
   document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
   
-  event.target.classList.add('active');
-  document.getElementById(`tab-${tabName}`).classList.add('active');
+  if (event && event.target) {
+    event.target.classList.add('active');
+  }
+  
+  const targetContent = document.getElementById(`tab-${tabName}`);
+  if (targetContent) targetContent.classList.add('active');
 }
 
-// 防休眠 Retry 機制
+// 切換歷史明細的四個子 Tab
+function switchSubTab(subTabName) {
+  currentSubTab = subTabName;
+  
+  const btns = document.querySelectorAll('.sub-tab-btn');
+  btns.forEach(btn => btn.classList.remove('active'));
+  
+  if (event && event.target) {
+    event.target.classList.add('active');
+  }
+
+  renderSubTabContent();
+}
+
+// API 自動重試機制
 async function fetchWithRetry(url, options = {}, retries = 3, backoff = 1000) {
   try {
     const response = await fetch(url, options);
@@ -68,114 +112,167 @@ async function fetchWithRetry(url, options = {}, retries = 3, backoff = 1000) {
   }
 }
 
+// 載入 Dashboard 資料
 async function loadDashboard() {
   try {
     const data = await fetchWithRetry(API_URL);
     
     if (data && data.success) {
+      globalDashboardData = data;
       const summary = data.summary || {};
       
-      document.getElementById('stat-used').innerText = `${summary.hoursUsed || 0} / ${summary.totalHoursPurchased || 0}`;
-      document.getElementById('stat-remaining').innerText = `${summary.remainingHours || 0} 小時`;
-      document.getElementById('stat-pending-exp').innerText = `$${summary.pendingExpensesAmount || 0}`;
+      const elUsed = document.getElementById('stat-used');
+      const elRemaining = document.getElementById('stat-remaining');
+      const elPendingExp = document.getElementById('stat-pending-exp');
+
+      if (elUsed) elUsed.innerText = `${summary.hoursUsed || 0} / ${summary.totalHoursPurchased || 0}`;
+      if (elRemaining) elRemaining.innerText = `${summary.remainingHours || 0} 小時`;
+      if (elPendingExp) elPendingExp.innerText = `$${summary.pendingExpensesAmount || 0}`;
       
-      renderHistory(data);
+      renderSubTabContent();
     }
   } catch (err) {
-    console.error('API 喚醒中:', err);
+    console.error('API 載入失敗:', err);
   }
 }
 
-function renderHistory(data) {
-  const listEl = document.getElementById('history-list');
-  let html = '<h4 style="margin: 0 0 12px 0; font-size:14px; color:var(--primary);">排課清單與考勤確認</h4>';
-  
-  // A. 排課紀錄
-  if (!data.schedules || data.schedules.length === 0) {
-    html += '<p style="color:#999;font-size:13px;">尚無排課紀錄</p>';
-  } else {
-    data.schedules.forEach(item => {
-      const currentStatus = String(item.status || '').trim();
-      
-      let badgeClass = 'badge-pending';
-      if (currentStatus === '已完成' || currentStatus === '已上課') {
-        badgeClass = 'badge-done';
-      } else if (currentStatus === '已取消') {
-        badgeClass = 'badge-cancel';
-      }
+// 渲染子項目歷史資料 (四按鈕選單)
+function renderSubTabContent() {
+  const container = document.getElementById('history-sub-content');
+  if (!container) return;
 
-      let actionBtns = '';
-      if (currentStatus === '已排定') {
-        actionBtns = `
-          <div style="margin-top:8px; display:flex; gap:8px;">
-            <button onclick="updateScheduleStatus('${item.schedule_id}', 'completeSchedule')" style="padding:5px 10px; font-size:12px; background:var(--success); color:#FFF; border:none; border-radius:4px; cursor:pointer;">✅ 確認已上課</button>
-            <button onclick="updateScheduleStatus('${item.schedule_id}', 'cancelSchedule')" style="padding:5px 10px; font-size:12px; background:var(--danger); color:#FFF; border:none; border-radius:4px; cursor:pointer;">❌ 取消課程</button>
+  if (!globalDashboardData) {
+    container.innerHTML = '<p style="color:#999;font-size:13px;text-align:center;">資料載入中...</p>';
+    return;
+  }
+
+  const data = globalDashboardData;
+  let html = '';
+
+  // 1. 排課清單與考勤確認
+  if (currentSubTab === 'schedules') {
+    html += '<h4 style="margin:0 0 12px 0; font-size:14px; color:var(--primary);">📅 排課清單與考勤確認</h4>';
+    if (!data.schedules || data.schedules.length === 0) {
+      html += '<p style="color:#999;font-size:13px;">尚無排課紀錄</p>';
+    } else {
+      data.schedules.forEach(item => {
+        const currentStatus = String(item.status || '').trim();
+        let badgeClass = 'badge-pending';
+        if (currentStatus === '已完成' || currentStatus === '已上課') {
+          badgeClass = 'badge-done';
+        } else if (currentStatus === '已取消') {
+          badgeClass = 'badge-cancel';
+        }
+
+        let actionBtns = '';
+        if (currentStatus === '已排定') {
+          actionBtns = `
+            <div style="margin-top:8px; display:flex; gap:8px;">
+              <button onclick="updateScheduleStatus('${item.schedule_id}', 'completeSchedule')" style="padding:5px 10px; font-size:12px; background:var(--success); color:#FFF; border:none; border-radius:4px; cursor:pointer;">✅ 確認已上課</button>
+              <button onclick="updateScheduleStatus('${item.schedule_id}', 'cancelSchedule')" style="padding:5px 10px; font-size:12px; background:var(--danger); color:#FFF; border:none; border-radius:4px; cursor:pointer;">❌ 取消課程</button>
+            </div>`;
+        }
+
+        html += `
+          <div style="padding: 10px 0; border-bottom: 1px solid var(--border);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div><strong>${item.date}</strong> (${item.start_time} ~ ${item.end_time})</div>
+              <span class="badge ${badgeClass}">${currentStatus}</span>
+            </div>
+            <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">
+              時數：${item.hours} 小時 ${item.note ? '| ' + item.note : ''}
+            </div>
+            ${actionBtns}
           </div>`;
-      }
+      });
+    }
+  } 
+  // 2. 停車費明細
+  else if (currentSubTab === 'parking') {
+    html += '<h4 style="margin:0 0 12px 0; font-size:14px; color:var(--primary);">🅿️ 停車費明細</h4>';
+    const parkingList = (data.expenses || []).filter(item => String(item.category || '').trim() === '停車費');
+    
+    if (parkingList.length === 0) {
+      html += '<p style="color:#999;font-size:13px;">尚無停車費紀錄</p>';
+    } else {
+      parkingList.forEach(item => {
+        const currentStatus = String(item.status || '').trim();
+        let badgeClass = (currentStatus === '已結清' || currentStatus === '已扣款') ? 'badge-done' : 'badge-pending';
+        let payBtn = '';
+        
+        if (currentStatus === '未結清') {
+          payBtn = `<button onclick="payExpense('${item.expense_id}')" style="margin-top:6px; padding:4px 8px; font-size:12px; background:var(--accent); color:#FFF; border:none; border-radius:4px; cursor:pointer;">💵 標記已給付</button>`;
+        }
 
-      html += `
-        <div style="padding: 10px 0; border-bottom: 1px solid var(--border);">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div><strong>${item.date}</strong> (${item.start_time} ~ ${item.end_time})</div>
-            <span class="badge ${badgeClass}">${currentStatus}</span>
-          </div>
-          <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">
-            時數：${item.hours} 小時 ${item.note ? '| ' + item.note : ''}
-          </div>
-          ${actionBtns}
-        </div>`;
-    });
+        html += `
+          <div style="padding: 10px 0; border-bottom: 1px solid var(--border);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div><strong>${item.date}</strong> $${item.amount}</div>
+              <span class="badge ${badgeClass}">${currentStatus}</span>
+            </div>
+            <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">${item.note || '無備註'}</div>
+            ${payBtn}
+          </div>`;
+      });
+    }
+  } 
+  // 3. 材料費明細
+  else if (currentSubTab === 'materials') {
+    html += '<h4 style="margin:0 0 12px 0; font-size:14px; color:var(--primary);">🛠️ 材料費明細</h4>';
+    const materialList = (data.expenses || []).filter(item => String(item.category || '').trim() === '材料費');
+    
+    if (materialList.length === 0) {
+      html += '<p style="color:#999;font-size:13px;">尚無材料費紀錄</p>';
+    } else {
+      materialList.forEach(item => {
+        const currentStatus = String(item.status || '').trim();
+        let badgeClass = (currentStatus === '已結清' || currentStatus === '已扣款') ? 'badge-done' : 'badge-pending';
+        let payBtn = '';
+        
+        if (currentStatus === '未結清') {
+          payBtn = `<button onclick="payExpense('${item.expense_id}')" style="margin-top:6px; padding:4px 8px; font-size:12px; background:var(--accent); color:#FFF; border:none; border-radius:4px; cursor:pointer;">💵 標記家長已給付</button>`;
+        }
+
+        html += `
+          <div style="padding: 10px 0; border-bottom: 1px solid var(--border);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div><strong>${item.date}</strong> $${item.amount}</div>
+              <span class="badge ${badgeClass}">${currentStatus}</span>
+            </div>
+            <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">${item.note || '無備註'}</div>
+            ${payBtn}
+          </div>`;
+      });
+    }
+  } 
+  // 4. 預繳儲值歷史紀錄
+  else if (currentSubTab === 'transactions') {
+    html += '<h4 style="margin:0 0 12px 0; font-size:14px; color:var(--primary);">💰 預繳儲值歷史紀錄</h4>';
+    if (!data.transactions || data.transactions.length === 0) {
+      html += '<p style="color:#999;font-size:13px;">尚無儲值紀錄</p>';
+    } else {
+      data.transactions.forEach(item => {
+        const typeStr = item.type ? `[${item.type}] ` : '';
+        const hrsStr = item.hours_added > 0 ? ` (+${item.hours_added}小時)` : '';
+        html += `
+          <div style="padding: 10px 0; border-bottom: 1px solid var(--border); font-size:13px;">
+            <div><strong>${item.date}</strong> ${typeStr}收到 $${item.amount_paid}${hrsStr}</div>
+            <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">${item.note || '無備註'}</div>
+          </div>`;
+      });
+    }
   }
 
-  // B. 費用紀錄
-  html += '<h4 style="margin:20px 0 12px 0; font-size:14px; color:var(--primary);">費用明細 (停車費 / 材料費)</h4>';
-  if (!data.expenses || data.expenses.length === 0) {
-    html += '<p style="color:#999;font-size:13px;">尚無費用紀錄</p>';
-  } else {
-    data.expenses.forEach(item => {
-      const currentStatus = String(item.status || '').trim();
-      let badgeClass = (currentStatus === '已結清' || currentStatus === '已扣款') ? 'badge-done' : 'badge-pending';
-      let payBtn = '';
-      
-      if (currentStatus === '未結清') {
-        payBtn = `<button onclick="payExpense('${item.expense_id}')" style="margin-top:6px; padding:4px 8px; font-size:12px; background:var(--accent); color:#FFF; border:none; border-radius:4px; cursor:pointer;">💵 標記家長已給付</button>`;
-      }
-
-      html += `
-        <div style="padding: 10px 0; border-bottom: 1px solid var(--border);">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div><strong>${item.date}</strong> [${item.category}] $${item.amount}</div>
-            <span class="badge ${badgeClass}">${currentStatus}</span>
-          </div>
-          <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">${item.note || '無備註'}</div>
-          ${payBtn}
-        </div>`;
-    });
-  }
-
-  // C. 儲值紀錄
-  html += '<h4 style="margin:20px 0 12px 0; font-size:14px; color:var(--primary);">預繳儲值歷史紀錄</h4>';
-  if (!data.transactions || data.transactions.length === 0) {
-    html += '<p style="color:#999;font-size:13px;">尚無儲值紀錄</p>';
-  } else {
-    data.transactions.forEach(item => {
-      const typeStr = item.type ? `[${item.type}] ` : '';
-      const hrsStr = item.hours_added > 0 ? ` (+${item.hours_added}小時)` : '';
-      html += `
-        <div style="padding: 8px 0; border-bottom: 1px solid var(--border); font-size:13px;">
-          <div><strong>${item.date}</strong> ${typeStr}收 $${item.amount_paid}${hrsStr}</div>
-          <div style="font-size:12px; color:var(--text-muted);">${item.note || '無備註'}</div>
-        </div>`;
-    });
-  }
-
-  listEl.innerHTML = html;
+  container.innerHTML = html;
 }
 
+// 通用 POST 送出
 async function sendData(action, payload, btnId) {
   const btn = document.getElementById(btnId);
-  btn.disabled = true;
-  btn.innerText = '處理中...';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = '處理中...';
+  }
 
   try {
     const res = await fetch(API_URL, {
@@ -193,8 +290,10 @@ async function sendData(action, payload, btnId) {
   } catch (err) {
     alert('請求已傳送，系統同步處理中！');
   } finally {
-    btn.disabled = false;
-    btn.innerText = '確認送出';
+    if (btn) {
+      btn.disabled = false;
+      btn.innerText = '確認送出';
+    }
   }
 }
 
@@ -245,38 +344,48 @@ async function payExpense(expenseId) {
   }
 }
 
-document.getElementById('form-schedule').addEventListener('submit', (e) => {
-  e.preventDefault();
-  sendData('addSchedule', {
-    date: document.getElementById('sch-date').value.replace(/-/g, '/'),
-    start_time: document.getElementById('sch-start').value,
-    end_time: document.getElementById('sch-end').value,
-    hours: document.getElementById('sch-hours').value,
-    auto_add_parking: document.getElementById('sch-parking').checked,
-    note: document.getElementById('sch-note').value
-  }, 'btn-sch');
-});
+// 表單提交事件綁定
+const formSch = document.getElementById('form-schedule');
+if (formSch) {
+  formSch.addEventListener('submit', (e) => {
+    e.preventDefault();
+    sendData('addSchedule', {
+      date: document.getElementById('sch-date').value.replace(/-/g, '/'),
+      start_time: document.getElementById('sch-start').value,
+      end_time: document.getElementById('sch-end').value,
+      hours: document.getElementById('sch-hours').value,
+      auto_add_parking: document.getElementById('sch-parking').checked,
+      note: document.getElementById('sch-note').value
+    }, 'btn-sch');
+  });
+}
 
-document.getElementById('form-deposit').addEventListener('submit', (e) => {
-  e.preventDefault();
-  sendData('addTransaction', {
-    type: document.getElementById('dep-type').value,
-    date: document.getElementById('dep-date').value.replace(/-/g, '/'),
-    amount_paid: document.getElementById('dep-amount').value,
-    hourly_rate: document.getElementById('dep-rate').value,
-    note: document.getElementById('dep-note').value
-  }, 'btn-dep');
-});
+const formDep = document.getElementById('form-deposit');
+if (formDep) {
+  formDep.addEventListener('submit', (e) => {
+    e.preventDefault();
+    sendData('addTransaction', {
+      type: document.getElementById('dep-type').value,
+      date: document.getElementById('dep-date').value.replace(/-/g, '/'),
+      amount_paid: document.getElementById('dep-amount').value,
+      hourly_rate: document.getElementById('dep-rate').value,
+      note: document.getElementById('dep-note').value
+    }, 'btn-dep');
+  });
+}
 
-document.getElementById('form-expense').addEventListener('submit', (e) => {
-  e.preventDefault();
-  sendData('addExpense', {
-    date: document.getElementById('exp-date').value.replace(/-/g, '/'),
-    category: document.getElementById('exp-category').value,
-    amount: document.getElementById('exp-amount').value,
-    note: document.getElementById('exp-note').value
-  }, 'btn-exp');
-});
+const formExp = document.getElementById('form-expense');
+if (formExp) {
+  formExp.addEventListener('submit', (e) => {
+    e.preventDefault();
+    sendData('addExpense', {
+      date: document.getElementById('exp-date').value.replace(/-/g, '/'),
+      category: document.getElementById('exp-category').value,
+      amount: document.getElementById('exp-amount').value,
+      note: document.getElementById('exp-note').value
+    }, 'btn-exp');
+  });
+}
 
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
