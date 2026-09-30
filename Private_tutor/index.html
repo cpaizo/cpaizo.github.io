@@ -67,7 +67,7 @@
       border-radius: 8px;
     }
     .stat-value {
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 600;
       color: var(--primary);
     }
@@ -191,11 +191,11 @@
         <div class="grid-2">
           <div class="form-group">
             <label>開始時間</label>
-            <input type="time" id="sch-start" value="13:00" required onchange="autoCalculateHours()">
+            <input type="time" id="sch-start" value="13:00" required>
           </div>
           <div class="form-group">
             <label>結束時間</label>
-            <input type="time" id="sch-end" value="16:00" required onchange="autoCalculateHours()">
+            <input type="time" id="sch-end" value="16:00" required>
           </div>
         </div>
         <div class="form-group">
@@ -218,7 +218,7 @@
       <form id="form-deposit">
         <div class="form-group">
           <label>儲值項目</label>
-          <select id="dep-type" onchange="toggleDepositType()">
+          <select id="dep-type">
             <option value="鐘點費">鐘點費 (自動換算時數)</option>
             <option value="停車費">停車費預付基金 ($500 / $1000)</option>
           </select>
