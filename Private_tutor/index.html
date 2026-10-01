@@ -3,37 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>✨ 家教時與費用管理系統 ✨</title>
+  <title>✨ 家教時數與費用管理系統 ✨</title>
   <link rel="manifest" href="manifest.json">
-  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --primary: #ff758c;      /* 櫻花粉紅 */
-      --primary-dark: #ff527b;
-      --secondary: #4facfe;    /* 天空藍 */
-      --accent: #f6d365;       /* 溫暖黃金 */
-      --bg-color: #f7f9fc;     /* 極淡粉白背景 */
-      --card-bg: #ffffff;      /* 卡片純白 */
-      --text-main: #2d3748;    /* 深灰主文字 */
-      --text-muted: #718096;   /* 淺灰次要文字 */
-      --border: #f1f2f6;
-      --success: #43e97b;      /* 鮮綠 */
-      --danger: #fa709a;       /* 亮紅 */
-      --radius: 16px;          /* 圓角加大，更顯可愛動漫風 */
+      --sakura-primary: #e07a8a;     /* 溫潤高雅日系櫻花粉 */
+      --sakura-light: #fff5f7;       /* 極淡櫻花白 */
+      --sakura-bg: #fcf8f9;          /* 背景柔和白沙 */
+      --text-main: #333333;          /* 沉穩黑灰字體，清晰易讀 */
+      --text-muted: #7d8590;         /* 柔和次要灰標 */
+      --card-bg: #ffffff;
+      --border-color: #f0e6e8;
+      --accent-green: #52b788;       /* 柔和抹茶綠 */
+      --accent-orange: #f4a261;      /* 溫潤琥珀橘 */
+      --accent-red: #e76f51;         /* 柔和磚紅 */
+      --radius: 18px;                /* 優雅大圓角 */
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'M PLUS Rounded 1c', 'Noto Sans TC', sans-serif;
+      font-family: 'Zen MaruGothic', 'Noto Sans TC', sans-serif;
+      letter-spacing: 0.5px;
     }
 
     body {
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
       background-attachment: fixed;
       color: var(--text-main);
-      padding: 12px;
+      padding: 16px;
       min-height: 100vh;
       display: flex;
       justify-content: center;
@@ -43,47 +43,47 @@
     .container {
       width: 100%;
       max-width: 480px;
-      background: var(--bg-color);
-      border-radius: 24px;
-      box-shadow: 0 10px 25px rgba(255, 117, 140, 0.15);
+      background: var(--sakura-bg);
+      border-radius: 28px;
+      box-shadow: 0 12px 30px rgba(224, 122, 138, 0.12);
       overflow: hidden;
-      border: 3px solid #ffffff;
-      margin-bottom: 24px;
+      border: 2px solid #ffffff;
+      margin-bottom: 30px;
     }
 
-    /* 頂部 Header */
+    /* 頂部 Header：日系簡約櫻花風 */
     .header {
-      background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+      background: linear-gradient(135deg, #e07a8a 0%, #e895a1 100%);
       color: white;
-      padding: 20px;
+      padding: 24px 20px;
       text-align: center;
-      border-bottom-left-radius: 20px;
-      border-bottom-right-radius: 20px;
-      box-shadow: 0 4px 15px rgba(255, 117, 140, 0.3);
+      border-bottom-left-radius: 24px;
+      border-bottom-right-radius: 24px;
+      box-shadow: 0 4px 15px rgba(224, 122, 138, 0.2);
     }
 
     .header h2 {
-      font-size: 20px;
+      font-size: 19px;
       font-weight: 700;
-      letter-spacing: 1px;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      letter-spacing: 1.5px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
 
-    /* 儀表板總覽卡片 */
+    /* 儀表板總覽卡片 (放大字體與留白) */
     .dashboard-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 10px;
-      padding: 15px;
+      padding: 16px;
     }
 
     .stat-card {
       background: var(--card-bg);
-      padding: 12px 8px;
+      padding: 14px 8px;
       border-radius: var(--radius);
       text-align: center;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
-      border: 2px solid #fff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+      border: 1px solid var(--border-color);
       transition: transform 0.2s;
     }
 
@@ -94,49 +94,49 @@
     .stat-card .label {
       font-size: 11px;
       color: var(--text-muted);
-      margin-bottom: 4px;
+      margin-bottom: 6px;
       font-weight: 500;
     }
 
     .stat-card .value {
       font-size: 15px;
       font-weight: 700;
-      color: var(--primary-dark);
+      color: #b5495b;
     }
 
     /* 主導覽分頁列 */
     .nav-tabs {
       display: flex;
-      background: #edf2f7;
+      background: #f1eaec;
       padding: 6px;
-      margin: 0 15px 15px 15px;
-      border-radius: 14px;
+      margin: 0 16px 16px 16px;
+      border-radius: 16px;
     }
 
     .tab-btn {
       flex: 1;
-      padding: 10px 0;
+      padding: 11px 0;
       text-align: center;
       background: transparent;
       border: none;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
-      color: var(--text-muted);
+      color: #7a6f72;
       cursor: pointer;
-      border-radius: 10px;
+      border-radius: 12px;
       transition: all 0.3s;
     }
 
     .tab-btn.active {
       background: white;
-      color: var(--primary);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      color: var(--sakura-primary);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
     }
 
     /* 內容區塊 */
     .tab-content {
       display: none;
-      padding: 0 15px 20px 15px;
+      padding: 0 16px 24px 16px;
     }
 
     .tab-content.active {
@@ -146,80 +146,84 @@
     .card {
       background: var(--card-bg);
       border-radius: var(--radius);
-      padding: 16px;
-      margin-bottom: 15px;
+      padding: 20px;
+      margin-bottom: 16px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-      border: 2px solid #ffffff;
+      border: 1px solid var(--border-color);
     }
 
     .card h3 {
       font-size: 15px;
-      color: var(--primary-dark);
-      margin-bottom: 12px;
+      color: #9e4758;
+      margin-bottom: 16px;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
+      font-weight: 700;
     }
 
-    /* 表單元件 */
+    /* 表單元件 (加大字體，確保清晰不擠壓) */
     .form-group {
-      margin-bottom: 12px;
+      margin-bottom: 16px;
     }
 
     .form-group label {
       display: block;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 700;
       color: var(--text-main);
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
 
     .form-control {
       width: 100%;
-      padding: 10px 12px;
-      border: 2px solid #e2e8f0;
-      border-radius: 12px;
-      font-size: 13px;
-      background: #f8fafc;
+      padding: 12px 14px;
+      border: 2px solid #e8dfdf;
+      border-radius: 14px;
+      font-size: 14px;
+      background: #faf7f7;
+      color: var(--text-main);
       transition: all 0.2s;
     }
 
     .form-control:focus {
       outline: none;
-      border-color: var(--primary);
+      border-color: var(--sakura-primary);
       background: white;
-      box-shadow: 0 0 0 3px rgba(255, 117, 140, 0.15);
+      box-shadow: 0 0 0 4px rgba(224, 122, 138, 0.12);
     }
 
     .checkbox-label {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       font-size: 13px;
       font-weight: 500;
       cursor: pointer;
-      margin-top: 8px;
+      margin-top: 10px;
+      color: var(--text-main);
     }
 
     .checkbox-label input {
-      width: 18px;
-      height: 18px;
-      accent-color: var(--primary);
+      width: 20px;
+      height: 20px;
+      accent-color: var(--sakura-primary);
     }
 
     /* 按鈕樣式 */
     .btn {
       width: 100%;
-      padding: 12px;
-      background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+      padding: 14px;
+      background: linear-gradient(135deg, #e07a8a 0%, #e895a1 100%);
       color: white;
       border: none;
-      border-radius: 12px;
-      font-size: 14px;
+      border-radius: 14px;
+      font-size: 15px;
       font-weight: 700;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(255, 117, 140, 0.3);
+      box-shadow: 0 4px 15px rgba(224, 122, 138, 0.3);
       transition: transform 0.1s, opacity 0.2s;
+      letter-spacing: 1px;
     }
 
     .btn:active {
@@ -230,42 +234,54 @@
     /* 子分頁標籤（紀錄頁內切換） */
     .sub-tabs {
       display: flex;
-      gap: 6px;
-      margin-bottom: 12px;
+      gap: 8px;
+      margin-bottom: 16px;
       overflow-x: auto;
-      padding-bottom: 4px;
+      padding-bottom: 6px;
     }
 
     .sub-tab-btn {
-      padding: 6px 12px;
+      padding: 8px 14px;
       font-size: 12px;
       font-weight: 700;
-      background: #edf2f7;
+      background: #f1eaec;
       border: none;
       border-radius: 20px;
-      color: var(--text-muted);
+      color: #7a6f72;
       cursor: pointer;
       white-space: nowrap;
       transition: all 0.2s;
     }
 
     .sub-tab-btn.active {
-      background: var(--secondary);
+      background: #d4a373;
       color: white;
-      box-shadow: 0 2px 6px rgba(79, 172, 254, 0.3);
+      box-shadow: 0 2px 8px rgba(212, 163, 115, 0.3);
+    }
+
+    /* 清單項目排版優化 (文字加大、行距舒適) */
+    .history-item {
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 13.5px;
+      line-height: 1.6;
+    }
+
+    .history-item:last-child {
+      border-bottom: none;
     }
 
     /* 狀態標章 Badges */
     .badge {
-      padding: 4px 8px;
+      padding: 4px 10px;
       font-size: 11px;
       font-weight: 700;
-      border-radius: 8px;
+      border-radius: 10px;
     }
 
-    .badge-done { background: #e6fffa; color: #319795; }
-    .badge-pending { background: #fffaf0; color: #dd6b20; }
-    .badge-cancel { background: #fff5f5; color: #e53e3e; }
+    .badge-done { background: #e8f5e9; color: #2e7d32; }
+    .badge-pending { background: #fff3e0; color: #e65100; }
+    .badge-cancel { background: #ffebee; color: #c62828; }
   </style>
 </head>
 <body>
@@ -273,13 +289,13 @@
   <div class="container">
     <!-- Header -->
     <div class="header">
-      <h2>🌸 汪汪家教時與費用管理 🌸</h2>
+      <h2>✨ 家教時數與費用管理系統 ✨</h2>
     </div>
 
     <!-- 儀表板數據 -->
     <div class="dashboard-grid">
       <div class="stat-card">
-        <div class="label">已上課/總數</div>
+        <div class="label">已上課 / 總數</div>
         <div class="value" id="stat-used">0 / 0</div>
       </div>
       <div class="stat-card">
@@ -303,13 +319,13 @@
     <!-- 1. 排課預約分頁 -->
     <div id="tab-schedule" class="tab-content active">
       <div class="card">
-        <h3>✨ 新增排課預約</h3>
+        <h3>📅 新增排課預約</h3>
         <form id="form-schedule">
           <div class="form-group">
             <label>上課日期</label>
             <input type="date" id="sch-date" class="form-control" required>
           </div>
-          <div style="display:flex; gap:10px;">
+          <div style="display:flex; gap:12px;">
             <div class="form-group" style="flex:1;">
               <label>開始時間</label>
               <input type="time" id="sch-start" class="form-control" value="14:00" required>
@@ -366,7 +382,7 @@
             <label>備註說明</label>
             <input type="text" id="dep-note" class="form-control" placeholder="例如：15小時預繳專案">
           </div>
-          <button type="submit" class="btn" id="btn-dep">💖 記錄儲值款項</button>
+          <button type="submit" class="btn" id="btn-dep">🌸 記錄儲值款項</button>
         </form>
       </div>
     </div>
@@ -374,7 +390,7 @@
     <!-- 3. 材料費用分頁 -->
     <div id="tab-expense" class="tab-content">
       <div class="card">
-        <h3>🛠️ 新增材料/其他費用</h3>
+        <h3>🛠️️ 新增材料/其他費用</h3>
         <form id="form-expense">
           <div class="form-group">
             <label>費用項目名稱</label>
@@ -392,7 +408,7 @@
             <label>備註說明</label>
             <input type="text" id="exp-note" class="form-control" placeholder="例如：Micro:bit 擴充板">
           </div>
-          <button type="submit" class="btn" id="btn-exp">⭐ 登記此筆費用</button>
+          <button type="submit" class="btn" id="btn-exp">🌿 登記此筆費用</button>
         </form>
       </div>
     </div>
@@ -402,7 +418,7 @@
       <div class="card">
         <div class="sub-tabs">
           <button class="sub-tab-btn active" onclick="switchSubTab('schedules')">📅 排課清單</button>
-          <button class="sub-tab-btn" onclick="switchSubTab('parking')">🅿️ 停車明細</button>
+          <button class="sub-tab-btn" onclick="switchSubTab('parking')">🅿️️ 停車明細</button>
           <button class="sub-tab-btn" onclick="switchSubTab('materials')">🛠️ 材料明細</button>
           <button class="sub-tab-btn" onclick="switchSubTab('transactions')">💰 儲值紀錄</button>
         </div>
