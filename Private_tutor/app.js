@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbwjEJXEt3d8NDs6O5DyGlcRid-X4-2Avu-KqsXUwir1Gd4C2qANJY-k_UkUohc16-gy3A/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbz_S91sPmgY3YINFqN3pghcaqQHfyAWwV5roC-2AYMj2CvzA3GoKkTYIoMVat-lYvMkQg/exec";
 
 let globalDashboardData = null;
 let currentSubTab = 'schedules';
@@ -123,7 +123,6 @@ async function loadDashboard() {
       if (elUsed) elUsed.innerText = `${summary.hoursUsed || 0} / ${summary.totalHoursPurchased || 0}`;
       if (elRemaining) elRemaining.innerText = `${summary.remainingHours || 0} 小時`;
       
-      // 停車費額度顯示 (若小於 0 顯示紅色負數)
       if (elParkingBalance) {
         const balance = summary.remainingParkingBalance || 0;
         if (balance < 0) {
@@ -287,7 +286,10 @@ async function sendData(action, payload, btnId) {
 }
 
 async function updateScheduleStatus(scheduleId, actionType) {
-  const confirmMsg = actionType === 'completeSchedule' ? '確定標記此堂課為「已上課」並扣除額度嗎？' : '確定取消此堂課嗎？';
+  const confirmMsg = actionType === 'completeSchedule' 
+    ? '確定標記此堂課為「已上課」並扣除額度嗎？' 
+    : '確定取消此堂課嗎？（系統將同步刪除該堂課的自動停車費扣款）';
+    
   if (!confirm(confirmMsg)) return;
 
   try {
