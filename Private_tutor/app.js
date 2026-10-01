@@ -1,7 +1,5 @@
-// 您的 GAS API Web App URL
-const API_URL = "https://script.google.com/macros/s/AKfycbzOOzqFXtubG9Q9wdPXB6RSFLMELlpqxZvSGAuqztm30o6C1pkrb6H-m9exCz10FA7ZJg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwjEJXEt3d8NDs6O5DyGlcRid-X4-2Avu-KqsXUwir1Gd4C2qANJY-k_UkUohc16-gy3A/exec";
 
-// 全域變數
 let globalDashboardData = null;
 let currentSubTab = 'schedules';
 
@@ -16,13 +14,11 @@ document.addEventListener("DOMContentLoaded", () => {
   if (depDate) depDate.value = today;
   if (expDate) expDate.value = today;
 
-  // 綁定時間改變事件 (自動計算時數)
   const schStart = document.getElementById('sch-start');
   const schEnd = document.getElementById('sch-end');
   if (schStart) schStart.addEventListener('change', autoCalculateHours);
   if (schEnd) schEnd.addEventListener('change', autoCalculateHours);
 
-  // 綁定儲值項目改變事件 (動態切換單價欄位與金額)
   const depType = document.getElementById('dep-type');
   if (depType) depType.addEventListener('change', toggleDepositType);
 
@@ -31,7 +27,6 @@ document.addEventListener("DOMContentLoaded", () => {
   registerServiceWorker();
 });
 
-// 自動計算上課時數
 function autoCalculateHours() {
   const startEl = document.getElementById('sch-start');
   const endEl = document.getElementById('sch-end');
@@ -53,7 +48,6 @@ function autoCalculateHours() {
   }
 }
 
-// 儲值類型切換 (支援 鐘點費、材料費、停車費)
 function toggleDepositType() {
   const typeEl = document.getElementById('dep-type');
   const rateGroup = document.getElementById('group-rate');
@@ -74,7 +68,6 @@ function toggleDepositType() {
   }
 }
 
-// 切換主頁籤
 function switchTab(tabName) {
   document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
@@ -87,7 +80,6 @@ function switchTab(tabName) {
   if (targetContent) targetContent.classList.add('active');
 }
 
-// 切換歷史明細的四個子按鈕
 function switchSubTab(subTabName) {
   currentSubTab = subTabName;
   
@@ -101,7 +93,6 @@ function switchSubTab(subTabName) {
   renderSubTabContent();
 }
 
-// API 自動重試機制 (防 GAS 休眠)
 async function fetchWithRetry(url, options = {}, retries = 3, backoff = 1000) {
   try {
     const response = await fetch(url, options);
@@ -117,7 +108,6 @@ async function fetchWithRetry(url, options = {}, retries = 3, backoff = 1000) {
   }
 }
 
-// 載入儀表板資料
 async function loadDashboard() {
   try {
     const data = await fetchWithRetry(API_URL);
@@ -128,11 +118,20 @@ async function loadDashboard() {
       
       const elUsed = document.getElementById('stat-used');
       const elRemaining = document.getElementById('stat-remaining');
-      const elPendingExp = document.getElementById('stat-pending-exp');
+      const elParkingBalance = document.getElementById('stat-parking-balance');
 
       if (elUsed) elUsed.innerText = `${summary.hoursUsed || 0} / ${summary.totalHoursPurchased || 0}`;
       if (elRemaining) elRemaining.innerText = `${summary.remainingHours || 0} 小時`;
-      if (elPendingExp) elPendingExp.innerText = `$${summary.pendingExpensesAmount || 0}`;
+      
+      // 停車費額度顯示 (若小於 0 顯示紅色負數)
+      if (elParkingBalance) {
+        const balance = summary.remainingParkingBalance || 0;
+        if (balance < 0) {
+          elParkingBalance.innerHTML = `<span style="color: var(--danger); font-weight: bold;">- $${Math.abs(balance)}</span>`;
+        } else {
+          elParkingBalance.innerText = `$${balance}`;
+        }
+      }
       
       renderSubTabContent();
     }
@@ -141,7 +140,6 @@ async function loadDashboard() {
   }
 }
 
-// 渲染歷史明細子分頁內容 (對應 4 張獨立工作表)
 function renderSubTabContent() {
   const container = document.getElementById('history-sub-content');
   if (!container) return;
@@ -154,7 +152,6 @@ function renderSubTabContent() {
   const data = globalDashboardData;
   let html = '';
 
-  // 1. 排課清單與考勤確認 (Schedules)
   if (currentSubTab === 'schedules') {
     html += '<h4 style="margin:0 0 12px 0; font-size:14px; color:var(--primary);">📅 排課清單與考勤確認</h4>';
     if (!data.schedules || data.schedules.length === 0) {
@@ -192,7 +189,6 @@ function renderSubTabContent() {
       });
     }
   } 
-  // 2. 停車費明細 (Parking 表：純流水帳)
   else if (currentSubTab === 'parking') {
     html += '<h4 style="margin:0 0 12px 0; font-size:14px; color:var(--primary);">🅿️ 停車費扣款明細</h4>';
     const parkingList = data.parking || [];
@@ -212,7 +208,6 @@ function renderSubTabContent() {
       });
     }
   } 
-  // 3. 材料費明細 (Materials 表：支援標記已結清)
   else if (currentSubTab === 'materials') {
     html += '<h4 style="margin:0 0 12px 0; font-size:14px; color:var(--primary);">🛠️ 材料費明細</h4>';
     const materialList = data.materials || [];
@@ -241,7 +236,6 @@ function renderSubTabContent() {
       });
     }
   } 
-  // 4. 預繳儲值歷史紀錄 (Transactions 表)
   else if (currentSubTab === 'transactions') {
     html += '<h4 style="margin:0 0 12px 0; font-size:14px; color:var(--primary);">💰 預繳儲值歷史紀錄</h4>';
     if (!data.transactions || data.transactions.length === 0) {
@@ -262,7 +256,6 @@ function renderSubTabContent() {
   container.innerHTML = html;
 }
 
-// 通用資料送出
 async function sendData(action, payload, btnId) {
   const btn = document.getElementById(btnId);
   if (btn) {
@@ -340,7 +333,6 @@ async function payExpense(materialId) {
   }
 }
 
-// 表單事件監聽綁定
 const formSch = document.getElementById('form-schedule');
 if (formSch) {
   formSch.addEventListener('submit', (e) => {
