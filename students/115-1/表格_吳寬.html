@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ULTRA LOUD KEYBOARD // 極限超大聲視覺鍵盤</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Orbitron:wght@600;800;900&family=Noto+Sans+TC:wght@700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --neon-color: #ff0055;
+            --secondary-neon: #00f0ff;
+            --accent-yellow: #ffe600;
+            --bg-color: #08030f;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', 'Orbitron', sans-serif;
+            background-color: var(--bg-color);
+            color: #ffffff;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        .font-black-ops { font-family: 'Black Ops One', cursive; }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+
+        /* Overdrive Hazard Stripes */
+        .overdrive-mode {
+            --neon-color: #ff0000;
+            --secondary-neon: #ffae00;
+            --accent-yellow: #ff003c;
+            --bg-color: #120000;
+            background-image: repeating-linear-gradient(
+                45deg,
+                rgba(255, 0, 0, 0.08),
+                rgba(255, 0, 0, 0.08) 20px,
+                rgba(0, 0, 0, 0.9) 20px,
+                rgba(0, 0, 0, 0.9) 40px
+            ) !important;
+        }
+
+        /* Extreme Screen Shake */
+        .shake-impact {
+            animation: shake 0.12s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            20% { transform: translate(-12px, 8px) rotate(-2deg); }
+            40% { transform: translate(12px, -8px) rotate(2deg); }
+            60% { transform: translate(-8px, -4px) rotate(-1deg); }
+            80% { transform: translate(8px, 4px) rotate(1deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        /* Screen Flash Overlay */
+        .flash-overlay {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 40;
+            opacity: 0;
+            transition: opacity 0.05s ease-out;
+        }
+
+        .flash-overlay.active {
+            opacity: 0.35;
+            background-color: var(--neon-color);
+        }
+
+        /* Cyberpunk Key Styling */
+        .loud-key {
+            background: linear-gradient(145deg, #1c1328, #0b0712);
+            border: 2px solid var(--neon-color);
+            box-shadow: 
+                0 6px 0 #000000, 
+                0 0 15px rgba(255, 0, 85, 0.3),
+                inset 0 2px 4px rgba(255, 255, 255, 0.2);
+            transition: all 0.05s ease-out;
+            transform-style: preserve-3d;
+        }
+
+        .loud-key:hover {
+            box-shadow: 
+                0 6px 0 #000000, 
+                0 0 25px var(--neon-color),
+                inset 0 2px 8px rgba(255, 255, 255, 0.5);
+            border-color: var(--accent-yellow);
+        }
+
+        .loud-key:active, .loud-key.key-hit {
+            transform: translateY(5px);
+            box-shadow: 
+                0 1px 0 #000000, 
+                0 0 40px var(--accent-yellow),
+                inset 0 0 20px var(--accent-yellow) !important;
+            background: var(--accent-yellow) !important;
+            color: #000000 !important;
+            border-color: #ffffff !important;
+        }
+
+        /* Giant Popup Key Display */
+        .mega-text-pop {
+            position: fixed;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.2);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 30;
+            font-size: 15rem;
+            font-weight: 900;
+            color: var(--accent-yellow);
+            text-shadow: 
+                0 0 30px var(--neon-color),
+                0 0 60px var(--secondary-neon),
+                0 0 100px #ffffff;
+            transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease-out;
+        }
+
+        .mega-text-pop.show {
+            transform: translate(-50%, -50%) scale(1.1);
+            opacity: 0.9;
+        }
+
+        /* Glass Panel */
+        .loud-panel {
+            background: rgba(18, 10, 30, 0.85);
+            backdrop-filter: blur(20px);
+            border: 2px solid var(--neon-color);
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.25);
+        }
+    </style>
+</head>
+<body id="body" class="min-h-screen flex flex-col justify-between relative select-none">
+
+    <!-- Flash Overlay -->
+    <div id="flashOverlay" class="flash-overlay"></div>
+
+    <!-- Canvas Particle and Visualizer Layer -->
+    <canvas id="particleCanvas" class="fixed inset-0 pointer-events-none z-10"></canvas>
+
+    <!-- Giant Floating Text Indicator -->
+    <div id="megaText" class="mega-text-pop font-black-ops">A</div>
+
+    <div class="relative z-20 max-w-6xl mx-auto w-full px-4 py-4 flex flex-col min-h-screen justify-between gap-4">
+
+        <!-- Top Navigation Bar -->
+        <header class="loud-panel rounded-3xl p-4 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-red-600 to-yellow-400 flex items-center justify-center text-black font-black text-2xl shadow-[0_0_20px_#ff0055] animate-bounce">
+                    <i class="fa-solid fa-volume-high"></i>
+                </div>
+                <div>
+                    <h1 class="font-black-ops text-2xl sm:text-3xl text-yellow-300 tracking-wider flex items-center gap-2">
+                        ULTRA LOUD <span class="text-red-500 underline decoration-wavy">KEYBOARD</span>
+                    </h1>
+                    <p class="text-xs text-pink-400 font-bold tracking-widest">極限超大聲視覺爆音鍵盤 v3.0</p>
+                </div>
+            </div>
+
+            <!-- Controls Panel -->
+            <div class="flex flex-wrap items-center gap-3">
+                
+                <!-- Preset Selector -->
+                <div class="flex items-center gap-2 bg-black/60 border border-pink-500/50 px-3 py-2 rounded-2xl">
+                    <i class="fa-solid fa-compact-disc text-yellow-400"></i>
+                    <span class="text-xs font-bold text-slate-300">音效模式:</span>
+                    <select id="soundPreset" class="bg-transparent text-yellow-300 text-xs font-black font-orbitron focus:outline-none cursor-pointer">
+                        <option value="megabass" class="bg-slate-900 text-yellow-400">💣 重低音重擊 (MEGA BASS)</option>
+                        <option value="airhorn" class="bg-slate-900 text-yellow-400">📢 派對喇叭 (AIRHORN)</option>
+                        <option value="metal" class="bg-slate-900 text-yellow-400">🎸 金屬重音 (HEAVY METAL)</option>
+                        <option value="explosion" class="bg-slate-900 text-yellow-400">💥 震撼核爆 (EXPLOSION)</option>
+                        <option value="superclick" class="bg-slate-900 text-yellow-400">🔊 超強響拍 (SUPER CLICK)</option>
+                    </select>
+                </div>
+
+                <!-- Overdrive Volume Control -->
+                <div class="flex items-center gap-2 bg-black/60 border border-yellow-500/50 px-3 py-2 rounded-2xl">
+                    <i class="fa-solid fa-gauge-high text-red-500"></i>
+                    <span class="text-xs font-bold text-slate-300">增益:</span>
+                    <input type="range" id="volumeSlider" min="0" max="2" step="0.1" value="1.5" class="w-20 accent-red-500 cursor-pointer">
+                    <span id="volumeText" class="text-xs font-orbitron font-black text-red-400">150%</span>
+                </div>
+
+                <!-- Speech Announcer Toggle -->
+                <button id="speechToggle" class="flex items-center gap-2 px-3 py-2 rounded-2xl bg-slate-900 border border-cyan-400 text-cyan-300 font-bold text-xs hover:bg-cyan-950 transition">
+                    <i class="fa-solid fa-bullhorn"></i>
+                    <span id="speechText">語音朗讀: 關</span>
+                </button>
+
+                <!-- Shake Toggle -->
+                <button id="shakeToggle" class="flex items-center gap-2 px-3 py-2 rounded-2xl bg-slate-900 border border-yellow-400 text-yellow-300 font-bold text-xs hover:bg-yellow-950 transition">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span id="shakeText">螢幕震動: 開</span>
+                </button>
+
+                <!-- Overdrive Mode Toggle -->
+                <button id="overdriveBtn" class="flex items-center gap-2 px-4 py-2 rounded-2xl bg-gradient-to-r from-red-600 to-yellow-500 text-black font-black font-orbitron text-xs shadow-[0_0_20px_#ff0000] hover:scale-105 active:scale-95 transition">
+                    <i class="fa-solid fa-radiation"></i>
+                    <span>OVERDRIVE 暴走</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="loud-panel rounded-3xl p-4 flex flex-col gap-3 relative">
+            <div class="flex items-center justify-between border-b border-pink-500/30 pb-2">
+                <div class="flex items-center gap-2 font-mono text-xs text-pink-400 font-bold">
+                    <span class="w-3 h-3 rounded-full bg-red-500 animate-ping"></span>
+                    <span>LOUD_OUTPUT_BUFFER // 即時輸入顯示區</span>
+                </div>
+                <button id="clearBtn" class="px-3 py-1 bg-red-600/30 border border-red-500 text-red-300 hover:bg-red-600 hover:text-white rounded-xl text-xs font-bold transition">
+                    <i class="fa-solid fa-trash-arrow-up"></i> 清空文字
+                </button>
+            </div>
+
+            <!-- Main Input Text Area -->
+            <textarea 
+                id="terminalInput" 
+                class="w-full h-28 sm:h-36 bg-black/60 text-yellow-300 font-black text-xl sm:text-2xl p-3 rounded-2xl border border-pink-500/40 focus:outline-none focus:border-yellow-400 resize-none font-mono tracking-wider leading-relaxed placeholder-pink-900"
+                placeholder="點擊此處或直接使用鍵盤打字... 享受極限聲音衝擊！"
+            ></textarea>
+
+            <!-- Audio Equalizer Visualizer canvas -->
+            <canvas id="audioVisualizer" class="w-full h-12 bg-black/80 rounded-xl border border-pink-500/30"></canvas>
+        </div>
+
+        <div class="loud-panel rounded-3xl p-3 sm:p-5 relative border-4 border-yellow-400 shadow-[0_0_50px_rgba(255,230,0,0.3)]">
+            <div id="keyboardContainer" class="flex flex-col gap-2">
+                <!-- Rows injected dynamically -->
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="text-center text-xs font-mono text-pink-500 font-bold py-2">
+            🔥 WARNING: HIGH VOLUME AUDIO ENGINE. ENSURE YOUR HEADPHONES ARE READY! 🔥
+        </footer>
+    </div>
+
+    <script>
+        /* ==========================================================================
+           1. KEYBOARD LAYOUT & STATE CONFIGURATION
+           ========================================================================== */
+        const keyboardLayout = [
+            [
+                { code: 'Backquote', key: '`', shift: '~' },
+                { code: 'Digit1', key: '1', shift: '!' },
+                { code: 'Digit2', key: '2', shift: '@' },
+                { code: 'Digit3', key: '3', shift: '#' },
+                { code: 'Digit4', key: '4', shift: '$' },
+                { code: 'Digit5', key: '5', shift: '%' },
+                { code: 'Digit6', key: '6', shift: '^' },
+                { code: 'Digit7', key: '7', shift: '&' },
+                { code: 'Digit8', key: '8', shift: '*' },
+                { code: 'Digit9', key: '9', shift: '(' },
+                { code: 'Digit0', key: '0', shift: ')' },
+                { code: 'Minus', key: '-', shift: '_' },
+                { code: 'Equal', key: '=', shift: '+' },
+                { code: 'Backspace', label: 'DELETE 💥', isSpecial: true, width: 'w-20 sm:w-28' }
+            ],
+            [
+                { code: 'Tab', label: 'TAB ⚡', isSpecial: true, width: 'w-16 sm:w-20' },
+                { code: 'KeyQ', key: 'q', shift: 'Q' },
+                { code: 'KeyW', key: 'w', shift: 'W' },
+                { code: 'KeyE', key: 'e', shift: 'E' },
+                { code: 'KeyR', key: 'r', shift: 'R' },
+                { code: 'KeyT', key: 't', shift: 'T' },
+                { code: 'KeyY', key: 'y', shift: 'Y' },
+                { code: 'KeyU', key: 'u', shift: 'U' },
+                { code: 'KeyI', key: 'i', shift: 'I' },
+                { code: 'KeyO', key: 'o', shift: 'O' },
+                { code: 'KeyP', key: 'p', shift: 'P' },
+                { code: 'BracketLeft', key: '[', shift: '{' },
+                { code: 'BracketRight', key: ']', shift: '}' },
+                { code: 'Backslash', key: '\\', shift: '|', width: 'flex-1' }
+            ],
+            [
+                { code: 'CapsLock', label: 'CAPS 🔒', isSpecial: true, width: 'w-20 sm:w-24' },
+                { code: 'KeyA', key: 'a', shift: 'A' },
+                { code: 'KeyS', key: 's', shift: 'S' },
+                { code: 'KeyD', key: 'd', shift: 'D' },
+                { code: 'KeyF', key: 'f', shift: 'F' },
+                { code: 'KeyG', key: 'g', shift: 'G' },
+                { code: 'KeyH', key: 'h', shift: 'H' },
+                { code: 'KeyJ', key: 'j', shift: 'J' },
+                { code: 'KeyK', key: 'k', shift: 'K' },
+                { code: 'KeyL', key: 'l', shift: 'L' },
+                { code: 'Semicolon', key: ';', shift: ':' },
+                { code: 'Quote', key: "'", shift: '"' },
+                { code: 'Enter', label: 'ENTER 🚀', isSpecial: true, width: 'flex-1' }
+            ],
+            [
+                { code: 'ShiftLeft', label: 'SHIFT ⬆️', isSpecial: true, width: 'w-24 sm:w-32' },
+                { code: 'KeyZ', key: 'z', shift: 'Z' },
+                { code: 'KeyX', key: 'x', shift: 'X' },
+                { code: 'KeyC', key: 'c', shift: 'C' },
+                { code: 'KeyV', key: 'v', shift: 'V' },
+                { code: 'KeyB', key: 'b', shift: 'B' },
+                { code: 'KeyN', key: 'n', shift: 'N' },
+                { code: 'KeyM', key: 'm', shift: 'M' },
+                { code: 'Comma', key: ',', shift: '<' },
+                { code: 'Period', key: '.', shift: '>' },
+                { code: 'Slash', key: '/', shift: '?' },
+                { code: 'ShiftRight', label: 'SHIFT ⬆️', isSpecial: true, width: 'flex-1' }
+            ],
+            [
+                { code: 'Space', label: 'MAXIMUM LOUD SPACEBAR 💣', isSpecial: true, width: 'w-full max-w-xl mx-auto flex-1' }
+            ]
+        ];
+
+        // Global State
+        let isOverdrive = false;
+        let isShakeEnabled = true;
+        let isSpeechEnabled = false;
+        let isCaps = false;
+        let isShift = false;
+        let masterVolume = 1.5;
+        let currentPreset = 'megabass';
+
+        const keyElementsMap = new Map();
+
+        // DOM Elements
+        const body = document.getElementById('body');
+        const flashOverlay = document.getElementById('flashOverlay');
+        const megaText = document.getElementById('megaText');
+        const terminalInput = document.getElementById('terminalInput');
+        const keyboardContainer = document.getElementById('keyboardContainer');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volumeText = document.getElementById('volumeText');
+        const soundPresetSelect = document.getElementById('soundPreset');
+        const shakeToggle = document.getElementById('shakeToggle');
+        const shakeText = document.getElementById('shakeText');
+        const speechToggle = document.getElementById('speechToggle');
+        const speechText = document.getElementById('speechText');
+        const overdriveBtn = document.getElementById('overdriveBtn');
+        const clearBtn = document.getElementById('clearBtn');
+
+        /* ==========================================================================
+           2. WEB AUDIO API LOUD SYNTHESIZER ENGINE
+           ========================================================================== */
+        let audioCtx = null;
+        let masterGain = null;
+        let analyser = null;
+        let audioDataArray = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                masterGain = audioCtx.createGain();
+                masterGain.gain.setValueAtTime(masterVolume, audioCtx.currentTime);
+
+                // Analyser for visualizer
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 64;
+                audioDataArray = new Uint8Array(analyser.frequencyBinCount);
+
+                masterGain.connect(analyser);
+                analyser.connect(audioCtx.destination);
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function triggerLoudSound(keyChar) {
+            initAudio();
+            if (!audioCtx) return;
+
+            const now = audioCtx.currentTime;
+            masterGain.gain.setValueAtTime(masterVolume, now);
+
+            if (currentPreset === 'megabass') {
+                // Mega Bass Boom with Distortion
+                const osc = audioCtx.createOscillator();
+                const bassGain = audioCtx.createGain();
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(160, now);
+                osc.frequency.exponentialRampToValueAtTime(30, now + 0.35);
+
+                bassGain.gain.setValueAtTime(1.0, now);
+                bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+                osc.connect(bassGain);
+                bassGain.connect(masterGain);
+
+                osc.start(now);
+                osc.stop(now + 0.35);
+
+            } else if (currentPreset === 'airhorn') {
+                // High Pitch Airhorn Pulse
+                [466.16, 622.25, 932.33].forEach(freq => {
+                    const osc = audioCtx.createOscillator();
+                    const hornGain = audioCtx.createGain();
+
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, now);
+
+                    hornGain.gain.setValueAtTime(0.3, now);
+                    hornGain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+
+                    osc.connect(hornGain);
+                    hornGain.connect(masterGain);
+
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                });
+
+            } else if (currentPreset === 'metal') {
+                // Fuzz / Distortion Guitar Strum
+                const osc = audioCtx.createOscillator();
+                const distGain = audioCtx.createGain();
+
+                osc.type = 'square';
+                const pitch = 220 + (keyChar ? keyChar.charCodeAt(0) % 20 * 20 : 100);
+                osc.frequency.setValueAtTime(pitch, now);
+                osc.frequency.linearRampToValueAtTime(pitch * 0.8, now + 0.25);
+
+                distGain.gain.setValueAtTime(0.6, now);
+                distGain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+
+                osc.connect(distGain);
+                distGain.connect(masterGain);
+
+                osc.start(now);
+                osc.stop(now + 0.25);
+
+            } else if (currentPreset === 'explosion') {
+                // White Noise Burst for Explosion
+                const bufferSize = audioCtx.sampleRate * 0.3;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+
+                const noiseGain = audioCtx.createGain();
+                noiseGain.gain.setValueAtTime(0.8, now);
+                noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+
+                noise.connect(noiseGain);
+                noiseGain.connect(masterGain);
+
+                noise.start(now);
+
+            } else if (currentPreset === 'superclick') {
+                // Amplified Snap & Feedback Delay
+                const osc = audioCtx.createOscillator();
+                const clickGain = audioCtx.createGain();
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(2400, now);
+                osc.frequency.exponentialRampToValueAtTime(200, now + 0.08);
+
+                clickGain.gain.setValueAtTime(1.0, now);
+                clickGain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+
+                osc.connect(clickGain);
+                clickGain.connect(masterGain);
+
+                osc.start(now);
+                osc.stop(now + 0.08);
+            }
+
+            // Speak key out loud if enabled
+            if (isSpeechEnabled && 'speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(keyChar || 'Key');
+                utterance.volume = 1.0;
+                utterance.rate = 1.3;
+                utterance.pitch = 1.2;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        /* ==========================================================================
+           3. EXTREME CANVAS PARTICLES & VISUAL EFFECTS
+           ========================================================================== */
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const audioVisCanvas = document.getElementById('audioVisualizer');
+        const audioVisCtx = audioVisCanvas.getContext('2d');
+
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            audioVisCanvas.width = audioVisCanvas.offsetWidth;
+            audioVisCanvas.height = audioVisCanvas.offsetHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class SparkParticle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 20;
+                this.vy = (Math.random() - 0.5) * 20 - 5;
+                this.size = Math.random() * 8 + 4;
+                this.color = isOverdrive ? '#ff0000' : (Math.random() > 0.5 ? '#ff0055' : '#ffe600');
+                this.life = 1;
+                this.decay = Math.random() * 0.05 + 0.02;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += 0.4; // Gravity
+                this.life -= this.decay;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.life);
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function createExplosion(x, y) {
+            for (let i = 0; i < 30; i++) {
+                particles.push(new SparkParticle(x, y));
+            }
+        }
+
+        function triggerVisualImpact(keyElem, textToDisplay) {
+            // 1. Screen Shake
+            if (isShakeEnabled) {
+                body.classList.remove('shake-impact');
+                void body.offsetWidth; // Trigger reflow
+                body.classList.add('shake-impact');
+            }
+
+            // 2. Screen Flash
+            flashOverlay.classList.add('active');
+            setTimeout(() => flashOverlay.classList.remove('active'), 60);
+
+            // 3. Particle Burst
+            if (keyElem) {
+                const rect = keyElem.getBoundingClientRect();
+                createExplosion(rect.left + rect.width / 2, rect.top + rect.height / 2);
+            }
+
+            // 4. Mega Pop Text Display
+            megaText.textContent = textToDisplay || '💥';
+            megaText.classList.add('show');
+            setTimeout(() => megaText.classList.remove('show'), 200);
+        }
+
+        function renderVisuals() {
+            // Particles Render Loop
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach((p, index) => {
+                p.update();
+                p.draw();
+                if (p.life <= 0) particles.splice(index, 1);
+            });
+
+            // Audio Equalizer Visualizer Loop
+            audioVisCtx.clearRect(0, 0, audioVisCanvas.width, audioVisCanvas.height);
+            if (analyser && audioDataArray) {
+                analyser.getByteFrequencyData(audioDataArray);
+                const barWidth = (audioVisCanvas.width / audioDataArray.length) * 2;
+                let x = 0;
+
+                for (let i = 0; i < audioDataArray.length; i++) {
+                    const barHeight = (audioDataArray[i] / 255) * audioVisCanvas.height;
+                    audioVisCtx.fillStyle = isOverdrive ? '#ff0000' : '#ffe600';
+                    audioVisCtx.shadowBlur = 10;
+                    audioVisCtx.shadowColor = audioVisCtx.fillStyle;
+                    audioVisCtx.fillRect(x, audioVisCanvas.height - barHeight, barWidth - 2, barHeight);
+                    x += barWidth;
+                }
+            }
+
+            requestAnimationFrame(renderVisuals);
+        }
+
+        /* ==========================================================================
+           4. KEYBOARD GENERATION & INPUT LOGIC
+           ========================================================================== */
+        function buildKeyboard() {
+            keyboardContainer.innerHTML = '';
+
+            keyboardLayout.forEach(row => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'flex gap-1.5 sm:gap-2 justify-center w-full';
+
+                row.forEach(keyConfig => {
+                    const btn = document.createElement('button');
+                    btn.dataset.code = keyConfig.code;
+
+                    let classes = 'loud-key relative flex items-center justify-center rounded-2xl font-black text-sm sm:text-lg h-12 sm:h-14 tracking-wider text-yellow-300 font-orbitron ';
+                    
+                    if (keyConfig.width) {
+                        classes += keyConfig.width + ' ';
+                    } else {
+                        classes += 'flex-1 min-w-[32px] sm:min-w-[48px] ';
+                    }
+
+                    btn.className = classes;
+                    updateKeyLabel(btn, keyConfig);
+
+                    keyElementsMap.set(keyConfig.code, { elem: btn, config: keyConfig });
+
+                    // Click & Touch Handlers
+                    const handleTap = (e) => {
+                        e.preventDefault();
+                        processInput(keyConfig);
+                    };
+
+                    btn.addEventListener('mousedown', handleTap);
+                    btn.addEventListener('touchstart', handleTap);
+
+                    rowDiv.appendChild(btn);
+                });
+
+                keyboardContainer.appendChild(rowDiv);
+            });
+        }
+
+        function updateKeyLabel(btn, config) {
+            if (config.isSpecial) {
+                btn.textContent = config.label;
+            } else {
+                const isUpper = (isCaps && !isShift) || (!isCaps && isShift);
+                btn.textContent = isUpper ? config.shift : config.key;
+            }
+        }
+
+        function refreshLabels() {
+            keyElementsMap.forEach(({ elem, config }) => {
+                updateKeyLabel(elem, config);
+            });
+        }
+
+        function processInput(config) {
+            terminalInput.focus();
+            
+            const isUpper = (isCaps && !isShift) || (!isCaps && isShift);
+            const charToInsert = isUpper ? config.shift : config.key;
+            const displayChar = config.isSpecial ? config.label.split(' ')[0] : charToInsert;
+
+            const elemData = keyElementsMap.get(config.code);
+            triggerLoudSound(displayChar);
+            triggerVisualImpact(elemData ? elemData.elem : null, displayChar);
+
+            // Handle Key Special Behaviors
+            if (config.code === 'Backspace') {
+                terminalInput.value = terminalInput.value.slice(0, -1);
+            } else if (config.code === 'Enter') {
+                terminalInput.value += '\n';
+            } else if (config.code === 'Tab') {
+                terminalInput.value += '    ';
+            } else if (config.code === 'Space') {
+                terminalInput.value += ' ';
+            } else if (config.code === 'CapsLock') {
+                isCaps = !isCaps;
+                refreshLabels();
+            } else if (config.code === 'ShiftLeft' || config.code === 'ShiftRight') {
+                isShift = !isShift;
+                refreshLabels();
+            } else {
+                if (charToInsert) {
+                    terminalInput.value += charToInsert;
+                }
+                if (isShift) {
+                    isShift = false;
+                    refreshLabels();
+                }
+            }
+
+            terminalInput.scrollTop = terminalInput.scrollHeight;
+        }
+
+        /* ==========================================================================
+           5. EVENT LISTENERS & CONTROLS
+           ========================================================================== */
+        window.addEventListener('keydown', (e) => {
+            const data = keyElementsMap.get(e.code);
+
+            if (e.code === 'CapsLock') {
+                isCaps = e.getModifierState('CapsLock');
+                refreshLabels();
+            }
+            if (e.key === 'Shift') {
+                isShift = true;
+                refreshLabels();
+            }
+
+            if (data) {
+                data.elem.classList.add('key-hit');
+                processInput(data.config);
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            const data = keyElementsMap.get(e.code);
+
+            if (e.key === 'Shift') {
+                isShift = false;
+                refreshLabels();
+            }
+
+            if (data) {
+                data.elem.classList.remove('key-hit');
+            }
+        });
+
+        // Controls Logic
+        volumeSlider.addEventListener('input', (e) => {
+            masterVolume = parseFloat(e.target.value);
+            volumeText.textContent = `${Math.round(masterVolume * 100)}%`;
+        });
+
+        soundPresetSelect.addEventListener('change', (e) => {
+            currentPreset = e.target.value;
+        });
+
+        shakeToggle.addEventListener('click', () => {
+            isShakeEnabled = !isShakeEnabled;
+            shakeText.textContent = `螢幕震動: ${isShakeEnabled ? '開' : '關'}`;
+        });
+
+        speechToggle.addEventListener('click', () => {
+            isSpeechEnabled = !isSpeechEnabled;
+            speechText.textContent = `語音朗讀: ${isSpeechEnabled ? '開' : '關'}`;
+        });
+
+        overdriveBtn.addEventListener('click', () => {
+            isOverdrive = !isOverdrive;
+            body.classList.toggle('overdrive-mode', isOverdrive);
+            if (isOverdrive) {
+                volumeSlider.value = 2.0;
+                masterVolume = 2.0;
+                volumeText.textContent = '200% MAX';
+            }
+        });
+
+        clearBtn.addEventListener('click', () => {
+            terminalInput.value = '';
+        });
+
+        /* ==========================================================================
+           6. INITIALIZATION
+           ========================================================================== */
+        window.onload = () => {
+            buildKeyboard();
+            renderVisuals();
+        };
+    </script>
+</body>
+</html>
