@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐾 喵喵鍵盤 Cat Keyboard Pro 🐾</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Comic Sans MS"', '"Chalkboard SE"', '"Noto Sans TC"', 'sans-serif'],
+                        mono: ['"Fira Code"', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Mochiiy+Pop+One&family=Noto+Sans+TC:wght@400;700&display=swap');
+
+        .theme-pink-paw {
+            --bg-grad-start: #fff0f5;
+            --bg-grad-end: #ffe4e1;
+            --panel-bg: rgba(255, 255, 255, 0.88);
+            --panel-border: #fca5a5;
+            --key-bg: #fff5f7;
+            --key-border: #fca5a5;
+            --key-text: #9f1239;
+            --key-active: #fda4af;
+            --bean-color: #fb7185;
+            --accent: #f43f5e;
+            --accent-light: #ffe4e6;
+        }
+
+        .theme-calico {
+            --bg-grad-start: #fff7ed;
+            --bg-grad-end: #ffedd5;
+            --panel-bg: rgba(255, 255, 255, 0.9);
+            --panel-border: #fdba74;
+            --key-bg: #fffbf5;
+            --key-border: #fed7aa;
+            --key-text: #7c2d12;
+            --key-active: #ff8c42;
+            --bean-color: #f97316;
+            --accent: #ea580c;
+            --accent-light: #ffedd5;
+        }
+
+        .theme-black-cat {
+            --bg-grad-start: #1e1b2e;
+            --bg-grad-end: #2d2b42;
+            --panel-bg: rgba(45, 43, 66, 0.88);
+            --panel-border: #8b5cf6;
+            --key-bg: #3b3754;
+            --key-border: #6d28d9;
+            --key-text: #f3e8ff;
+            --key-active: #a855f7;
+            --bean-color: #ec4899;
+            --accent: #c084fc;
+            --accent-light: #4c1d95;
+        }
+
+        .theme-white-fluff {
+            --bg-grad-start: #f0f9ff;
+            --bg-grad-end: #e0f2fe;
+            --panel-bg: rgba(255, 255, 255, 0.92);
+            --panel-border: #7dd3fc;
+            --key-bg: #f8fafc;
+            --key-border: #bae6fd;
+            --key-text: #0369a1;
+            --key-active: #38bdf8;
+            --bean-color: #38bdf8;
+            --accent: #0284c7;
+            --accent-light: #e0f2fe;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-grad-start), var(--bg-grad-end));
+            color: var(--key-text);
+            font-family: 'Fredoka One', 'Mochiiy Pop One', 'Noto Sans TC', sans-serif;
+            user-select: none;
+            transition: all 0.4s ease;
+            min-height: 100vh;
+        }
+
+        .cat-panel {
+            background-color: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            border: 2px solid var(--panel-border);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.06);
+        }
+
+        .key-cap {
+            background-color: var(--key-bg);
+            border: 2px solid var(--key-border);
+            color: var(--key-text);
+            box-shadow: 0 5px 0 0 var(--key-border), inset 0 2px 0 0 rgba(255, 255, 255, 0.8);
+            border-radius: 16px;
+            position: relative;
+            transition: all 0.08s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .key-cap:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 0 0 var(--key-border);
+        }
+
+        .key-cap:active, .key-cap.active {
+            transform: translateY(4px) scale(0.97);
+            box-shadow: 0 1px 0 0 var(--key-border);
+            background-color: var(--key-active);
+            color: #ffffff;
+        }
+
+        .key-cap::before {
+            content: '';
+            position: absolute;
+            bottom: 3px;
+            right: 4px;
+            width: 8px;
+            height: 7px;
+            background-color: var(--bean-color);
+            border-radius: 50%;
+            opacity: 0.35;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+
+        .key-cap:hover::before, .key-cap.active::before {
+            opacity: 0.9;
+            transform: scale(1.25);
+        }
+
+        .key-space {
+            background: linear-gradient(90deg, var(--key-bg), var(--accent-light), var(--key-bg));
+            border-radius: 24px;
+        }
+
+        @keyframes float-gentle {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-6px) rotate(1deg); }
+        }
+
+        @keyframes ear-wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-8deg); }
+            75% { transform: rotate(8deg); }
+        }
+
+        .animate-float {
+            animation: float-gentle 4s ease-in-out infinite;
+        }
+
+        .ear-left { animation: ear-wiggle 3s ease-in-out infinite; transform-origin: bottom right; }
+        .ear-right { animation: ear-wiggle 3s ease-in-out 0.5s infinite; transform-origin: bottom left; }
+
+        @keyframes tail-wag {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(15deg); }
+        }
+
+        .cat-tail {
+            animation: tail-wag 2.5s ease-in-out infinite;
+            transform-origin: bottom center;
+        }
+
+        .paw-particle {
+            position: fixed;
+            pointer-events: none;
+            font-size: 20px;
+            z-index: 9999;
+            animation: particle-fly 0.8s ease-out forwards;
+        }
+
+        @keyframes particle-fly {
+            0% { opacity: 1; transform: translate(0, 0) scale(1) rotate(0deg); }
+            100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1.6) rotate(var(--rot)); }
+        }
+
+        /* Custom Range Slider */
+        input[type=range] {
+            accent-color: var(--accent);
+        }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 10px; }
+    </style>
+</head>
+<body class="theme-pink-paw p-3 md:p-6 flex flex-col justify-between items-center select-none overflow-x-hidden">
+
+    <!-- Top Header & Controls -->
+    <header class="max-w-5xl w-full mb-3">
+        <div class="cat-panel rounded-3xl p-4 flex flex-col lg:flex-row items-center justify-between gap-4 relative">
+            
+            <!-- Left Logo & Cat Character Avatar -->
+            <div class="flex items-center gap-4">
+                <div class="relative w-16 h-16 flex-shrink-0 animate-float cursor-pointer" id="catAvatar" title="摸摸貓咪！">
+                    <div class="ear-left absolute -top-3 left-1 w-6 h-6 bg-[var(--accent)] rounded-tl-full rounded-tr-sm border-2 border-white"></div>
+                    <div class="ear-right absolute -top-3 right-1 w-6 h-6 bg-[var(--accent)] rounded-tr-full rounded-tl-sm border-2 border-white"></div>
+                    <div class="w-full h-full bg-white rounded-full border-2 border-[var(--panel-border)] flex flex-col items-center justify-center relative shadow-inner overflow-hidden">
+                        <div class="flex gap-3 mb-1">
+                            <div class="w-2.5 h-2.5 bg-slate-800 rounded-full animate-bounce" id="eyeL"></div>
+                            <div class="w-2.5 h-2.5 bg-slate-800 rounded-full animate-bounce" id="eyeR"></div>
+                        </div>
+                        <div class="w-2 h-1.5 bg-rose-400 rounded-full mb-0.5"></div>
+                        <div class="text-[10px] text-slate-600 font-bold leading-none">ω</div>
+                        <div class="absolute left-1 top-7 w-3 h-0.5 bg-slate-300 -rotate-12"></div>
+                        <div class="absolute left-1 top-8 w-3 h-0.5 bg-slate-300 rotate-6"></div>
+                        <div class="absolute right-1 top-7 w-3 h-0.5 bg-slate-300 rotate-12"></div>
+                        <div class="absolute right-1 top-8 w-3 h-0.5 bg-slate-300 -rotate-6"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <h1 class="text-2xl font-extrabold tracking-wide flex items-center gap-2">
+                        🐾 喵喵鍵盤 <span class="text-xs px-2 py-0.5 rounded-full bg-[var(--accent-light)] text-[var(--accent)] font-bold">Pro Edition</span>
+                    </h1>
+                    <p class="text-xs opacity-75 mt-0.5">5 種靈動喵喵音效＋音量調節＋踏踏肉墊！</p>
+                </div>
+            </div>
+
+            <!-- Speech Bubble -->
+            <div class="hidden xl:flex items-center bg-white/80 border border-[var(--panel-border)] px-4 py-2 rounded-2xl text-xs font-bold text-[var(--accent)] shadow-sm relative">
+                <span id="catBubble">喵~ 選一個喜歡的貓咪音效來演奏吧 🐾</span>
+                <div class="absolute -left-2 top-1/2 -translate-y-1/2 border-t-4 border-t-transparent border-b-4 border-b-transparent border-r-8 border-r-white"></div>
+            </div>
+
+            <!-- Controls Panel -->
+            <div class="flex flex-wrap items-center gap-2 text-xs">
+                
+                <!-- 5 Sound Mode Selector Dropdown -->
+                <div class="cat-panel px-3 py-1.5 rounded-2xl flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-music text-[var(--accent)]"></i>
+                    <select id="soundTypeSelect" class="bg-transparent font-bold focus:outline-none cursor-pointer text-xs">
+                        <option value="paw">🌸 1. 粉嫩肉墊 (Soft Paw)</option>
+                        <option value="meow" selected>🐱 2. 萌喵叫聲 (Kawaii Meow)</option>
+                        <option value="purr">💤 3. 咕嚕Purr (Purr & Pop)</option>
+                        <option value="piano">🎹 4. 貓咪鋼琴 (Cat Piano)</option>
+                        <option value="bell">🔔 5. 貓咪鈴鐺 (Kitty Bell)</option>
+                        <option value="mute">🔇 6. 靜音模式 (Mute)</option>
+                    </select>
+                </div>
+
+                <!-- Volume Slider -->
+                <div class="cat-panel px-3 py-1.5 rounded-2xl flex items-center gap-2 shadow-sm" title="音量調節">
+                    <i class="fa-solid fa-volume-high text-[var(--accent)]" id="volIcon"></i>
+                    <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.7" class="w-16 h-1.5 rounded-lg cursor-pointer">
+                </div>
+
+                <!-- Cat Mode Switch -->
+                <button id="catModeBtn" class="cat-panel px-3 py-2 rounded-2xl flex items-center gap-1.5 hover:scale-105 transition active:scale-95 shadow-sm">
+                    <i class="fa-solid fa-paw text-amber-500"></i>
+                    <span id="catModeText" class="font-bold">貓語模式: 關</span>
+                </button>
+
+                <!-- Theme Selector -->
+                <div class="cat-panel px-3 py-1.5 rounded-2xl flex items-center gap-1 shadow-sm">
+                    <i class="fa-solid fa-palette opacity-70"></i>
+                    <select id="themeSelect" class="bg-transparent font-bold focus:outline-none cursor-pointer">
+                        <option value="pink-paw">🌸 粉紅肉墊</option>
+                        <option value="calico">橘貓三花</option>
+                        <option value="black-cat">🌙 魅影黑貓</option>
+                        <option value="white-fluff">❄️ 白雪綿綿</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Interactive Area -->
+    <main class="max-w-5xl w-full flex flex-col gap-3">
+        
+        <!-- Typing Sandbox & Stats Bar -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-3">
+            
+            <!-- Typing Input Area -->
+            <div class="lg:col-span-3 cat-panel rounded-3xl p-4 flex flex-col gap-2 relative">
+                <div class="flex justify-between items-center text-xs font-bold border-b border-[var(--panel-border)] pb-2 opacity-80">
+                    <span class="flex items-center gap-1.5">
+                        <i class="fa-solid fa-pen-nib text-[var(--accent)]"></i> 貓咪打字沙盒 Typing Sandbox
+                    </span>
+                    <div class="flex items-center gap-3">
+                        <button id="clearBtn" class="hover:text-rose-500 transition flex items-center gap-1">
+                            <i class="fa-solid fa-trash-can"></i> 清除內容
+                        </button>
+                    </div>
+                </div>
+                
+                <textarea id="typingArea" placeholder="在此點擊或用實體鍵盤打字... 喵！🐾" class="w-full h-24 bg-white/50 rounded-2xl p-3 text-lg font-sans resize-none focus:outline-none focus:ring-2 focus:ring-[var(--accent)] transition"></textarea>
+
+                <div class="absolute -right-3 -bottom-3 text-3xl cat-tail pointer-events-none opacity-80">🐱</div>
+            </div>
+
+            <!-- Stats Box -->
+            <div class="cat-panel rounded-3xl p-4 flex flex-col justify-between gap-2">
+                <div class="text-xs font-bold border-b border-[var(--panel-border)] pb-2 flex items-center justify-between">
+                    <span><i class="fa-solid fa-paw text-[var(--accent)]"></i> 打字肉墊計數</span>
+                    <span id="cpmValue" class="bg-[var(--accent-light)] text-[var(--accent)] px-2 py-0.5 rounded-full text-[10px]">Active</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 text-center my-1">
+                    <div class="bg-white/40 rounded-xl p-2 border border-[var(--panel-border)]">
+                        <div class="text-[10px] opacity-70 font-bold">總按鍵數</div>
+                        <div id="totalKeysCount" class="text-xl font-extrabold text-[var(--accent)]">0</div>
+                    </div>
+                    <div class="bg-white/40 rounded-xl p-2 border border-[var(--panel-border)]">
+                        <div class="text-[10px] opacity-70 font-bold">喵喵次數</div>
+                        <div id="meowCount" class="text-xl font-extrabold text-amber-500">0</div>
+                    </div>
+                </div>
+
+                <div class="bg-white/60 rounded-2xl p-2 text-xs font-mono flex items-center justify-between border border-[var(--panel-border)]">
+                    <span class="opacity-60 text-[10px]">最後按鍵:</span>
+                    <span id="lastKeyText" class="font-bold text-[var(--accent)]">None</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cat Keyboard Display -->
+        <div class="cat-panel rounded-3xl p-3 md:p-5 shadow-xl relative overflow-x-auto">
+            <div class="absolute -top-4 left-10 w-12 h-8 bg-[var(--key-bg)] border-t-2 border-l-2 border-r-2 border-[var(--panel-border)] rounded-t-full"></div>
+            <div class="absolute -top-4 right-10 w-12 h-8 bg-[var(--key-bg)] border-t-2 border-l-2 border-r-2 border-[var(--panel-border)] rounded-t-full"></div>
+
+            <div id="keyboardLayout" class="min-w-[850px] flex flex-col gap-2 justify-center mx-auto">
+                <!-- Keyboard Rows JS Dynamic Generation -->
+            </div>
+        </div>
+    </main>
+
+    <footer class="mt-4 text-center text-xs opacity-60 font-bold">
+        <p>🐾 喵喵鍵盤 Pro 🐾 | 5 種 Web Audio 樂音合成 | 輕鬆踏踏肉墊</p>
+    </footer>
+
+    <script>
+        /* ------------------------------------------------------------------
+           1. Keyboard Layout Setup
+        ------------------------------------------------------------------ */
+        const keyboardStructure = [
+            [
+                { code: 'Escape', key: 'Esc 🐾', w: 1 },
+                { code: 'F1', key: 'F1', w: 1 }, { code: 'F2', key: 'F2', w: 1 }, { code: 'F3', key: 'F3', w: 1 }, { code: 'F4', key: 'F4', w: 1 },
+                { code: 'F5', key: 'F5', w: 1 }, { code: 'F6', key: 'F6', w: 1 }, { code: 'F7', key: 'F7', w: 1 }, { code: 'F8', key: 'F8', w: 1 },
+                { code: 'F9', key: 'F9', w: 1 }, { code: 'F10', key: 'F10', w: 1 }, { code: 'F11', key: 'F11', w: 1 }, { code: 'F12', key: 'F12', w: 1 }
+            ],
+            [
+                { code: 'Backquote', key: '`', shiftKey: '~', w: 1 },
+                { code: 'Digit1', key: '1', shiftKey: '!', w: 1 }, { code: 'Digit2', key: '2', shiftKey: '@', w: 1 },
+                { code: 'Digit3', key: '3', shiftKey: '#', w: 1 }, { code: 'Digit4', key: '4', shiftKey: '$', w: 1 },
+                { code: 'Digit5', key: '5', shiftKey: '%', w: 1 }, { code: 'Digit6', key: '6', shiftKey: '^', w: 1 },
+                { code: 'Digit7', key: '7', shiftKey: '&', w: 1 }, { code: 'Digit8', key: '8', shiftKey: '*', w: 1 },
+                { code: 'Digit9', key: '9', shiftKey: '(', w: 1 }, { code: 'Digit0', key: '0', shiftKey: ')', w: 1 },
+                { code: 'Minus', key: '-', shiftKey: '_', w: 1 }, { code: 'Equal', key: '=', shiftKey: '+', w: 1 },
+                { code: 'Backspace', key: 'Delete 🐾', icon: 'fa-solid fa-delete-left', w: 2 }
+            ],
+            [
+                { code: 'Tab', key: 'Tab 🐾', icon: 'fa-solid fa-paw', w: 1.5 },
+                { code: 'KeyQ', key: 'q', shiftKey: 'Q', w: 1 }, { code: 'KeyW', key: 'w', shiftKey: 'W', w: 1 },
+                { code: 'KeyE', key: 'e', shiftKey: 'E', w: 1 }, { code: 'KeyR', key: 'r', shiftKey: 'R', w: 1 },
+                { code: 'KeyT', key: 't', shiftKey: 'T', w: 1 }, { code: 'KeyY', key: 'y', shiftKey: 'Y', w: 1 },
+                { code: 'KeyU', key: 'u', shiftKey: 'U', w: 1 }, { code: 'KeyI', key: 'i', shiftKey: 'I', w: 1 },
+                { code: 'KeyO', key: 'o', shiftKey: 'O', w: 1 }, { code: 'KeyP', key: 'p', shiftKey: 'P', w: 1 },
+                { code: 'BracketLeft', key: '[', shiftKey: '{', w: 1 }, { code: 'BracketRight', key: ']', shiftKey: '}', w: 1 },
+                { code: 'Backslash', key: '\\', shiftKey: '|', w: 1.5 }
+            ],
+            [
+                { code: 'CapsLock', key: 'Caps 🐾', icon: 'fa-solid fa-lock', w: 1.75 },
+                { code: 'KeyA', key: 'a', shiftKey: 'A', w: 1 }, { code: 'KeyS', key: 's', shiftKey: 'S', w: 1 },
+                { code: 'KeyD', key: 'd', shiftKey: 'D', w: 1 }, { code: 'KeyF', key: 'f', shiftKey: 'F', w: 1 },
+                { code: 'KeyG', key: 'g', shiftKey: 'G', w: 1 }, { code: 'KeyH', key: 'h', shiftKey: 'H', w: 1 },
+                { code: 'KeyJ', key: 'j', shiftKey: 'J', w: 1 }, { code: 'KeyK', key: 'k', shiftKey: 'K', w: 1 },
+                { code: 'KeyL', key: 'l', shiftKey: 'L', w: 1 }, { code: 'Semicolon', key: ';', shiftKey: ':', w: 1 },
+                { code: 'Quote', key: "'", shiftKey: '"', w: 1 },
+                { code: 'Enter', key: 'Enter 🐾', icon: 'fa-solid fa-turn-down', w: 2.25 }
+            ],
+            [
+                { code: 'ShiftLeft', key: 'Shift 🐾', icon: 'fa-solid fa-arrow-up', w: 2.25 },
+                { code: 'KeyZ', key: 'z', shiftKey: 'Z', w: 1 }, { code: 'KeyX', key: 'x', shiftKey: 'X', w: 1 },
+                { code: 'KeyC', key: 'c', shiftKey: 'C', w: 1 }, { code: 'KeyV', key: 'v', shiftKey: 'V', w: 1 },
+                { code: 'KeyB', key: 'b', shiftKey: 'B', w: 1 }, { code: 'KeyN', key: 'n', shiftKey: 'N', w: 1 },
+                { code: 'KeyM', key: 'm', shiftKey: 'M', w: 1 }, { code: 'Comma', key: ',', shiftKey: '<', w: 1 },
+                { code: 'Period', key: '.', shiftKey: '>', w: 1 }, { code: 'Slash', key: '/', shiftKey: '?', w: 1 },
+                { code: 'ShiftRight', key: 'Shift 🐾', icon: 'fa-solid fa-arrow-up', w: 2.75 }
+            ],
+            [
+                { code: 'ControlLeft', key: 'Ctrl', w: 1.25 },
+                { code: 'MetaLeft', key: 'Win 🐾', icon: 'fa-brands fa-windows', w: 1.25 },
+                { code: 'AltLeft', key: 'Alt', w: 1.25 },
+                { code: 'Space', key: '🐱~ ~ ~ 喵 喵 踏 踏 步 ~ ~ ~🐱', isSpace: true, w: 6.25 },
+                { code: 'AltRight', key: 'Alt', w: 1.25 },
+                { code: 'MetaRight', key: 'Win', w: 1.25 },
+                { code: 'ControlRight', key: 'Ctrl', w: 1.25 },
+                { code: 'ArrowLeft', key: '←', w: 1 },
+                { code: 'ArrowUp', key: '↑', w: 1 },
+                { code: 'ArrowDown', key: '↓', w: 1 },
+                { code: 'ArrowRight', key: '→', w: 1 }
+            ]
+        ];
+
+        /* ------------------------------------------------------------------
+           2. App State
+        ------------------------------------------------------------------ */
+        const appState = {
+            soundType: 'meow', // 'paw', 'meow', 'purr', 'piano', 'bell', 'mute'
+            volume: 0.7,
+            catMode: false,
+            theme: 'pink-paw',
+            totalPressed: 0,
+            meowCount: 0
+        };
+
+        /* ------------------------------------------------------------------
+           3. Web Audio API Engine with 5 Sound Modes
+        ------------------------------------------------------------------ */
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function getPitchFromCode(code) {
+            let hash = 0;
+            for (let i = 0; i < code.length; i++) {
+                hash = code.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            return 350 + (Math.abs(hash) % 450);
+        }
+
+        function playCatSound(code) {
+            if (appState.soundType === 'mute' || appState.volume <= 0) return;
+            initAudio();
+
+            const now = audioCtx.currentTime;
+            const vol = appState.volume;
+            const baseFreq = getPitchFromCode(code);
+
+            appState.meowCount++;
+            document.getElementById('meowCount').textContent = appState.meowCount;
+
+            switch (appState.soundType) {
+                
+                // 1. 🌸 粉嫩肉墊音 (Soft Paw Stomp) - 軟糯彈性點擊音
+                case 'paw': {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.exponentialRampToValueAtTime(30, now + 0.08);
+
+                    gain.gain.setValueAtTime(0.6 * vol, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                    break;
+                }
+
+                // 2. 🐱 萌喵叫聲 (Kawaii Meow) - 動態語調 Meow Sound
+                case 'meow': {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(baseFreq, now);
+                    osc.frequency.linearRampToValueAtTime(baseFreq * 1.3, now + 0.09);
+                    osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.75, now + 0.28);
+
+                    gain.gain.setValueAtTime(0.01, now);
+                    gain.gain.linearRampToValueAtTime(0.4 * vol, now + 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+
+                    osc.start(now);
+                    osc.stop(now + 0.28);
+                    break;
+                }
+
+                // 3. 💤 咕嚕 Purr 音 (Purr & Pop) - 低頻咕嚕+波波音
+                case 'purr': {
+                    // Purr Osc (Low LFO Modulated)
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(80, now);
+                    osc.frequency.linearRampToValueAtTime(110, now + 0.15);
+
+                    // Rapid tremolo for purring effect
+                    const lfo = audioCtx.createOscillator();
+                    lfo.frequency.value = 25; // 25Hz purr vibration
+                    const lfoGain = audioCtx.createGain();
+                    lfoGain.gain.value = 20;
+                    lfo.connect(osc.frequency);
+
+                    gain.gain.setValueAtTime(0.25 * vol, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+
+                    lfo.start(now);
+                    osc.start(now);
+                    lfo.stop(now + 0.22);
+                    osc.stop(now + 0.22);
+                    break;
+                }
+
+                // 4. 🎹 貓咪鋼琴 (Cat Piano) - 帶有諧波的音樂音階
+                case 'piano': {
+                    const osc = audioCtx.createOscillator();
+                    const osc2 = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+
+                    const pianoFreq = 261.63 * Math.pow(2, (Math.abs(baseFreq % 24)) / 12); // Octaves scale
+
+                    osc.type = 'sine';
+                    osc2.type = 'triangle';
+                    osc.frequency.setValueAtTime(pianoFreq, now);
+                    osc2.frequency.setValueAtTime(pianoFreq * 2, now); // Harmonic
+
+                    gain.gain.setValueAtTime(0.4 * vol, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+                    osc.connect(gain);
+                    osc2.connect(gain);
+                    gain.connect(audioCtx.destination);
+
+                    osc.start(now);
+                    osc2.start(now);
+                    osc.stop(now + 0.4);
+                    osc2.stop(now + 0.4);
+                    break;
+                }
+
+                // 5. 🔔 貓咪鈴鐺 (Kitty Bell) - 金屬清脆小鈴鐺
+                case 'bell': {
+                    const osc1 = audioCtx.createOscillator();
+                    const osc2 = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+
+                    const bellFreq = 1200 + (baseFreq % 800);
+
+                    osc1.type = 'sine';
+                    osc2.type = 'sine';
+                    osc1.frequency.setValueAtTime(bellFreq, now);
+                    osc2.frequency.setValueAtTime(bellFreq * 2.4, now); // Inharmonic chime
+
+                    gain.gain.setValueAtTime(0.35 * vol, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+
+                    osc1.connect(gain);
+                    osc2.connect(gain);
+                    gain.connect(audioCtx.destination);
+
+                    osc1.start(now);
+                    osc2.start(now);
+                    osc1.stop(now + 0.5);
+                    osc2.stop(now + 0.5);
+                    break;
+                }
+            }
+        }
+
+        /* ------------------------------------------------------------------
+           4. Keyboard UI Renderer
+        ------------------------------------------------------------------ */
+        const keyboardLayoutEl = document.getElementById('keyboardLayout');
+
+        function renderKeyboard() {
+            keyboardLayoutEl.innerHTML = '';
+
+            keyboardStructure.forEach(row => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'flex gap-1.5 justify-center w-full';
+
+                row.forEach(keyObj => {
+                    const btn = document.createElement('button');
+                    btn.dataset.code = keyObj.code;
+                    
+                    const flexW = keyObj.w || 1;
+                    btn.style.flex = `${flexW} 1 0%`;
+
+                    btn.className = `key-cap h-11 md:h-12 font-bold text-xs md:text-sm flex items-center justify-center cursor-pointer select-none ${keyObj.isSpace ? 'key-space' : ''}`;
+
+                    const label = document.createElement('span');
+                    label.className = 'key-label z-10 flex items-center gap-1';
+                    
+                    if (keyObj.icon) {
+                        label.innerHTML = `<i class="${keyObj.icon} text-xs opacity-75"></i> <span>${keyObj.key}</span>`;
+                    } else {
+                        label.textContent = keyObj.key;
+                    }
+
+                    btn.appendChild(label);
+
+                    btn.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        triggerKeyPress(keyObj.code, true, e);
+                    });
+
+                    btn.addEventListener('mouseup', (e) => {
+                        e.preventDefault();
+                        triggerKeyRelease(keyObj.code);
+                    });
+
+                    rowDiv.appendChild(btn);
+                });
+
+                keyboardLayoutEl.appendChild(rowDiv);
+            });
+        }
+
+        /* ------------------------------------------------------------------
+           5. Particle Effects & Cat Reaction
+        ------------------------------------------------------------------ */
+        function spawnPawParticle(e) {
+            const x = e ? e.clientX : window.innerWidth / 2;
+            const y = e ? e.clientY : window.innerHeight / 2;
+
+            const p = document.createElement('div');
+            p.className = 'paw-particle';
+            p.textContent = ['🐾', '🐱', '🔔', '✨', '🌸', '🎵'][Math.floor(Math.random() * 6)];
+            p.style.left = `${x}px`;
+            p.style.top = `${y}px`;
+
+            const dx = (Math.random() - 0.5) * 130;
+            const dy = -60 - Math.random() * 80;
+            const rot = (Math.random() - 0.5) * 90;
+
+            p.style.setProperty('--dx', `${dx}px`);
+            p.style.setProperty('--dy', `${dy}px`);
+            p.style.setProperty('--rot', `${rot}deg`);
+
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 800);
+        }
+
+        const catPhrases = [
+            "喵~ 聽這個聲音好療癒🐾",
+            "叮叮噹噹~ 喵喵合奏中 🎵",
+            "咕嚕咕嚕... (滿意地揉肉墊) 🐱",
+            "喵！鍵盤被踩得好舒服~ 🌸",
+            "喵嗚！你打字的手速好快！✨"
+        ];
+
+        function triggerCatReaction() {
+            const bubble = document.getElementById('catBubble');
+            if (bubble && Math.random() < 0.2) {
+                const randomPhrase = catPhrases[Math.floor(Math.random() * catPhrases.length)];
+                bubble.textContent = randomPhrase;
+            }
+        }
+
+        /* ------------------------------------------------------------------
+           6. Input & Key Handlers
+        ------------------------------------------------------------------ */
+        const typingArea = document.getElementById('typingArea');
+        const lastKeyText = document.getElementById('lastKeyText');
+        const totalKeysCount = document.getElementById('totalKeysCount');
+
+        function triggerKeyPress(code, isVirtual = false, event = null) {
+            playCatSound(code);
+            spawnPawParticle(event);
+            triggerCatReaction();
+
+            const keyEl = document.querySelector(`.key-cap[data-code="${code}"]`);
+            if (keyEl) keyEl.classList.add('active');
+
+            appState.totalPressed++;
+            totalKeysCount.textContent = appState.totalPressed;
+            lastKeyText.textContent = code;
+
+            if (isVirtual) handleVirtualInput(code);
+
+            if (appState.catMode && (code === 'Space' || code === 'Enter')) {
+                applyCatTranslation();
+            }
+        }
+
+        function triggerKeyRelease(code) {
+            const keyEl = document.querySelector(`.key-cap[data-code="${code}"]`);
+            if (keyEl) keyEl.classList.remove('active');
+        }
+
+        function handleVirtualInput(code) {
+            const start = typingArea.selectionStart;
+            const end = typingArea.selectionEnd;
+            let val = typingArea.value;
+
+            let keyObj = null;
+            keyboardStructure.forEach(r => r.forEach(k => { if (k.code === code) keyObj = k; }));
+
+            if (code === 'Backspace') {
+                if (start === end && start > 0) {
+                    typingArea.value = val.substring(0, start - 1) + val.substring(end);
+                    typingArea.selectionStart = typingArea.selectionEnd = start - 1;
+                } else {
+                    typingArea.value = val.substring(0, start) + val.substring(end);
+                    typingArea.selectionStart = typingArea.selectionEnd = start;
+                }
+            } else if (code === 'Enter') {
+                typingArea.value = val.substring(0, start) + '\n' + val.substring(end);
+                typingArea.selectionStart = typingArea.selectionEnd = start + 1;
+            } else if (code === 'Space') {
+                typingArea.value = val.substring(0, start) + ' ' + val.substring(end);
+                typingArea.selectionStart = typingArea.selectionEnd = start + 1;
+            } else if (keyObj && keyObj.key && keyObj.key.length === 1) {
+                typingArea.value = val.substring(0, start) + keyObj.key + val.substring(end);
+                typingArea.selectionStart = typingArea.selectionEnd = start + 1;
+            }
+            typingArea.focus();
+        }
+
+        function applyCatTranslation() {
+            let text = typingArea.value;
+            if (!text.endsWith(' 喵~')) {
+                typingArea.value = text.trim() + ' 喵~ ';
+            }
+        }
+
+        /* ------------------------------------------------------------------
+           7. Global Listeners & Controls
+        ------------------------------------------------------------------ */
+        window.addEventListener('keydown', (e) => {
+            if (['Tab'].includes(e.code) && document.activeElement === typingArea) {
+                e.preventDefault();
+                handleVirtualInput('Tab');
+            }
+            triggerKeyPress(e.code, false, null);
+        });
+
+        window.addEventListener('keyup', (e) => {
+            triggerKeyRelease(e.code);
+        });
+
+        // Sound Selector
+        document.getElementById('soundTypeSelect').addEventListener('change', (e) => {
+            appState.soundType = e.target.value;
+            playCatSound('KeyA');
+        });
+
+        // Volume Slider
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volIcon = document.getElementById('volIcon');
+
+        volumeSlider.addEventListener('input', (e) => {
+            appState.volume = parseFloat(e.target.value);
+            if (appState.volume === 0) {
+                volIcon.className = 'fa-solid fa-volume-xmark text-slate-400';
+            } else if (appState.volume < 0.5) {
+                volIcon.className = 'fa-solid fa-volume-low text-[var(--accent)]';
+            } else {
+                volIcon.className = 'fa-solid fa-volume-high text-[var(--accent)]';
+            }
+        });
+
+        // Cat Mode Switch
+        const catModeBtn = document.getElementById('catModeBtn');
+        const catModeText = document.getElementById('catModeText');
+
+        catModeBtn.addEventListener('click', () => {
+            appState.catMode = !appState.catMode;
+            if (appState.catMode) {
+                catModeText.textContent = '貓語模式: 開';
+                catModeBtn.classList.add('ring-2', 'ring-amber-400');
+            } else {
+                catModeText.textContent = '貓語模式: 關';
+                catModeBtn.classList.remove('ring-2', 'ring-amber-400');
+            }
+        });
+
+        // Theme Switcher
+        document.getElementById('themeSelect').addEventListener('change', (e) => {
+            appState.theme = e.target.value;
+            document.body.className = `theme-${appState.theme} p-3 md:p-6 flex flex-col justify-between items-center select-none overflow-x-hidden`;
+        });
+
+        // Clear Sandbox
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            typingArea.value = '';
+            appState.totalPressed = 0;
+            appState.meowCount = 0;
+            totalKeysCount.textContent = '0';
+            document.getElementById('meowCount').textContent = '0';
+            lastKeyText.textContent = 'None';
+            typingArea.focus();
+        });
+
+        // Petting Cat Avatar
+        document.getElementById('catAvatar').addEventListener('click', (e) => {
+            playCatSound('KeyQ');
+            spawnPawParticle(e);
+            document.getElementById('catBubble').textContent = "咕嚕咕嚕... 摸摸好舒服喵！🐾";
+        });
+
+        /* ------------------------------------------------------------------
+           8. Application Boot
+        ------------------------------------------------------------------ */
+        window.addEventListener('DOMContentLoaded', () => {
+            renderKeyboard();
+        });
+    </script>
+</body>
+</html>
+```

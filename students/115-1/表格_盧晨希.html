@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=none">
+    <title>鍵盤搓搓樂 2.0 - Keyboard Scratch Ultimate Deluxe</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        orbitron: ['Orbitron', 'sans-serif'],
+                        sans: ['Noto Sans TC', 'sans-serif'],
+                    },
+                    colors: {
+                        cyber: {
+                            bg: '#080914',
+                            card: '#111328',
+                            border: '#2a2d54',
+                            pink: '#ff007f',
+                            cyan: '#00f3ff',
+                            yellow: '#ffb700',
+                            purple: '#9d00ff'
+                        },
+                        gold: {
+                            bg: '#0d0d0d',
+                            card: '#1a1813',
+                            border: '#3d3522',
+                            accent: '#ffd700',
+                            light: '#fff2a3'
+                        }
+                    },
+                    animation: {
+                        'pulse-glow': 'pulseGlow 2s infinite',
+                        'float': 'float 4s ease-in-out infinite',
+                        'card-flip': 'cardFlip 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards',
+                        'fever-pulse': 'feverPulse 0.5s infinite alternate'
+                    },
+                    keyframes: {
+                        pulseGlow: {
+                            '0%, 100%': { filter: 'drop-shadow(0 0 15px rgba(0,243,255,0.4))' },
+                            '50%': { filter: 'drop-shadow(0 0 35px rgba(255,0,127,0.8))' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        },
+                        cardFlip: {
+                            '0%': { transform: 'rotateY(90deg) scale(0.8)', opacity: '0' },
+                            '100%': { transform: 'rotateY(0deg) scale(1)', opacity: '1' }
+                        },
+                        feverPulse: {
+                            '0%': { boxShadow: '0 0 20px rgba(255,0,127,0.5), inset 0 0 20px rgba(255,0,127,0.3)' },
+                            '100%': { boxShadow: '0 0 50px rgba(0,243,255,0.9), inset 0 0 30px rgba(0,243,255,0.5)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Styling for 3D Membrane & Holographic Effects */
+        body {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            overflow-x: hidden;
+            background-color: #080914;
+            transition: background-color 0.5s ease;
+        }
+
+        /* Screen Shake effect */
+        .shake-screen {
+            animation: screenShake 0.25s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes screenShake {
+            10%, 90% { transform: translate3d(-2px, -1px, 0); }
+            20%, 80% { transform: translate3d(4px, 2px, 0); }
+            30%, 50%, 70% { transform: translate3d(-6px, -4px, 0); }
+            40%, 60% { transform: translate3d(6px, 4px, 0); }
+        }
+
+        /* 3D Poke Box Cell Base */
+        .poke-cell {
+            perspective: 800px;
+            transform-style: preserve-3d;
+        }
+
+        .membrane-cover {
+            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.02) 100%),
+                        radial-gradient(circle at 30% 30%, rgba(255,0,127,0.3) 0%, transparent 70%),
+                        linear-gradient(45deg, #181b3a 0%, #0d0f22 100%);
+            box-shadow: 
+                inset 1px 1px 2px rgba(255,255,255,0.3),
+                inset -2px -2px 6px rgba(0,0,0,0.8),
+                0 10px 20px rgba(0,0,0,0.5);
+            border: 1px solid rgba(0,243,255,0.3);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+        }
+
+        .membrane-cover:hover {
+            transform: translateY(-2px) scale(1.02);
+            border-color: rgba(255,0,127,0.8);
+            box-shadow: 
+                inset 1px 1px 4px rgba(255,255,255,0.5),
+                0 0 15px rgba(255,0,127,0.4);
+        }
+
+        .membrane-cover.gold-theme {
+            background: linear-gradient(135deg, rgba(255,215,0,0.25) 0%, rgba(255,215,0,0.02) 100%),
+                        radial-gradient(circle at 30% 30%, rgba(255,215,0,0.4) 0%, transparent 70%),
+                        linear-gradient(45deg, #2a2313 0%, #120f08 100%);
+            border-color: rgba(255,215,0,0.4);
+        }
+
+        .membrane-cover.gold-theme:hover {
+            border-color: rgba(255,215,0,0.9);
+            box-shadow: 0 0 20px rgba(255,215,0,0.5);
+        }
+
+        /* Broken / Scratched Hole */
+        .membrane-cover.broken {
+            background: #090a14 !important;
+            box-shadow: inset 0 8px 16px rgba(0,0,0,0.9) !important;
+            border-color: rgba(255,255,255,0.05) !important;
+            transform: scale(0.96) !important;
+        }
+
+        /* Target Highlight for Keyboard Rush Mode */
+        .target-active {
+            animation: targetPulse 0.4s infinite alternate !important;
+            border-color: #00f3ff !important;
+        }
+
+        @keyframes targetPulse {
+            0% { transform: scale(1); box-shadow: 0 0 10px #00f3ff, inset 0 0 10px #00f3ff; }
+            100% { transform: scale(1.08); box-shadow: 0 0 25px #ff007f, inset 0 0 20px #ff007f; }
+        }
+
+        /* Holographic Card Foil Shader */
+        .holo-card {
+            background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .holo-card::after {
+            content: '';
+            position: absolute;
+            inset: -50%;
+            background: linear-gradient(
+                115deg, 
+                transparent 20%, 
+                rgba(255, 0, 127, 0.2) 40%, 
+                rgba(0, 243, 255, 0.25) 50%, 
+                rgba(255, 183, 0, 0.2) 60%, 
+                transparent 80%
+            );
+            transform: rotate(25deg);
+            pointer-events: none;
+            animation: holoShift 6s ease-in-out infinite alternate;
+        }
+
+        @keyframes holoShift {
+            0% { transform: translateY(-30%) rotate(25deg); }
+            100% { transform: translateY(30%) rotate(25deg); }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #080914; }
+        ::-webkit-scrollbar-thumb { background: #2a2d54; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00f3ff; }
+    </style>
+</head>
+<body class="min-h-screen text-slate-100 font-sans flex flex-col justify-between selection:bg-cyber-pink selection:text-white">
+
+    <!-- FX Canvas (Confetti, Particles, Shockwaves) -->
+    <canvas id="fxCanvas" class="fixed inset-0 pointer-events-none z-50 w-full h-full"></canvas>
+
+    <!-- Navigation Header -->
+    <header class="w-full max-w-6xl mx-auto px-4 pt-4 pb-2 flex flex-wrap justify-between items-center gap-4 z-20">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyber-pink via-cyber-purple to-cyber-cyan flex items-center justify-center shadow-lg shadow-cyber-pink/30 animate-pulse-glow">
+                <i class="fa-solid fa-keyboard text-2xl text-white"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-2xl md:text-3xl font-black font-orbitron tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-cyber-cyan via-white to-cyber-pink">
+                        KEYBOARD SCRATCH <span class="text-xs px-2 py-0.5 rounded-full bg-cyber-pink/20 text-cyber-pink border border-cyber-pink/40 font-mono">2.0 DELUXE</span>
+                    </h1>
+                </div>
+                <p class="text-xs text-slate-400">極致豪華聲光 | 3D 膜觸感 | 鍵盤盲盒舒壓神器</p>
+            </div>
+        </div>
+
+        <!-- Header Action Controls -->
+        <div class="flex items-center gap-2 flex-wrap">
+            <!-- Theme Toggle -->
+            <button id="themeToggleBtn" class="px-3 py-2 rounded-xl bg-cyber-card border border-cyber-border hover:border-cyber-cyan text-xs font-semibold flex items-center gap-2 transition active:scale-95">
+                <i class="fa-solid fa-palette text-cyber-cyan"></i>
+                <span id="themeText">賽博霓虹</span>
+            </button>
+
+            <!-- BGM Toggle -->
+            <button id="bgmToggleBtn" class="px-3 py-2 rounded-xl bg-cyber-card border border-cyber-border hover:border-cyber-pink text-xs font-semibold flex items-center gap-2 transition active:scale-95">
+                <i id="bgmIcon" class="fa-solid fa-music text-slate-400"></i>
+                <span id="bgmText">BGM: 關</span>
+            </button>
+
+            <!-- SFX Volume -->
+            <button id="sfxToggleBtn" class="px-3 py-2 rounded-xl bg-cyber-card border border-cyber-border hover:border-cyber-yellow text-xs font-semibold flex items-center gap-2 transition active:scale-95">
+                <i id="sfxIcon" class="fa-solid fa-volume-high text-cyber-yellow"></i>
+                <span>音效</span>
+            </button>
+
+            <!-- Collection Vault -->
+            <button id="vaultBtn" class="px-3 py-2 rounded-xl bg-cyber-card border border-cyber-border hover:border-amber-400 text-xs font-semibold flex items-center gap-2 transition active:scale-95 relative">
+                <i class="fa-solid fa-vault text-amber-400"></i>
+                <span>卡牌寶庫</span>
+                <span id="vaultBadge" class="px-1.5 py-0.2 rounded-full bg-cyber-pink text-[10px] text-white font-bold">0</span>
+            </button>
+
+            <!-- Wishpool Customizer -->
+            <button id="wishpoolBtn" class="px-3 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-purple-500/20 flex items-center gap-2 transition active:scale-95">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span>許願池編輯</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Game Area -->
+    <main class="w-full max-w-6xl mx-auto px-4 py-2 flex-grow flex flex-col items-center justify-center gap-4 z-10">
+        
+        <!-- Mode Switcher Tabs & Status Dashboard -->
+        <div class="w-full grid grid-cols-1 md:grid-cols-12 gap-3">
+            
+            <!-- Mode Selection (4 cols) -->
+            <div class="md:col-span-4 bg-cyber-card/90 backdrop-blur-md border border-cyber-border rounded-2xl p-2 flex items-center justify-between gap-1">
+                <button id="modeClassic" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all bg-cyber-pink text-white shadow-md shadow-cyber-pink/30 flex flex-col items-center gap-1">
+                    <i class="fa-solid fa-box-open"></i>
+                    <span>經典盲盒</span>
+                </button>
+                <button id="modeRush" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-slate-800 flex flex-col items-center gap-1">
+                    <i class="fa-solid fa-bolt text-cyber-yellow"></i>
+                    <span>極速競速</span>
+                </button>
+                <button id="modeZen" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-slate-800 flex flex-col items-center gap-1">
+                    <i class="fa-solid fa-infinity text-cyber-cyan"></i>
+                    <span>無盡無限</span>
+                </button>
+            </div>
+
+            <!-- Stats Bar (8 cols) -->
+            <div class="md:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <!-- Stat: Score -->
+                <div class="bg-cyber-card/80 border border-cyber-border rounded-2xl p-2.5 flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-cyber-cyan/20 text-cyber-cyan flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-gem"></i>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-slate-400">幸運積分</div>
+                        <div class="text-base font-black font-orbitron text-cyber-cyan" id="statScore">0</div>
+                    </div>
+                </div>
+
+                <!-- Stat: Combo -->
+                <div class="bg-cyber-card/80 border border-cyber-border rounded-2xl p-2.5 flex items-center gap-2.5 relative overflow-hidden">
+                    <div id="comboGlow" class="absolute inset-0 bg-cyber-pink/20 opacity-0 transition-opacity"></div>
+                    <div class="w-9 h-9 rounded-xl bg-cyber-pink/20 text-cyber-pink flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-fire"></i>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-slate-400">連擊 COMBO</div>
+                        <div class="text-base font-black font-orbitron text-cyber-pink flex items-baseline gap-1">
+                            <span id="statCombo">0</span><span class="text-xs">x</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stat: WPM / Rush Timer -->
+                <div class="bg-cyber-card/80 border border-cyber-border rounded-2xl p-2.5 flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-cyber-yellow/20 text-cyber-yellow flex items-center justify-center font-bold">
+                        <i id="rushIcon" class="fa-solid fa-gauge-high"></i>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-slate-400" id="statTimerLabel">搓速率 (CPM)</div>
+                        <div class="text-base font-black font-orbitron text-cyber-yellow" id="statTimerVal">0</div>
+                    </div>
+                </div>
+
+                <!-- Stat: Progress / Refill -->
+                <div class="bg-cyber-card/80 border border-cyber-border rounded-2xl p-2.5 flex items-center justify-between gap-2">
+                    <div>
+                        <div class="text-[10px] text-slate-400">剩餘洞數</div>
+                        <div class="text-sm font-black font-orbitron text-white" id="statRemaining">30 / 30</div>
+                    </div>
+                    <button id="refillBtn" class="px-2.5 py-1.5 rounded-lg bg-cyber-pink/20 hover:bg-cyber-pink/40 border border-cyber-pink/50 text-cyber-pink text-xs font-bold transition active:scale-95" title="補滿盲盒">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- FEVER MODE BANNER -->
+        <div id="feverBanner" class="w-full py-2 px-4 rounded-2xl bg-gradient-to-r from-cyber-pink via-cyber-purple to-cyber-cyan text-white font-black font-orbitron text-center text-sm md:text-base tracking-widest uppercase shadow-xl hidden animate-fever-pulse">
+            ⚡ FEVER TIME! 全螢幕霓虹狂暴！積分 3 倍暴擊！ ⚡
+        </div>
+
+        <!-- Main Scratch Grid Container -->
+        <div class="relative p-3 md:p-5 rounded-3xl bg-cyber-card/90 border border-cyber-border/80 shadow-2xl backdrop-blur-xl w-full flex flex-col items-center justify-center">
+            
+            <!-- Quick Helper Label -->
+            <div class="w-full flex justify-between items-center px-2 mb-2 text-xs text-slate-400">
+                <span class="flex items-center gap-1.5">
+                    <i class="fa-solid fa-hand-pointer text-cyber-cyan"></i>
+                    滑鼠連劃拖動 / 鍵盤按鍵對應（A-Z, 0-9, Space, Enter）
+                </span>
+                <span id="modeDesc" class="font-bold text-cyber-pink">經典盲盒模式：探索隱藏卡牌</span>
+            </div>
+
+            <!-- Grid Container: 6x5 = 30 cells -->
+            <div id="scratchGrid" class="grid grid-cols-6 gap-2 md:gap-3 w-full max-w-4xl aspect-[6/5]">
+                <!-- Dynamic cells inserted by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Keyboard Shortcut Visualizer Ribbon -->
+        <div class="w-full flex items-center justify-center gap-1.5 flex-wrap text-slate-500 text-xs py-1">
+            <span>實體鍵盤支援：</span>
+            <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono text-[10px]">A - Z</kbd>
+            <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono text-[10px]">0 - 9</kbd>
+            <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono text-[10px]">Space</kbd>
+            <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono text-[10px]">Enter</kbd>
+            <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono text-[10px]">方向鍵</kbd>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full text-center py-2 text-xs text-slate-600 border-t border-slate-800/80 bg-slate-950/60">
+        鍵盤搓搓樂 2.0 Ultimate Deluxe &copy; Web Audio Synth & 3D Interactive FX
+    </footer>
+
+    <!-- =================================================================== -->
+    <!-- MODALS & OVERLAYS -->
+    <!-- =================================================================== -->
+
+    <!-- Card Unboxing Modal (3D Holographic Drop) -->
+    <div id="cardDropModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div id="cardDropBox" class="w-full max-w-sm holo-card border-2 border-cyber-pink rounded-3xl p-6 text-center shadow-2xl transform scale-75 opacity-0 transition-all duration-300 flex flex-col items-center relative">
+            
+            <!-- Rarity Tag -->
+            <div id="cardRarityBadge" class="px-4 py-1 rounded-full text-xs font-black font-orbitron tracking-widest uppercase mb-3 bg-cyber-pink text-white shadow-lg">
+                MYTHIC 神話級
+            </div>
+
+            <!-- Card Emoji Icon -->
+            <div id="cardIcon" class="w-28 h-28 my-3 rounded-2xl bg-slate-900/80 border border-slate-700 flex items-center justify-center text-6xl shadow-inner animate-float">
+                💎
+            </div>
+
+            <h3 id="cardTitle" class="text-2xl font-black font-orbitron text-white mb-1">無限鑽石之星</h3>
+            <div id="cardSubtitle" class="text-xs text-cyber-cyan font-bold mb-3">+1000 幸運積分</div>
+            <p id="cardDesc" class="text-xs text-slate-300 leading-relaxed mb-6 px-2">
+                恭喜劃開隱藏膜！獲得最高階的神話寶藏，全場幸運光束為你閃耀！
+            </p>
+
+            <button id="closeCardBtn" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyber-pink to-cyber-purple hover:from-cyber-pink hover:to-cyber-pink text-white font-bold text-sm shadow-lg shadow-cyber-pink/40 transition active:scale-95">
+                收下卡牌獎勵 (Space / Enter)
+            </button>
+        </div>
+    </div>
+
+    <!-- Collection Vault Modal -->
+    <div id="vaultModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-cyber-card border border-cyber-border rounded-3xl p-5 max-w-2xl w-full shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center pb-3 border-b border-cyber-border">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-vault text-amber-400 text-xl"></i>
+                    <h3 class="text-lg font-bold font-orbitron text-white">卡牌典藏庫 (Vault)</h3>
+                </div>
+                <button id="closeVaultBtn" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Vault Filters -->
+            <div class="flex gap-2 py-3 overflow-x-auto text-xs">
+                <button data-filter="all" class="vault-filter-btn px-3 py-1 rounded-full bg-cyber-pink text-white font-bold">全部</button>
+                <button data-filter="MYTHIC" class="vault-filter-btn px-3 py-1 rounded-full bg-slate-800 text-slate-300">神話 (Mythic)</button>
+                <button data-filter="LEGENDARY" class="vault-filter-btn px-3 py-1 rounded-full bg-slate-800 text-slate-300">傳說 (Legendary)</button>
+                <button data-filter="EPIC" class="vault-filter-btn px-3 py-1 rounded-full bg-slate-800 text-slate-300">史詩 (Epic)</button>
+                <button data-filter="RARE" class="vault-filter-btn px-3 py-1 rounded-full bg-slate-800 text-slate-300">稀有 (Rare)</button>
+            </div>
+
+            <!-- Vault Grid -->
+            <div id="vaultGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 my-2 overflow-y-auto pr-1 flex-grow">
+                <!-- Dynamically generated cards -->
+            </div>
+
+            <div class="pt-3 border-t border-cyber-border flex justify-between items-center text-xs text-slate-400">
+                <span>已收集卡牌：<strong id="vaultCount" class="text-cyber-cyan font-orbitron">0</strong> 張</span>
+                <button id="clearVaultBtn" class="text-rose-400 hover:underline">清空典藏庫</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wishpool Customizer Modal -->
+    <div id="wishpoolModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-cyber-card border border-cyber-border rounded-3xl p-5 max-w-xl w-full shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center pb-3 border-b border-cyber-border">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles text-purple-400 text-xl"></i>
+                    <h3 class="text-lg font-bold font-orbitron text-white">自訂許願池與獎品</h3>
+                </div>
+                <button id="closeWishpoolBtn" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Quick Add Form -->
+            <div class="py-3 grid grid-cols-12 gap-2 border-b border-cyber-border">
+                <input id="newPrizeEmoji" type="text" placeholder="Emoji (例: 🧋)" class="col-span-3 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyber-cyan">
+                <input id="newPrizeName" type="text" placeholder="獎品名稱 (例: 請喝珍珠奶茶)" class="col-span-6 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyber-cyan">
+                <select id="newPrizeRarity" class="col-span-3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-1.5 text-xs text-white focus:outline-none focus:border-cyber-cyan">
+                    <option value="MYTHIC">Mythic</option>
+                    <option value="LEGENDARY">Legendary</option>
+                    <option value="EPIC" selected>Epic</option>
+                    <option value="RARE">Rare</option>
+                    <option value="COMMON">Common</option>
+                </select>
+                <input id="newPrizeDesc" type="text" placeholder="獎品說明描述..." class="col-span-9 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyber-cyan">
+                <button id="addPrizeBtn" class="col-span-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition">
+                    <i class="fa-solid fa-plus"></i> 新增
+                </button>
+            </div>
+
+            <!-- Custom List Container -->
+            <div id="wishpoolList" class="my-2 overflow-y-auto space-y-2 flex-grow pr-1">
+                <!-- Custom Prizes -->
+            </div>
+
+            <!-- JSON Export / Import -->
+            <div class="pt-3 border-t border-cyber-border flex justify-between items-center text-xs">
+                <div class="flex gap-2">
+                    <button id="exportJsonBtn" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200">
+                        <i class="fa-solid fa-download"></i> 匯出 JSON
+                    </button>
+                    <button id="importJsonBtn" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200">
+                        <i class="fa-solid fa-upload"></i> 匯入 JSON
+                    </button>
+                    <input type="file" id="jsonFileInput" accept=".json" class="hidden">
+                </div>
+                <button id="resetDefaultWishpoolBtn" class="text-slate-400 hover:text-white underline">重置為預設</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- JAVASCRIPT ENGINE -->
+    <!-- =================================================================== -->
+    <script>
+        /* ===================================================================
+         * 1. MULTI-LAYER WEB AUDIO SYNTHESIZER
+         * =================================================================== */
+        class AudioSynthEngine {
+            constructor() {
+                this.ctx = null;
+                this.sfxEnabled = true;
+                this.bgmEnabled = false;
+                this.bgmTimer = null;
+                this.masterGain = null;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                    this.masterGain = this.ctx.createGain();
+                    this.masterGain.gain.value = 0.8;
+                    this.masterGain.connect(this.ctx.destination);
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            // Paper Scratch / Tear Pop Sound
+            playScratch(pitchScale = 1.0) {
+                if (!this.sfxEnabled) return;
+                this.init();
+
+                const now = this.ctx.currentTime;
+
+                // Noise Layer (Paper texture rupture)
+                const bufferSize = this.ctx.sampleRate * 0.06;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.setValueAtTime(1200 * pitchScale, now);
+                filter.Q.setValueAtTime(2.5, now);
+
+                const noiseGain = this.ctx.createGain();
+                noiseGain.gain.setValueAtTime(0.5, now);
+                noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.06);
+
+                noise.connect(filter);
+                filter.connect(noiseGain);
+                noiseGain.connect(this.masterGain);
+
+                noise.start(now);
+
+                // Thump Osc Layer
+                const osc = this.ctx.createOscillator();
+                const oscGain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(280 * pitchScale, now);
+                osc.frequency.exponentialRampToValueAtTime(30, now + 0.08);
+
+                oscGain.gain.setValueAtTime(0.7, now);
+                oscGain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+
+                osc.connect(oscGain);
+                oscGain.connect(this.masterGain);
+
+                osc.start(now);
+                osc.stop(now + 0.08);
+            }
+
+            // High Combo Chime / Tone Sweep
+            playComboChime(comboCount) {
+                if (!this.sfxEnabled) return;
+                this.init();
+
+                const now = this.ctx.currentTime;
+                const freq = 400 + Math.min(comboCount * 40, 1200);
+
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now);
+                osc.frequency.exponentialRampToValueAtTime(freq * 1.4, now + 0.1);
+
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+
+                osc.connect(gain);
+                gain.connect(this.masterGain);
+
+                osc.start(now);
+                osc.stop(now + 0.1);
+            }
+
+            // Mythic / Legendary Fanfare
+            playFanfare() {
+                if (!this.sfxEnabled) return;
+                this.init();
+
+                const now = this.ctx.currentTime;
+                const arpeggio = [523.25, 659.25, 783.99, 1046.50, 1318.51]; // C5, E5, G5, C6, E6
+
+                arpeggio.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.07);
+
+                    gain.gain.setValueAtTime(0, now + idx * 0.07);
+                    gain.gain.linearRampToValueAtTime(0.4, now + idx * 0.07 + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.5);
+
+                    osc.connect(gain);
+                    gain.connect(this.masterGain);
+
+                    osc.start(now + idx * 0.07);
+                    osc.stop(now + idx * 0.07 + 0.55);
+                });
+            }
+
+            // Refill Sweep Sound
+            playRefill() {
+                if (!this.sfxEnabled) return;
+                this.init();
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.3);
+
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+
+                osc.connect(gain);
+                gain.connect(this.masterGain);
+
+                osc.start(now);
+                osc.stop(now + 0.3);
+            }
+
+            // Lo-Fi Synthwave BGM Generator
+            toggleBgm() {
+                this.bgmEnabled = !this.bgmEnabled;
+                if (this.bgmEnabled) {
+                    this.startBgm();
+                } else {
+                    this.stopBgm();
+                }
+                return this.bgmEnabled;
+            }
+
+            startBgm() {
+                this.init();
+                if (this.bgmTimer) clearInterval(this.bgmTimer);
+
+                const chords = [
+                    [261.63, 329.63, 392.00], // C
+                    [220.00, 261.63, 329.63], // Am
+                    [174.61, 220.00, 261.63], // F
+                    [196.00, 246.94, 293.66]  // G
+                ];
+                let chordIdx = 0;
+
+                this.bgmTimer = setInterval(() => {
+                    if (!this.bgmEnabled) return;
+                    const now = this.ctx.currentTime;
+                    const currentChord = chords[chordIdx];
+
+                    currentChord.forEach((freq) => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq / 2, now); // Soft ambient bass note
+
+                        gain.gain.setValueAtTime(0, now);
+                        gain.gain.linearRampToValueAtTime(0.05, now + 0.4);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
+
+                        osc.connect(gain);
+                        gain.connect(this.masterGain);
+
+                        osc.start(now);
+                        osc.stop(now + 1.9);
+                    });
+
+                    chordIdx = (chordIdx + 1) % chords.length;
+                }, 2000);
+            }
+
+            stopBgm() {
+                if (this.bgmTimer) {
+                    clearInterval(this.bgmTimer);
+                    this.bgmTimer = null;
+                }
+            }
+        }
+
+        const audio = new AudioSynthEngine();
+
+        /* ===================================================================
+         * 2. CANVAS PARTICLE & CONFETTI SYSTEM
+         * =================================================================== */
+        const canvas = document.getElementById('fxCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor(x, y, color, isConfetti = false) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.isConfetti = isConfetti;
+                this.radius = isConfetti ? Math.random() * 7 + 4 : Math.random() * 4 + 2;
+                this.vx = (Math.random() - 0.5) * (isConfetti ? 16 : 10);
+                this.vy = (Math.random() - 0.5) * (isConfetti ? 16 : 10) - (isConfetti ? 5 : 0);
+                this.gravity = isConfetti ? 0.3 : 0.12;
+                this.alpha = 1;
+                this.decay = Math.random() * 0.02 + 0.015;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.vr = (Math.random() - 0.5) * 0.3;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += this.gravity;
+                this.alpha -= this.decay;
+                this.rotation += this.vr;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.alpha);
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                ctx.fillStyle = this.color;
+
+                if (this.isConfetti) {
+                    ctx.fillRect(-this.radius, -this.radius / 2, this.radius * 2, this.radius);
+                } else {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
+            }
+        }
+
+        function createBurst(x, y, count = 20, isConfetti = false) {
+            const colors = ['#ff007f', '#00f3ff', '#ffb700', '#9d00ff', '#3b82f6', '#10b981'];
+            for (let i = 0; i < count; i++) {
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                particles.push(new Particle(x, y, color, isConfetti));
+            }
+        }
+
+        function renderParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.update();
+                p.draw();
+                if (p.alpha <= 0) particles.splice(i, 1);
+            }
+            requestAnimationFrame(renderParticles);
+        }
+        renderParticles();
+
+        /* ===================================================================
+         * 3. PRIZE DATABASE & RARITY CONFIG
+         * =================================================================== */
+        const DEFAULT_PRIZES = [
+            { id: 'p1', emoji: '💎', name: '無限鑽石之星', rarity: 'MYTHIC', pts: 1000, desc: '最頂階的神話寶藏，全場幸運光束為你閃耀！' },
+            { id: 'p2', emoji: '👑', name: '至尊黃金皇冠', rarity: 'LEGENDARY', pts: 600, desc: '象徵最高榮耀的皇冠，今日幸運值破表！' },
+            { id: 'p3', emoji: '🧋', name: '特大杯珍珠奶茶', rarity: 'EPIC', pts: 300, desc: '獲得一杯滿滿黑糖珍奶，舒壓甜度 100%！' },
+            { id: 'p4', emoji: '🐱', name: '虛擬萌貓咕嚕卡', rarity: 'EPIC', pts: 250, desc: '發出療癒咕嚕聲的小貓，壓力瞬間蒸發。' },
+            { id: 'p5', emoji: '☕', name: '雙倍特濃美式', rarity: 'RARE', pts: 150, desc: '瞬間精神百倍，鍵盤敲擊速度提升 200%！' },
+            { id: 'p6', emoji: '⛩️', name: '大吉上上籤', rarity: 'LEGENDARY', pts: 500, desc: '【萬事大吉】今日隨手搓樂皆有好事發生！' },
+            { id: 'p7', emoji: '🫧', name: '無限捏氣泡紙', rarity: 'RARE', pts: 120, desc: '享受捏氣泡紙的無窮快感！' },
+            { id: 'p8', emoji: '🍀', name: '四葉幸運草', rarity: 'RARE', pts: 180, desc: '帶來好運與平安的吉祥植物。' },
+            { id: 'p9', emoji: '🚀', name: '壞情緒發射火箭', rarity: 'COMMON', pts: 80, desc: '把煩惱統統發射到外太空去！' },
+            { id: 'p10', emoji: '🍕', name: '熔岩起司披薩', rarity: 'COMMON', pts: 70, desc: '熱騰騰的披薩，提供滿滿療癒能量。' },
+            { id: 'p11', emoji: '👻', name: '搗蛋小幽靈', rarity: 'COMMON', pts: 50, desc: 'Boo! 雖然想嚇人但模樣實在太呆萌。' },
+            { id: 'p12', emoji: '🌈', name: '夢幻霓虹彩虹', rarity: 'EPIC', pts: 280, desc: '雨過天晴，為你開闢一道絢麗彩虹。' }
+        ];
+
+        let activePrizePool = JSON.parse(localStorage.getItem('ks_prizepool')) || [...DEFAULT_PRIZES];
+
+        // 30 Keyboard Keys Mapping
+        const GRID_KEYS = [
+            '1','2','3','4','5','6',
+            'Q','W','E','R','T','Y',
+            'A','S','D','F','G','H',
+            'Z','X','C','V','B','N',
+            'M','0','ENTER','SPACE','UP','DOWN'
+        ];
+
+        /* ===================================================================
+         * 4. GAME STATE & LOGIC
+         * =================================================================== */
+        let gridState = [];
+        let currentMode = 'classic'; // classic, rush, zen
+        let score = 0;
+        let combo = 0;
+        let comboTimer = null;
+        let isMouseDown = false;
+        let vault = JSON.parse(localStorage.getItem('ks_vault')) || [];
+        let theme = 'cyber'; // cyber, gold
+
+        // Rush Mode Specifics
+        let rushTargetIndex = -1;
+        let rushTimerInterval = null;
+        let rushTimeRemaining = 30;
+        let rushPokes = 0;
+
+        // DOM Element Refs
+        const scratchGridEl = document.getElementById('scratchGrid');
+        const statScoreEl = document.getElementById('statScore');
+        const statComboEl = document.getElementById('statCombo');
+        const statTimerValEl = document.getElementById('statTimerVal');
+        const statTimerLabelEl = document.getElementById('statTimerLabel');
+        const statRemainingEl = document.getElementById('statRemaining');
+        const feverBannerEl = document.getElementById('feverBanner');
+
+        // Initialize 30-Hole Grid
+        function initGrid() {
+            scratchGridEl.innerHTML = '';
+            gridState = [];
+
+            for (let i = 0; i < 30; i++) {
+                const keyLabel = GRID_KEYS[i];
+                const prize = activePrizePool[Math.floor(Math.random() * activePrizePool.length)];
+
+                const holeObj = {
+                    id: i,
+                    key: keyLabel,
+                    prize: prize,
+                    isBroken: false
+                };
+                gridState.push(holeObj);
+
+                // Create Cell DOM
+                const cellEl = document.createElement('div');
+                cellEl.className = 'poke-cell relative w-full h-full cursor-pointer select-none';
+                cellEl.dataset.id = i;
+
+                const isGold = theme === 'gold' ? 'gold-theme' : '';
+
+                cellEl.innerHTML = `
+                    <div id="membrane-${i}" class="membrane-cover ${isGold} w-full h-full rounded-2xl flex flex-col items-center justify-center p-1 text-center font-orbitron">
+                        <span class="text-[10px] md:text-xs font-black text-cyan-300/80 tracking-wider pointer-events-none">
+                            [ ${keyLabel} ]
+                        </span>
+                        <div class="text-xl md:text-2xl font-black text-white/90 drop-shadow pointer-events-none mt-0.5">
+                            ${i + 1}
+                        </div>
+                    </div>
+                    <div id="content-${i}" class="absolute inset-0 rounded-2xl bg-slate-900 border border-slate-700/80 flex flex-col items-center justify-center p-1 text-center opacity-0 pointer-events-none transition-all duration-300">
+                        <span class="text-2xl md:text-3xl transform scale-50 transition-transform duration-300" id="emoji-${i}">${prize.emoji}</span>
+                        <span class="text-[9px] md:text-[11px] font-bold text-amber-300 mt-0.5 truncate max-w-full px-1">${prize.name}</span>
+                    </div>
+                `;
+
+                // Drag / Click Event Listeners
+                cellEl.addEventListener('pointerdown', (e) => {
+                    isMouseDown = true;
+                    pokeHole(i, e.clientX, e.clientY);
+                });
+
+                cellEl.addEventListener('pointerenter', (e) => {
+                    if (isMouseDown) {
+                        pokeHole(i, e.clientX, e.clientY);
+                    }
+                });
+
+                scratchGridEl.appendChild(cellEl);
+            }
+
+            if (currentMode === 'rush') {
+                pickNextRushTarget();
+            }
+
+            updateStats();
+        }
+
+        window.addEventListener('pointerup', () => { isMouseDown = false; });
+
+        // Core Hole Poking Action
+        function pokeHole(index, clickX = 0, clickY = 0) {
+            const hole = gridState[index];
+            if (!hole) return;
+
+            // Mode handling
+            if (currentMode === 'rush') {
+                if (index !== rushTargetIndex) return; // Must hit target
+            } else if (hole.isBroken) {
+                return; // Classic Mode: Can't re-poke
+            }
+
+            hole.isBroken = true;
+
+            const membraneEl = document.getElementById(`membrane-${index}`);
+            const contentEl = document.getElementById(`content-${index}`);
+            const cellEl = scratchGridEl.children[index];
+
+            // Visual Scratch / Rupture
+            membraneEl.classList.add('broken');
+            membraneEl.innerHTML = `<span class="text-slate-600 text-[10px] font-mono">BROKEN</span>`;
+
+            contentEl.classList.remove('opacity-0', 'pointer-events-none');
+            const emojiEl = contentEl.querySelector(`#emoji-${index}`);
+            emojiEl.classList.remove('scale-50');
+            emojiEl.classList.add('scale-100');
+
+            // Trigger Screen Shake for high combo or legendary
+            if (combo > 5 || hole.prize.rarity === 'MYTHIC' || hole.prize.rarity === 'LEGENDARY') {
+                document.body.classList.add('shake-screen');
+                setTimeout(() => document.body.classList.remove('shake-screen'), 250);
+            }
+
+            // Combo & Score Calculation
+            incrementCombo();
+            const multiplier = combo > 10 ? 3 : (combo > 5 ? 2 : 1);
+            const ptsEarned = hole.prize.pts * multiplier;
+            score += ptsEarned;
+
+            // Save to Collection Vault
+            saveToVault(hole.prize);
+
+            // Audio FX
+            const pitchScale = 0.8 + Math.min(combo * 0.04, 0.8);
+            audio.playScratch(pitchScale);
+            if (combo > 3) audio.playComboChime(combo);
+
+            // Particle burst
+            let px = clickX, py = clickY;
+            if (!px || !py) {
+                const rect = cellEl.getBoundingClientRect();
+                px = rect.left + rect.width / 2;
+                py = rect.top + rect.height / 2;
+            }
+            createBurst(px, py, combo > 8 ? 25 : 12, hole.prize.rarity === 'MYTHIC');
+
+            // Show Card Unboxing Modal for High Rarity in Classic Mode
+            if (currentMode === 'classic' && (hole.prize.rarity === 'MYTHIC' || hole.prize.rarity === 'LEGENDARY')) {
+                audio.playFanfare();
+                setTimeout(() => showCardDropModal(hole.prize), 200);
+            }
+
+            // Zen Mode Auto Refill if all broken
+            if (currentMode === 'zen') {
+                const remaining = gridState.filter(h => !h.isBroken).length;
+                if (remaining === 0) {
+                    setTimeout(() => {
+                        audio.playRefill();
+                        initGrid();
+                    }, 300);
+                }
+            } else if (currentMode === 'rush') {
+                rushPokes++;
+                membraneEl.classList.remove('target-active');
+                pickNextRushTarget();
+            }
+
+            updateStats();
+        }
+
+        // Combo Logic
+        function incrementCombo() {
+            combo++;
+            statComboEl.innerText = combo;
+
+            const comboGlow = document.getElementById('comboGlow');
+            comboGlow.style.opacity = '1';
+            setTimeout(() => { comboGlow.style.opacity = '0'; }, 200);
+
+            clearTimeout(comboTimer);
+            comboTimer = setTimeout(() => {
+                combo = 0;
+                statComboEl.innerText = '0';
+                updateFeverState();
+            }, 1800);
+
+            updateFeverState();
+        }
+
+        function updateFeverState() {
+            if (combo >= 8) {
+                feverBannerEl.classList.remove('hidden');
+            } else {
+                feverBannerEl.classList.add('hidden');
+            }
+        }
+
+        // Stats Dashboard Update
+        function updateStats() {
+            statScoreEl.innerText = score.toLocaleString();
+            const remaining = gridState.filter(h => !h.isBroken).length;
+            statRemainingEl.innerText = `${remaining} / 30`;
+            document.getElementById('vaultBadge').innerText = vault.length;
+        }
+
+        /* ===================================================================
+         * 5. KEYBOARD RUSH MODE LOGIC
+         * =================================================================== */
+        function pickNextRushTarget() {
+            // Unhighlight old
+            if (rushTargetIndex !== -1) {
+                const oldMembrane = document.getElementById(`membrane-${rushTargetIndex}`);
+                if (oldMembrane) oldMembrane.classList.remove('target-active');
+            }
+
+            // Pick random unbroken cell
+            const availableIndices = gridState.map((h, idx) => idx);
+            rushTargetIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+
+            // Un-break target if it was broken so player can hit it again
+            gridState[rushTargetIndex].isBroken = false;
+            const membraneEl = document.getElementById(`membrane-${rushTargetIndex}`);
+            if (membraneEl) {
+                membraneEl.classList.remove('broken');
+                membraneEl.classList.add('target-active');
+                membraneEl.innerHTML = `
+                    <span class="text-[10px] md:text-xs font-black text-cyan-300/80 tracking-wider pointer-events-none">
+                        [ ${gridState[rushTargetIndex].key} ]
+                    </span>
+                    <div class="text-xl md:text-2xl font-black text-white/90 drop-shadow pointer-events-none mt-0.5">
+                        ${rushTargetIndex + 1}
+                    </div>
+                `;
+            }
+        }
+
+        function startRushTimer() {
+            clearInterval(rushTimerInterval);
+            rushTimeRemaining = 30;
+            rushPokes = 0;
+            statTimerLabelEl.innerText = '剩餘秒數';
+            statTimerValEl.innerText = `${rushTimeRemaining}s`;
+
+            rushTimerInterval = setInterval(() => {
+                rushTimeRemaining--;
+                statTimerValEl.innerText = `${rushTimeRemaining}s`;
+
+                if (rushTimeRemaining <= 0) {
+                    clearInterval(rushTimerInterval);
+                    alert(`⏰ 競速模式結束！\n總共連打次數：${rushPokes} 次\n獲得總分：${score}`);
+                    switchMode('classic');
+                }
+            }, 1000);
+        }
+
+        /* ===================================================================
+         * 6. MODE SWITCHER & CONTROLS
+         * =================================================================== */
+        const modeClassicBtn = document.getElementById('modeClassic');
+        const modeRushBtn = document.getElementById('modeRush');
+        const modeZenBtn = document.getElementById('modeZen');
+        const modeDescEl = document.getElementById('modeDesc');
+
+        function switchMode(newMode) {
+            currentMode = newMode;
+            clearInterval(rushTimerInterval);
+
+            // Reset Tab Buttons
+            [modeClassicBtn, modeRushBtn, modeZenBtn].forEach(b => {
+                b.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-slate-800 flex flex-col items-center gap-1';
+            });
+
+            if (newMode === 'classic') {
+                modeClassicBtn.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition-all bg-cyber-pink text-white shadow-md shadow-cyber-pink/30 flex flex-col items-center gap-1';
+                modeDescEl.innerText = '經典盲盒模式：探索隱藏卡牌';
+                statTimerLabelEl.innerText = '搓速率 (CPM)';
+                statTimerValEl.innerText = '0';
+            } else if (newMode === 'rush') {
+                modeRushBtn.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition-all bg-cyber-yellow text-slate-950 shadow-md shadow-cyber-yellow/30 flex flex-col items-center gap-1';
+                modeDescEl.innerText = '極速競速模式：跟著高亮按鍵快打！';
+                startRushTimer();
+            } else if (newMode === 'zen') {
+                modeZenBtn.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition-all bg-cyber-cyan text-slate-950 shadow-md shadow-cyber-cyan/30 flex flex-col items-center gap-1';
+                modeDescEl.innerText = '無盡無限模式：自動補滿，瘋狂連發！';
+                statTimerLabelEl.innerText = '無限狀態';
+                statTimerValEl.innerText = '∞';
+            }
+
+            initGrid();
+        }
+
+        modeClassicBtn.addEventListener('click', () => switchMode('classic'));
+        modeRushBtn.addEventListener('click', () => switchMode('rush'));
+        modeZenBtn.addEventListener('click', () => switchMode('zen'));
+
+        document.getElementById('refillBtn').addEventListener('click', () => {
+            audio.playRefill();
+            initGrid();
+        });
+
+        /* ===================================================================
+         * 7. PHYSICAL KEYBOARD BINDINGS
+         * =================================================================== */
+        window.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            // Space / Enter quick closes card modal
+            const cardDropModal = document.getElementById('cardDropModal');
+            if (cardDropModal.classList.contains('opacity-100') && (e.key === 'Enter' || e.key === ' ')) {
+                hideCardDropModal();
+                return;
+            }
+
+            let keyUpper = e.key.toUpperCase();
+            if (e.key === 'ArrowUp') keyUpper = 'UP';
+            if (e.key === 'ArrowDown') keyUpper = 'DOWN';
+            if (e.key === ' ') keyUpper = 'SPACE';
+
+            // Match Key in Grid
+            const matchedIndex = gridState.findIndex(h => h.key === keyUpper && (!h.isBroken || currentMode === 'rush'));
+
+            if (matchedIndex !== -1) {
+                pokeHole(matchedIndex);
+            } else if (e.key === ' ' || e.key === 'Enter') {
+                // Blind mash fallback
+                const firstAvailable = gridState.findIndex(h => !h.isBroken);
+                if (firstAvailable !== -1) pokeHole(firstAvailable);
+            }
+        });
+
+        /* ===================================================================
+         * 8. CARD DROP MODAL & VAULT STORAGE
+         * =================================================================== */
+        const cardDropModalEl = document.getElementById('cardDropModal');
+        const cardDropBoxEl = document.getElementById('cardDropBox');
+        const closeCardBtn = document.getElementById('closeCardBtn');
+
+        function showCardDropModal(prize) {
+            document.getElementById('cardRarityBadge').innerText = `${prize.rarity} 級卡牌`;
+            document.getElementById('cardIcon').innerText = prize.emoji;
+            document.getElementById('cardTitle').innerText = prize.name;
+            document.getElementById('cardSubtitle').innerText = `+${prize.pts} 幸運積分`;
+            document.getElementById('cardDesc').innerText = prize.desc;
+
+            cardDropModalEl.classList.remove('opacity-0', 'pointer-events-none');
+            cardDropModalEl.classList.add('opacity-100');
+            cardDropBoxEl.classList.remove('scale-75', 'opacity-0');
+            cardDropBoxEl.classList.add('scale-100', 'opacity-100');
+        }
+
+        function hideCardDropModal() {
+            cardDropModalEl.classList.add('opacity-0', 'pointer-events-none');
+            cardDropModalEl.classList.remove('opacity-100');
+            cardDropBoxEl.classList.add('scale-75', 'opacity-0');
+        }
+
+        closeCardBtn.addEventListener('click', hideCardDropModal);
+
+        function saveToVault(prize) {
+            vault.push({ ...prize, obtainedAt: new Date().toLocaleTimeString() });
+            localStorage.setItem('ks_vault', JSON.stringify(vault));
+            updateStats();
+        }
+
+        // Vault Modal DOM Logic
+        const vaultBtn = document.getElementById('vaultBtn');
+        const vaultModalEl = document.getElementById('vaultModal');
+        const closeVaultBtn = document.getElementById('closeVaultBtn');
+        const vaultGridEl = document.getElementById('vaultGrid');
+
+        vaultBtn.addEventListener('click', () => {
+            renderVault('all');
+            vaultModalEl.classList.remove('opacity-0', 'pointer-events-none');
+            vaultModalEl.classList.add('opacity-100');
+        });
+
+        closeVaultBtn.addEventListener('click', () => {
+            vaultModalEl.classList.add('opacity-0', 'pointer-events-none');
+        });
+
+        function renderVault(filter = 'all') {
+            vaultGridEl.innerHTML = '';
+            document.getElementById('vaultCount').innerText = vault.length;
+
+            const filteredVault = filter === 'all' ? vault : vault.filter(item => item.rarity === filter);
+
+            if (filteredVault.length === 0) {
+                vaultGridEl.innerHTML = `
+                    <div class="col-span-full py-8 text-center text-slate-500 text-xs">
+                        尚無任何卡牌，快在洞洞板上劃開驚喜吧！
+                    </div>
+                `;
+                return;
+            }
+
+            [...filteredVault].reverse().forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'bg-slate-900/90 border border-slate-700/80 rounded-2xl p-2.5 flex flex-col items-center text-center relative overflow-hidden';
+                card.innerHTML = `
+                    <span class="text-3xl mb-1">${item.emoji}</span>
+                    <span class="text-xs font-bold text-white truncate w-full">${item.name}</span>
+                    <span class="text-[9px] text-cyber-cyan font-mono font-bold mt-0.5">${item.rarity}</span>
+                `;
+                vaultGridEl.appendChild(card);
+            });
+        }
+
+        document.querySelectorAll('.vault-filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.vault-filter-btn').forEach(b => b.className = 'vault-filter-btn px-3 py-1 rounded-full bg-slate-800 text-slate-300');
+                e.target.className = 'vault-filter-btn px-3 py-1 rounded-full bg-cyber-pink text-white font-bold';
+                renderVault(e.target.dataset.filter);
+            });
+        });
+
+        document.getElementById('clearVaultBtn').addEventListener('click', () => {
+            vault = [];
+            localStorage.removeItem('ks_vault');
+            renderVault('all');
+            updateStats();
+        });
+
+        /* ===================================================================
+         * 9. WISHPOOL CUSTOMIZER & JSON ENGINE
+         * =================================================================== */
+        const wishpoolBtn = document.getElementById('wishpoolBtn');
+        const wishpoolModalEl = document.getElementById('wishpoolModal');
+        const closeWishpoolBtn = document.getElementById('closeWishpoolBtn');
+        const wishpoolListEl = document.getElementById('wishpoolList');
+
+        wishpoolBtn.addEventListener('click', () => {
+            renderWishpoolList();
+            wishpoolModalEl.classList.remove('opacity-0', 'pointer-events-none');
+            wishpoolModalEl.classList.add('opacity-100');
+        });
+
+        closeWishpoolBtn.addEventListener('click', () => {
+            wishpoolModalEl.classList.add('opacity-0', 'pointer-events-none');
+        });
+
+        function renderWishpoolList() {
+            wishpoolListEl.innerHTML = '';
+            activePrizePool.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.className = 'bg-slate-900 border border-slate-800 rounded-xl p-2 flex items-center justify-between text-xs';
+                row.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl">${item.emoji}</span>
+                        <div>
+                            <div class="font-bold text-white">${item.name} <span class="text-[10px] text-amber-400">(${item.rarity})</span></div>
+                            <div class="text-[10px] text-slate-400">${item.desc}</div>
+                        </div>
+                    </div>
+                    <button class="delete-prize-btn text-slate-500 hover:text-rose-400 px-2 py-1" data-index="${index}">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                `;
+                wishpoolListEl.appendChild(row);
+            });
+
+            document.querySelectorAll('.delete-prize-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = parseInt(e.currentTarget.dataset.index);
+                    activePrizePool.splice(idx, 1);
+                    savePrizePool();
+                    renderWishpoolList();
+                });
+            });
+        }
+
+        document.getElementById('addPrizeBtn').addEventListener('click', () => {
+            const emoji = document.getElementById('newPrizeEmoji').value.trim() || '🎁';
+            const name = document.getElementById('newPrizeName').value.trim();
+            const rarity = document.getElementById('newPrizeRarity').value;
+            const desc = document.getElementById('newPrizeDesc').value.trim() || '幸運客製化獎品！';
+
+            if (!name) {
+                alert('請輸入獎品名稱！');
+                return;
+            }
+
+            activePrizePool.push({
+                id: 'custom_' + Date.now(),
+                emoji,
+                name,
+                rarity,
+                pts: rarity === 'MYTHIC' ? 800 : (rarity === 'LEGENDARY' ? 500 : 200),
+                desc
+            });
+
+            savePrizePool();
+            renderWishpoolList();
+
+            // Clear inputs
+            document.getElementById('newPrizeName').value = '';
+            document.getElementById('newPrizeDesc').value = '';
+        });
+
+        function savePrizePool() {
+            localStorage.setItem('ks_prizepool', JSON.stringify(activePrizePool));
+            initGrid();
+        }
+
+        document.getElementById('resetDefaultWishpoolBtn').addEventListener('click', () => {
+            activePrizePool = [...DEFAULT_PRIZES];
+            savePrizePool();
+            renderWishpoolList();
+        });
+
+        // JSON Export / Import
+        document.getElementById('exportJsonBtn').addEventListener('click', () => {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(activePrizePool, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "keyboard_scratch_wishpool.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        });
+
+        const jsonFileInput = document.getElementById('jsonFileInput');
+        document.getElementById('importJsonBtn').addEventListener('click', () => jsonFileInput.click());
+
+        jsonFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const importedPrizes = JSON.parse(event.target.result);
+                    if (Array.isArray(importedPrizes)) {
+                        activePrizePool = importedPrizes;
+                        savePrizePool();
+                        renderWishpoolList();
+                        alert('✅ 許願池 JSON 匯入成功！');
+                    }
+                } catch (err) {
+                    alert('❌ JSON 格式不正確！');
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        /* ===================================================================
+         * 10. THEME & HEADER CONTROLS
+         * =================================================================== */
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const themeText = document.getElementById('themeText');
+
+        themeToggleBtn.addEventListener('click', () => {
+            theme = theme === 'cyber' ? 'gold' : 'cyber';
+            if (theme === 'gold') {
+                document.body.style.backgroundColor = '#0d0d0d';
+                themeText.innerText = '奢華黑金';
+            } else {
+                document.body.style.backgroundColor = '#080914';
+                themeText.innerText = '賽博霓虹';
+            }
+            initGrid();
+        });
+
+        const bgmToggleBtn = document.getElementById('bgmToggleBtn');
+        const bgmIcon = document.getElementById('bgmIcon');
+        const bgmText = document.getElementById('bgmText');
+
+        bgmToggleBtn.addEventListener('click', () => {
+            const isPlaying = audio.toggleBgm();
+            if (isPlaying) {
+                bgmIcon.className = 'fa-solid fa-music text-cyber-pink animate-spin';
+                bgmText.innerText = 'BGM: 開';
+            } else {
+                bgmIcon.className = 'fa-solid fa-music text-slate-400';
+                bgmText.innerText = 'BGM: 關';
+            }
+        });
+
+        const sfxToggleBtn = document.getElementById('sfxToggleBtn');
+        const sfxIcon = document.getElementById('sfxIcon');
+
+        sfxToggleBtn.addEventListener('click', () => {
+            audio.sfxEnabled = !audio.sfxEnabled;
+            sfxIcon.className = audio.sfxEnabled ? 'fa-solid fa-volume-high text-cyber-yellow' : 'fa-solid fa-volume-xmark text-slate-500';
+        });
+
+        // Start initial grid setup
+        initGrid();
+    </script>
+</body>
+</html>
