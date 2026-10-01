@@ -1,5 +1,5 @@
 // 您的 GAS API Web App URL
-const API_URL = "https://script.google.com/macros/s/AKfycbyAaciyZ3V8mdp-6Oyc7Jda8cGejKoPrEXl0Mv4gIomsCpXKQ7lX5XQp38ykBsx00NmGA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwjEJXEt3d8NDs6O5DyGlcRid-X4-2Avu-KqsXUwir1Gd4C2qANJY-k_UkUohc16-gy3A/exec";
 
 // 全域變數
 let globalDashboardData = null;
