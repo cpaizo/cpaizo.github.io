@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (schStart) schStart.addEventListener('change', autoCalculateHours);
   if (schEnd) schEnd.addEventListener('change', autoCalculateHours);
 
-  // 綁定儲值項目改變事件
+  // 綁定儲值項目改變事件 (動態切換單價欄位與金額)
   const depType = document.getElementById('dep-type');
   if (depType) depType.addEventListener('change', toggleDepositType);
 
@@ -53,14 +53,18 @@ function autoCalculateHours() {
   }
 }
 
-// 儲值類型切換
+// 儲值類型切換 (支援 鐘點費、材料費、停車費)
 function toggleDepositType() {
   const typeEl = document.getElementById('dep-type');
   const rateGroup = document.getElementById('group-rate');
   const amountInput = document.getElementById('dep-amount');
 
   if (typeEl && rateGroup && amountInput) {
-    if (typeEl.value === '停車費') {
+    const val = typeEl.value;
+    if (val === '停車費') {
+      rateGroup.style.display = 'none';
+      amountInput.value = '1000';
+    } else if (val === '材料費') {
       rateGroup.style.display = 'none';
       amountInput.value = '1000';
     } else {
@@ -97,7 +101,7 @@ function switchSubTab(subTabName) {
   renderSubTabContent();
 }
 
-// API 自動重試機制 (防 GAS 休眠彈窗)
+// API 自動重試機制 (防 GAS 休眠)
 async function fetchWithRetry(url, options = {}, retries = 3, backoff = 1000) {
   try {
     const response = await fetch(url, options);
@@ -137,7 +141,7 @@ async function loadDashboard() {
   }
 }
 
-// 渲染歷史明細子分頁內容
+// 渲染歷史明細子分頁內容 (對應 4 張獨立工作表)
 function renderSubTabContent() {
   const container = document.getElementById('history-sub-content');
   if (!container) return;
@@ -150,7 +154,7 @@ function renderSubTabContent() {
   const data = globalDashboardData;
   let html = '';
 
-  // 1. 排課清單與考勤確認
+  // 1. 排課清單與考勤確認 (Schedules)
   if (currentSubTab === 'schedules') {
     html += '<h4 style="margin:0 0 12px 0; font-size:14px; color:var(--primary);">📅 排課清單與考勤確認</h4>';
     if (!data.schedules || data.schedules.length === 0) {
@@ -188,10 +192,10 @@ function renderSubTabContent() {
       });
     }
   } 
-  // 2. 停車費明細 (純清單流水帳展示，無須按鈕確認)
+  // 2. 停車費明細 (Parking 表：純流水帳)
   else if (currentSubTab === 'parking') {
     html += '<h4 style="margin:0 0 12px 0; font-size:14px; color:var(--primary);">🅿️ 停車費扣款明細</h4>';
-    const parkingList = (data.expenses || []).filter(item => String(item.category || '').trim() === '停車費');
+    const parkingList = data.parking || [];
     
     if (parkingList.length === 0) {
       html += '<p style="color:#999;font-size:13px;">尚無停車費扣款紀錄</p>';
@@ -200,7 +204,7 @@ function renderSubTabContent() {
         html += `
           <div style="padding: 10px 0; border-bottom: 1px solid var(--border);">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-              <div><strong>${item.date}</strong></div>
+              <div><strong>${item.date}</strong> <span style="font-size:12px; color:var(--text-muted);">(${item.hours}小時)</span></div>
               <div style="font-weight:600; color:var(--accent);">- $${item.amount}</div>
             </div>
             <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">${item.note || '自動計算扣除'}</div>
@@ -208,21 +212,21 @@ function renderSubTabContent() {
       });
     }
   } 
-  // 3. 材料費明細
+  // 3. 材料費明細 (Materials 表：支援標記已結清)
   else if (currentSubTab === 'materials') {
     html += '<h4 style="margin:0 0 12px 0; font-size:14px; color:var(--primary);">🛠️ 材料費明細</h4>';
-    const materialList = (data.expenses || []).filter(item => String(item.category || '').trim() === '材料費');
+    const materialList = data.materials || [];
     
     if (materialList.length === 0) {
       html += '<p style="color:#999;font-size:13px;">尚無材料費紀錄</p>';
     } else {
       materialList.forEach(item => {
         const currentStatus = String(item.status || '').trim();
-        let badgeClass = (currentStatus === '已結清' || currentStatus === '已扣款') ? 'badge-done' : 'badge-pending';
+        let badgeClass = (currentStatus === '已結清') ? 'badge-done' : 'badge-pending';
         let payBtn = '';
         
         if (currentStatus === '未結清') {
-          payBtn = `<button onclick="payExpense('${item.expense_id}')" style="margin-top:6px; padding:4px 8px; font-size:12px; background:var(--accent); color:#FFF; border:none; border-radius:4px; cursor:pointer;">💵 標記家長已給付</button>`;
+          payBtn = `<button onclick="payExpense('${item.material_id}')" style="margin-top:6px; padding:4px 8px; font-size:12px; background:var(--accent); color:#FFF; border:none; border-radius:4px; cursor:pointer;">💵 標記家長已給付</button>`;
         }
 
         html += `
@@ -237,7 +241,7 @@ function renderSubTabContent() {
       });
     }
   } 
-  // 4. 預繳儲值歷史紀錄
+  // 4. 預繳儲值歷史紀錄 (Transactions 表)
   else if (currentSubTab === 'transactions') {
     html += '<h4 style="margin:0 0 12px 0; font-size:14px; color:var(--primary);">💰 預繳儲值歷史紀錄</h4>';
     if (!data.transactions || data.transactions.length === 0) {
@@ -313,15 +317,15 @@ async function updateScheduleStatus(scheduleId, actionType) {
   }
 }
 
-async function payExpense(expenseId) {
-  if (!confirm('確認已收到家長支付的此筆費用了嗎？')) return;
+async function payExpense(materialId) {
+  if (!confirm('確認已收到家長支付的此筆材料費了嗎？')) return;
 
   try {
     const res = await fetch(API_URL, {
       method: 'POST',
       body: JSON.stringify({
         action: 'payExpense',
-        data: { expense_id: expenseId }
+        data: { material_id: materialId }
       })
     });
     const result = await res.json();
