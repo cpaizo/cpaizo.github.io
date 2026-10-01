@@ -1,5 +1,5 @@
-// GAS API URL
-const API_URL = "https://script.google.com/macros/s/AKfycbwR3RSWOQhrDi5dPXYkV2vFEtQBuxqOHBkmldlYTM65OI70pwYsv__UeXxJaoToRdSRUA/exec";
+// 您的 GAS API Web App URL
+const API_URL = "https://script.google.com/macros/s/AKfycbyAaciyZ3V8mdp-6Oyc7Jda8cGejKoPrEXl0Mv4gIomsCpXKQ7lX5XQp38ykBsx00NmGA/exec";
 
 // 全域變數
 let globalDashboardData = null;
@@ -16,12 +16,13 @@ document.addEventListener("DOMContentLoaded", () => {
   if (depDate) depDate.value = today;
   if (expDate) expDate.value = today;
 
-  // 綁定事件監聽器 (避免 inline onchange undefined 報錯)
+  // 綁定時間改變事件 (自動計算時數)
   const schStart = document.getElementById('sch-start');
   const schEnd = document.getElementById('sch-end');
   if (schStart) schStart.addEventListener('change', autoCalculateHours);
   if (schEnd) schEnd.addEventListener('change', autoCalculateHours);
 
+  // 綁定儲值項目改變事件
   const depType = document.getElementById('dep-type');
   if (depType) depType.addEventListener('change', toggleDepositType);
 
@@ -69,7 +70,7 @@ function toggleDepositType() {
   }
 }
 
-// 切換主要 Tab
+// 切換主頁籤
 function switchTab(tabName) {
   document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
@@ -82,7 +83,7 @@ function switchTab(tabName) {
   if (targetContent) targetContent.classList.add('active');
 }
 
-// 切換歷史明細的四個子 Tab
+// 切換歷史明細的四個子按鈕
 function switchSubTab(subTabName) {
   currentSubTab = subTabName;
   
@@ -96,7 +97,7 @@ function switchSubTab(subTabName) {
   renderSubTabContent();
 }
 
-// API 自動重試機制
+// API 自動重試機制 (防 GAS 休眠彈窗)
 async function fetchWithRetry(url, options = {}, retries = 3, backoff = 1000) {
   try {
     const response = await fetch(url, options);
@@ -112,7 +113,7 @@ async function fetchWithRetry(url, options = {}, retries = 3, backoff = 1000) {
   }
 }
 
-// 載入 Dashboard 資料
+// 載入儀表板資料
 async function loadDashboard() {
   try {
     const data = await fetchWithRetry(API_URL);
@@ -136,7 +137,7 @@ async function loadDashboard() {
   }
 }
 
-// 渲染子項目歷史資料 (四按鈕選單)
+// 渲染歷史明細子分頁內容
 function renderSubTabContent() {
   const container = document.getElementById('history-sub-content');
   if (!container) return;
@@ -187,31 +188,22 @@ function renderSubTabContent() {
       });
     }
   } 
-  // 2. 停車費明細
+  // 2. 停車費明細 (純清單流水帳展示，無須按鈕確認)
   else if (currentSubTab === 'parking') {
-    html += '<h4 style="margin:0 0 12px 0; font-size:14px; color:var(--primary);">🅿️ 停車費明細</h4>';
+    html += '<h4 style="margin:0 0 12px 0; font-size:14px; color:var(--primary);">🅿️ 停車費扣款明細</h4>';
     const parkingList = (data.expenses || []).filter(item => String(item.category || '').trim() === '停車費');
     
     if (parkingList.length === 0) {
-      html += '<p style="color:#999;font-size:13px;">尚無停車費紀錄</p>';
+      html += '<p style="color:#999;font-size:13px;">尚無停車費扣款紀錄</p>';
     } else {
       parkingList.forEach(item => {
-        const currentStatus = String(item.status || '').trim();
-        let badgeClass = (currentStatus === '已結清' || currentStatus === '已扣款') ? 'badge-done' : 'badge-pending';
-        let payBtn = '';
-        
-        if (currentStatus === '未結清') {
-          payBtn = `<button onclick="payExpense('${item.expense_id}')" style="margin-top:6px; padding:4px 8px; font-size:12px; background:var(--accent); color:#FFF; border:none; border-radius:4px; cursor:pointer;">💵 標記已給付</button>`;
-        }
-
         html += `
           <div style="padding: 10px 0; border-bottom: 1px solid var(--border);">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-              <div><strong>${item.date}</strong> $${item.amount}</div>
-              <span class="badge ${badgeClass}">${currentStatus}</span>
+              <div><strong>${item.date}</strong></div>
+              <div style="font-weight:600; color:var(--accent);">- $${item.amount}</div>
             </div>
-            <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">${item.note || '無備註'}</div>
-            ${payBtn}
+            <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">${item.note || '自動計算扣除'}</div>
           </div>`;
       });
     }
@@ -266,7 +258,7 @@ function renderSubTabContent() {
   container.innerHTML = html;
 }
 
-// 通用 POST 送出
+// 通用資料送出
 async function sendData(action, payload, btnId) {
   const btn = document.getElementById(btnId);
   if (btn) {
@@ -344,7 +336,7 @@ async function payExpense(expenseId) {
   }
 }
 
-// 表單提交事件綁定
+// 表單事件監聽綁定
 const formSch = document.getElementById('form-schedule');
 if (formSch) {
   formSch.addEventListener('submit', (e) => {
