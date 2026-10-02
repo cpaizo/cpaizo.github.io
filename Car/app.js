@@ -124,7 +124,7 @@ async function submitData() {
   btn.textContent = "傳送中...";
 
   try {
-    const response = await fetch(GAS_API_URL, {
+    await fetch(GAS_API_URL, {
       method: 'POST',
       mode: 'no-cors', // 配合 GAS 重新導向特性
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -135,7 +135,9 @@ async function submitData() {
     document.getElementById('input-odo').value = '';
     document.getElementById('input-liters').value = '';
     document.getElementById('input-price').value = '';
-    loadChartData(); // 重新整理圖表與明細
+    
+    // 稍等 1 秒讓 Google 試算表寫入完成後再重新整理畫面
+    setTimeout(loadChartData, 1000);
   } catch (error) {
     alert('❌ 傳送失敗：' + error);
   } finally {
