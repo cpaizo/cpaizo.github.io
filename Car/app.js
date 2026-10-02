@@ -84,7 +84,7 @@ async function loadChartData() {
       `;
     }
 
-    // --- 3. 計算並繪製「每月開車里程數」長條圖 ---
+    // --- 3. 計算並繪製「每月開車里程數」長條圖 (改為淡淡的粉綠色) ---
     let monthlyKmMap = {};
     for (let i = 0; i < data.length; i++) {
       let row = data[i];
@@ -113,9 +113,9 @@ async function loadChartData() {
           datasets: [{
             label: '每月開車里程數 (km)',
             data: monthlyValues,
-            backgroundColor: 'rgba(28, 28, 30, 0.8)', // 日式極簡碳灰黑
-            borderColor: '#1c1c1e',
-            borderWidth: 1,
+            backgroundColor: 'rgba(168, 230, 207, 0.65)', // 淡淡的粉綠色
+            borderColor: '#88d8b0', // 柔和粉綠邊框
+            borderWidth: 1.5,
             borderRadius: 4
           }]
         },
@@ -134,19 +134,16 @@ async function loadChartData() {
     if (tbody) {
       tbody.innerHTML = '';
       
-      // 準備顏色清單（循環使用柔和色系來區分不同月份）
       const monthColors = ['#fdf2f2', '#f0f4f8', '#f4f9f4', '#fdf8f0', '#f5f0fd'];
       let monthColorMap = {};
       let colorIndex = 0;
 
-      // 倒序顯示最新在前
       const reversedData = data.slice().reverse();
       
       reversedData.forEach(row => {
         let cleanDate = row.date ? String(row.date).substring(0, 10) : '';
-        let monthKey = cleanDate.substring(0, 7); // YYYY-MM
+        let monthKey = cleanDate.substring(0, 7);
         
-        // 如果這個月份還沒有分配顏色，賦予一個新顏色
         if (!monthColorMap[monthKey]) {
           monthColorMap[monthKey] = monthColors[colorIndex % monthColors.length];
           colorIndex++;
@@ -156,7 +153,7 @@ async function loadChartData() {
         let formattedKmPerLiter = row.km_per_liter ? Number(row.km_per_liter).toFixed(2) : '-';
         
         let tr = document.createElement('tr');
-        tr.style.backgroundColor = rowBgColor; // 套用月份底色
+        tr.style.backgroundColor = rowBgColor;
         tr.innerHTML = `<td style="padding: 10px 6px; border-bottom: 1px solid #e5e5e5;">${cleanDate}</td>` +
                        `<td style="padding: 10px 6px; border-bottom: 1px solid #e5e5e5; font-weight: bold;">${row.total_odometer}</td>` +
                        `<td style="padding: 10px 6px; border-bottom: 1px solid #e5e5e5;">${row.liters}</td>` +
