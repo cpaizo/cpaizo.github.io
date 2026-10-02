@@ -1,5 +1,5 @@
 // 你的 GAS Web App 部署網址
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwYUMF6kDEZN7_MKYw17J_E1MZltnOr5W9jKg3hzHk-C5rNDotxN067r8deotPz5F194g/exec";
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyBieL0vvfRuprH3u6ZiJZGpJATrqbp6YIYkgen6aa0mI6aIR6lpRNf6HDfo8ENE22ZeA/exec";
 
 // 自動帶入當前台灣時間到表單
 document.addEventListener('DOMContentLoaded', function() {
