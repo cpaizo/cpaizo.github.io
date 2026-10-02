@@ -110,7 +110,25 @@
       <canvas id="monthlyKmChart"></canvas>
     </div>
   </div>
-
+<!-- 5. 歷史明細表格分頁 -->
+  <div id="pane-table" class="section-pane">
+    <h3>歷史紀錄明細</h3>
+    <div class="table-container">
+      <table id="dataTable">
+        <thead>
+          <tr>
+            <th>日期</th>
+            <th>總里程</th>
+            <th>公升</th>
+            <th>油耗</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="4" class="loading-text">載入中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
   <!-- 引入獨立的 app.js 邏輯 -->
   <script src="app.js"></script>
 </body>
