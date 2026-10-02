@@ -58,11 +58,12 @@
     <h2>愛車油耗與總里程管理</h2>
   </div>
 
-  <!-- 分頁按鈕列 -->
+<!-- 分頁按鈕列 -->
   <div class="tab-bar">
     <button class="tab-btn active" onclick="switchTab(event, 'pane-form')">📝 記帳</button>
     <button class="tab-btn" onclick="switchTab(event, 'pane-chart1')">📉 油耗</button>
-    <button class="tab-btn" onclick="switchTab(event, 'pane-chart2')">📈 里程</button>
+    <button class="tab-btn" onclick="switchTab(event, 'pane-chart2')">📈 里程摘要</button>
+    <button class="tab-btn" onclick="switchTab(event, 'pane-chart3')">📊 每月里程</button>
     <button class="tab-btn" onclick="switchTab(event, 'pane-table')">📋 明細</button>
   </div>
 
@@ -96,31 +97,17 @@
     </div>
   </div>
 
-  <!-- 3. 總里程成長圖分頁 -->
+<!-- 3. 總里程累積摘要分頁 -->
   <div id="pane-chart2" class="section-pane">
-    <h3>車輛總里程累積 (km)</h3>
-    <div class="chart-box">
-      <canvas id="odoChart"></canvas>
-    </div>
+    <h3>目前車輛總里程</h3>
+    <div id="odoSummary">載入中...</div>
   </div>
 
-  <!-- 4. 歷史明細表格分頁 -->
-  <div id="pane-table" class="section-pane">
-    <h3>歷史紀錄明細</h3>
-    <div class="table-container">
-      <table id="dataTable">
-        <thead>
-          <tr>
-            <th>日期</th>
-            <th>總里程</th>
-            <th>公升</th>
-            <th>油耗</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td colspan="4" class="loading-text">載入中...</td></tr>
-        </tbody>
-      </table>
+  <!-- 新增：4. 每月開車里程數長條圖分頁 -->
+  <div id="pane-chart3" class="section-pane">
+    <h3>每月開車里程數統計</h3>
+    <div class="chart-box">
+      <canvas id="monthlyKmChart"></canvas>
     </div>
   </div>
 
