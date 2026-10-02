@@ -1,5 +1,5 @@
 // 你的 GAS Web App 部署網址
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwqCHxAG_l80WFqEotct-MCWhuPUpwvSobKm52LHj2Q8n4wJUx9GxHMUHLD-0caAgv6cQ/exec";
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyBieL0vvfRuprH3u6ZiJZGpJATrqbp6YIYkgen6aa0mI6aIR6lpRNf6HDfo8ENE22ZeA/exec";
 
 // 自動帶入當前時間到表單
 document.addEventListener('DOMContentLoaded', function() {
