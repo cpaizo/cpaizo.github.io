@@ -23,7 +23,7 @@ function switchTab(evt, paneId) {
   document.getElementById(paneId).classList.add('active');
   evt.currentTarget.classList.add('active');
   
-  if(paneId === 'pane-chart1' || paneId === 'pane-chart2' || paneId === 'pane-table') {
+  if(paneId === 'pane-chart1' || paneId === 'pane-chart2' || paneId === 'pane-chart3' || paneId === 'pane-table') {
     loadChartData();
   }
 }
@@ -39,7 +39,8 @@ async function loadChartData() {
     
     if (!data || data.length === 0) return;
 
-    let labels = data.map(row => row.date ? String(row.date).substring(5, 16) : '');
+    // 圖表用標籤（取月-日即可）
+    let labels = data.map(row => row.date ? String(row.date).substring(5, 10) : '');
     // 油耗強制取小數點 2 位
     let kmPerLiterData = data.map(row => row.km_per_liter ? Number(row.km_per_liter).toFixed(2) : 0);
     
@@ -64,7 +65,7 @@ async function loadChartData() {
       });
     }
 
-    // --- 2. 總里程累積文字摘要 (取代原本的折線圖) ---
+    // --- 2. 總里程累積文字摘要 ---
     const odoContainer = document.getElementById('odoSummary');
     if (odoContainer && data.length > 0) {
       const latestRow = data[data.length - 1]; // 取最後一筆（最新）
@@ -89,7 +90,6 @@ async function loadChartData() {
         if (!monthlyKmMap[monthKey]) {
           monthlyKmMap[monthKey] = 0;
         }
-        // 用區間里程來計算（如果第一筆沒有前一筆，用當前總里程或視為0）
         let prevOdo = (i > 0) ? Number(data[i-1].total_odometer) : 0;
         let currentOdo = Number(row.total_odometer);
         let dist = (prevOdo > 0 && currentOdo > prevOdo) ? (currentOdo - prevOdo) : 0;
@@ -125,14 +125,15 @@ async function loadChartData() {
       });
     }
 
-    // --- 4. 填入歷史明細表格 (倒序排列，油耗取小數點 2 位) ---
+    // --- 4. 填入歷史明細表格 (倒序排列，日期只取前 10 碼 YYYY-MM-DD，油耗取小數點 2 位) ---
     const tbody = document.querySelector('#dataTable tbody');
     if (tbody) {
       tbody.innerHTML = '';
       data.slice().reverse().forEach(row => {
+        let cleanDate = row.date ? String(row.date).substring(0, 10) : '';
         let formattedKmPerLiter = row.km_per_liter ? Number(row.km_per_liter).toFixed(2) : '-';
         let tr = document.createElement('tr');
-        tr.innerHTML = `<td>${row.date ? String(row.date).substring(5, 16) : ''}</td>` +
+        tr.innerHTML = `<td>${cleanDate}</td>` +
                        `<td>${row.total_odometer}</td>` +
                        `<td>${row.liters}</td>` +
                        `<td>${formattedKmPerLiter}</td>`;
