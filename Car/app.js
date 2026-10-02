@@ -23,14 +23,13 @@ function switchTab(evt, paneId) {
   document.getElementById(paneId).classList.add('active');
   evt.currentTarget.classList.add('active');
   
-  // 切換到圖表或明細分頁時自動重新載入資料
   if(paneId === 'pane-chart1' || paneId === 'pane-chart2' || paneId === 'pane-table') {
     loadChartData();
   }
 }
 
 let fuelChartInstance = null;
-let odoChartInstance = null;
+let monthlyKmChartInstance = null;
 
 // 透過 Fetch API 從 GAS 讀取試算表資料並繪製圖表與表格
 async function loadChartData() {
@@ -41,10 +40,10 @@ async function loadChartData() {
     if (!data || data.length === 0) return;
 
     let labels = data.map(row => row.date ? String(row.date).substring(5, 16) : '');
-    let kmPerLiterData = data.map(row => Number(row.km_per_liter) || 0);
-    let odoData = data.map(row => Number(row.total_odometer) || 0);
-
-    // 1. 平均油耗趨勢折線圖
+    // 油耗強制取小數點 2 位
+    let kmPerLiterData = data.map(row => row.km_per_liter ? Number(row.km_per_liter).toFixed(2) : 0);
+    
+    // --- 1. 平均油耗趨勢折線圖 ---
     const ctx1 = document.getElementById('fuelChart');
     if (ctx1) {
       if (fuelChartInstance) fuelChartInstance.destroy();
@@ -65,37 +64,78 @@ async function loadChartData() {
       });
     }
 
-    // 2. 總里程累積折線圖
-    const ctx2 = document.getElementById('odoChart');
-    if (ctx2) {
-      if (odoChartInstance) odoChartInstance.destroy();
-      odoChartInstance = new Chart(ctx2.getContext('2d'), {
-        type: 'line',
+    // --- 2. 總里程累積文字摘要 (取代原本的折線圖) ---
+    const odoContainer = document.getElementById('odoSummary');
+    if (odoContainer && data.length > 0) {
+      const latestRow = data[data.length - 1]; // 取最後一筆（最新）
+      const latestDate = latestRow.date ? String(latestRow.date).substring(0, 10) : '';
+      const latestOdo = latestRow.total_odometer || 0;
+      
+      odoContainer.innerHTML = `
+        <div style="text-align: center; padding: 30px 10px; background: #e8f8f5; border-radius: 8px; border: 1px solid #a3e4d7;">
+          <div style="font-size: 0.9rem; color: #555; margin-bottom: 5px;">📅 最新紀錄日期：${latestDate}</div>
+          <div style="font-size: 1.1rem; font-weight: bold; color: #2c3e50; margin-bottom: 10px;">車牌：BVE-0965 (Honda Fit e:HEV)</div>
+          <div style="font-size: 1.8rem; font-weight: bold; color: #16a085;">🚗 總里程：${latestOdo} km</div>
+        </div>
+      `;
+    }
+
+    // --- 3. 計算並繪製「每月開車里程數」長條圖 ---
+    let monthlyKmMap = {};
+    for (let i = 0; i < data.length; i++) {
+      let row = data[i];
+      if (row.date && row.total_odometer) {
+        let monthKey = String(row.date).substring(0, 7); // 擷取 YYYY-MM
+        if (!monthlyKmMap[monthKey]) {
+          monthlyKmMap[monthKey] = 0;
+        }
+        // 用區間里程來計算（如果第一筆沒有前一筆，用當前總里程或視為0）
+        let prevOdo = (i > 0) ? Number(data[i-1].total_odometer) : 0;
+        let currentOdo = Number(row.total_odometer);
+        let dist = (prevOdo > 0 && currentOdo > prevOdo) ? (currentOdo - prevOdo) : 0;
+        monthlyKmMap[monthKey] += dist;
+      }
+    }
+
+    let monthlyLabels = Object.keys(monthlyKmMap);
+    let monthlyValues = Object.values(monthlyKmMap);
+
+    const ctxMonthly = document.getElementById('monthlyKmChart');
+    if (ctxMonthly) {
+      if (monthlyKmChartInstance) monthlyKmChartInstance.destroy();
+      monthlyKmChartInstance = new Chart(ctxMonthly.getContext('2d'), {
+        type: 'bar',
         data: {
-          labels: labels,
+          labels: monthlyLabels,
           datasets: [{
-            label: '總里程 (km)',
-            data: odoData,
+            label: '每月開車里程數 (km)',
+            data: monthlyValues,
+            backgroundColor: 'rgba(46, 204, 113, 0.6)',
             borderColor: '#2ecc71',
-            backgroundColor: 'rgba(46, 204, 113, 0.1)',
-            fill: true,
-            tension: 0.1
+            borderWidth: 1
           }]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: { 
+          responsive: true, 
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
       });
     }
 
-    // 3. 填入歷史明細表格 (倒序排列，最新一筆在最上方)
+    // --- 4. 填入歷史明細表格 (倒序排列，油耗取小數點 2 位) ---
     const tbody = document.querySelector('#dataTable tbody');
     if (tbody) {
       tbody.innerHTML = '';
       data.slice().reverse().forEach(row => {
+        let formattedKmPerLiter = row.km_per_liter ? Number(row.km_per_liter).toFixed(2) : '-';
         let tr = document.createElement('tr');
         tr.innerHTML = `<td>${row.date ? String(row.date).substring(5, 16) : ''}</td>` +
                        `<td>${row.total_odometer}</td>` +
                        `<td>${row.liters}</td>` +
-                       `<td>${row.km_per_liter || '-'}</td>`;
+                       `<td>${formattedKmPerLiter}</td>`;
         tbody.appendChild(tr);
       });
     }
@@ -126,7 +166,7 @@ async function submitData() {
   try {
     await fetch(GAS_API_URL, {
       method: 'POST',
-      mode: 'no-cors', // 配合 GAS 重新導向特性
+      mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload)
     });
@@ -136,7 +176,6 @@ async function submitData() {
     document.getElementById('input-liters').value = '';
     document.getElementById('input-price').value = '';
     
-    // 稍等 1 秒讓 Google 試算表寫入完成後再重新整理畫面
     setTimeout(loadChartData, 1000);
   } catch (error) {
     alert('❌ 傳送失敗：' + error);
