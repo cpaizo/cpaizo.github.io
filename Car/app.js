@@ -1,14 +1,33 @@
 // 你的 GAS Web App 部署網址
 const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyBieL0vvfRuprH3u6ZiJZGpJATrqbp6YIYkgen6aa0mI6aIR6lpRNf6HDfo8ENE22ZeA/exec";
 
-// 自動帶入當前台灣時間到表單
+// 自動帶入精準的台灣本地時間到表單
 document.addEventListener('DOMContentLoaded', function() {
   const dateInput = document.getElementById('input-date');
   if (dateInput && !dateInput.value) {
     const now = new Date();
-    // 轉換為台灣本地時間 (UTC+8) 的 ISO 格式開頭
-    const taiwanTime = new Date(now.getTime() + (8 * 60 * 60 * 1000) - (now.getTimezoneOffset() * 60 * 1000));
-    dateInput.value = taiwanTime.toISOString().slice(0, 16);
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Taipei',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+    
+    const parts = formatter.formatToParts(now);
+    let year, month, day, hour, minute;
+    
+    parts.forEach(p => {
+      if (p.type === 'year') year = p.value;
+      if (p.type === 'month') month = p.value;
+      if (p.type === 'day') day = p.value;
+      if (p.type === 'hour') hour = p.value;
+      if (p.type === 'minute') minute = p.value;
+    });
+    
+    dateInput.value = `${year}-${month}-${day}T${hour}:${minute}`;
   }
   loadChartData();
 });
@@ -32,12 +51,10 @@ function switchTab(evt, paneId) {
 let fuelChartInstance = null;
 let monthlyKmChartInstance = null;
 
-// 取得純日期的台灣字串（避免時區誤差）
+// 取得純日期的台灣字串
 function formatTaiwanDate(dateVal) {
   if (!dateVal) return '';
-  // 如果是完整 ISO 字串或 Google 試算表傳回的日期物件字串
   let str = String(dateVal);
-  // 直接擷取前 10 碼 "YYYY-MM-DD"，保證和試算表一模一樣
   if (str.length >= 10) {
     return str.substring(0, 10);
   }
@@ -52,7 +69,6 @@ async function loadChartData() {
     
     if (!data || data.length === 0) return;
 
-    // 圖表用標籤（取月-日）
     let labels = data.map(row => {
       let dStr = formatTaiwanDate(row.date);
       return dStr.length >= 10 ? dStr.substring(5, 10) : '';
@@ -108,7 +124,7 @@ async function loadChartData() {
       let row = data[i];
       let dStr = formatTaiwanDate(row.date);
       if (dStr && row.total_odometer) {
-        let monthKey = dStr.substring(0, 7); // YYYY-MM
+        let monthKey = dStr.substring(0, 7); 
         if (!monthlyKmMap[monthKey]) {
           monthlyKmMap[monthKey] = 0;
         }
@@ -148,7 +164,7 @@ async function loadChartData() {
       });
     }
 
-    // --- 4. 填入歷史明細表格 (鎖定台灣本地日期，月份自動分色) ---
+    // --- 4. 填入歷史明細表格 ---
     const tbody = document.querySelector('#dataTable tbody');
     if (tbody) {
       tbody.innerHTML = '';
@@ -160,7 +176,7 @@ async function loadChartData() {
       const reversedData = data.slice().reverse();
       
       reversedData.forEach(row => {
-        let cleanDate = formatTaiwanDate(row.date); // 強制採用台灣日期
+        let cleanDate = formatTaiwanDate(row.date);
         let monthKey = cleanDate.substring(0, 7);
         
         if (!monthColorMap[monthKey]) {
