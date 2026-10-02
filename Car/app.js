@@ -1,13 +1,14 @@
 // 你的 GAS Web App 部署網址
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyBieL0vvfRuprH3u6ZiJZGpJATrqbp6YIYkgen6aa0mI6aIR6lpRNf6HDfo8ENE22ZeA/exec";
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwYUMF6kDEZN7_MKYw17J_E1MZltnOr5W9jKg3hzHk-C5rNDotxN067r8deotPz5F194g/exec";
 
-// 自動帶入當前時間到表單
+// 自動帶入當前台灣時間到表單
 document.addEventListener('DOMContentLoaded', function() {
   const dateInput = document.getElementById('input-date');
   if (dateInput && !dateInput.value) {
     const now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    dateInput.value = now.toISOString().slice(0, 16);
+    // 轉換為台灣本地時間 (UTC+8) 的 ISO 格式開頭
+    const taiwanTime = new Date(now.getTime() + (8 * 60 * 60 * 1000) - (now.getTimezoneOffset() * 60 * 1000));
+    dateInput.value = taiwanTime.toISOString().slice(0, 16);
   }
   loadChartData();
 });
@@ -31,6 +32,18 @@ function switchTab(evt, paneId) {
 let fuelChartInstance = null;
 let monthlyKmChartInstance = null;
 
+// 取得純日期的台灣字串（避免時區誤差）
+function formatTaiwanDate(dateVal) {
+  if (!dateVal) return '';
+  // 如果是完整 ISO 字串或 Google 試算表傳回的日期物件字串
+  let str = String(dateVal);
+  // 直接擷取前 10 碼 "YYYY-MM-DD"，保證和試算表一模一樣
+  if (str.length >= 10) {
+    return str.substring(0, 10);
+  }
+  return str;
+}
+
 // 透過 Fetch API 從 GAS 讀取試算表資料並繪製圖表與表格
 async function loadChartData() {
   try {
@@ -39,10 +52,15 @@ async function loadChartData() {
     
     if (!data || data.length === 0) return;
 
-    let labels = data.map(row => row.date ? String(row.date).substring(5, 10) : '');
+    // 圖表用標籤（取月-日）
+    let labels = data.map(row => {
+      let dStr = formatTaiwanDate(row.date);
+      return dStr.length >= 10 ? dStr.substring(5, 10) : '';
+    });
+    
     let kmPerLiterData = data.map(row => row.km_per_liter ? Number(row.km_per_liter).toFixed(2) : 0);
     
-    // --- 1. 平均油耗趨勢折線圖 (Honda 紅黑科技風色彩) ---
+    // --- 1. 平均油耗趨勢折線圖 ---
     const ctx1 = document.getElementById('fuelChart');
     if (ctx1) {
       if (fuelChartInstance) fuelChartInstance.destroy();
@@ -53,7 +71,7 @@ async function loadChartData() {
           datasets: [{
             label: '平均油耗 (km/L)',
             data: kmPerLiterData,
-            borderColor: '#E40521', // Honda 紅
+            borderColor: '#E40521',
             backgroundColor: 'rgba(228, 5, 33, 0.08)',
             fill: true,
             tension: 0.1,
@@ -72,7 +90,7 @@ async function loadChartData() {
     const odoContainer = document.getElementById('odoSummary');
     if (odoContainer && data.length > 0) {
       const latestRow = data[data.length - 1]; 
-      const latestDate = latestRow.date ? String(latestRow.date).substring(0, 10) : '';
+      const latestDate = formatTaiwanDate(latestRow.date);
       const latestOdo = latestRow.total_odometer || 0;
       
       odoContainer.innerHTML = `
@@ -84,12 +102,13 @@ async function loadChartData() {
       `;
     }
 
-    // --- 3. 計算並繪製「每月開車里程數」長條圖 (改為淡淡的粉綠色) ---
+    // --- 3. 計算並繪製「每月開車里程數」長條圖 ---
     let monthlyKmMap = {};
     for (let i = 0; i < data.length; i++) {
       let row = data[i];
-      if (row.date && row.total_odometer) {
-        let monthKey = String(row.date).substring(0, 7); 
+      let dStr = formatTaiwanDate(row.date);
+      if (dStr && row.total_odometer) {
+        let monthKey = dStr.substring(0, 7); // YYYY-MM
         if (!monthlyKmMap[monthKey]) {
           monthlyKmMap[monthKey] = 0;
         }
@@ -113,8 +132,8 @@ async function loadChartData() {
           datasets: [{
             label: '每月開車里程數 (km)',
             data: monthlyValues,
-            backgroundColor: 'rgba(168, 230, 207, 0.65)', // 淡淡的粉綠色
-            borderColor: '#88d8b0', // 柔和粉綠邊框
+            backgroundColor: 'rgba(168, 230, 207, 0.65)',
+            borderColor: '#88d8b0',
             borderWidth: 1.5,
             borderRadius: 4
           }]
@@ -129,7 +148,7 @@ async function loadChartData() {
       });
     }
 
-    // --- 4. 填入歷史明細表格 (依照月份自動切換柔和底色) ---
+    // --- 4. 填入歷史明細表格 (鎖定台灣本地日期，月份自動分色) ---
     const tbody = document.querySelector('#dataTable tbody');
     if (tbody) {
       tbody.innerHTML = '';
@@ -141,7 +160,7 @@ async function loadChartData() {
       const reversedData = data.slice().reverse();
       
       reversedData.forEach(row => {
-        let cleanDate = row.date ? String(row.date).substring(0, 10) : '';
+        let cleanDate = formatTaiwanDate(row.date); // 強制採用台灣日期
         let monthKey = cleanDate.substring(0, 7);
         
         if (!monthColorMap[monthKey]) {
