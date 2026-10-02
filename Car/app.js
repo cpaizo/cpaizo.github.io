@@ -1,3 +1,6 @@
+// 你的 GAS Web App 部署網址
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwYUMF6kDEZN7_MKYw17J_E1MZltnOr5W9jKg3hzHk-C5rNDotxN067r8deotPz5F194g/exec";
+
 // 自動帶入當前時間到表單
 document.addEventListener('DOMContentLoaded', function() {
   const dateInput = document.getElementById('input-date');
@@ -20,8 +23,8 @@ function switchTab(evt, paneId) {
   document.getElementById(paneId).classList.add('active');
   evt.currentTarget.classList.add('active');
   
-  // 切換到圖表分頁時自動重新載入圖表
-  if(paneId === 'pane-chart1' || paneId === 'pane-chart2') {
+  // 切換到圖表或明細分頁時自動重新載入資料
+  if(paneId === 'pane-chart1' || paneId === 'pane-chart2' || paneId === 'pane-table') {
     loadChartData();
   }
 }
@@ -29,9 +32,12 @@ function switchTab(evt, paneId) {
 let fuelChartInstance = null;
 let odoChartInstance = null;
 
-// 從 GAS 後端取得資料並繪製圖表與表格
-function loadChartData() {
-  google.script.run.withSuccessHandler(function(data) {
+// 透過 Fetch API 從 GAS 讀取試算表資料並繪製圖表與表格
+async function loadChartData() {
+  try {
+    const response = await fetch(GAS_API_URL);
+    const data = await response.json();
+    
     if (!data || data.length === 0) return;
 
     let labels = data.map(row => row.date ? String(row.date).substring(5, 16) : '');
@@ -94,11 +100,14 @@ function loadChartData() {
       });
     }
 
-  }).getSheetData();
+  } catch (error) {
+    console.error("載入資料失敗:", error);
+  }
 }
 
-// 送出新增加油紀錄到 GAS 後端
-function submitData() {
+// 透過 Fetch API 傳送新增加油紀錄到 GAS 後端
+async function submitData() {
+  const btn = document.getElementById('submitBtn');
   const payload = {
     date: document.getElementById('input-date').value,
     odo: document.getElementById('input-odo').value,
@@ -111,15 +120,26 @@ function submitData() {
     return;
   }
 
-  google.script.run.withSuccessHandler(function(res) {
-    if(res.status === 'success') {
-      alert('✅ 記帳成功！');
-      document.getElementById('input-odo').value = '';
-      document.getElementById('input-liters').value = '';
-      document.getElementById('input-price').value = '';
-      loadChartData(); // 重新整理圖表與明細
-    } else {
-      alert('❌ 發生錯誤: ' + res.message);
-    }
-  }).doPost({ postData: { contents: JSON.stringify(payload) } });
+  btn.disabled = true;
+  btn.textContent = "傳送中...";
+
+  try {
+    const response = await fetch(GAS_API_URL, {
+      method: 'POST',
+      mode: 'no-cors', // 配合 GAS 重新導向特性
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+
+    alert('✅ 記帳成功！');
+    document.getElementById('input-odo').value = '';
+    document.getElementById('input-liters').value = '';
+    document.getElementById('input-price').value = '';
+    loadChartData(); // 重新整理圖表與明細
+  } catch (error) {
+    alert('❌ 傳送失敗：' + error);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "送出紀錄";
+  }
 }
