@@ -39,12 +39,10 @@ async function loadChartData() {
     
     if (!data || data.length === 0) return;
 
-    // 圖表用標籤（取月-日即可）
     let labels = data.map(row => row.date ? String(row.date).substring(5, 10) : '');
-    // 油耗強制取小數點 2 位
     let kmPerLiterData = data.map(row => row.km_per_liter ? Number(row.km_per_liter).toFixed(2) : 0);
     
-    // --- 1. 平均油耗趨勢折線圖 ---
+    // --- 1. 平均油耗趨勢折線圖 (Honda 紅黑科技風色彩) ---
     const ctx1 = document.getElementById('fuelChart');
     if (ctx1) {
       if (fuelChartInstance) fuelChartInstance.destroy();
@@ -55,28 +53,33 @@ async function loadChartData() {
           datasets: [{
             label: '平均油耗 (km/L)',
             data: kmPerLiterData,
-            borderColor: '#3498db',
-            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+            borderColor: '#E40521', // Honda 紅
+            backgroundColor: 'rgba(228, 5, 33, 0.08)',
             fill: true,
-            tension: 0.1
+            tension: 0.1,
+            pointBackgroundColor: '#E40521'
           }]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: { 
+          responsive: true, 
+          maintainAspectRatio: false,
+          plugins: { legend: { labels: { font: { weight: 'bold' } } } }
+        }
       });
     }
 
     // --- 2. 總里程累積文字摘要 ---
     const odoContainer = document.getElementById('odoSummary');
     if (odoContainer && data.length > 0) {
-      const latestRow = data[data.length - 1]; // 取最後一筆（最新）
+      const latestRow = data[data.length - 1]; 
       const latestDate = latestRow.date ? String(latestRow.date).substring(0, 10) : '';
       const latestOdo = latestRow.total_odometer || 0;
       
       odoContainer.innerHTML = `
-        <div style="text-align: center; padding: 30px 10px; background: #e8f8f5; border-radius: 8px; border: 1px solid #a3e4d7;">
-          <div style="font-size: 0.9rem; color: #555; margin-bottom: 5px;">📅 最新紀錄日期：${latestDate}</div>
-          <div style="font-size: 1.1rem; font-weight: bold; color: #2c3e50; margin-bottom: 10px;">車牌：BVE-0965 (Honda Fit e:HEV)</div>
-          <div style="font-size: 1.8rem; font-weight: bold; color: #16a085;">🚗 總里程：${latestOdo} km</div>
+        <div style="text-align: center; padding: 35px 15px; background: #fafafa; border-radius: 10px; border: 1px solid #e0e0e0; border-top: 4px solid #E40521; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
+          <div style="font-size: 0.85rem; color: #777; margin-bottom: 6px; letter-spacing: 1px;">📅 最新紀錄日期：${latestDate}</div>
+          <div style="font-size: 1.1rem; font-weight: 800; color: #111; margin-bottom: 12px; letter-spacing: 0.5px;">BVE-0965 | Honda Fit e:HEV</div>
+          <div style="font-size: 2rem; font-weight: 900; color: #E40521;">🚗 ${latestOdo} <span style="font-size: 1.2rem; color: #333;">km</span></div>
         </div>
       `;
     }
@@ -86,7 +89,7 @@ async function loadChartData() {
     for (let i = 0; i < data.length; i++) {
       let row = data[i];
       if (row.date && row.total_odometer) {
-        let monthKey = String(row.date).substring(0, 7); // 擷取 YYYY-MM
+        let monthKey = String(row.date).substring(0, 7); 
         if (!monthlyKmMap[monthKey]) {
           monthlyKmMap[monthKey] = 0;
         }
@@ -110,9 +113,10 @@ async function loadChartData() {
           datasets: [{
             label: '每月開車里程數 (km)',
             data: monthlyValues,
-            backgroundColor: 'rgba(46, 204, 113, 0.6)',
-            borderColor: '#2ecc71',
-            borderWidth: 1
+            backgroundColor: 'rgba(28, 28, 30, 0.8)', // 日式極簡碳灰黑
+            borderColor: '#1c1c1e',
+            borderWidth: 1,
+            borderRadius: 4
           }]
         },
         options: { 
@@ -125,18 +129,38 @@ async function loadChartData() {
       });
     }
 
-    // --- 4. 填入歷史明細表格 (倒序排列，日期只取前 10 碼 YYYY-MM-DD，油耗取小數點 2 位) ---
+    // --- 4. 填入歷史明細表格 (依照月份自動切換柔和底色) ---
     const tbody = document.querySelector('#dataTable tbody');
     if (tbody) {
       tbody.innerHTML = '';
-      data.slice().reverse().forEach(row => {
+      
+      // 準備顏色清單（循環使用柔和色系來區分不同月份）
+      const monthColors = ['#fdf2f2', '#f0f4f8', '#f4f9f4', '#fdf8f0', '#f5f0fd'];
+      let monthColorMap = {};
+      let colorIndex = 0;
+
+      // 倒序顯示最新在前
+      const reversedData = data.slice().reverse();
+      
+      reversedData.forEach(row => {
         let cleanDate = row.date ? String(row.date).substring(0, 10) : '';
+        let monthKey = cleanDate.substring(0, 7); // YYYY-MM
+        
+        // 如果這個月份還沒有分配顏色，賦予一個新顏色
+        if (!monthColorMap[monthKey]) {
+          monthColorMap[monthKey] = monthColors[colorIndex % monthColors.length];
+          colorIndex++;
+        }
+        
+        let rowBgColor = monthColorMap[monthKey];
         let formattedKmPerLiter = row.km_per_liter ? Number(row.km_per_liter).toFixed(2) : '-';
+        
         let tr = document.createElement('tr');
-        tr.innerHTML = `<td>${cleanDate}</td>` +
-                       `<td>${row.total_odometer}</td>` +
-                       `<td>${row.liters}</td>` +
-                       `<td>${formattedKmPerLiter}</td>`;
+        tr.style.backgroundColor = rowBgColor; // 套用月份底色
+        tr.innerHTML = `<td style="padding: 10px 6px; border-bottom: 1px solid #e5e5e5;">${cleanDate}</td>` +
+                       `<td style="padding: 10px 6px; border-bottom: 1px solid #e5e5e5; font-weight: bold;">${row.total_odometer}</td>` +
+                       `<td style="padding: 10px 6px; border-bottom: 1px solid #e5e5e5;">${row.liters}</td>` +
+                       `<td style="padding: 10px 6px; border-bottom: 1px solid #e5e5e5; color: #E40521; font-weight: bold;">${formattedKmPerLiter}</td>`;
         tbody.appendChild(tr);
       });
     }
@@ -146,7 +170,7 @@ async function loadChartData() {
   }
 }
 
-// 透過 Fetch API 傳送新增加油紀錄到 GAS 後端
+// 傳送新增加油紀錄
 async function submitData() {
   const btn = document.getElementById('submitBtn');
   const payload = {
