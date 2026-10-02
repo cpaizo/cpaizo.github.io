@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,12 +8,15 @@
   <!-- 手機 App Icon 與 PWA 設定 -->
   <link rel="icon" href="https://cpaizo.github.io/Car/fit.jpg" type="image/jpeg">
   <link rel="apple-touch-icon" href="https://cpaizo.github.io/Car/fit.jpg">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="油耗管理">
+  <link rel="manifest" href="manifest.json">
 
   <!-- 引入 Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f4f7f6; margin: 0; padding: 10px; color: #333; }
     h2 { text-align: center; font-size: 1.2rem; color: #2c3e50; margin: 0; }
@@ -121,126 +124,7 @@
     </div>
   </div>
 
-  <script>
-    // 自動帶入當前時間
-    document.addEventListener('DOMContentLoaded', function() {
-      const now = new Date();
-      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-      document.getElementById('input-date').value = now.toISOString().slice(0, 16);
-      loadChartData();
-    });
-
-    // 分頁切換邏輯
-    function switchTab(evt, paneId) {
-      document.querySelectorAll('.section-pane').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      
-      document.getElementById(paneId).classList.add('active');
-      evt.currentTarget.classList.add('active');
-      
-      if(paneId === 'pane-chart1' || paneId === 'pane-chart2' || paneId === 'pane-table') {
-        loadChartData();
-      }
-    }
-
-    let fuelChartInstance = null;
-    let odoChartInstance = null;
-
-    // 載入資料並繪製圖表與表格
-    function loadChartData() {
-      google.script.run.withSuccessHandler(function(data) {
-        if (!data || data.length === 0) return;
-
-        let labels = data.map(row => row.date ? String(row.date).substring(5, 16) : '');
-        let kmPerLiterData = data.map(row => Number(row.km_per_liter) || 0);
-        let odoData = data.map(row => Number(row.total_odometer) || 0);
-
-        // 1. 油耗折線圖
-        const ctx1 = document.getElementById('fuelChart').getContext('2d');
-        if (fuelChartInstance) fuelChartInstance.destroy();
-        fuelChartInstance = new Chart(ctx1, {
-          type: 'line',
-          data: {
-            labels: labels,
-            datasets: [{
-              label: '平均油耗 (km/L)',
-              data: kmPerLiterData,
-              borderColor: '#3498db',
-              backgroundColor: 'rgba(52, 152, 219, 0.1)',
-              fill: true,
-              tension: 0.1
-            }]
-          },
-          options: { responsive: true, maintainAspectRatio: false }
-        });
-
-        // 2. 總里程累積折線圖
-        const ctx2 = document.getElementById('odoChart').getContext('2d');
-        if (odoChartInstance) odoChartInstance.destroy();
-        odoChartInstance = new Chart(ctx2, {
-          type: 'line',
-          data: {
-            labels: labels,
-            datasets: [{
-              label: '總里程 (km)',
-              data: odoData,
-              borderColor: '#2ecc71',
-              backgroundColor: 'rgba(46, 204, 113, 0.1)',
-              fill: true,
-              tension: 0.1
-            }]
-          },
-          options: { responsive: true, maintainAspectRatio: false }
-        });
-
-        // 3. 歷史明細表格 (倒序排列)
-        const tbody = document.querySelector('#dataTable tbody');
-        tbody.innerHTML = '';
-        data.slice().reverse().forEach(row => {
-          let tr = document.createElement('tr');
-          tr.innerHTML = `<td>${row.date ? String(row.date).substring(5, 16) : ''}</td>` +
-                         `<td>${row.total_odometer}</td>` +
-                         `<td>${row.liters}</td>` +
-                         `<td>${row.km_per_liter || '-'}</td>`;
-          tbody.appendChild(tr);
-        });
-
-      }).getSheetData();
-    }
-
-    // 送出表單資料
-    function submitData() {
-      const btn = document.getElementById('submitBtn');
-      const payload = {
-        date: document.getElementById('input-date').value,
-        odo: document.getElementById('input-odo').value,
-        liters: document.getElementById('input-liters').value,
-        unitPrice: document.getElementById('input-price').value
-      };
-
-      if (!payload.odo || !payload.liters || !payload.unitPrice) {
-        alert('請填寫完整資訊！');
-        return;
-      }
-
-      btn.disabled = true;
-      btn.textContent = "傳送中...";
-
-      google.script.run.withSuccessHandler(function(res) {
-        btn.disabled = false;
-        btn.textContent = "送出紀錄";
-        if(res.status === 'success') {
-          alert('✅ 記帳成功！');
-          document.getElementById('input-odo').value = '';
-          document.getElementById('input-liters').value = '';
-          document.getElementById('input-price').value = '';
-          loadChartData();
-          // 自動跳轉到明細或油耗頁面查看結果
-        } else {
-          alert('❌ 發生錯誤: ' + res.message);
-        }
-      }).doPost({ postData: { contents: JSON.stringify(payload) } });
-    }
-  </script>
+  <!-- 引入獨立的 app.js 邏輯 -->
+  <script src="app.js"></script>
 </body>
 </html>
