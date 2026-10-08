@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美術社員の快走 - 漫畫導讀與語音播放器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .active-panel {
+            border-color: #f59e0b !important;
+            box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.25), 0 8px 10px -6px rgba(245, 158, 11, 0.2) !important;
+            transform: translateY(-2px);
+        }
+        .panel-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-3.5 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <span class="bg-amber-500 text-white p-2 rounded-xl text-lg font-bold shadow-sm shadow-amber-200">
+                    <i class="fa-solid fa-book-open"></i>
+                </span>
+                <div>
+                    <h1 class="font-black text-slate-800 text-lg leading-tight">美術社員の快走</h1>
+                    <p class="text-xs text-slate-500">漫畫導讀與語音朗讀播放器</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <span id="speechStatus" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                    <span class="w-2 h-2 mr-1.5 rounded-full bg-slate-400"></span> 靜止中
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-6 md:py-8">
+
+        <section class="mb-8 text-center bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-orange-500/10 relative overflow-hidden">
+            <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+            <div class="relative z-10 max-w-3xl mx-auto">
+                <span class="inline-block bg-white/20 backdrop-blur-md text-white text-xs font-semibold px-3 py-1 rounded-full mb-3 uppercase tracking-wider">
+                    續集特別講述
+                </span>
+                <h2 id="storyTitle" class="text-3xl md:text-5xl font-black mb-3 tracking-wide">美術社員の快走</h2>
+                <p id="storySubtitle" class="text-amber-100 text-sm md:text-lg font-medium">
+                    （側邊旁白：我的下一集……結衣的神速，連監督都嚇一跳！）
+                </p>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+            <!-- Left Side: Comic Image Display -->
+            <div class="lg:col-span-5 space-y-4">
+                <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-md sticky top-24">
+                    <div class="relative overflow-hidden rounded-xl bg-slate-100 aspect-[4/3] group">
+                        <img 
+                            src="photos/漫畫芯嫙.jpg" 
+                            alt="美術社員の快走 漫畫" 
+                            class="w-full h-full object-contain object-center transition duration-500 group-hover:scale-105"
+                            onerror="this.onerror=null; this.src='https://placehold.co/800x600/f8fafc/475569?text=%E6%BC%AB%E7%95%AB%E8%8A%AF%E5%AB%99.jpg';"
+                        />
+                    </div>
+                    <div class="mt-3 text-center text-xs text-slate-500 flex justify-between items-center px-2">
+                        <span><i class="fa-regular fa-image mr-1"></i> 圖片檔案：photos/漫畫芯嫙.jpg</span>
+                        <span class="text-amber-600 font-semibold">全 4 格</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Interactive Dialogue Cards and Audio Controls -->
+            <div class="lg:col-span-7 space-y-6">
+
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                        <h3 class="font-bold text-slate-800 flex items-center">
+                            <i class="fa-solid fa-circle-play text-amber-500 mr-2"></i> 主語音控制台
+                        </h3>
+                        <span class="text-xs text-slate-400">Web Speech API</span>
+                    </div>
+
+                    <!-- Main Buttons -->
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <button id="playAllBtn" class="flex-1 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white font-bold py-2.5 px-4 rounded-xl transition duration-200 flex items-center justify-center space-x-2 shadow-md shadow-amber-500/20">
+                            <i class="fa-solid fa-play"></i>
+                            <span>順序播放全集</span>
+                        </button>
+                        <button id="pauseBtn" class="bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 font-bold py-2.5 px-4 rounded-xl transition duration-200 flex items-center justify-center space-x-1">
+                            <i class="fa-solid fa-pause"></i>
+                            <span>暫停</span>
+                        </button>
+                        <button id="stopBtn" class="bg-rose-50 hover:bg-rose-100 active:bg-rose-200 text-rose-600 font-bold py-2.5 px-4 rounded-xl transition duration-200 flex items-center justify-center space-x-1">
+                            <i class="fa-solid fa-square"></i>
+                            <span>停止</span>
+                        </button>
+                    </div>
+
+                    <!-- Voice Settings Range Controls -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <div>
+                            <div class="flex justify-between text-xs text-slate-600 mb-1">
+                                <label for="rateInput" class="font-medium"><i class="fa-solid fa-gauge mr-1"></i> 語速</label>
+                                <span id="rateVal">1.0x</span>
+                            </div>
+                            <input type="range" id="rateInput" min="0.5" max="1.5" step="0.1" value="1.0" class="w-full accent-amber-500 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs text-slate-600 mb-1">
+                                <label for="volumeInput" class="font-medium"><i class="fa-solid fa-volume-high mr-1"></i> 音量</label>
+                                <span id="volumeVal">100%</span>
+                            </div>
+                            <input type="range" id="volumeInput" min="0" max="1" step="0.1" value="1" class="w-full accent-amber-500 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-4" id="panelsContainer">
+
+                    <!-- Panel 1 -->
+                    <div id="panel-1" class="panel-card bg-white rounded-2xl p-5 border-2 border-slate-100 shadow-sm relative hover:border-amber-200">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-600 border border-amber-200">
+                                第 1 格
+                            </span>
+                            <button onclick="playPanel(1)" class="text-xs bg-slate-100 hover:bg-amber-500 hover:text-white text-slate-600 font-medium px-3 py-1.5 rounded-lg transition duration-200 flex items-center space-x-1">
+                                <i class="fa-solid fa-volume-high"></i>
+                                <span>單格播放</span>
+                            </button>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex items-start space-x-2">
+                                <span class="bg-slate-100 text-slate-700 text-xs px-2 py-0.5 rounded font-bold mt-1 shrink-0">結衣（內心）</span>
+                                <p class="text-slate-800 font-semibold text-base">「跑步原來這麼暢快！」</p>
+                            </div>
+                            <div class="text-xs text-slate-400 font-medium flex items-center space-x-1 pt-1">
+                                <i class="fa-solid fa-music text-slate-300"></i>
+                                <span>背景音效：ハア ハア / ザーザー……</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel 2 -->
+                    <div id="panel-2" class="panel-card bg-white rounded-2xl p-5 border-2 border-slate-100 shadow-sm relative hover:border-amber-200">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-600 border border-amber-200">
+                                第 2 格
+                            </span>
+                            <button onclick="playPanel(2)" class="text-xs bg-slate-100 hover:bg-amber-500 hover:text-white text-slate-600 font-medium px-3 py-1.5 rounded-lg transition duration-200 flex items-center space-x-1">
+                                <i class="fa-solid fa-volume-high"></i>
+                                <span>單格播放</span>
+                            </button>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex items-start space-x-2">
+                                <span class="bg-rose-100 text-rose-700 text-xs px-2 py-0.5 rounded font-bold mt-1 shrink-0">監督（震驚）</span>
+                                <p class="text-slate-800 font-semibold text-base">「怎麼可能……那真的是美術部的新手嗎？」</p>
+                            </div>
+                            <div class="flex items-start space-x-2">
+                                <span class="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded font-bold mt-1 shrink-0">隊友</span>
+                                <p class="text-slate-800 font-semibold text-base">「那是魔鬼般的專注力啊！」</p>
+                            </div>
+                            <div class="text-xs text-slate-400 font-medium flex items-center space-x-1 pt-1">
+                                <i class="fa-solid fa-music text-slate-300"></i>
+                                <span>背景音效：ピタッ</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel 3 -->
+                    <div id="panel-3" class="panel-card bg-white rounded-2xl p-5 border-2 border-slate-100 shadow-sm relative hover:border-amber-200">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-600 border border-amber-200">
+                                第 3 格
+                            </span>
+                            <button onclick="playPanel(3)" class="text-xs bg-slate-100 hover:bg-amber-500 hover:text-white text-slate-600 font-medium px-3 py-1.5 rounded-lg transition duration-200 flex items-center space-x-1">
+                                <i class="fa-solid fa-volume-high"></i>
+                                <span>單格播放</span>
+                            </button>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex items-start space-x-2">
+                                <span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded font-bold mt-1 shrink-0">結衣（眼神堅定）</span>
+                                <p class="text-slate-800 font-semibold text-base leading-relaxed">「其實跑步跟畫圖很像呢……畫圖一步步，都很像呢……都要屏氣凝神，把專注力全部在一點上。」</p>
+                            </div>
+                            <div class="text-xs text-slate-400 font-medium flex items-center space-x-1 pt-1">
+                                <i class="fa-solid fa-music text-slate-300"></i>
+                                <span>背景音效：ハア ハア / ピタッ</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel 4 -->
+                    <div id="panel-4" class="panel-card bg-white rounded-2xl p-5 border-2 border-slate-100 shadow-sm relative hover:border-amber-200">
+                        <div class="flex justify-between items-center mb-3">
+                            <div class="flex items-center space-x-2">
+                                <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-600 border border-amber-200">
+                                    第 4 格
+                                </span>
+                                <span class="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-2.5 py-0.5 rounded-full shadow-sm">
+                                    大合照：新星誕生！
+                                </span>
+                            </div>
+                            <button onclick="playPanel(4)" class="text-xs bg-slate-100 hover:bg-amber-500 hover:text-white text-slate-600 font-medium px-3 py-1.5 rounded-lg transition duration-200 flex items-center space-x-1">
+                                <i class="fa-solid fa-volume-high"></i>
+                                <span>單格播放</span>
+                            </button>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex items-start space-x-2">
+                                <span class="bg-emerald-100 text-emerald-700 text-xs px-2 py-0.5 rounded font-bold mt-1 shrink-0">朱音 / 隊友</span>
+                                <p class="text-slate-800 font-semibold text-base">「太厲害了，結衣！你是我們的秘密武器！」</p>
+                            </div>
+                            <div class="flex items-start space-x-2">
+                                <span class="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded font-bold mt-1 shrink-0">結衣（害羞）</span>
+                                <p class="text-slate-800 font-semibold text-base">「我……我有幫上忙嗎？」</p>
+                            </div>
+                            <div class="text-xs text-slate-400 font-medium flex items-center space-x-1 pt-1">
+                                <i class="fa-solid fa-music text-slate-300"></i>
+                                <span>背景音效：ハア / ピタッ</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Dialogues dataset structured for natural text-to-speech reading
+        const scriptData = [
+            {
+                type: 'header',
+                text: "故事標題：美術社員の快走。側邊旁白：我的下一集，結衣的神速，連監督都嚇一跳！"
+            },
+            {
+                panelId: 1,
+                text: "第一格。結衣內心：跑步原來這麼暢快！"
+            },
+            {
+                panelId: 2,
+                text: "第二格。監督震驚：怎麼可能，那真的是美術部的新手嗎？隊友：那是魔鬼般的專注力啊！"
+            },
+            {
+                panelId: 3,
+                text: "第三格。結衣眼神堅定：其實跑步跟畫圖很像呢，畫圖一步步，都很像呢，都要屏氣凝神，把專注力全部在一點上。"
+            },
+            {
+                panelId: 4,
+                text: "第四格，大合照：新星誕生！朱音與隊友：太厲害了，結衣！你是我們的秘密武器！結衣害羞：我，我有幫上忙嗎？"
+            }
+        ];
+
+        let synth = window.speechSynthesis;
+        let speechQueue = [];
+        let currentIndex = 0;
+        let isPaused = false;
+
+        // UI Controls Elements
+        const playAllBtn = document.getElementById('playAllBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const rateInput = document.getElementById('rateInput');
+        const volumeInput = document.getElementById('volumeInput');
+        const rateVal = document.getElementById('rateVal');
+        const volumeVal = document.getElementById('volumeVal');
+        const speechStatus = document.getElementById('speechStatus');
+
+        // Range Input Listeners
+        rateInput.addEventListener('input', (e) => {
+            rateVal.textContent = parseFloat(e.target.value).toFixed(1) + 'x';
+        });
+
+        volumeInput.addEventListener('input', (e) => {
+            volumeVal.textContent = Math.round(e.target.value * 100) + '%';
+        });
+
+        // Initialize Web Speech Synthesis
+        function getZhVoice() {
+            if (!synth) return null;
+            const voices = synth.getVoices();
+            return voices.find(v => v.lang === 'zh-TW') || 
+                   voices.find(v => v.lang.startsWith('zh')) || null;
+        }
+
+        // Helper to update active visual indicators
+        function setStatus(text, state) {
+            let color = 'bg-slate-400';
+            if (state === 'playing') color = 'bg-emerald-500 animate-pulse';
+            if (state === 'paused') color = 'bg-amber-500';
+
+            speechStatus.innerHTML = `<span class="w-2 h-2 mr-1.5 rounded-full ${color}"></span> ${text}`;
+        }
+
+        function highlightPanel(panelId) {
+            document.querySelectorAll('.panel-card').forEach(card => {
+                card.classList.remove('active-panel');
+            });
+
+            if (panelId) {
+                const activeCard = document.getElementById(`panel-${panelId}`);
+                if (activeCard) {
+                    activeCard.classList.add('active-panel');
+                    activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }
+        }
+
+        function stopSpeech() {
+            if (synth) {
+                synth.cancel();
+            }
+            currentIndex = 0;
+            isPaused = false;
+            highlightPanel(null);
+            setStatus('靜止中', 'stopped');
+        }
+
+        function speakItem(index) {
+            if (index >= scriptData.length) {
+                stopSpeech();
+                return;
+            }
+
+            const item = scriptData[index];
+            highlightPanel(item.panelId);
+
+            const utterance = new SpeechSynthesisUtterance(item.text);
+            const selectedVoice = getZhVoice();
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+            }
+
+            utterance.rate = parseFloat(rateInput.value);
+            utterance.volume = parseFloat(volumeInput.value);
+
+            utterance.onstart = () => {
+                setStatus(`朗讀中 (${index + 1}/${scriptData.length})`, 'playing');
+            };
+
+            utterance.onend = () => {
+                if (!isPaused) {
+                    currentIndex++;
+                    speakItem(currentIndex);
+                }
+            };
+
+            utterance.onerror = (e) => {
+                console.error('Speech error:', e);
+                stopSpeech();
+            };
+
+            synth.speak(utterance);
+        }
+
+        // Global Play
+        playAllBtn.addEventListener('click', () => {
+            if (synth.speaking && isPaused) {
+                synth.resume();
+                isPaused = false;
+                setStatus('繼續朗讀', 'playing');
+            } else {
+                stopSpeech();
+                currentIndex = 0;
+                speakItem(currentIndex);
+            }
+        });
+
+        // Pause
+        pauseBtn.addEventListener('click', () => {
+            if (synth.speaking && !isPaused) {
+                synth.pause();
+                isPaused = true;
+                setStatus('已暫停', 'paused');
+            }
+        });
+
+        // Stop
+        stopBtn.addEventListener('click', () => {
+            stopSpeech();
+        });
+
+        // Single Panel Play Function
+        window.playPanel = function(panelId) {
+            stopSpeech();
+            const panelData = scriptData.find(d => d.panelId === panelId);
+            if (!panelData) return;
+
+            highlightPanel(panelId);
+
+            const utterance = new SpeechSynthesisUtterance(panelData.text);
+            const selectedVoice = getZhVoice();
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+            }
+
+            utterance.rate = parseFloat(rateInput.value);
+            utterance.volume = parseFloat(volumeInput.value);
+
+            utterance.onstart = () => {
+                setStatus(`朗讀第 ${panelId} 格`, 'playing');
+            };
+
+            utterance.onend = () => {
+                stopSpeech();
+            };
+
+            synth.speak(utterance);
+        };
+
+        // Preload voices
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = () => synth.getVoices();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小凱與小玉的故事</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .story-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .story-text {
+            text-align: left;
+            line-height: 1.8;
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button#stopBtn {
+            background-color: #f44336;
+        }
+        button#stopBtn:hover {
+            background-color: #da190b;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <img src="photos/漫畫-呂定睿.jpg" alt="小凱與貓咪小玉" class="story-img">
+    
+    <div id="storyContent" class="story-text">
+        <p>小凱放學一回到家，看到小貓小玉正乖巧地伏在地上。「小玉～！我們來玩吧！看我厲害的玩具！」他興奮地拿出逗貓棒。</p>
+        <p>逗貓棒一出動，小玉整隻貓都飛躍了起來！「嘿！接招！轉圈圈～！」小凱揮舞著羽毛棒，揮得不亦樂乎。</p>
+        <p>不一會兒，家裡簡直變成了歡樂的戰場！小玉開心地追著羽毛撲來撲去，小凱也滿頭大汗地直呼：「哇！好快！快抓到了！」</p>
+        <p>經過一番激烈的遊戲，小玉終於累了。小凱溫柔地把牠抱在懷裡，聽著牠發出咕嚕咕嚕的呼吸聲，滿足地笑了：「呼～小玉好厲害，我們下次再玩喔。」</p>
+        <p>一起睡覺的這一刻，就是最幸福的時光。</p>
+    </div>
+
+    <div class="controls">
+        <button onclick="playSpeech()">朗讀全文</button>
+        <button id="stopBtn" onclick="stopSpeech()">停止朗讀</button>
+    </div>
+</div>
+
+<script>
+    function playSpeech() {
+        window.speechSynthesis.cancel();
+
+        const text = document.getElementById('storyContent').innerText;
+        const utterance = new SpeechSynthesisUtterance(text);
+        
+        utterance.lang = 'zh-TW';
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function stopSpeech() {
+        window.speechSynthesis.cancel();
+    }
+</script>
+
+</body>
+</html>

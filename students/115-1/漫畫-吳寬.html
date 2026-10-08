@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>學生的日常生活</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .card {
+            background: #ffffff;
+            max-width: 650px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            padding: 24px;
+        }
+        .card img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        h1 {
+            color: #333333;
+            font-size: 1.8rem;
+            margin-top: 16px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        .content {
+            color: #4a4a4a;
+            font-size: 1.05rem;
+            line-height: 1.8;
+            text-align: justify;
+        }
+        .content p {
+            margin-bottom: 14px;
+            text-indent: 2em;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        button {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button.stop {
+            background-color: #f44336;
+        }
+        button.stop:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <!-- 圖片位置 -->
+    <img src="photos/100802吳寬.jpg" alt="學生的日常生活漫畫">
+
+    <!-- 標題 -->
+    <h1>《學生的日常生活》</h1>
+
+    <!-- 內容文字 -->
+    <div class="content" id="articleText">
+        <p>星期一的早晨總是來得特別倉促，鬧鐘響了無數次才驚醒，匆匆忙忙趕往學校，氣喘吁吁地喊著「又遲到了！」。好不容易坐進教室，迎面而來卻是講台上老師劃出的重點與考不完的試，漫長的期末考週讓人忍不住發出陣陣哀號。</p>
+        <p>到了夜晚，檯燈下堆疊如山的課本和習題更是巨大的挑戰，熬夜苦讀到深夜，眼皮重得抬不起來，心中默默呼喊著「我不行了……」。然而，支撐著學生堅持下去的唯一動力，就是對週末的無限憧憬！</p>
+        <p>當終於能趴在桌上小憩時，夢裡全是在陽光下與朋友歡樂奔跑、盡情玩樂的畫面。這正是學生時代最真實的寫照——雖然過程充滿壓力和辛苦，但只要想到週末的自由，又能重新獲得滿滿的能量！</p>
+    </div>
+
+    <!-- 語音播放控制按鈕 -->
+    <div class="controls">
+        <button onclick="playSpeech()">▶ 播放語音</button>
+        <button class="stop" onclick="stopSpeech()">⏹ 停止語音</button>
+    </div>
+</div>
+
+<script>
+    let synth = window.speechSynthesis;
+    let utterance = null;
+
+    function playSpeech() {
+        // 先停止之前的播放
+        synth.cancel();
+
+        // 取得要朗讀的文字內容
+        let text = document.getElementById('articleText').innerText;
+        utterance = new SpeechSynthesisUtterance(text);
+        
+        // 設定語言為中文（繁體）
+        utterance.lang = 'zh-TW';
+        utterance.rate = 1.0; // 語速（0.1 到 10）
+        utterance.pitch = 1.0; // 音調（0 到 2）
+
+        // 開始朗讀
+        synth.speak(utterance);
+    }
+
+    function stopSpeech() {
+        if (synth) {
+            synth.cancel();
+        }
+    }
+</script>
+
+</body>
+</html>

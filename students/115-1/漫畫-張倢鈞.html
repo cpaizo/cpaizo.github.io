@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>田徑社青春四格漫畫</title>
+    <style>
+        body {
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+            background-color: #f4f8fb;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .container {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .comic-image {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 25px;
+        }
+
+        .audio-controls {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .btn {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 0 5px;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+
+        .btn:hover {
+            background-color: #357abd;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-stop {
+            background-color: #e74c3c;
+        }
+
+        .btn-stop:hover {
+            background-color: #c0392b;
+        }
+
+        .script-content {
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .scene {
+            background-color: #f9fbfd;
+            border-left: 4px solid #4a90e2;
+            padding: 12px 16px;
+            margin-bottom: 15px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .scene-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>青春田徑社</h1>
+
+    <!-- 圖片展示 -->
+    <img src="photos/漫畫-張倢鈞.jpg" alt="田徑社四格漫畫" class="comic-image">
+
+    <!-- 語音播放按鈕控制區 -->
+    <div class="audio-controls">
+        <button class="btn" onclick="playSpeech()">▶ 朗讀全文</button>
+        <button class="btn btn-stop" onclick="stopSpeech()">⏹ 停止播放</button>
+    </div>
+
+    <!-- 文字內容區 -->
+    <div class="script-content" id="storyText">
+        <div class="scene">
+            <div class="scene-title">【第一幕：相聚田徑場】</div>
+            陽光灑在紅褐色的跑道上，將微風與校園的青春氣息一併揉進夏日的空氣裡。兩位女孩滿懷期待地來到操場，與同伴會合，相視一笑，準備迎接今天的練習。
+        </div>
+
+        <div class="scene">
+            <div class="scene-title">【第二幕：熱身與準備】</div>
+            壓低身子拉開筋骨，大家認真地做著熱身拉伸。隨著身體漸漸熱起來，彼此互相加油打氣，眼神裡充滿了對等一下練習的專注與期待。
+        </div>
+
+        <div class="scene">
+            <div class="scene-title">【第三幕：揮灑汗水的奔跑】</div>
+            迎著微風邁開步伐，規律的踩踏聲與輕盈的呼吸交織。額頭上冒出的汗珠在光影下顯得無比耀眼，大家互相緊跟著節奏，在跑道上全力奔馳。
+        </div>
+
+        <div class="scene">
+            <div class="scene-title">【第四幕：努力後的甜美笑容】</div>
+            跑完最後一圈，大家滿足地坐在草地上喝水休息。雖然全身酸痛、氣喘吁吁，但看著彼此燦爛的笑臉，心中的充實感早已超越了疲憊，記錄下這段最閃亮的青春時光。
+        </div>
+    </div>
+</div>
+
+<script>
+    // 檢查瀏覽器是否支援 Web Speech API
+    const synth = window.speechSynthesis;
+
+    function playSpeech() {
+        // 如果正在播放，先停止
+        if (synth.speaking) {
+            synth.cancel();
+        }
+
+        // 取得故事文字內容並清除多餘空白
+        const textToRead = document.getElementById('storyText').innerText;
+
+        // 建立朗讀物件
+        const utterance = new SpeechSynthesisUtterance(textToRead);
+
+        // 設定語言為繁體中文
+        utterance.lang = 'zh-TW';
+        
+        // 可選設定：語速 (0.1 ~ 10，預設 1)
+        utterance.rate = 0.95;
+        
+        // 可選設定：音高 (0 ~ 2，預設 1)
+        utterance.pitch = 1;
+
+        // 開始朗讀
+        synth.speak(utterance);
+    }
+
+    function stopSpeech() {
+        if (synth.speaking) {
+            synth.cancel();
+        }
+    }
+</script>
+
+</body>
+</html>
