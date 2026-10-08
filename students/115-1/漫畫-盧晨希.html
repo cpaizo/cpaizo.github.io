@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>漫畫喫茶的意外發現</title>
+    <style>
+        body {
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            line-height: 1.8;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .article-card {
+            max-width: 680px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            padding: 25px;
+        }
+
+        .article-title {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .image-container {
+            width: 100%;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .image-container img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .audio-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+
+        .btn {
+            background-color: #4A90E2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn:hover {
+            background-color: #357ABD;
+        }
+
+        .btn-stop {
+            background-color: #E74C3C;
+        }
+
+        .btn-stop:hover {
+            background-color: #C0392B;
+        }
+
+        .article-content p {
+            margin-bottom: 1.2em;
+            font-size: 1.1rem;
+            text-align: justify;
+        }
+    </style>
+</head>
+<body>
+
+<div class="article-card">
+    <h1 class="article-title">漫畫喫茶的意外發現</h1>
+    
+    <!-- 圖片位置 -->
+    <div class="image-container">
+        <img src="photos/100820.jpg" alt="漫畫喫茶故事插圖">
+    </div>
+
+    <!-- 語音控制按鈕 -->
+    <div class="audio-controls">
+        <button class="btn" onclick="playSpeech()">▶ 播放朗讀</button>
+        <button class="btn" onclick="pauseSpeech()">⏸ 暫停</button>
+        <button class="btn btn-stop" onclick="stopSpeech()">⏹ 停止</button>
+    </div>
+
+    <!-- 故事本文 -->
+    <div class="article-content" id="story-text">
+        <p>熱鬧的街頭兩旁招牌林立，十四歲的女孩 Lin 熱情地拉著十五歲的 Kai，指著新開幕的「漫畫喫茶」興奮大叫。「凱！你看！那家新的漫畫喫茶終於開了！」 相比 Lin 的雀躍，Kai 顯得冷靜許多，一邊滑著手機一邊淡淡地回應，走進了店裡。</p>
+        
+        <p>店內的書架上擺滿了各式各樣的漫畫， Lin 眼睛發亮，讚歎著這裡豐富的藏書。她在書架間探索時，突然驚喜地抽出一本《神話守護者》，轉頭對 Kai 喊道：「嘿，凱！這不就是我們之前想看的那部新連載嗎？」</p>
+        
+        <p>兩人隨後找了位置坐下，店裡瀰漫著輕柔的翻頁聲。翻開漫畫的那一刻，連原本態度冷淡的 Kai 也被精彩的內容吸引，嘴角忍不住揚起了微笑。</p>
+    </div>
+</div>
+
+<script>
+    let synth = window.speechSynthesis;
+    let utterance = null;
+
+    function initSpeech() {
+        // 取得故事內的所有文字
+        const text = document.getElementById('story-text').innerText;
+        utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'zh-TW'; // 設定為中文（台灣）語音
+        utterance.rate = 0.95; // 播放速度調整為適合聆聽的程度
+    }
+
+    function playSpeech() {
+        if (!synth) {
+            alert('您的瀏覽器不支援語音播放功能。');
+            return;
+        }
+
+        if (synth.paused) {
+            synth.resume();
+        } else if (!synth.speaking) {
+            initSpeech();
+            synth.speak(utterance);
+        }
+    }
+
+    function pauseSpeech() {
+        if (synth && synth.speaking) {
+            synth.pause();
+        }
+    }
+
+    function stopSpeech() {
+        if (synth) {
+            synth.cancel();
+        }
+    }
+</script>
+
+</body>
+</html>
