@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>極地冷笑話大宇宙 10 合一 - Cold Jokes Super Arcade</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        ice: { 50: '#f0fdfa', 300: '#5eead4', 400: '#2dd4bf', 500: '#14b8a6', 900: '#134e4a' },
+                        frost: { 400: '#38bdf8', 500: '#0284c7', 600: '#0369a1', 950: '#082f49' }
+                    },
+                    fontFamily: {
+                        sans: ['"Noto Sans TC"', 'sans-serif'],
+                        arcade: ['"Press Start 2P"', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Noto Sans TC', sans-serif; overflow-x: hidden; user-select: none; touch-action: manipulation; }
+        .arcade-font { font-family: 'Press Start 2P', monospace; }
+        .glass-panel { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(56, 189, 248, 0.25); }
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.12); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.5); border-radius: 4px; }
+        canvas#bgCanvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .screen-shake { animation: shake 0.2s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-2px, 0, 0); }
+            20%, 80% { transform: translate3d(4px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+            40%, 60% { transform: translate3d(6px, 0, 0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between custom-scrollbar">
+
+    <!-- Background Particle Canvas -->
+    <canvas id="bgCanvas"></canvas>
+
+    <!-- MAIN APP CONTAINER -->
+    <div id="appContainer" class="relative z-10 flex flex-col h-screen overflow-hidden">
+        
+        <!-- HEADER TOOLBAR -->
+        <header class="glass-panel px-4 py-3 border-b border-sky-500/20 flex items-center justify-between shrink-0 shadow-lg">
+            <div class="flex items-center gap-3">
+                <button onclick="showMenu()" class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-400 to-blue-600 flex items-center justify-center text-xl shadow-lg shadow-sky-500/30 hover:scale-105 transition-transform" title="返回主頁 (Esc)">
+                    ❄️
+                </button>
+                <div>
+                    <h1 class="font-black text-base md:text-lg text-sky-300 leading-none">極地冷笑話大宇宙 10 合一 旗艦版</h1>
+                    <p class="text-[10px] text-sky-200/60 font-bold uppercase tracking-wider">Cold Jokes Super Arcade 10 Flagship</p>
+                </div>
+            </div>
+
+            <!-- Global Score, Joke Museum & Sound Toggles -->
+            <div class="flex items-center gap-2 md:gap-4">
+                <button onclick="openMuseumModal()" class="px-3 py-1.5 rounded-full bg-indigo-900/80 hover:bg-indigo-800 text-indigo-200 border border-indigo-500/40 text-xs font-bold transition-all flex items-center gap-1">
+                    <i class="fa-solid fa-book-open"></i> <span class="hidden sm:inline">笑話圖鑑</span>
+                </button>
+                <div class="flex items-center gap-2 bg-slate-900/90 px-3 py-1.5 rounded-full border border-sky-500/30">
+                    <span class="text-amber-400 text-xs font-bold"><i class="fa-solid fa-trophy mr-1"></i>最高分:</span>
+                    <span id="globalHighScore" class="arcade-font text-sky-300 text-xs">0</span>
+                </div>
+                <div class="flex items-center gap-1 bg-slate-900/80 p-1 rounded-xl border border-slate-700">
+                    <button onclick="toggleBGM()" id="bgmBtn" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 text-sky-300">BGM: 關</button>
+                    <button onclick="toggleSFX()" id="sfxBtn" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 text-sky-300">音效: 開</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- VIEWPORT AREA (MENU OR ACTIVE GAME) -->
+        <main id="mainViewport" class="flex-1 relative flex flex-col items-center justify-center p-3 md:p-6 overflow-hidden">
+            <!-- Rendered dynamically -->
+        </main>
+    </div>
+
+    <!-- GAME INSTRUCTION MODAL -->
+    <div id="instructionModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel p-6 rounded-3xl max-w-md w-full border-2 border-sky-400/50 shadow-2xl relative">
+            <button onclick="closeInstructionModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl p-1"><i class="fa-solid fa-xmark"></i></button>
+            <div class="flex items-center gap-2 mb-3">
+                <span class="text-2xl">🎮</span>
+                <h3 id="instrTitle" class="text-lg font-black text-sky-300">遊戲說明</h3>
+            </div>
+            <div class="bg-slate-900/90 p-4 rounded-2xl border border-sky-500/30 text-sm space-y-3">
+                <div>
+                    <h4 class="font-bold text-amber-300 mb-1"><i class="fa-solid fa-gamepad mr-1"></i> 玩法說明</h4>
+                    <p id="instrGameplay" class="text-slate-300 text-xs leading-relaxed"></p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-teal-300 mb-1"><i class="fa-solid fa-keyboard mr-1"></i> 操作方式</h4>
+                    <p id="instrControls" class="text-slate-300 text-xs leading-relaxed"></p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-indigo-300 mb-1"><i class="fa-solid fa-trophy mr-1"></i> 冷笑話解鎖機制</h4>
+                    <p id="instrReward" class="text-slate-300 text-xs leading-relaxed"></p>
+                </div>
+            </div>
+            <button onclick="closeInstructionModal()" class="w-full mt-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs rounded-xl shadow">
+                我知道了，開始遊戲！ 🚀
+            </button>
+        </div>
+    </div>
+
+    <!-- JOKE MUSEUM MODAL -->
+    <div id="museumModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel p-6 rounded-3xl max-w-2xl w-full border-2 border-indigo-400/50 shadow-2xl relative flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center pb-3 border-b border-indigo-500/30 mb-4">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">📖</span>
+                    <h2 class="text-xl font-black text-indigo-200">極地冷笑話圖鑑 (30題)</h2>
+                </div>
+                <button onclick="closeMuseumModal()" class="text-slate-400 hover:text-white text-2xl p-1"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="museumContent" class="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </div>
+
+    <!-- GLOBAL JOKE MODAL OVERLAY -->
+    <div id="jokeModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel p-6 rounded-3xl max-w-md w-full border-2 border-sky-400/50 text-center shadow-2xl relative">
+            <button onclick="closeJokeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl p-1"><i class="fa-solid fa-xmark"></i></button>
+            <div class="text-4xl mb-3">🧊</div>
+            <span class="text-[10px] font-black uppercase bg-sky-500/20 text-sky-300 px-3 py-1 rounded-full border border-sky-400/30">解鎖冷笑話卡片</span>
+            <h3 id="modalJokeQ" class="text-lg font-black text-white my-4 leading-relaxed">"題目"</h3>
+            <div class="bg-black/50 p-4 rounded-2xl border border-sky-500/30 my-3">
+                <p id="modalJokeA" class="text-xl font-black text-amber-300">"解答"</p>
+                <p id="modalJokeExp" class="text-xs text-slate-400 mt-2">解析：梗在這裡</p>
+            </div>
+            <div class="flex gap-2 justify-center mt-4">
+                <button onclick="speakCurrentJoke()" class="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs rounded-xl flex items-center gap-2">
+                    <i class="fa-solid fa-volume-high"></i> 語音朗讀
+                </button>
+                <button onclick="closeJokeModal()" class="px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs rounded-xl">
+                    繼續遊戲 🚀
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT GAME ENGINE -->
+    <script>
+        // ==========================================
+        // 1. PROCEDURAL WEB AUDIO SYNTHESIZER
+        // ==========================================
+        const AudioEngine = {
+            ctx: null,
+            bgmGain: null,
+            isBGMOn: false,
+            isSFXOn: true,
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+            },
+
+            playSFX(type) {
+                if (!this.isSFXOn) return;
+                this.init();
+                const now = this.ctx.currentTime;
+
+                switch(type) {
+                    case 'click': {
+                        const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+                        o.type = 'sine'; o.frequency.setValueAtTime(600, now);
+                        o.frequency.exponentialRampToValueAtTime(300, now + 0.04);
+                        g.gain.setValueAtTime(0.15, now); g.gain.exponentialRampToValueAtTime(0.01, now + 0.04);
+                        o.connect(g); g.connect(this.ctx.destination);
+                        o.start(now); o.stop(now + 0.04);
+                        break;
+                    }
+                    case 'pop': {
+                        const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+                        o.type = 'sine'; o.frequency.setValueAtTime(300, now);
+                        o.frequency.exponentialRampToValueAtTime(900, now + 0.08);
+                        g.gain.setValueAtTime(0.25, now); g.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                        o.connect(g); g.connect(this.ctx.destination);
+                        o.start(now); o.stop(now + 0.08);
+                        break;
+                    }
+                    case 'slash': {
+                        const bufferSize = this.ctx.sampleRate * 0.1;
+                        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                        const data = buffer.getChannelData(0);
+                        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+                        const noise = this.ctx.createBufferSource(); noise.buffer = buffer;
+                        const filter = this.ctx.createBiquadFilter(); filter.type = 'bandpass';
+                        filter.frequency.setValueAtTime(1200, now); filter.Q.setValueAtTime(3, now);
+                        const g = this.ctx.createGain(); g.gain.setValueAtTime(0.3, now);
+                        g.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                        noise.connect(filter); filter.connect(g); g.connect(this.ctx.destination);
+                        noise.start(now);
+                        break;
+                    }
+                    case 'laser': {
+                        const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+                        o.type = 'sawtooth'; o.frequency.setValueAtTime(900, now);
+                        o.frequency.exponentialRampToValueAtTime(100, now + 0.15);
+                        g.gain.setValueAtTime(0.2, now); g.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                        o.connect(g); g.connect(this.ctx.destination);
+                        o.start(now); o.stop(now + 0.15);
+                        break;
+                    }
+                    case 'hit': {
+                        const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+                        o.type = 'square'; o.frequency.setValueAtTime(120, now);
+                        o.frequency.exponentialRampToValueAtTime(40, now + 0.1);
+                        g.gain.setValueAtTime(0.3, now); g.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                        o.connect(g); g.connect(this.ctx.destination);
+                        o.start(now); o.stop(now + 0.1);
+                        break;
+                    }
+                    case 'score': {
+                        [523.25, 659.25, 783.99].forEach((freq, idx) => {
+                            const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+                            o.type = 'triangle'; o.frequency.setValueAtTime(freq, now + idx * 0.05);
+                            g.gain.setValueAtTime(0.15, now + idx * 0.05);
+                            g.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.05 + 0.15);
+                            o.connect(g); g.connect(this.ctx.destination);
+                            o.start(now + idx * 0.05); o.stop(now + idx * 0.05 + 0.15);
+                        });
+                        break;
+                    }
+                    case 'fail': {
+                        const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+                        o.type = 'sawtooth'; o.frequency.setValueAtTime(150, now);
+                        o.frequency.linearRampToValueAtTime(50, now + 0.3);
+                        g.gain.setValueAtTime(0.3, now); g.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                        o.connect(g); g.connect(this.ctx.destination);
+                        o.start(now); o.stop(now + 0.3);
+                        break;
+                    }
+                }
+            },
+
+            toggleBGM() {
+                this.init();
+                this.isBGMOn = !this.isBGMOn;
+                if (this.isBGMOn) this.startSynthBGM();
+                else if (this.bgmGain) this.bgmGain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.3);
+                return this.isBGMOn;
+            },
+
+            startSynthBGM() {
+                if (!this.bgmGain) {
+                    this.bgmGain = this.ctx.createGain();
+                    this.bgmGain.connect(this.ctx.destination);
+                }
+                this.bgmGain.gain.setValueAtTime(0.03, this.ctx.currentTime);
+                const notes = [261.63, 329.63, 392.00, 523.25, 440.00, 349.23];
+                let idx = 0;
+                const loop = () => {
+                    if (!this.isBGMOn) return;
+                    const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+                    o.type = 'triangle'; o.frequency.setValueAtTime(notes[idx % notes.length], this.ctx.currentTime);
+                    g.gain.setValueAtTime(0.03, this.ctx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.8);
+                    o.connect(g); g.connect(this.bgmGain);
+                    o.start(); o.stop(this.ctx.currentTime + 0.8);
+                    idx++;
+                    setTimeout(loop, 400);
+                };
+                loop();
+            }
+        };
+
+        function toggleBGM() {
+            const st = AudioEngine.toggleBGM();
+            document.getElementById('bgmBtn').innerText = `BGM: ${st ? '開' : '關'}`;
+        }
+        function toggleSFX() {
+            AudioEngine.isSFXOn = !AudioEngine.isSFXOn;
+            document.getElementById('sfxBtn').innerText = `音效: ${AudioEngine.isSFXOn ? '開' : '關'}`;
+        }
+
+        // ==========================================
+        // 2. COLD JOKES DATABASE (30 HIGH QUALITY)
+        // ==========================================
+        const jokesDB = [
+            { id: 1, q: "哪種蔬菜最容易被甩？", a: "高麗菜", exp: "因為諧音『告白菜』被甩！" },
+            { id: 2, q: "誰最喜歡去吃平價火鍋？", a: "百變怪", exp: "因為百變怪最會『百變（百元）火鍋』！" },
+            { id: 3, q: "木魚掉進水裡會變成什麼？", a: "濕木魚", exp: "諧音『虱目魚』！" },
+            { id: 4, q: "哪種水果最不聽話？", a: "芭樂", exp: "因為『芭樂（罷了）』不聽勸！" },
+            { id: 5, q: "便秘的時候要聽什麼歌？", a: "解脫", exp: "張惠妹《解脫》：解脫，是肯承認這是個錯～" },
+            { id: 6, q: "蜘蛛人是什麼顏色？", a: "白色", exp: "Spider-Man 唸起來像『失敗的 Man（白）』！" },
+            { id: 7, q: "香蕉跌倒會變成什麼？", a: "茄子", exp: "摔得瘀青變成紫色的茄子！" },
+            { id: 8, q: "鴨子打傘會變成什麼？", a: "算命鴨", exp: "因為『算命鴨（傘命鴨）』！" },
+            { id: 9, q: "皮卡丘站起來會變成什麼？", a: "皮卡丘丘", exp: "因為站起來長高一倍！" },
+            { id: 10, q: "最冷的體育運動是什麼？", a: "冰球", exp: "直接在冰上打球，冷上加冷！" },
+            { id: 11, q: "什麼動物最喜歡問為什麼？", a: "豬", exp: "因為『豬（知）道嗎？』" },
+            { id: 12, q: "哪種飲料最驕傲？", a: "奶茶", exp: "因為『奶茶（奶/老子）很霸氣』！" },
+            { id: 13, q: "哪裡的水最甜？", a: "汗水", exp: "辛勤揮汗的甜美結晶！" },
+            { id: 14, q: "什麼鍵盤按鍵最愛哭？", a: "Tab 鍵", exp: "按下去會『Tab（太）感人』！" },
+            { id: 15, q: "哪種魚最會算術？", a: "章魚", exp: "伸出八條腿算得特別快！" },
+            { id: 16, q: "哪種麵包最傷人？", a: "切片麵包", exp: "因為被『切片』很痛！" },
+            { id: 17, q: "小明為什麼吃不到冰淇淋？", a: "因為他被冰住了", exp: "純粹字面上的絕對冷笑話！" },
+            { id: 18, q: "什麼蛋不能吃？", a: "零蛋", exp: "考試考零分的零蛋！" },
+            { id: 19, q: "什麼植物最會打架？", a: "椰子", exp: "掉下來砸人非常兇猛！" },
+            { id: 20, q: "哪種車最長？", a: "塞車", exp: "塞車塞到無邊無際！" },
+            { id: 21, q: "哪種器官最喜歡開玩笑？", a: "肝", exp: "因為『肝（敢）開玩笑』！" },
+            { id: 22, q: "哪裡的雞最慢？", a: "軟體", exp: "因為軟體容易『卡頓慢雞』！" },
+            { id: 23, q: "誰最不喜歡洗澡？", a: "泥巴", exp: "泥巴碰到水就融化消失了！" },
+            { id: 24, q: "哪種酒最沒有勇氣？", a: "紅酒", exp: "因為『紅（怯）酒』！" },
+            { id: 25, q: "什麼動物最沒禮貌？", a: "羊", exp: "因為羊只會『咩（篾視）』人！" },
+            { id: 26, q: "什麼水果最會唱歌？", a: "香蕉", exp: "因為『香蕉（交）響樂』！" },
+            { id: 27, q: "打什麼東西不用花力氣？", a: "打哈欠", exp: "生理自然反應！" },
+            { id: 28, q: "哪種魚最黏人？", a: "鮭魚", exp: "因為『鮭（歸）心似箭』！" },
+            { id: 29, q: "什麼字最冷？", a: "寒", exp: "絕對零度的寒！" },
+            { id: 30, q: "哆啦A夢是什麼顏色的？", a: "藍色", exp: "被老鼠嚇到臉發藍！" }
+        ];
+
+        let globalHighScore = parseInt(localStorage.getItem('arcade_high_score')) || 0;
+        let currentJoke = jokesDB[0];
+
+        function updateScore(pts) {
+            if (pts > globalHighScore) {
+                globalHighScore = pts;
+                localStorage.setItem('arcade_high_score', globalHighScore);
+                document.getElementById('globalHighScore').innerText = globalHighScore;
+            }
+        }
+
+        function triggerJokeModal(jokeObj) {
+            currentJoke = jokeObj || jokesDB[Math.floor(Math.random() * jokesDB.length)];
+            document.getElementById('modalJokeQ').innerText = `"${currentJoke.q}"`;
+            document.getElementById('modalJokeA').innerText = `👉 ${currentJoke.a}`;
+            document.getElementById('modalJokeExp').innerText = `解析：${currentJoke.exp}`;
+            document.getElementById('jokeModal').classList.remove('hidden');
+            AudioEngine.playSFX('score');
+        }
+
+        function closeJokeModal() {
+            document.getElementById('jokeModal').classList.add('hidden');
+        }
+
+        function openMuseumModal() {
+            const container = document.getElementById('museumContent');
+            container.innerHTML = jokesDB.map((j, i) => `
+                <div class="bg-slate-900/90 border border-indigo-500/30 p-4 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                    <div>
+                        <span class="text-[10px] font-black text-indigo-400 arcade-font">JOKE #${i+1}</span>
+                        <h4 class="font-extrabold text-white text-base">${j.q}</h4>
+                        <p class="text-amber-300 font-bold text-sm mt-1">解答：${j.a}</p>
+                        <p class="text-xs text-slate-400 mt-0.5">${j.exp}</p>
+                    </div>
+                    <button onclick="triggerJokeModal(jokesDB[${i}])" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shrink-0">
+                        查看卡片 🎴
+                    </button>
+                </div>
+            `).join('');
+            document.getElementById('museumModal').classList.remove('hidden');
+        }
+
+        function closeMuseumModal() {
+            document.getElementById('museumModal').classList.add('hidden');
+        }
+
+        function speakCurrentJoke() {
+            if ('speechSynthesis' in window) {
+                const u = new SpeechSynthesisUtterance(`${currentJoke.q} ...... 解答：${currentJoke.a}`);
+                u.lang = 'zh-TW'; u.rate = 0.9;
+                window.speechSynthesis.speak(u);
+            }
+        }
+
+        function triggerShake() {
+            const viewport = document.getElementById('mainViewport');
+            viewport.classList.add('screen-shake');
+            setTimeout(() => viewport.classList.remove('screen-shake'), 200);
+        }
+
+        function spawnFloatingText(x, y, text, color = '#38bdf8') {
+            const el = document.createElement('div');
+            el.className = 'fixed pointer-events-none font-black arcade-font z-50 text-sm md:text-base animate-bounce';
+            el.style.left = `${x}px`;
+            el.style.top = `${y}px`;
+            el.style.color = color;
+            el.style.textShadow = '0 0 10px rgba(0,0,0,0.8)';
+            el.innerText = text;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 800);
+        }
+
+        // ==========================================
+        // 3. ARCADE MENU HUB & GAME CONTROLLER
+        // ==========================================
+        const gameMetaData = [
+            { id: 1, name: '企鵝冷笑話接魚狂人', icon: 'fa-fish', desc: '實體動態接魚，避開熱狗炸彈！', color: 'from-sky-400 to-blue-600',
+              gameplay: '操控企鵝左右移動，接住天空掉落的美味鮮魚以獲得分數，同時必須閃避熱狗炸彈。',
+              controls: '電腦：移動滑鼠 / 左右方向鍵；手機：螢幕滑動拖曳企鵝。',
+              reward: '每獲得 300 分觸發一張極地冷笑話卡片！' },
+            { id: 2, name: '極地冰塊彈珠台', icon: 'fa-circle-dot', desc: '全 2D 彈珠檯，撞擊燈泡解鎖梗！', color: 'from-cyan-400 to-teal-600',
+              gameplay: '發射金黃彈珠，利用板子反彈彈珠撞擊畫面上的冰晶碰撞器獲得高分。',
+              controls: '移動滑鼠 / 觸控滑動控制下方紅色擋板。',
+              reward: '累積獲得 600 分即可觸發解鎖冷笑話！' },
+            { id: 3, name: '冷氣團氣球切切樂', icon: 'fa-hand-scissors', desc: '滑動刀光切爆冷氣團氣球！', color: 'from-teal-400 to-emerald-600',
+              gameplay: '從下方飄升起各式冷氣團氣球，用疾風快刀將它們全部切爆！',
+              controls: '按住滑鼠左鍵劃過氣球，或在手機螢幕上快速劃過（Swipe）。',
+              reward: '每切爆 5 顆氣球（500分）解鎖冷笑話。' },
+            { id: 4, name: '冰河暴衝賽車', icon: 'fa-car-side', desc: '極限冰上甩尾，使用 Nitro 衝刺！', color: 'from-blue-400 to-indigo-600',
+              gameplay: '在極速冰河賽道上駕駛賽車，持續向前疾駛並躲避路上的紅色障礙障礙物。',
+              controls: '移動滑鼠或左右滑動控制賽車水平位置。',
+              reward: '行駛生存每達到 400 分即可觸發冷笑話。' },
+            { id: 5, name: '冰屋冷氣砲台塔防', icon: 'fa-shield-halved', desc: '發射冰凍砲彈，守護雪屋不被融化！', color: 'from-indigo-400 to-purple-600',
+              gameplay: '敵人正從上方進攻冰屋！點擊畫面發射冰凍砲彈消滅敵人，防止冰屋遭到破壞。',
+              controls: '點擊 / 觸控畫面任意位置進行瞄準發射。',
+              reward: '擊退敵人達到 500 分解鎖卡片。' },
+            { id: 6, name: '極地快打：冷場大對決', icon: 'fa-hand-fist', desc: '街機格鬥！冷笑話重拳與冰凍雷射！', color: 'from-purple-400 to-pink-600',
+              gameplay: '面對冷氣大魔王，展開快速出拳連擊，展現你的極速手速將其擊倒！',
+              controls: '連續瘋狂點擊怪獸圖示或按下點擊鍵。',
+              reward: '每擊中 15 拳解鎖一張冷笑話！' },
+            { id: 7, name: '音速冰晶節奏大師', icon: 'fa-music', desc: '4軌節奏落脈，精確打擊冷笑話音符！', color: 'from-pink-400 to-rose-600',
+              gameplay: '配合極地冰晶音樂節奏，在精準時機按下對應的音符軌道！',
+              controls: '點擊畫面下方 1~4 號軌道按鈕（或鍵盤數字 1-4）。',
+              reward: '每累積 500 分解鎖卡片。' },
+            { id: 8, name: '打地鼠：打出冷笑話', icon: 'fa-hammer', desc: '超高速冰槌打地鼠，敲出黃金企鵝！', color: 'from-amber-400 to-orange-600',
+              gameplay: '冰洞中會隨機冒出企鵝，把握極短時間精準敲擊冒出的企鵝！',
+              controls: '點擊 / 觸控冒出企鵝的冰洞格子。',
+              reward: '敲中 4 次（400分）即可觸發冷笑話解鎖！' },
+            { id: 9, name: '冰層跳躍衝天', icon: 'fa-arrow-up-from-ground-water', desc: '無盡向上彈跳，避開易碎薄冰！', color: 'from-emerald-400 to-sky-600',
+              gameplay: '企鵝在冰層間不斷自動向上彈跳，考驗落點與節奏掌控！',
+              controls: '自動彈跳，注意掌握落點。',
+              reward: '彈跳高度每累積 500 分觸發冷笑話。' },
+            { id: 10, name: '冰壺冷笑話大挑戰', icon: 'fa-bullseye', desc: '推力與角度力學，擊中靶心解答！', color: 'from-sky-500 to-cyan-400',
+              gameplay: '推動冰壺石，掌握摩擦力讓冰壺精準停在靶心得分區！',
+              controls: '點擊畫面推動冰壺石。',
+              reward: '成功停在靶心區域直接解鎖卡片！' }
+        ];
+
+        let currentGameLoop = null;
+
+        function showInstructionModal(gameId) {
+            const meta = gameMetaData.find(g => g.id === gameId);
+            if (!meta) return;
+            document.getElementById('instrTitle').innerText = `${meta.name} - 說明`;
+            document.getElementById('instrGameplay').innerText = meta.gameplay;
+            document.getElementById('instrControls').innerText = meta.controls;
+            document.getElementById('instrReward').innerText = meta.reward;
+            document.getElementById('instructionModal').classList.remove('hidden');
+        }
+
+        function closeInstructionModal() {
+            document.getElementById('instructionModal').classList.add('hidden');
+        }
+
+        function clearCurrentLoop() {
+            if (currentGameLoop) {
+                cancelAnimationFrame(currentGameLoop);
+                clearInterval(currentGameLoop);
+                currentGameLoop = null;
+            }
+        }
+
+        function showMenu() {
+            clearCurrentLoop();
+            const vp = document.getElementById('mainViewport');
+            vp.innerHTML = `
+                <div class="w-full max-w-5xl h-full flex flex-col custom-scrollbar overflow-y-auto">
+                    <div class="text-center mb-6">
+                        <span class="text-xs font-black arcade-font text-sky-400 bg-sky-950/80 px-4 py-1.5 rounded-full border border-sky-400/30">SELECT YOUR MINI-GAME</span>
+                        <h2 class="text-2xl md:text-3xl font-black text-white mt-2">選擇街機小遊戲 (10 合一)</h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-8">
+                        ${gameMetaData.map(g => `
+                            <div class="glass-card p-4 rounded-3xl border border-sky-500/20 hover:border-sky-400 transition-all shadow-xl flex flex-col justify-between group">
+                                <div class="flex items-start gap-3 cursor-pointer" onclick="launchGame(${g.id})">
+                                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr ${g.color} flex items-center justify-center text-white text-xl shadow-md shrink-0 group-hover:scale-110 transition-transform">
+                                        <i class="fa-solid ${g.icon}"></i>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] font-black arcade-font text-sky-400">GAME ${g.id}</span>
+                                        <h3 class="font-extrabold text-white text-base group-hover:text-sky-300 transition-colors">${g.name}</h3>
+                                        <p class="text-xs text-slate-400 mt-1 line-clamp-2">${g.desc}</p>
+                                    </div>
+                                </div>
+                                <div class="mt-4 pt-3 border-t border-slate-700/50 flex justify-between items-center">
+                                    <button onclick="showInstructionModal(${g.id})" class="text-xs font-bold text-sky-400 hover:text-sky-300 flex items-center gap-1">
+                                        <i class="fa-solid fa-circle-info"></i> 遊戲說明
+                                    </button>
+                                    <button onclick="launchGame(${g.id})" class="px-3 py-1 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs rounded-xl shadow">開始玩 🚀</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            document.getElementById('globalHighScore').innerText = globalHighScore;
+        }
+
+        /* Helper Bar Header for In-Game Instruction Toggle */
+        function getGameHeaderHTML(gameId, title, scoreId, scoreLabel) {
+            return `
+                <div class="w-full flex justify-between items-center bg-slate-900/90 p-3 rounded-2xl border border-sky-500/30 mb-3">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs font-bold text-sky-300">${scoreLabel}: <span id="${scoreId}" class="arcade-font text-amber-400">0</span></span>
+                        <button onclick="showInstructionModal(${gameId})" class="px-2.5 py-1 bg-indigo-900/80 hover:bg-indigo-800 text-indigo-200 border border-indigo-500/40 font-bold text-xs rounded-xl flex items-center gap-1">
+                            <i class="fa-solid fa-circle-question"></i> 說明
+                        </button>
+                    </div>
+                    <button onclick="showMenu()" class="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl">退出 (Esc)</button>
+                </div>
+            `;
+        }
+
+        // ==========================================
+        // GAME 1: PENGUIN CATCH FISH
+        // ==========================================
+        function startGame1_PenguinCatch(container) {
+            container.innerHTML = `
+                <div class="w-full max-w-2xl flex flex-col items-center">
+                    ${getGameHeaderHTML(1, '接魚狂人', 'g1Score', '分數')}
+                    <div class="relative w-full aspect-[4/3] bg-slate-900 rounded-3xl overflow-hidden border-2 border-sky-400/40 shadow-2xl">
+                        <canvas id="g1Canvas" class="w-full h-full block cursor-pointer"></canvas>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-2">💡 提示：按上方「說明」按鈕查看完整玩法與控制方式。</p>
+                </div>
+            `;
+            document.getElementById('globalHighScore').innerText = globalHighScore;
+        }
+
+        function launchGame(id) {
+            AudioEngine.playSFX('click');
+            clearCurrentLoop();
+            const vp = document.getElementById('mainViewport');
+            vp.innerHTML = '';
+
+            switch(id) {
+                case 1: startGame1_PenguinCatch(vp); break;
+                case 2: startGame2_Pinball(vp); break;
+                case 3: startGame3_BalloonNinja(vp); break;
+                case 4: startGame4_Racer(vp); break;
+                case 5: startGame5_IglooDefense(vp); break;
+                case 6: startGame6_Brawler(vp); break;
+                case 7: startGame7_Rhythm(vp); break;
+                case 8: startGame8_WhackMole(vp); break;
+                case 9: startGame9_GlacierJump(vp); break;
+                case 10: startGame10_Curling(vp); break;
+                default: showMenu(); break;
+            }
+        }
+
+        // ==========================================
+        // GAME 1: PENGUIN CATCH FISH
+        // ==========================================
+        function startGame1_PenguinCatch(container) {
+            container.innerHTML = `
+                <div class="w-full max-w-2xl flex flex-col items-center">
+                    <div class="w-full flex justify-between items-center bg-slate-900/90 p-3 rounded-2xl border border-sky-500/30 mb-3">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-bold text-sky-300"><i class="fa-solid fa-fish text-sky-400"></i> 分數: <span id="g1Score" class="arcade-font text-amber-400">0</span></span>
+                            <span class="text-xs font-bold text-rose-400"><i class="fa-solid fa-heart"></i> 生命: <span id="g1Lives" class="arcade-font text-rose-400">3</span></span>
+                        </div>
+                        <button onclick="showMenu()" class="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl">退出 (Esc)</button>
+                    </div>
+                    <div class="relative w-full aspect-[4/3] bg-slate-900 rounded-3xl overflow-hidden border-2 border-sky-400/40 shadow-2xl">
+                        <canvas id="g1Canvas" class="w-full h-full block cursor-pointer"></canvas>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-2">提示：用滑鼠或左右方向鍵（觸控滑動）拖曳企鵝接魚，避開熱狗炸彈！</p>
+                </div>
+            `;
+
+            const canvas = document.getElementById('g1Canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 600; canvas.height = 450;
+
+            let score = 0, lives = 3;
+            let player = { x: 270, y: 380, w: 60, h: 50 };
+            let items = [];
+            let spawnTimer = 0;
+
+            function update() {
+                spawnTimer++;
+                if (spawnTimer % 35 === 0) {
+                    items.push({
+                        x: Math.random() * (canvas.width - 30),
+                        y: -30,
+                        speed: 3 + Math.random() * 3,
+                        type: Math.random() > 0.3 ? 'fish' : 'bomb'
+                    });
+                }
+
+                items.forEach((item, idx) => {
+                    item.y += item.speed;
+                    // Collision
+                    if (item.x < player.x + player.w && item.x + 30 > player.x &&
+                        item.y < player.y + player.h && item.y + 30 > player.y) {
+                        if (item.type === 'fish') {
+                            score += 100;
+                            AudioEngine.playSFX('pop');
+                            spawnFloatingText(event?.clientX || 300, event?.clientY || 200, '+100', '#38bdf8');
+                            if (score % 300 === 0) triggerJokeModal();
+                        } else {
+                            lives--;
+                            AudioEngine.playSFX('hit');
+                            triggerShake();
+                        }
+                        items.splice(idx, 1);
+                        document.getElementById('g1Score').innerText = score;
+                        document.getElementById('g1Lives').innerText = lives;
+                        updateScore(score);
+                    } else if (item.y > canvas.height) {
+                        items.splice(idx, 1);
+                    }
+                });
+
+                // Render
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw Player (Penguin)
+                ctx.font = '40px sans-serif';
+                ctx.fillText('🐧', player.x, player.y + 40);
+
+                // Draw Items
+                items.forEach(item => {
+                    ctx.font = '28px sans-serif';
+                    ctx.fillText(item.type === 'fish' ? '🐟' : '💣', item.x, item.y + 25);
+                });
+
+                if (lives > 0) {
+                    currentGameLoop = requestAnimationFrame(update);
+                } else {
+                    AudioEngine.playSFX('fail');
+                    ctx.fillStyle = 'rgba(0,0,0,0.85)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = '#f43f5e'; ctx.font = '30px "Press Start 2P"'; ctx.textAlign = 'center';
+                    ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2 - 20);
+                    ctx.fillStyle = '#ffffff'; ctx.font = '16px "Noto Sans TC"';
+                    ctx.fillText(`最終得分: ${score}`, canvas.width/2, canvas.height/2 + 20);
+                }
+            }
+
+            // Controls
+            const handleMove = (x) => {
+                const rect = canvas.getBoundingClientRect();
+                player.x = (x - rect.left) * (canvas.width / rect.width) - player.w/2;
+                player.x = Math.max(0, Math.min(canvas.width - player.w, player.x));
+            };
+
+            canvas.addEventListener('mousemove', (e) => handleMove(e.clientX));
+            canvas.addEventListener('touchmove', (e) => {
+                if (e.touches[0]) handleMove(e.touches[0].clientX);
+            });
+
+            currentGameLoop = requestAnimationFrame(update);
+        }
+
+        // ==========================================
+        // GAME 2: FROZEN PINBALL
+        // ==========================================
+        function startGame2_Pinball(container) {
+            container.innerHTML = `
+                <div class="w-full max-w-md flex flex-col items-center">
+                    <div class="w-full flex justify-between items-center bg-slate-900/90 p-3 rounded-2xl border border-sky-500/30 mb-3">
+                        <span class="text-xs font-bold text-sky-300">彈珠得分: <span id="g2Score" class="arcade-font text-amber-400">0</span></span>
+                        <button onclick="showMenu()" class="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl">退出 (Esc)</button>
+                    </div>
+                    <canvas id="g2Canvas" class="w-full aspect-[3/4] bg-slate-900 rounded-3xl border-2 border-cyan-400/40 shadow-2xl block"></canvas>
+                </div>
+            `;
+            const canvas = document.getElementById('g2Canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 400; canvas.height = 530;
+
+            let ball = { x: 200, y: 250, vx: 4, vy: -5, radius: 10 };
+            let paddle = { x: 150, w: 100, h: 14, y: 490 };
+            let bumpers = [
+                { x: 100, y: 120, r: 25 }, { x: 300, y: 120, r: 25 },
+                { x: 200, y: 200, r: 30 }, { x: 150, y: 300, r: 20 }, { x: 250, y: 300, r: 20 }
+            ];
+            let score = 0;
+
+            function update() {
+                ball.x += ball.vx; ball.y += ball.vy;
+
+                // Walls
+                if (ball.x - ball.radius < 0 || ball.x + ball.radius > canvas.width) { ball.vx *= -1; AudioEngine.playSFX('click'); }
+                if (ball.y - ball.radius < 0) { ball.vy *= -1; AudioEngine.playSFX('click'); }
+
+                // Paddle
+                if (ball.y + ball.radius >= paddle.y && ball.x >= paddle.x && ball.x <= paddle.x + paddle.w) {
+                    ball.vy = -Math.abs(ball.vy);
+                    ball.vx = (ball.x - (paddle.x + paddle.w/2)) * 0.15;
+                    AudioEngine.playSFX('pop');
+                }
+
+                // Bumpers
+                bumpers.forEach(b => {
+                    let dx = ball.x - b.x, dy = ball.y - b.y;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < ball.radius + b.r) {
+                        ball.vx = (dx / dist) * 6;
+                        ball.vy = (dy / dist) * 6;
+                        score += 150;
+                        AudioEngine.playSFX('score');
+                        document.getElementById('g2Score').innerText = score;
+                        updateScore(score);
+                        if (score % 600 === 0) triggerJokeModal();
+                    }
+                });
+
+                // Reset
+                if (ball.y > canvas.height) {
+                    ball.x = 200; ball.y = 250; ball.vx = (Math.random() - 0.5) * 8; ball.vy = -5;
+                    AudioEngine.playSFX('fail');
+                }
+
+                // Render
+                ctx.fillStyle = '#090d16'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Bumpers
+                bumpers.forEach(b => {
+                    ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI*2); ctx.fill();
+                    ctx.strokeStyle = '#67e8f9'; ctx.lineWidth = 3; ctx.stroke();
+                });
+
+                // Paddle
+                ctx.fillStyle = '#f43f5e'; ctx.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
+
+                // Ball
+                ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI*2); ctx.fill();
+
+                currentGameLoop = requestAnimationFrame(update);
+            }
+
+            canvas.addEventListener('mousemove', (e) => {
+                let rect = canvas.getBoundingClientRect();
+                paddle.x = (e.clientX - rect.left) * (canvas.width / rect.width) - paddle.w/2;
+            });
+
+            currentGameLoop = requestAnimationFrame(update);
+        }
+
+        // ==========================================
+        // GAME 3: ICE BALLOON NINJA
+        // ==========================================
+        function startGame3_BalloonNinja(container) {
+            container.innerHTML = `
+                <div class="w-full max-w-2xl flex flex-col items-center">
+                    <div class="w-full flex justify-between items-center bg-slate-900/90 p-3 rounded-2xl border border-sky-500/30 mb-3">
+                        <span class="text-xs font-bold text-emerald-300">切爆氣球得分: <span id="g3Score" class="arcade-font text-amber-400">0</span></span>
+                        <button onclick="showMenu()" class="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl">退出 (Esc)</button>
+                    </div>
+                    <canvas id="g3Canvas" class="w-full aspect-[4/3] bg-slate-900 rounded-3xl border-2 border-emerald-400/40 shadow-2xl block cursor-crosshair"></canvas>
+                </div>
+            `;
+            const canvas = document.getElementById('g3Canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 600; canvas.height = 450;
+
+            let balloons = [], score = 0;
+            let timer = 0;
+
+            function update() {
+                timer++;
+                if (timer % 40 === 0) {
+                    balloons.push({
+                        x: Math.random() * (canvas.width - 60) + 30,
+                        y: canvas.height + 30,
+                        vx: (Math.random() - 0.5) * 4,
+                        vy: -(7 + Math.random() * 4),
+                        r: 25,
+                        color: ['#38bdf8', '#34d399', '#f43f5e', '#a855f7'][Math.floor(Math.random()*4)]
+                    });
+                }
+
+                ctx.fillStyle = '#022c22'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                balloons.forEach((b, idx) => {
+                    b.x += b.vx; b.y += b.vy; b.vy += 0.12; // gravity
+
+                    ctx.fillStyle = b.color; ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI*2); ctx.fill();
+
+                    if (b.y > canvas.height + 50) balloons.splice(idx, 1);
+                });
+
+                currentGameLoop = requestAnimationFrame(update);
+            }
+
+            const checkSlice = (x, y) => {
+                balloons.forEach((b, idx) => {
+                    let dist = Math.hypot(b.x - x, b.y - y);
+                    if (dist < b.r + 15) {
+                        balloons.splice(idx, 1);
+                        score += 100;
+                        AudioEngine.playSFX('slash');
+                        document.getElementById('g3Score').innerText = score;
+                        updateScore(score);
+                        if (score % 500 === 0) triggerJokeModal();
+                    }
+                });
+            };
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (e.buttons === 1) {
+                    let rect = canvas.getBoundingClientRect();
+                    checkSlice((e.clientX - rect.left) * (canvas.width / rect.width), (e.clientY - rect.top) * (canvas.height / rect.height));
+                }
+            });
+
+            currentGameLoop = requestAnimationFrame(update);
+        }
+
+        // ==========================================
+        // GAME 4: GLACIER RACER
+        // ==========================================
+        function startGame4_Racer(container) {
+            container.innerHTML = `
+                <div class="w-full max-w-md flex flex-col items-center">
+                    <div class="w-full flex justify-between items-center bg-slate-900/90 p-3 rounded-2xl border border-sky-500/30 mb-3">
+                        <span class="text-xs font-bold text-blue-300">冰河飆速: <span id="g4Score" class="arcade-font text-amber-400">0</span></span>
+                        <button onclick="showMenu()" class="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl">退出 (Esc)</button>
+                    </div>
+                    <canvas id="g4Canvas" class="w-full aspect-[3/4] bg-slate-900 rounded-3xl border-2 border-blue-400/40 shadow-2xl block"></canvas>
+                </div>
+            `;
+            const canvas = document.getElementById('g4Canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 360; canvas.height = 480;
+
+            let carX = 160, score = 0;
+            let obstacles = [];
+            let frame = 0;
+
+            function update() {
+                frame++;
+                score += 1;
+                document.getElementById('g4Score').innerText = score;
+
+                if (frame % 30 === 0) {
+                    obstacles.push({ x: Math.random() * (canvas.width - 40), y: -40, w: 40, h: 40 });
+                }
+
+                ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Player
+                ctx.fillStyle = '#38bdf8'; ctx.fillRect(carX, 400, 40, 60);
+
+                // Obstacles
+                obstacles.forEach((o, idx) => {
+                    o.y += 5;
+                    ctx.fillStyle = '#f43f5e'; ctx.fillRect(o.x, o.y, o.w, o.h);
+
+                    // Collision
+                    if (carX < o.x + o.w && carX + 40 > o.x && 400 < o.y + o.h && 460 > o.y) {
+                        AudioEngine.playSFX('fail');
+                        triggerShake();
+                        score = 0;
+                    }
+
+                    if (o.y > canvas.height) obstacles.splice(idx, 1);
+                });
+
+                if (score > 0 && score % 400 === 0) triggerJokeModal();
+                updateScore(score);
+
+                currentGameLoop = requestAnimationFrame(update);
+            }
+
+            canvas.addEventListener('mousemove', (e) => {
+                let rect = canvas.getBoundingClientRect();
+                carX = (e.clientX - rect.left) * (canvas.width / rect.width) - 20;
+            });
+
+            currentGameLoop = requestAnimationFrame(update);
+        }
+
+        // ==========================================
+        // GAME 5: IGLOO TOWER DEFENSE
+        // ==========================================
+        function startGame5_IglooDefense(container) {
+            container.innerHTML = `
+                <div class="w-full max-w-md flex flex-col items-center">
+                    <div class="w-full flex justify-between items-center bg-slate-900/90 p-3 rounded-2xl border border-sky-500/30 mb-3">
+                        <span class="text-xs font-bold text-purple-300">冰屋塔防: <span id="g5Score" class="arcade-font text-amber-400">0</span></span>
+                        <button onclick="showMenu()" class="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl">退出 (Esc)</button>
+                    </div>
+                    <canvas id="g5Canvas" class="w-full aspect-[3/4] bg-slate-900 rounded-3xl border-2 border-purple-400/40 shadow-2xl block cursor-pointer"></canvas>
+                </div>
+            `;
+            const canvas = document.getElementById('g5Canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 360; canvas.height = 480;
+
+            let bullets = [], enemies = [], score = 0, timer = 0;
+
+            function update() {
+                timer++;
+                if (timer % 40 === 0) {
+                    enemies.push({ x: Math.random() * (canvas.width - 30), y: -30, hp: 2 });
+                }
+
+                ctx.fillStyle = '#1e1b4b'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Igloo Base
+                ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(180, 450, 40, Math.PI, 0); ctx.fill();
+
+                // Bullets
+                bullets.forEach((b, bi) => {
+                    b.y -= 8;
+                    ctx.fillStyle = '#67e8f9'; ctx.fillRect(b.x - 3, b.y, 6, 12);
+
+                    enemies.forEach((e, ei) => {
+                        if (Math.hypot(b.x - (e.x + 15), b.y - (e.y + 15)) < 20) {
+                            e.hp--;
+                            bullets.splice(bi, 1);
+                            if (e.hp <= 0) {
+                                enemies.splice(ei, 1);
+                                score += 100;
+                                AudioEngine.playSFX('laser');
+                                document.getElementById('g5Score').innerText = score;
+                                updateScore(score);
+                                if (score % 500 === 0) triggerJokeModal();
+                            }
+                        }
+                    });
+                });
+
+                // Enemies
+                enemies.forEach((e, ei) => {
+                    e.y += 2;
+                    ctx.fillStyle = '#ef4444'; ctx.fillRect(e.x, e.y, 30, 30);
+                    if (e.y > 420) { enemies.splice(ei, 1); AudioEngine.playSFX('fail'); }
+                });
+
+                currentGameLoop = requestAnimationFrame(update);
+            }
+
+            canvas.addEventListener('click', (e) => {
+                let rect = canvas.getBoundingClientRect();
+                bullets.push({ x: (e.clientX - rect.left) * (canvas.width / rect.width), y: 430 });
+                AudioEngine.playSFX('pop');
+            });
+
+            currentGameLoop = requestAnimationFrame(update);
+        }
+
+        // ==========================================
+        // GAME 6: FROST FIGHTER BRAWLER
+        // ==========================================
+        function startGame6_Brawler(container) {
+            container.innerHTML = `
+                <div class="w-full max-w-2xl flex flex-col items-center">
+                    <div class="w-full flex justify-between items-center bg-slate-900/90 p-3 rounded-2xl border border-sky-500/30 mb-3">
+                        <span class="text-xs font-bold text-pink-300">極地快打擊倒數: <span id="g6Score" class="arcade-font text-amber-400">0</span></span>
+                        <button onclick="showMenu()" class="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl">退出 (Esc)</button>
+                    </div>
+                    <div class="bg-slate-900 w-full aspect-[16/9] rounded-3xl border-2 border-pink-500/40 p-6 flex flex-col justify-between items-center relative overflow-hidden">
+                        <div class="text-6xl my-auto animate-bounce cursor-pointer" onclick="hitBoss()">👾</div>
+                        <p class="text-xs text-pink-300 font-bold">點擊快速出拳毆打冷氣怪獸！</p>
+                    </div>
+                </div>
+            `;
+            let hits = 0;
+            window.hitBoss = () => {
+                hits++;
+                AudioEngine.playSFX('hit');
+                document.getElementById('g6Score').innerText = hits;
+                updateScore(hits * 10);
+                if (hits % 15 === 0) triggerJokeModal();
+            };
+        }
+
+        // ==========================================
+        // GAME 7: RHYTHM MANIA
+        // ==========================================
+        function startGame7_Rhythm(container) {
+            container.innerHTML = `
+                <div class="w-full max-w-md flex flex-col items-center">
+                    <div class="w-full flex justify-between items-center bg-slate-900/90 p-3 rounded-2xl border border-sky-500/30 mb-3">
+                        <span class="text-xs font-bold text-rose-300">音速打擊: <span id="g7Score" class="arcade-font text-amber-400">0</span></span>
+                        <button onclick="showMenu()" class="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl">退出 (Esc)</button>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2 w-full h-80 bg-slate-900 p-4 rounded-3xl border-2 border-rose-500/40">
+                        ${[1,2,3,4].map(i => `<button onclick="hitTrack(${i})" class="bg-slate-800 hover:bg-sky-500 rounded-2xl flex items-end justify-center pb-4 text-white font-black arcade-font">${i}</button>`).join('')}
+                    </div>
+                </div>
+            `;
+            let score = 0;
+            window.hitTrack = (i) => {
+                score += 100;
+                AudioEngine.playSFX('score');
+                document.getElementById('g7Score').innerText = score;
+                updateScore(score);
+                if (score % 500 === 0) triggerJokeModal();
+            };
+        }
+
+        // ==========================================
+        // GAME 8: WHACK A MOLE
+        // ==========================================
+        function startGame8_WhackMole(container) {
+            container.innerHTML = `
+                <div class="w-full max-w-md flex flex-col items-center">
+                    <div class="w-full flex justify-between items-center bg-slate-900/90 p-3 rounded-2xl border border-sky-500/30 mb-3">
+                        <span class="text-xs font-bold text-amber-300">敲擊分數: <span id="g8Score" class="arcade-font text-amber-400">0</span></span>
+                        <button onclick="showMenu()" class="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl">退出 (Esc)</button>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3 w-full bg-slate-900 p-4 rounded-3xl border-2 border-amber-500/40">
+                        ${[0,1,2,3,4,5,6,7,8].map(i => `<button id="mole${i}" onclick="whack(${i})" class="h-24 bg-slate-800 rounded-2xl text-4xl flex items-center justify-center">❄️</button>`).join('')}
+                    </div>
+                </div>
+            `;
+            let activeIdx = 0, score = 0;
+            const moleLoop = setInterval(() => {
+                document.getElementById(`mole${activeIdx}`).innerText = '❄️';
+                activeIdx = Math.floor(Math.random() * 9);
+                document.getElementById(`mole${activeIdx}`).innerText = '🐧';
+            }, 700);
+
+            currentGameLoop = moleLoop;
+
+            window.whack = (i) => {
+                if (i === activeIdx) {
+                    score += 100;
+                    AudioEngine.playSFX('pop');
+                    document.getElementById('g8Score').innerText = score;
+                    updateScore(score);
+                    if (score % 400 === 0) triggerJokeModal();
+                }
+            };
+        }
+
+        // ==========================================
+        // GAME 9: GLACIER JUMP
+        // ==========================================
+        function startGame9_GlacierJump(container) {
+            container.innerHTML = `
+                <div class="w-full max-w-md flex flex-col items-center">
+                    <div class="w-full flex justify-between items-center bg-slate-900/90 p-3 rounded-2xl border border-sky-500/30 mb-3">
+                        <span class="text-xs font-bold text-emerald-300">彈跳高度: <span id="g9Score" class="arcade-font text-amber-400">0</span></span>
+                        <button onclick="showMenu()" class="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl">退出 (Esc)</button>
+                    </div>
+                    <canvas id="g9Canvas" class="w-full aspect-[3/4] bg-slate-900 rounded-3xl border-2 border-emerald-400/40 shadow-2xl block"></canvas>
+                </div>
+            `;
+            const canvas = document.getElementById('g9Canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 360; canvas.height = 480;
+
+            let py = 400, vy = -8, score = 0;
+            function update() {
+                py += vy; vy += 0.3; // gravity
+                if (py > 420) { vy = -10; score += 50; AudioEngine.playSFX('pop'); }
+
+                document.getElementById('g9Score').innerText = score;
+                updateScore(score);
+
+                ctx.fillStyle = '#064e3b'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#34d399'; ctx.fillRect(160, 440, 80, 15);
+                ctx.font = '30px sans-serif'; ctx.fillText('🐧', 160, py);
+
+                if (score > 0 && score % 500 === 0) triggerJokeModal();
+                currentGameLoop = requestAnimationFrame(update);
+            }
+            currentGameLoop = requestAnimationFrame(update);
+        }
+
+        // ==========================================
+        // GAME 10: CURLING TARGET
+        // ==========================================
+        function startGame10_Curling(container) {
+            container.innerHTML = `
+                <div class="w-full max-w-md flex flex-col items-center">
+                    <div class="w-full flex justify-between items-center bg-slate-900/90 p-3 rounded-2xl border border-sky-500/30 mb-3">
+                        <span class="text-xs font-bold text-cyan-300">冰壺靶心積分: <span id="g10Score" class="arcade-font text-amber-400">0</span></span>
+                        <button onclick="showMenu()" class="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl">退出 (Esc)</button>
+                    </div>
+                    <canvas id="g10Canvas" class="w-full aspect-[3/4] bg-slate-900 rounded-3xl border-2 border-cyan-400/40 shadow-2xl block cursor-pointer"></canvas>
+                </div>
+            `;
+            const canvas = document.getElementById('g10Canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 360; canvas.height = 480;
+
+            let cy = 400, vy = 0, score = 0;
+
+            function update() {
+                cy += vy; vy *= 0.98; // friction
+                ctx.fillStyle = '#083344'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Target
+                ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.arc(180, 100, 50, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(180, 100, 30, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(180, 100, 15, 0, Math.PI*2); ctx.fill();
+
+                // Stone
+                ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.arc(180, cy, 20, 0, Math.PI*2); ctx.fill();
+
+                if (Math.abs(vy) < 0.1 && cy < 380) {
+                    let dist = Math.abs(cy - 100);
+                    if (dist < 50) {
+                        score += 300;
+                        AudioEngine.playSFX('score');
+                        triggerJokeModal();
+                    }
+                    cy = 400; vy = 0;
+                    document.getElementById('g10Score').innerText = score;
+                    updateScore(score);
+                }
+
+                currentGameLoop = requestAnimationFrame(update);
+            }
+
+            canvas.addEventListener('click', () => {
+                if (vy === 0) { vy = -12; AudioEngine.playSFX('pop'); }
+            });
+
+            currentGameLoop = requestAnimationFrame(update);
+        }
+
+        // Global Keyboard Shortcut for ESC -> Exit to Menu
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeJokeModal();
+                closeMuseumModal();
+                closeInstructionModal();
+                showMenu();
+            }
+        });
+
+        // Initialize App
+        window.onload = () => {
+            showMenu();
+        };
+    </script>
+</body>
+</html>
