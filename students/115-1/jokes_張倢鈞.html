@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>馬卡龍遊戲笑話樂園</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+            background: linear-gradient(135deg, #fef9e7 0%, #fde2e4 50%, #e2ece9 100%);
+            min-height: 100vh;
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 550px;
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 25px 20px;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(180, 160, 180, 0.15);
+            border: 2px solid #ffffff;
+        }
+
+        /* 導覽頁籤按鈕 */
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .tab-btn {
+            flex: 1;
+            white-space: nowrap;
+            border: none;
+            padding: 10px 12px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            background-color: #f0f0f0;
+            color: #777;
+            transition: all 0.25s ease;
+        }
+
+        .tab-btn.active {
+            background-color: #b5e2fa;
+            color: #3d5a80;
+            box-shadow: 0 4px 10px rgba(181, 226, 250, 0.5);
+        }
+
+        /* 遊戲區域切換 */
+        .game-section {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .game-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            font-size: 20px;
+            color: #6b5b95;
+            margin-bottom: 18px;
+        }
+
+        /* 通用顯示框 */
+        .display-area {
+            background-color: #f8edeb;
+            border-radius: 16px;
+            padding: 20px;
+            min-height: 90px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: #6d597a;
+            line-height: 1.5;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.03);
+        }
+
+        /* 題目框與答案框 */
+        .question-box {
+            background-color: #d8e2dc;
+            color: #4a6984;
+            font-weight: bold;
+        }
+
+        .answer-box {
+            background-color: #ffe5ec;
+            color: #b56576;
+            margin-bottom: 20px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        /* 按鈕風格 */
+        button.action-btn {
+            border: none;
+            padding: 12px 18px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        button.action-btn:active {
+            transform: translateY(2px);
+        }
+
+        .btn-pink { background-color: #fce1e4; color: #a05068; }
+        .btn-pink:hover { background-color: #f8c8dc; }
+
+        .btn-blue { background-color: #b5e2fa; color: #3d5a80; }
+        .btn-blue:hover { background-color: #90e0ef; }
+
+        .btn-green { background-color: #e8f5e9; color: #2e7d32; }
+        .btn-green:hover { background-color: #c8e6c9; }
+
+        /* 猜數字輸入框 */
+        input[type="number"] {
+            width: 90px;
+            padding: 8px;
+            border-radius: 10px;
+            border: 2px solid #d8e2dc;
+            text-align: center;
+            font-size: 18px;
+            outline: none;
+            margin-bottom: 12px;
+        }
+
+        /* 記憶翻牌網格 */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            width: 100%;
+        }
+
+        .memory-tile {
+            height: 65px;
+            background-color: #d8e2dc;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- 頂部頁籤導覽按鈕 -->
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchGame('joke')">😆 20個笑話</button>
+            <button class="tab-btn" onclick="switchGame('fortune')">🔮 運勢籤筒</button>
+            <button class="tab-btn" onclick="switchGame('number')">🔢 猜數字</button>
+            <button class="tab-btn" onclick="switchGame('reaction')">⚡ 反應力</button>
+            <button class="tab-btn" onclick="switchGame('memory')">🍓 記憶翻牌</button>
+        </div>
+
+        <!-- 遊戲 1：笑話產生器 (題目與答案分開按) -->
+        <div class="game-section active" id="game-joke">
+            <h2>✨ 馬卡龍笑話卡 ✨</h2>
+            <div class="display-area question-box" id="questionBox">點擊下方按鈕抽題目！</div>
+            <div class="display-area answer-box" id="answerBox">答案會顯示在這裡喔～</div>
+            <div class="btn-group">
+                <button class="action-btn btn-blue" onclick="getRandomQuestion()">🎲 抽題目</button>
+                <button class="action-btn btn-pink" onclick="showAnswer()">💡 看答案</button>
+            </div>
+        </div>
+
+        <!-- 遊戲 2：今日運勢籤筒 -->
+        <div class="game-section" id="game-fortune">
+            <h2>🔮 今日運勢籤筒</h2>
+            <div class="display-area" id="fortuneDisplay">按下按鈕抽一張今日幸運籤！</div>
+            <button class="action-btn btn-pink" onclick="drawFortune()">🌸 抽籤看運勢</button>
+        </div>
+
+        <!-- 遊戲 3：終極密碼 (1~100) -->
+        <div class="game-section" id="game-number">
+            <h2>🔢 猜數字 (1~100)</h2>
+            <div class="display-area" id="numberDisplay">
+                <span id="numHint">請猜一個 1 ~ 100 的數字</span>
+            </div>
+            <div>
+                <input type="number" id="numInput" min="1" max="100" placeholder="數字"><br>
+                <button class="action-btn btn-blue" onclick="guessNumber()">送出</button>
+                <button class="action-btn btn-pink" onclick="resetNumberGame()">重新開始</button>
+            </div>
+        </div>
+
+        <!-- 遊戲 4：反應力大挑戰 -->
+        <div class="game-section" id="game-reaction">
+            <h2>⚡ 反應力大挑戰</h2>
+            <div class="display-area" id="reactionDisplay">點擊「開始」後，等待背景變色立刻按下去！</div>
+            <button class="action-btn btn-green" id="reactionBtn" onclick="handleReactionClick()">🎯 開始挑戰</button>
+        </div>
+
+        <!-- 遊戲 5：水果記憶翻牌 -->
+        <div class="game-section" id="game-memory">
+            <h2>🍓 水果配對記憶卡</h2>
+            <div style="margin-bottom: 15px;">
+                <div class="card-grid" id="memoryBoard"></div>
+            </div>
+            <button class="action-btn btn-blue" onclick="initMemoryGame()">🔄 重新洗牌</button>
+        </div>
+    </div>
+
+    <script>
+        /* --- 音效合成器 (Web Audio API) --- */
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(500, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.08);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            } else if (type === 'pop') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.exponentialRampToValueAtTime(600, now + 0.12);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                osc.start(now);
+                osc.stop(now + 0.12);
+            } else if (type === 'win') {
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                notes.forEach((freq, i) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.type = 'sine';
+                    o.frequency.value = freq;
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    const startTime = now + i * 0.08;
+                    g.gain.setValueAtTime(0.15, startTime);
+                    g.gain.exponentialRampToValueAtTime(0.001, startTime + 0.2);
+                    o.start(startTime);
+                    o.stop(startTime + 0.2);
+                });
+            } else if (type === 'match') {
+                const notes = [587.33, 880]; // D5, A5
+                notes.forEach((freq, i) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.type = 'sine';
+                    o.frequency.value = freq;
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    const startTime = now + i * 0.1;
+                    g.gain.setValueAtTime(0.15, startTime);
+                    g.gain.exponentialRampToValueAtTime(0.001, startTime + 0.2);
+                    o.start(startTime);
+                    o.stop(startTime + 0.2);
+                });
+            }
+        }
+
+        /* --- 切換遊戲選單 --- */
+        function switchGame(gameId) {
+            playSound('click');
+            const sections = document.querySelectorAll('.game-section');
+            const tabs = document.querySelectorAll('.tab-btn');
+
+            sections.forEach(sec => sec.classList.remove('active'));
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            document.getElementById(`game-${gameId}`).classList.add('active');
+            event.currentTarget.classList.add('active');
+
+            if (gameId === 'memory') {
+                initMemoryGame(false);
+            }
+        }
+
+        /* --- 1. 馬卡龍 20 個笑話 --- */
+        const jokes = [
+            { q: "小明在學校做了什麼好事？", a: "老師準備拉開椅子坐下時，他幫老師把椅子推回去了！" },
+            { q: "有一天皮卡丘走路撞到石頭會說什麼？", a: "皮卡……丘（音同：丘～/痛）！" },
+            { q: "什麼植物最會打架？", a: "香蕉（因為它會「剝皮」）。" },
+            { q: "哪種水果最忙？", a: "芒果（因為 Busy / 芒果忙）。" },
+            { q: "為什麼蜘蛛很想當軟體工程師？", a: "因為它天天都在「上網」。" },
+            { q: "面試官問小明最大的缺點是什麼？小明說誠實。面試官說不覺得誠實是缺點，小明怎麼回？", a: "小明：「我才不在乎你怎麼想。」" },
+            { q: "什麼動物最喜歡問「為什麼」？", a: "豬（因為：知/豬為什麼）。" },
+            { q: "有一天綠豆撞到牆，變成了什麼？", a: "紅豆（因為流血了）。" },
+            { q: "魚和水在放閃，鍋子說了什麼？", a: "鍋子說：「都快滾了，還在這邊放閃！」" },
+            { q: "什麼字最容易惹人生氣？", a: "「噢」。" },
+            { q: "什麼動物最喜歡說「好啦」？", a: "海龜（因為「龜（歸）啦」）。" },
+            { q: "母雞為什麼突然把電視關掉？", a: "因為電視正在放《烤雞專題報告》！" },
+            { q: "為什麼企鵝的肚子是白色的？", a: "因為企鵝手太短，洗澡只能洗到肚子。" },
+            { q: "什麼食物最會說謊？", a: "香腸（因為裡面全是「長（腸）謊」）。" },
+            { q: "三隻小豬去麥當勞，第三隻小豬為什麼說要外帶？", a: "因為它是 Pig Out（吃爆）！" },
+            { q: "小明問爸爸為什麼要結婚？", a: "爸爸說：「因為那時候我還太年輕。」" },
+            { q: "哪種飲料最文靜？", a: "奶茶（因為奶茶「無聲/烏龍」）。" },
+            { q: "什麼時候人最想吃東西？", a: "宣告要減肥的時候。" },
+            { q: "鉛筆嫌橡皮擦擦錯字，橡皮擦怎麼回答？", a: "「那也是因為你，我才變得越來越短啊！」" },
+            { q: "為什麼不應該在骨科醫院開玩笑？", a: "因為大家會笑到「骨折」。" }
+        ];
+
+        let currentIndex = -1;
+        let lastIndex = -1;
+
+        function getRandomQuestion() {
+            playSound('pop');
+            do {
+                currentIndex = Math.floor(Math.random() * jokes.length);
+            } while (currentIndex === lastIndex && jokes.length > 1);
+
+            lastIndex = currentIndex;
+            document.getElementById("questionBox").innerText = jokes[currentIndex].q;
+            document.getElementById("answerBox").innerText = "？？？（點擊下方按鈕看答案）";
+            document.getElementById("answerBox").style.opacity = "0.6";
+        }
+
+        function showAnswer() {
+            if (currentIndex === -1) {
+                playSound('click');
+                document.getElementById("answerBox").innerText = "請先點擊「抽題目」喔！";
+                return;
+            }
+            playSound('win');
+            document.getElementById("answerBox").innerText = jokes[currentIndex].a;
+            document.getElementById("answerBox").style.opacity = "1";
+        }
+
+        /* --- 2. 運勢籤筒 --- */
+        const fortunes = [
+            "大吉 🌸：今天會有意外的小驚喜，出門記得帶笑容！",
+            "中吉 🍰：適合享用一份甜點，能為你帶來好心情。",
+            "小吉 🌿：平穩順利的一天，適合學習或處理待辦事項。",
+            "吉 ✨：會有好運降臨，試著跟好久不見的朋友問候一下吧！",
+            "末吉 ☁️：放慢腳步，喝杯溫水，給自己一些放鬆的時間。",
+            "超大吉 ⭐️：好運爆棚！今天做什麼事情都會非常順心！"
+        ];
+
+        function drawFortune() {
+            playSound('win');
+            const random = Math.floor(Math.random() * fortunes.length);
+            document.getElementById("fortuneDisplay").innerText = fortunes[random];
+        }
+
+        /* --- 3. 猜數字 --- */
+        let targetNum = Math.floor(Math.random() * 100) + 1;
+        let minNum = 1, maxNum = 100;
+
+        function guessNumber() {
+            const input = parseInt(document.getElementById("numInput").value);
+            const hint = document.getElementById("numHint");
+
+            if (isNaN(input) || input < minNum || input > maxNum) {
+                playSound('click');
+                hint.innerText = `請輸入 ${minNum} ~ ${maxNum} 之間的有效數字！`;
+                return;
+            }
+
+            if (input === targetNum) {
+                playSound('win');
+                hint.innerText = `🎉 恭喜猜中了！答案就是 ${targetNum}！`;
+            } else if (input < targetNum) {
+                playSound('pop');
+                minNum = input + 1;
+                hint.innerText = `太小囉！範圍變更為：${minNum} ~ ${maxNum}`;
+            } else {
+                playSound('pop');
+                maxNum = input - 1;
+                hint.innerText = `太大囉！範圍變更為：${minNum} ~ ${maxNum}`;
+            }
+            document.getElementById("numInput").value = "";
+        }
+
+        function resetNumberGame() {
+            playSound('click');
+            targetNum = Math.floor(Math.random() * 100) + 1;
+            minNum = 1;
+            maxNum = 100;
+            document.getElementById("numHint").innerText = "遊戲重置！請猜一個 1 ~ 100 的數字";
+            document.getElementById("numInput").value = "";
+        }
+
+        /* --- 4. 反應力大挑戰 --- */
+        let reactionState = "idle";
+        let startTime, timerId;
+
+        function handleReactionClick() {
+            const display = document.getElementById("reactionDisplay");
+            const btn = document.getElementById("reactionBtn");
+
+            if (reactionState === "idle") {
+                playSound('click');
+                reactionState = "waiting";
+                display.innerText = "等待變藍色...（千萬別提前按！）";
+                display.style.backgroundColor = "#ffe5ec";
+                btn.innerText = "準備...";
+
+                const randomTime = Math.floor(Math.random() * 3000) + 2000;
+                timerId = setTimeout(() => {
+                    reactionState = "ready";
+                    display.innerText = "就是現在！快按！";
+                    display.style.backgroundColor = "#b5e2fa";
+                    btn.innerText = "按下去！";
+                    startTime = Date.now();
+                }, randomTime);
+
+            } else if (reactionState === "waiting") {
+                playSound('click');
+                clearTimeout(timerId);
+                reactionState = "idle";
+                display.innerText = "太早按了啦！按下按鈕再試一次。";
+                display.style.backgroundColor = "#f8edeb";
+                btn.innerText = "🎯 開始挑戰";
+
+            } else if (reactionState === "ready") {
+                playSound('win');
+                const reactionTime = Date.now() - startTime;
+                reactionState = "idle";
+                display.innerText = `你的反應速度是：${reactionTime} 毫秒 (ms)！`;
+                display.style.backgroundColor = "#e8f5e9";
+                btn.innerText = "再測一次";
+            }
+        }
+
+        /* --- 5. 水果記憶翻牌 --- */
+        const fruits = ['🍎', '🍎', '🍌', '🍌', '🍓', '🍓', '🍑', '🍑'];
+        let flippedTiles = [];
+        let matchedPairs = 0;
+
+        function initMemoryGame(sound = true) {
+            if (sound) playSound('click');
+            const board = document.getElementById("memoryBoard");
+            board.innerHTML = "";
+            flippedTiles = [];
+            matchedPairs = 0;
+
+            const shuffled = [...fruits].sort(() => Math.random() - 0.5);
+
+            shuffled.forEach((fruit, index) => {
+                const tile = document.createElement("div");
+                tile.classList.add("memory-tile");
+                tile.dataset.fruit = fruit;
+                tile.innerText = "❓";
+                tile.onclick = () => flipTile(tile);
+                board.appendChild(tile);
+            });
+        }
+
+        function flipTile(tile) {
+            if (flippedTiles.length < 2 && !tile.classList.contains("flipped") && !tile.classList.contains("matched")) {
+                playSound('pop');
+                tile.innerText = tile.dataset.fruit;
+                tile.classList.add("flipped");
+                tile.style.backgroundColor = "#ffffff";
+                flippedTiles.push(tile);
+
+                if (flippedTiles.length === 2) {
+                    setTimeout(checkMatch, 500);
+                }
+            }
+        }
+
+        function checkMatch() {
+            const [tile1, tile2] = flippedTiles;
+            if (tile1.dataset.fruit === tile2.dataset.fruit) {
+                playSound('match');
+                tile1.classList.add("matched");
+                tile2.classList.add("matched");
+                tile1.style.backgroundColor = "#c8e6c9";
+                tile2.style.backgroundColor = "#c8e6c9";
+                matchedPairs++;
+                if (matchedPairs === fruits.length / 2) {
+                    setTimeout(() => playSound('win'), 300);
+                    alert("🎉 恭喜！你完成所有水果配對了！");
+                }
+            } else {
+                playSound('click');
+                tile1.innerText = "❓";
+                tile2.innerText = "❓";
+                tile1.classList.remove("flipped");
+                tile2.classList.remove("flipped");
+                tile1.style.backgroundColor = "#d8e2dc";
+                tile2.style.backgroundColor = "#d8e2dc";
+            }
+            flippedTiles = [];
+        }
+    </script>
+
+</body>
+</html>

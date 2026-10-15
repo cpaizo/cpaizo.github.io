@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>南極極冷笑話冰庫 ❄️ Ultimate Edition</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Zen Maru Gothic / Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;800&family=Zen+Maru+Gothic:wght@700;900&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            polar: {
+              night: '#0B132B',
+              dark: '#1C2541',
+              deep: '#3A506B',
+              ice: '#5BC0BE',
+              glacier: '#A6E1FA',
+              frost: '#E0F7FA',
+              auroraGreen: '#00FFC6',
+              auroraPink: '#FF007F'
+            }
+          },
+          fontFamily: {
+            rounded: ['"Zen Maru Gothic"', '"Noto Sans TC"', 'sans-serif'],
+            sans: ['"Noto Sans TC"', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* 靜態與動畫樣式定義 */
+    body {
+      background: linear-gradient(135deg, #050b18 0%, #0b1a30 40%, #132a4a 80%, #0a2238 100%);
+      font-family: 'Noto Sans TC', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: #e2f1f8;
+    }
+
+    /* 動態極光背景 */
+    .aurora-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.35;
+      background: radial-gradient(circle at 20% 20%, rgba(0, 255, 198, 0.4) 0%, transparent 40%),
+                  radial-gradient(circle at 80% 30%, rgba(166, 225, 250, 0.4) 0%, transparent 40%),
+                  radial-gradient(circle at 50% 80%, rgba(255, 0, 127, 0.25) 0%, transparent 50%);
+      filter: blur(60px);
+      animation: auroraPulse 12s infinite alternate ease-in-out;
+    }
+
+    @keyframes auroraPulse {
+      0% { transform: scale(1) translateY(0); opacity: 0.25; }
+      50% { transform: scale(1.1) translateY(-20px); opacity: 0.45; }
+      100% { transform: scale(1.05) translateY(10px); opacity: 0.3; }
+    }
+
+    /* 雪花 Canvas 容器 */
+    #snow-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* 冰霜玻璃質感卡片 */
+    .ice-card {
+      background: rgba(255, 255, 255, 0.07);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(224, 247, 250, 0.2);
+      box-shadow: 0 12px 40px 0 rgba(0, 10, 30, 0.5),
+                  inset 0 1px 0 0 rgba(255, 255, 255, 0.3);
+      border-radius: 24px;
+    }
+
+    .ice-card-glow {
+      box-shadow: 0 0 25px rgba(91, 192, 190, 0.3),
+                  0 12px 40px 0 rgba(0, 10, 30, 0.5),
+                  inset 0 1px 1px 0 rgba(255, 255, 255, 0.5);
+    }
+
+    /* 3D 冰塊翻轉效果 */
+    .perspective-1000 {
+      perspective: 1000px;
+    }
+
+    .flipper {
+      transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transform-style: preserve-3d;
+    }
+
+    .flipper.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .front, .back {
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    .back {
+      transform: rotateY(180deg);
+    }
+
+    /* 冰晶按鈕與動態波紋 */
+    .btn-ice {
+      background: linear-gradient(135deg, #48cae4 0%, #0077b6 100%);
+      box-shadow: 0 6px 0 #023e8a, 0 10px 20px rgba(0,0,0,0.3);
+      transition: all 0.15s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-ice:hover {
+      background: linear-gradient(135deg, #00b4d8 0%, #0096c7 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 0 #023e8a, 0 14px 25px rgba(0,180,216,0.4);
+    }
+
+    .btn-ice:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #023e8a, 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .btn-reveal {
+      background: linear-gradient(135deg, #72efdd 0%, #560bad 100%);
+      box-shadow: 0 6px 0 #3a0ca3, 0 10px 20px rgba(114, 239, 221, 0.2);
+      transition: all 0.15s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-reveal:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 0 #3a0ca3, 0 14px 25px rgba(114, 239, 221, 0.4);
+    }
+
+    .btn-reveal:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #3a0ca3, 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.6);
+      transform: scale(0);
+      animation: ripple-effect 0.6s linear;
+      pointer-events: none;
+    }
+
+    @keyframes ripple-effect {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+
+    /* 企鵝搖擺動畫 */
+    @keyframes waddle {
+      0%, 100% { transform: rotate(-5deg); }
+      50% { transform: rotate(5deg); }
+    }
+    .waddle {
+      animation: waddle 2s ease-in-out infinite;
+      display: inline-block;
+      transform-origin: bottom center;
+    }
+
+    /* 冰晶浮動 */
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-8px) rotate(5deg); }
+    }
+    .floating {
+      animation: float 4s ease-in-out infinite;
+    }
+
+    /* 自訂滾動條 */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(11, 19, 43, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #5BC0BE;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #A6E1FA;
+    }
+  </style>
+</head>
+<body class="relative flex flex-col items-center justify-between min-h-screen p-4 md:p-8">
+
+  <!-- 背景層 -->
+  <div class="aurora-bg"></div>
+  <canvas id="snow-canvas"></canvas>
+
+  <!-- 頂部頁首標題區 -->
+  <header class="relative z-10 text-center my-3 md:my-5 max-w-2xl w-full">
+    <div class="inline-flex items-center gap-3 bg-white/10 backdrop-blur-md px-6 py-2 rounded-full border border-white/20 mb-3 shadow-lg">
+      <span class="text-2xl waddle">🐧</span>
+      <span class="text-xs md:text-sm font-semibold tracking-widest text-polar-glacier uppercase">Antarctic Ice Joke Vault</span>
+      <span class="text-2xl waddle" style="animation-delay: 1s;">🧊</span>
+    </div>
+    <h1 class="text-3xl md:text-5xl font-extrabold font-rounded tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 via-white to-teal-200 drop-shadow-[0_4px_12px_rgba(91,192,190,0.5)]">
+      南極極冷笑話館
+    </h1>
+    <p class="text-polar-glacier/80 text-xs md:text-sm mt-2 font-light">
+      體感溫度直降 -50℃ • 收錄 45+ 篇超凍感笑話 ❄️
+    </p>
+  </header>
+
+  <!-- 主要互動區域 -->
+  <main class="relative z-10 w-full max-w-xl mx-auto flex-1 flex flex-col items-center justify-center my-2">
+    
+    <!-- 模式切換 Tabs -->
+    <div class="flex bg-black/30 p-1.5 rounded-2xl border border-white/10 mb-4 w-full max-w-xs justify-center backdrop-blur-md">
+      <button id="tab-random" onclick="switchMode('random')" class="flex-1 py-2 px-4 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 bg-polar-ice text-polar-night shadow-md">
+        <i class="fa-solid fa-dice mr-1.5"></i>隨機抽取
+      </button>
+      <button id="tab-list" onclick="switchMode('list')" class="flex-1 py-2 px-4 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 text-polar-glacier hover:text-white">
+        <i class="fa-solid fa-boxes-stacked mr-1.5"></i>冷笑話冰庫
+      </button>
+    </div>
+
+    <!-- 模式 1：隨機抽取模式 (包含分類選擇) -->
+    <div id="random-mode" class="w-full">
+      
+      <!-- 主題分類標籤選單 -->
+      <div class="flex flex-wrap justify-center gap-1.5 md:gap-2 mb-4" id="category-pills">
+        <!-- 由 JavaScript 動態生成分類按鈕 -->
+      </div>
+
+      <!-- 3D 翻轉冰塊卡片 -->
+      <div class="perspective-1000 w-full min-h-[310px] md:min-h-[340px]">
+        <div id="card-flipper" class="flipper relative w-full h-full min-h-[310px] md:min-h-[340px]">
+          
+          <!-- 卡片正面 (題目) -->
+          <div class="front absolute w-full h-full inset-0 ice-card ice-card-glow p-6 md:p-8 flex flex-col justify-between items-center text-center">
+            <div class="flex justify-between items-center w-full text-xs text-polar-glacier/70 font-mono">
+              <span class="flex items-center gap-1">
+                <i class="fa-regular fa-snowflake text-cyan-300 animate-spin" style="animation-duration: 8s;"></i> 
+                ICE-JOKE <span id="joke-number">#--</span>
+              </span>
+              <span id="joke-category-tag" class="bg-cyan-900/60 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-400/30 text-[10px]">
+                全分類
+              </span>
+            </div>
+
+            <div class="my-auto py-4 px-2">
+              <div class="text-cyan-400 text-xs font-bold tracking-widest uppercase mb-2">【 題目 / Question 】</div>
+              <h2 id="question-text" class="text-xl md:text-2xl font-bold font-rounded text-white leading-relaxed">
+                點擊下方按鈕，隨機冰鎮一個冷笑話！
+              </h2>
+            </div>
+
+            <div class="w-full pt-2">
+              <button id="btn-show-answer" onclick="revealAnswer(event)" class="btn-reveal text-white font-bold py-3 px-6 rounded-2xl w-full flex items-center justify-center gap-2 text-sm md:text-base cursor-pointer">
+                <i class="fa-solid fa-eye"></i> 揭曉答案 (敲碎冰塊)
+              </button>
+            </div>
+          </div>
+
+          <!-- 卡片背面 (答案) -->
+          <div class="back absolute w-full h-full inset-0 ice-card p-6 md:p-8 flex flex-col justify-between items-center text-center border-2 border-cyan-400/50 bg-gradient-to-br from-cyan-950/90 to-blue-950/90">
+            <div class="flex justify-between items-center w-full text-xs text-polar-auroraGreen font-mono">
+              <span><i class="fa-solid fa-temperature-arrow-down"></i> ANSWER UNLOCKED</span>
+              <span id="ice-temp" class="text-cyan-300 font-bold">極度冰凍!</span>
+            </div>
+
+            <div class="my-auto py-4 px-2">
+              <div class="text-teal-300 text-xs font-bold tracking-widest uppercase mb-2">【 解答 / Answer 】</div>
+              <p id="answer-text" class="text-lg md:text-2xl font-black font-rounded text-cyan-200 leading-relaxed drop-shadow-[0_2px_8px_rgba(0,255,200,0.4)]">
+                ---
+              </p>
+            </div>
+
+            <div class="w-full pt-2">
+              <button onclick="flipBack(event)" class="bg-white/10 hover:bg-white/20 text-polar-glacier font-semibold py-2.5 px-6 rounded-2xl w-full text-sm flex items-center justify-center gap-2 border border-white/20 transition-all">
+                <i class="fa-solid fa-rotate-left"></i> 看回題目
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 抽獎按鈕 -->
+      <div class="mt-5 flex flex-col sm:flex-row gap-3 w-full">
+        <button id="btn-random-draw" onclick="drawRandomJoke(event)" class="btn-ice text-white font-extrabold text-base md:text-lg py-4 px-8 rounded-2xl flex-1 flex items-center justify-center gap-3 tracking-wide">
+          <i class="fa-solid fa-snowflake text-xl floating"></i> 抽取下一個笑話
+        </button>
+      </div>
+    </div>
+
+    <!-- 模式 2：冷笑話冰庫清單模式 (包含即時搜尋) -->
+    <div id="list-mode" class="w-full hidden">
+      <!-- 搜尋欄位 -->
+      <div class="relative mb-3">
+        <input type="text" id="search-input" oninput="filterJokeList()" placeholder="搜尋關鍵字（例如：香蕉、小明、動物...）" 
+               class="w-full bg-white/10 text-white placeholder-polar-glacier/50 px-10 py-3 rounded-2xl border border-white/20 focus:outline-none focus:border-cyan-300 text-sm backdrop-blur-md">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-polar-glacier/60 text-sm"></i>
+      </div>
+
+      <!-- 清單卡片容器 -->
+      <div class="ice-card p-4 md:p-6 max-h-[480px] overflow-y-auto space-y-3" id="joke-list-container">
+        <!-- JS 動態生成笑話清單 -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- 頁尾與音效切換 -->
+  <footer class="relative z-10 text-center mt-6 text-xs text-polar-glacier/60 flex flex-col items-center gap-2">
+    <div class="flex items-center gap-2">
+      <span>🐧 極地企鵝提醒：保持微笑，注意保暖</span>
+      <span>•</span>
+      <button onclick="toggleSound()" id="sound-btn" class="hover:text-cyan-300 flex items-center gap-1 transition-colors">
+        <i class="fa-solid fa-volume-high" id="sound-icon"></i> 音效: <span id="sound-status">開啟</span>
+      </button>
+    </div>
+    <p class="font-mono text-[10px] opacity-70">Antarctic Cool Jokes Collection © 2026</p>
+  </footer>
+
+  <!-- JavaScript 核心邏輯 -->
+  <script>
+    // 1. 冷笑話資料庫 (收錄 45 篇豐富冷笑話)
+    const jokesDatabase = [
+      // 食物篇
+      { id: 1, category: "food", q: "豬皮跟什麼最配？", a: "辣椒。 因為「豬皮辣」（主比拉 / 抓不怕）。" },
+      { id: 2, category: "food", q: "什麼水果最不聽話？", a: "芭樂。 因為「芭樂（不理）你」。" },
+      { id: 3, category: "food", q: "皮蛋瘦肉粥如果發脾氣，會變成什麼？", a: "爆脾氣肉粥。" },
+      { id: 4, category: "food", q: "為什麼香蕉很怕冷？", a: "因為牠常常被剝皮。" },
+      { id: 5, category: "food", q: "什麼食物最容易摔倒？", a: "狡猾（腳滑）的人，還有「甜甜圈」（因為牠一直圈圈圓圓圈圈）。" },
+      { id: 6, category: "food", q: "巧克力和包子打架，巧克力贏了，請問包子說了什麼？", a: "「輸（蒸）得好慘啊...」" },
+      { id: 7, category: "food", q: "什麼餅乾最容易生氣？", a: "蘇打餅乾（因為它一直縮/氣到炸）。" },
+      { id: 8, category: "food", q: "紅豆生南國，綠豆生哪裡？", a: "生南國以外的地方...（其實綠豆生『綠豆芽』）。" },
+      { id: 9, category: "food", q: "一顆高麗菜和一顆洋蔥在跑馬拉松，哪一個會先到終點？", a: "洋蔥。因為高麗菜「高離（高離遠）」離終點太遠了！" },
+      { id: 10, category: "food", q: "什麼水果最寂寞？", a: "椰子。因為「椰（也）無人」。" },
+
+      // 動物篇
+      { id: 11, category: "animal", q: "什麼動物最喜歡吃泡麵？", a: "蟋蟀。 因為蟋蟀「泡麵（吸哩呼嚕）」。" },
+      { id: 12, category: "animal", q: "哪種動物最喜歡說「對不起」？", a: "虎姑婆。 因為她常說：「虎姑婆（Sorry sorry）~」" },
+      { id: 13, category: "animal", q: "公雞跟母雞去約會，誰會先開口？", a: "公雞。 因為公雞會先「咕咕（叫）」。" },
+      { id: 14, category: "animal", q: "一隻大象把鼻孔塞住會變成什麼？", a: "大象（因為牠還是大象，只是不能呼吸）。" },
+      { id: 15, category: "animal", q: "什麼動物最容易被貼標籤？", a: "斑馬，因為牠身上全是條碼。" },
+      { id: 16, category: "animal", q: "哪種動物最喜歡撞牆？", a: "蜈蚣，因為牠腳多，煞車煞不住。" },
+      { id: 17, category: "animal", q: "幾隻羊在吃草，突然來了一隻狼，羊為什麼不跑？", a: "因為那是一隻「朗（狼）讀」的狼。" },
+      { id: 18, category: "animal", q: "為什麼北極熊不吃企鵝？", a: "因為一個在北極，一個在南極，碰不到面。" },
+      { id: 19, category: "animal", q: "狗為什麼常常舔腳掌？", a: "因為牠沒有洗腳巾。" },
+      { id: 20, category: "animal", q: "什麼魚最沒有禮貌？", a: "鮪魚，因為牠「沒（鮪）禮貌」。" },
+
+      // 諧音篇
+      { id: 21, category: "homophone", q: "為什麼國術館的師父講話都很慢？", a: "因為他喜歡「推拿（慢吞吞）」。" },
+      { id: 22, category: "homophone", q: "哪一個中文字最喜歡打架？", a: "「爭」。 因為爭（蒸）蒸日上。" },
+      { id: 23, category: "homophone", q: "木魚掉進水裡會變成什麼？", a: "濕木魚（虱目魚）。" },
+      { id: 24, category: "homophone", q: "什麼蔬菜最會做家事？", a: "芹菜（勤快）。" },
+      { id: 25, category: "homophone", q: "什麼電器最內向？", a: "害羞的「微波（微薄）爐」。" },
+      { id: 26, category: "homophone", q: "小明去麥當勞點什麼薯條最貴？", a: "「大（單）薯（數）」，因為單數無雙。" },
+      { id: 27, category: "homophone", q: "為什麼超人要穿緊身衣？", a: "因為「救人（救緊）」要緊。" },
+      { id: 28, category: "homophone", q: "打什麼東西不用花力氣，還會越打越高興？", a: "打哈欠。" },
+      { id: 29, category: "homophone", q: "為什麼洗澡時不能唱歌？", a: "因為會「吃水（失聲）」。" },
+      { id: 30, category: "homophone", q: "蜘蛛人是什麼顏色？", a: "白色，因為 Spider-Man (是白的 Man)。" },
+
+      // 生活篇
+      { id: 31, category: "life", q: "小明跌倒了，請問他會說什麼？", a: "「好險，衣服沒髒。」" },
+      { id: 32, category: "life", q: "小明在海邊撿到一個神燈，許願想要很多錢，為什麼神燈給了他一堆硬幣？", a: "因為神燈是「零錢（神奇）燈」。" },
+      { id: 33, category: "life", q: "走在路上，突然天降大雨，小明沒帶傘也沒戴帽子，為什麼他頭髮一點都沒濕？", a: "因為小明是光頭。" },
+      { id: 34, category: "life", q: "什麼門永遠關不上？", a: "球門。" },
+      { id: 35, category: "life", q: "小弟弟長大後會變成什麼？", a: "大弟弟。" },
+      { id: 36, category: "life", q: "考試時，小明為什麼一直看鐘？", a: "因為他「敲鐘（瞄準）答案」。" },
+      { id: 37, category: "life", q: "什麼東西越洗越髒，不洗反而乾淨？", a: "水。" },
+      { id: 38, category: "life", q: "有兩個人掉進陷阱裡，死的那個人叫死人，活的那個人叫什麼？", a: "叫「救命啊！」" },
+      { id: 39, category: "life", q: "用什麼辦法可以讓麻雀安靜下來？", a: "壓牠一下，因為「壓麻雀（鴉雀）無聲」。" },
+      { id: 40, category: "life", q: "地圖上哪裡的河最寬？", a: "地圖上的河（因為手量得出來）。" },
+
+      // 歷史與人物篇
+      { id: 41, category: "history", q: "三國時期誰最會寫詩？", a: "曹操，因為「說曹操，曹操（作詩）到」。" },
+      { id: 42, category: "history", q: "秦始皇最喜歡吃什麼水果？", a: "暴政（爆蒸）葡萄。" },
+      { id: 43, category: "history", q: "賈伯斯（Steve Jobs）最喜歡喝什麼飲料？", a: "蘋果汁（Apple Juice）。" },
+      { id: 44, category: "history", q: "誰是古代最厲害的游泳選手？", a: "屈原，因為他投江之後大家都划船找他。" },
+      { id: 45, category: "history", q: "孔子最常穿什麼衣服？", a: "「孔（恐）龍裝」。" }
+    ];
+
+    // 分類對應名稱
+    const categoriesMap = {
+      all: "全部笑話",
+      food: "食物篇 🍕",
+      animal: "動物篇 🐱",
+      homophone: "諧音篇 🤪",
+      life: "生活篇 🏠",
+      history: "歷史篇 📜"
+    };
+
+    let currentCategory = "all";
+    let currentJokeIndex = -1;
+    let isFlipped = false;
+    let soundEnabled = true;
+
+    // Web Audio API 音效合成器
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new AudioContext();
+      }
+    }
+
+    function playIceSound(type) {
+      if (!soundEnabled) return;
+      try {
+        initAudio();
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+
+        if (type === 'draw') {
+          // 冰塊打擊音效
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(800, now);
+          osc.frequency.exponentialRampToValueAtTime(200, now + 0.15);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+          osc.start(now);
+          osc.stop(now + 0.15);
+        } else if (type === 'reveal') {
+          // 冰塊破碎/解冻亮晶晶音效
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(523.25, now); // C5
+          osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
+          osc.frequency.setValueAtTime(783.99, now + 0.16); // G5
+          osc.frequency.setValueAtTime(1046.50, now + 0.24); // C6
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        }
+      } catch (e) {
+        console.log("Audio play prevented", e);
+      }
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('sound-status').textContent = soundEnabled ? '開啟' : '靜音';
+      document.getElementById('sound-icon').className = soundEnabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
+    }
+
+    // 按鈕波紋特效
+    function createRipple(event) {
+      const button = event.currentTarget;
+      const circle = document.createElement("span");
+      const diameter = Math.max(button.clientWidth, button.clientHeight);
+      const radius = diameter / 2;
+
+      const rect = button.getBoundingClientRect();
+      circle.style.width = circle.style.height = `${diameter}px`;
+      circle.style.left = `${event.clientX - rect.left - radius}px`;
+      circle.style.top = `${event.clientY - rect.top - radius}px`;
+      circle.classList.add("ripple");
+
+      const ripple = button.getElementsByClassName("ripple")[0];
+      if (ripple) {
+        ripple.remove();
+      }
+
+      button.appendChild(circle);
+    }
+
+    // 初始化分類 Pills 標籤
+    function renderCategoryPills() {
+      const container = document.getElementById('category-pills');
+      container.innerHTML = '';
+
+      Object.keys(categoriesMap).forEach(cat => {
+        const btn = document.createElement('button');
+        const isActive = cat === currentCategory;
+        btn.className = `px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 border ${
+          isActive 
+            ? 'bg-gradient-to-r from-cyan-400 to-teal-400 text-polar-night border-cyan-300 shadow-[0_0_12px_rgba(91,192,190,0.5)] scale-105' 
+            : 'bg-white/5 text-polar-glacier/80 border-white/10 hover:bg-white/15'
+        }`;
+        btn.textContent = categoriesMap[cat];
+        btn.onclick = (e) => {
+          createRipple(e);
+          selectCategory(cat);
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    function selectCategory(cat) {
+      currentCategory = cat;
+      renderCategoryPills();
+      drawRandomJoke();
+    }
+
+    // 隨機抽取笑話（考量當前選擇的分類）
+    function drawRandomJoke(e) {
+      if (e) createRipple(e);
+      playIceSound('draw');
+
+      const flipper = document.getElementById('card-flipper');
+      
+      // 若處於翻轉解凍狀態，先翻回正面
+      if (isFlipped) {
+        flipper.classList.remove('flipped');
+        isFlipped = false;
+        setTimeout(selectNewJoke, 300);
+      } else {
+        selectNewJoke();
+      }
+    }
+
+    function selectNewJoke() {
+      let filteredJokes = jokesDatabase;
+      if (currentCategory !== 'all') {
+        filteredJokes = jokesDatabase.filter(j => j.category === currentCategory);
+      }
+
+      if (filteredJokes.length === 0) return;
+
+      let newIndex;
+      do {
+        newIndex = Math.floor(Math.random() * filteredJokes.length);
+      } while (filteredJokes[newIndex].id === currentJokeIndex && filteredJokes.length > 1);
+
+      const joke = filteredJokes[newIndex];
+      currentJokeIndex = joke.id;
+
+      const randomTemp = -(Math.floor(Math.random() * 40) + 10);
+
+      const qText = document.getElementById('question-text');
+      qText.style.opacity = '0';
+      
+      setTimeout(() => {
+        document.getElementById('joke-number').textContent = `#${joke.id.toString().padStart(2, '0')}`;
+        document.getElementById('joke-category-tag').textContent = categoriesMap[joke.category] || "通用";
+        document.getElementById('ice-temp').textContent = `凍傷溫度: ${randomTemp}℃`;
+        qText.textContent = joke.q;
+        document.getElementById('answer-text').textContent = joke.a;
+        qText.style.opacity = '1';
+      }, 150);
+    }
+
+    // 揭曉答案
+    function revealAnswer(e) {
+      if (e) createRipple(e);
+      if (currentJokeIndex === -1) {
+        drawRandomJoke();
+        return;
+      }
+      playIceSound('reveal');
+      const flipper = document.getElementById('card-flipper');
+      flipper.classList.add('flipped');
+      isFlipped = true;
+    }
+
+    // 翻回正面
+    function flipBack(e) {
+      if (e) createRipple(e);
+      playIceSound('draw');
+      const flipper = document.getElementById('card-flipper');
+      flipper.classList.remove('flipped');
+      isFlipped = false;
+    }
+
+    // 模式切換
+    function switchMode(mode) {
+      playIceSound('draw');
+      const randomMode = document.getElementById('random-mode');
+      const listMode = document.getElementById('list-mode');
+      const tabRandom = document.getElementById('tab-random');
+      const tabList = document.getElementById('tab-list');
+
+      if (mode === 'random') {
+        randomMode.classList.remove('hidden');
+        listMode.classList.add('hidden');
+        
+        tabRandom.className = "flex-1 py-2 px-4 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 bg-polar-ice text-polar-night shadow-md";
+        tabList.className = "flex-1 py-2 px-4 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 text-polar-glacier hover:text-white";
+      } else {
+        randomMode.classList.add('hidden');
+        listMode.classList.remove('hidden');
+
+        tabList.className = "flex-1 py-2 px-4 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 bg-polar-ice text-polar-night shadow-md";
+        tabRandom.className = "flex-1 py-2 px-4 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 text-polar-glacier hover:text-white";
+
+        renderJokeList();
+      }
+    }
+
+    // 渲染冷笑話冰庫清單
+    function renderJokeList(filterText = '') {
+      const container = document.getElementById('joke-list-container');
+      container.innerHTML = '';
+
+      const query = filterText.toLowerCase().trim();
+      const filtered = jokesDatabase.filter(j => 
+        j.q.toLowerCase().includes(query) || 
+        j.a.toLowerCase().includes(query) ||
+        (categoriesMap[j.category] && categoriesMap[j.category].toLowerCase().includes(query))
+      );
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 text-polar-glacier/60">
+            <i class="fa-solid fa-snowflake text-2xl mb-2 block"></i>
+            找不到相關冷笑話，請試試別的關鍵字！
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach((joke) => {
+        const item = document.createElement('div');
+        item.className = 'p-4 rounded-xl bg-white/5 border border-white/10 transition-all hover:bg-white/10';
+        item.innerHTML = `
+          <div class="flex justify-between items-start cursor-pointer gap-2" onclick="toggleListItem(${joke.id})">
+            <div class="flex items-start gap-2.5">
+              <span class="bg-cyan-500/20 text-cyan-300 text-xs font-mono font-bold px-2 py-0.5 rounded border border-cyan-400/30 shrink-0 mt-0.5">
+                #${joke.id.toString().padStart(2, '0')}
+              </span>
+              <div>
+                <span class="text-[10px] text-polar-glacier/60 font-medium block mb-0.5">${categoriesMap[joke.category]}</span>
+                <h3 class="font-bold text-white text-sm md:text-base leading-snug">${joke.q}</h3>
+              </div>
+            </div>
+            <i id="list-icon-${joke.id}" class="fa-solid fa-chevron-down text-polar-glacier/60 text-xs transition-transform duration-300 mt-1"></i>
+          </div>
+          <div id="list-answer-${joke.id}" class="hidden mt-3 pt-3 border-t border-white/10 text-cyan-300 text-sm font-medium pl-8">
+            <span class="text-teal-400 font-bold">答：</span>${joke.a}
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    // 搜尋功能
+    function filterJokeList() {
+      const val = document.getElementById('search-input').value;
+      renderJokeList(val);
+    }
+
+    // 展開/收合清單項目
+    function toggleListItem(id) {
+      playIceSound('draw');
+      const ansEl = document.getElementById(`list-answer-${id}`);
+      const iconEl = document.getElementById(`list-icon-${id}`);
+      
+      if (ansEl.classList.contains('hidden')) {
+        ansEl.classList.remove('hidden');
+        iconEl.style.transform = 'rotate(180deg)';
+      } else {
+        ansEl.classList.add('hidden');
+        iconEl.style.transform = 'rotate(0deg)';
+      }
+    }
+
+    // 雪花 Canvas 動畫
+    const canvas = document.getElementById('snow-canvas');
+    const ctx = canvas.getContext('2d');
+    let snowflakes = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Snowflake {
+      constructor() {
+        this.reset();
+      }
+
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * -canvas.height;
+        this.size = Math.random() * 3 + 1;
+        this.speedY = Math.random() * 1 + 0.5;
+        this.speedX = Math.random() * 0.5 - 0.25;
+        this.opacity = Math.random() * 0.7 + 0.3;
+      }
+
+      update() {
+        this.y += this.speedY;
+        this.x += this.speedX;
+
+        if (this.y > canvas.height) {
+          this.reset();
+          this.y = 0;
+        }
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(224, 247, 250, ${this.opacity})`;
+        ctx.shadowBlur = 5;
+        ctx.shadowColor = '#A6E1FA';
+        ctx.fill();
+      }
+    }
+
+    function initSnow() {
+      snowflakes = [];
+      const flakeCount = Math.min(Math.floor(window.innerWidth / 8), 100);
+      for (let i = 0; i < flakeCount; i++) {
+        snowflakes.push(new Snowflake());
+      }
+    }
+
+    function animateSnow() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      snowflakes.forEach(flake => {
+        flake.update();
+        flake.draw();
+      });
+      requestAnimationFrame(animateSnow);
+    }
+
+    // 頁面初次載入
+    window.onload = function() {
+      initSnow();
+      animateSnow();
+      renderCategoryPills();
+      drawRandomJoke();
+    };
+  </script>
+</body>
+</html>
