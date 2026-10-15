@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>時尚冷笑話 Chic Cold Jokes</title>
+    <style>
+        :root {
+            --bg-color: #0d0d0d;
+            --card-bg: #18181b;
+            --accent-gold: #d4af37;
+            --text-main: #f4f4f5;
+            --text-muted: #a1a1aa;
+            --border-color: #27272a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans TC", sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        header {
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            font-weight: 300;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: var(--accent-gold);
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .joke-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 40px 30px;
+            min-height: 280px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .joke-card:hover {
+            border-color: var(--accent-gold);
+        }
+
+        .tag {
+            position: absolute;
+            top: 20px;
+            font-size: 0.75rem;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .question {
+            font-size: 1.35rem;
+            font-weight: 400;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            color: var(--text-main);
+            word-break: break-word;
+        }
+
+        .answer-box {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .answer {
+            font-size: 1.15rem;
+            color: var(--accent-gold);
+            font-weight: 500;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s ease;
+            visibility: hidden;
+        }
+
+        .answer.show {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+
+        .controls {
+            margin-top: 40px;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: transparent;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 14px 24px;
+            font-size: 0.85rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            outline: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            border-color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-primary {
+            background: var(--text-main);
+            color: var(--bg-color);
+            border: 1px solid var(--text-main);
+            font-weight: 600;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-gold);
+            border-color: var(--accent-gold);
+            color: var(--bg-color);
+        }
+
+        .btn-copy {
+            border-color: rgba(212, 175, 55, 0.4);
+            color: var(--accent-gold);
+        }
+
+        .btn-copy:hover {
+            background: rgba(212, 175, 55, 0.1);
+            border-color: var(--accent-gold);
+        }
+
+        /* 時尚黑色系 Toast 提示 */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background-color: #1c1c1e;
+            color: var(--accent-gold);
+            border: 1px solid var(--accent-gold);
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            letter-spacing: 1.5px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        @media (max-width: 480px) {
+            .question {
+                font-size: 1.15rem;
+            }
+            .controls {
+                flex-direction: column;
+                width: 100%;
+            }
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>CHIC JOKES</h1>
+            <p>時尚極簡冷笑話集</p>
+        </header>
+
+        <main class="joke-card">
+            <span class="tag" id="joke-id">QUESTION #--</span>
+            <div class="question" id="question">點擊下方按鈕開始抽題</div>
+            <div class="answer-box">
+                <div class="answer" id="answer"></div>
+            </div>
+        </main>
+
+        <div class="controls">
+            <button class="btn btn-primary" id="btn-next">隨機抽題</button>
+            <button class="btn" id="btn-answer">顯示答案</button>
+            <button class="btn btn-copy" id="btn-copy">複製笑話</button>
+        </div>
+    </div>
+
+    <!-- Toast 提示組件 -->
+    <div class="toast" id="toast">COPIED TO CLIPBOARD</div>
+
+    <script>
+        const jokes = [
+            { q: "為什麼小明上課總是帶一把傘？", a: "因為老師說知識就像雨水一樣傾瀉而下。" },
+            { q: "什麼動物最容易被踩到？", a: "大象（因為牠腳步太大，踩到別人的機會高，或者自己腳底板大）。" },
+            { q: "香蕉跌倒了會變成什麼？", a: "茄子（因為瘀青了）。" },
+            { q: "魚最怕什麼？", a: "釣魚竿（還有熱油鍋）。" },
+            { q: "哪種植物最會聊天？", a: "掌聲（樟樹/掌樹，諧音）。" },
+            { q: "為什麼蜘蛛人總是戴著面具？", a: "因為他怕被吐絲（吐槽）。" },
+            { q: "哪種水果最不喜歡講話？", a: "沉默（晨檸/檸檬，或啞巴果）。" },
+            { q: "為什麼小華上學總是遲到？", a: "因為他床上的磁場太強了。" },
+            { q: "什麼車最不聽話？", a: "倒車（因為它老是往後走）。" },
+            { q: "哪種動物最喜歡打架？", a: "蟋蟀（因為喜歡互鬥）。" },
+            { q: "為什麼電腦常常會發脾氣？", a: "因為它有太多「當機」（宕機/當掉）。" },
+            { q: "什麼東西越洗越髒？", a: "水。" },
+            { q: "哪種花最容易被撞？", a: "葵花（因為奎花/葵花子，葵花寶典）。" },
+            { q: "為什麼小明不敢看驚悚片？", a: "因為他怕被嚇到爆米花掉滿地。" },
+            { q: "什麼器官最容易被打倒？", a: "眼睛（因為一眨眼就過了）。" },
+            { q: "哪種水果最會唱歌？", a: "柳丁（因為「柳丁」響起/琉丁）。" },
+            { q: "為什麼手機沒電時最安靜？", a: "因為它累到睡著了。" },
+            { q: "什麼東西長得像山羊，但不會叫？", a: "山羊的照片。" },
+            { q: "哪種蔬菜最愛開玩笑？", a: "苦瓜（因為它總是「苦笑」）。" },
+            { q: "為什麼小張去圖書館買不到便當？", a: "因為那裡只賣「書香」。" },
+            { q: "什麼動物最會算術？", a: "斑馬（因為身上有加減號/條紋）。" },
+            { q: "為什麼大象不敢打羽毛球？", a: "因為牠怕踩碎羽毛球。" },
+            { q: "哪種水果最黏人？", a: "黏柿（甜柿/黏人）。" },
+            { q: "什麼東西越熱越硬？", a: "蛋（煮熟了會變硬）。" },
+            { q: "為什麼貓咪不喜歡上學？", a: "因為牠們討厭「喵」寫作業。" },
+            { q: "什麼門永遠關不上？", a: "球門。" },
+            { q: "哪種動物最愛曬太陽？", a: "太陽魚。" },
+            { q: "為什麼小強買了新鞋卻不穿？", a: "因為他怕鞋子被踩髒。" },
+            { q: "什麼東西越喝越渴？", a: "海水。" },
+            { q: "哪種水果最豪爽？", a: "葡萄（因為大顆大顆「萄」/淘氣）。" },
+            { q: "為什麼鬧鐘每天早上都要大叫？", a: "因為它也想賴床但辦不到。" },
+            { q: "什麼鳥飛得最高？", a: "載在飛機上的鳥。" },
+            { q: "哪種蔬菜最懂得感恩？", a: "感恩芽（豆芽）。" },
+            { q: "為什麼小明戴著墨鏡看書？", a: "因為書裡的內容太耀眼了。" },
+            { q: "什麼東西越用力拉越短？", a: "香煙。" },
+            { q: "哪種動物最懂禮貌？", a: "禮貌羊（羚羊/領羊）。" },
+            { q: "為什麼鍵盤上的空格鍵最大？", a: "因為大家最常用它來休息。" },
+            { q: "什麼東西沒有腳卻能跑遍全世界？", a: "風。" },
+            { q: "哪種水果最容易發怒？", a: "火龍果。" },
+            { q: "為什麼鉛筆總是會變短？", a: "因為它一直在努力付出（削鉛筆）。" },
+            { q: "什麼地方進去容易出來難？", a: "監獄（或迷宮）。" },
+            { q: "哪種動物最會隱形？", a: "變色龍。" },
+            { q: "為什麼小紅把字典當枕頭？", a: "因為她想「夢見知識」。" },
+            { q: "什麼東西越用越銳利？", a: "大腦。" },
+            { q: "哪種蔬菜最喜歡跳舞？", a: "芭樂（芭蕾）。" },
+            { q: "為什麼月亮晚上才出來？", a: "因為它白天要睡覺。" },
+            { q: "什麼東西越擦越黑？", a: "黑板。" },
+            { q: "哪種水果最聽話？", a: "服從蘋果（蘋果/平果）。" },
+            { q: "為什麼冰箱裡的水總是結冰？", a: "因為它覺得太冷了。" },
+            { q: "什麼東西有頭沒有腳，有軀幹沒有手？", a: "魚。" },
+            { q: "什麼東西越剪越大？", a: "洞。" },
+            { q: "什麼東西倒立後會增加一半？", a: "數字 6（倒過來變成 9）。" },
+            { q: "什麼人一年只工作一天？", a: "聖誕老人。" },
+            { q: "一隻左眼瞎了的熊，右邊走來一隻狼，左邊走來一隻老虎，牠會先看到什麼？", a: "先看到黑暗（或者先看見狼，因為右眼沒瞎）。" },
+            { q: "什麼東西有四隻腳，但不能走路？", a: "桌子。" },
+            { q: "什麼東西你佔有得越多，看見的就越少？", a: "黑暗。" },
+            { q: "世界上什麼東西走得最快，又走得最慢？", a: "時間。" },
+            { q: "小明在雨中行走，沒有拿傘也沒有戴帽子，為什麼頭髮一點也沒濕？", a: "因為他是光頭。" },
+            { q: "什麼東西買的人知道，賣的人知道，用的人卻不知道？", a: "棺材（或禮物）。" },
+            { q: "什麼東西越洗越少？", a: "肥皂。" },
+            { q: "一個盒子有幾個角？切掉一個角後還有幾個角？", a: "原本有 8 個角；切掉一個角後變成 9 個角（或者以平面看 4 個變 5 個）。" },
+            { q: "什麼東西只能往前走，不能往後退？", a: "時間（或歲月）。" },
+            { q: "什麼東西看的到卻摸不到？", a: "光線（或影子）。" },
+            { q: "哪種比賽獲得第一名的人反而大家都不想要？", a: "癌症/疾病檢查（或癌症期數/疾病診斷）。" },
+            { q: "什麼東西天天看著你，你卻看不到它？", a: "你的背影。" },
+            { q: "什麼東西打得破卻看不見？", a: "紀錄。" },
+            { q: "什麼東西越分越多？", a: "知識（或快樂）。" },
+            { q: "什麼車子沒有輪子？", a: "風車（或水車）。" },
+            { q: "什麼東西可以隨身攜帶，但永遠不會增加重量？", a: "影子（或名字）。" },
+            { q: "小華的媽媽有三個孩子，大兒子叫大毛，二兒子叫二毛，三兒子叫什麼？", a: "小華。" },
+            { q: "什麼東西丟了會讓人開心，留著會讓人難過？", a: "垃圾（或煩惱）。" },
+            { q: "什麼東西你越想它，它離你越遠？", a: "夢想（如果光想不做的話；另一答：睡眠/入睡）。" },
+            { q: "什麼東西只有一隻眼睛，卻什麼也看不到？", a: "針（針眼）。" },
+            { q: "什麼東西越給別人，自己留得越多？", a: "愛心（或知識）。" },
+            { q: "什麼水不能喝？", a: "薪水（或墨水）。" },
+            { q: "什麼東西只有在被打破時才有用？", a: "雞蛋。" },
+            { q: "什麼東西越吹越大，但一碰到硬物就爆？", a: "氣球。" },
+            { q: "什麼東西在水中不會沉，在火中不會燒？", a: "冰塊（在水中浮著，在火中融化變成水滅火）。" },
+            { q: "什麼東西有牙齒卻不能咬東西？", a: "梳子。" },
+            { q: "什麼地方太陽升起最早，落下最晚？", a: "太空（或地球儀上）。" },
+            { q: "什麼東西有許多葉子，但不是植物？", a: "書本。" },
+            { q: "什麼東西越多越重，但放在水裡卻會浮起來？", a: "船。" },
+            { q: "什麼東西越曬越濕？", a: "冰淇淋（融化成水）。" },
+            { q: "什麼東西越算越不清楚？", a: "帳目（算錯的時候）或糊塗帳。" },
+            { q: "什麼東西可以裝滿整個房間，卻不占任何空間？", a: "光線（或空氣）。" },
+            { q: "什麼東西每天都要換新，但永遠都是同一個名字？", a: "日期（或報紙）。" },
+            { q: "什麼東西越打越結實？", a: "鐵（打鐵）。" },
+            { q: "什麼東西沒有翅膀卻能飛，沒有眼睛卻能哭？", a: "雲（下雨）。" },
+            { q: "什麼東西只能用左手拿，右手拿不到？", a: "你的右手肘。" },
+            { q: "什麼東西越看越像自己？", a: "鏡子裡的影像。" },
+            { q: "什麼東西走了一整天卻一步也沒動？", a: "鐘錶。" },
+            { q: "什麼東西越高越看不見？", a: "霧（或高度造成的視線阻礙）。" },
+            { q: "什麼東西越拉越長，越放鬆越短？", a: "橡皮筋。" },
+            { q: "什麼東西用眼睛看不到，但用手能摸到？", a: "風（或脈搏）。" },
+            { q: "什麼東西有頭有尾，就是沒有身體？", a: "硬幣。" },
+            { q: "什麼東西越用越熱？", a: "大腦（或引擎）。" },
+            { q: "什麼東西越藏越容易被發現？", a: "秘密（或者謊言）。" },
+            { q: "什麼東西越輕越難拿？", a: "氣體（或空氣）。" },
+            { q: "什麼東西越擦越乾淨，但越擦越少？", a: "橡皮擦。" },
+            { q: "什麼東西大家都有，但名字都不同？", a: "姓名。" }
+        ];
+
+        let currentIndex = -1;
+
+        const qEl = document.getElementById('question');
+        const aEl = document.getElementById('answer');
+        const tagEl = document.getElementById('joke-id');
+        const btnNext = document.getElementById('btn-next');
+        const btnAnswer = document.getElementById('btn-answer');
+        const btnCopy = document.getElementById('btn-copy');
+        const toastEl = document.getElementById('toast');
+
+        function getRandomJoke() {
+            let newIndex;
+            do {
+                newIndex = Math.floor(Math.random() * jokes.length);
+            } while (newIndex === currentIndex && jokes.length > 1);
+            
+            currentIndex = newIndex;
+            aEl.classList.remove('show');
+            
+            setTimeout(() => {
+                const joke = jokes[currentIndex];
+                tagEl.textContent = `QUESTION #${String(currentIndex + 1).padStart(3, '0')}`;
+                qEl.textContent = joke.q;
+                aEl.textContent = joke.a;
+            }, 150);
+        }
+
+        function toggleAnswer() {
+            if (currentIndex === -1) return;
+            aEl.classList.toggle('show');
+        }
+
+        function copyJoke() {
+            if (currentIndex === -1) return;
+            const joke = jokes[currentIndex];
+            const textToCopy = `問：${joke.q}\n答：${joke.a}`;
+
+            const dummy = document.createElement("textarea");
+            document.body.appendChild(dummy);
+            dummy.value = textToCopy;
+            dummy.select();
+            document.execCommand("copy");
+            document.body.removeChild(dummy);
+
+            const originalText = btnCopy.textContent;
+            btnCopy.textContent = 'COPIED!';
+            
+            toastEl.classList.add('show');
+            setTimeout(() => {
+                toastEl.classList.remove('show');
+                btnCopy.textContent = originalText;
+            }, 2000);
+        }
+
+        btnNext.addEventListener('click', getRandomJoke);
+        btnAnswer.addEventListener('click', toggleAnswer);
+        btnCopy.addEventListener('click', copyJoke);
+
+        // 初始化
+        getRandomJoke();
+    </script>
+</body>
+</html>

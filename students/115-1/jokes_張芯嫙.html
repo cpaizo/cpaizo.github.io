@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>喵星人冷笑話與遊戲樂園 🐾</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti for winning celebrations -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts: Zen Maru Gothic -->
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'cat-pink': '#FFB7C5',
+                        'cat-soft-pink': '#FFF0F5',
+                        'cat-dark-pink': '#FF69B4',
+                        'cat-orange': '#FFB347',
+                        'cat-cream': '#FFFDD0',
+                        'cat-brown': '#5C4033',
+                    },
+                    fontFamily: {
+                        sans: ['Zen Maru Gothic', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #FFF0F5;
+            background-image: radial-gradient(#FFB7C5 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+            touch-action: manipulation;
+            cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='%23FF69B4'><path d='M12 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-5 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm10 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-9 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-4 3c-3.5 0-6 2.5-6 5.5 0 2.5 2.5 4.5 6 4.5s6-2 6-4.5c0-3-2.5-5.5-6-5.5z'/></svg>"), auto;
+        }
+
+        /* 貓耳朵裝飾 */
+        .cat-ears {
+            position: relative;
+        }
+        .cat-ears::before, .cat-ears::after {
+            content: '';
+            position: absolute;
+            top: -24px;
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-bottom: 30px solid #FFB7C5;
+            z-index: 0;
+        }
+        .cat-ears::before { left: 30px; transform: rotate(-15deg); }
+        .cat-ears::after { right: 30px; transform: rotate(15deg); }
+
+        /* 按鈕爪子動畫 */
+        .btn-paw {
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+        }
+        .btn-paw:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(255, 105, 180, 0.3);
+        }
+        .btn-paw:active {
+            transform: translateY(2px) scale(0.98);
+        }
+
+        /* 喵喵晃動動畫 */
+        @keyframes catWiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-6deg); }
+            75% { transform: rotate(6deg); }
+        }
+        .wiggle {
+            animation: catWiggle 1.5s infinite ease-in-out;
+        }
+
+        /* Pop In 動畫 */
+        .pop-in {
+            animation: popIn 0.3s ease-out forwards;
+        }
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.92); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* 記憶卡片翻轉效果 */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        /* 自訂滾動條 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FFF0F5;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #FFB7C5;
+            border-radius: 4px;
+        }
+
+        /* Particle Trail */
+        .paw-particle {
+            position: fixed;
+            pointer-events: none;
+            font-size: 14px;
+            animation: fadeOutPaw 0.8s ease-out forwards;
+            z-index: 9999;
+        }
+        @keyframes fadeOutPaw {
+            0% { opacity: 1; transform: scale(1) translateY(0); }
+            100% { opacity: 0; transform: scale(0.3) translateY(-20px); }
+        }
+
+        canvas {
+            touch-action: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans text-cat-brown flex flex-col items-center justify-between p-3 md:p-6" onclick="triggerPawParticle(event)">
+
+    <!-- Header Navigation -->
+    <header class="w-full max-w-2xl text-center mb-4">
+        <div class="flex justify-between items-center mb-2 px-2">
+            <div class="flex gap-2">
+                <button id="btn-sound" onclick="toggleSound()" class="btn-paw px-3 py-1.5 bg-white rounded-xl text-xs font-bold text-cat-dark-pink border border-cat-pink shadow-sm flex items-center gap-1">
+                    <i id="icon-sound" class="fa-solid fa-volume-high"></i> 音效
+                </button>
+                <button id="btn-music" onclick="toggleMusic()" class="btn-paw px-3 py-1.5 bg-white rounded-xl text-xs font-bold text-cat-dark-pink border border-cat-pink shadow-sm flex items-center gap-1">
+                    <i id="icon-music" class="fa-solid fa-music"></i> 音樂
+                </button>
+            </div>
+            <span class="text-xs font-bold text-cat-dark-pink/70">🐾 純 Web Audio 樂園</span>
+        </div>
+
+        <div class="inline-block relative mb-3">
+            <h1 class="text-3xl md:text-4xl font-black text-cat-dark-pink tracking-wider drop-shadow-md flex items-center justify-center gap-2 md:gap-3">
+                <i class="fa-solid fa-cat wiggle text-cat-orange"></i>
+                喵星人樂園 🐾
+                <i class="fa-solid fa-paw wiggle text-cat-pink"></i>
+            </h1>
+        </div>
+
+        <!-- Mode Toggle Tabs -->
+        <div class="flex justify-center gap-2 bg-white/80 p-1.5 rounded-2xl shadow-sm border-2 border-cat-pink max-w-xs md:max-w-sm mx-auto">
+            <button id="tab-jokes" onclick="switchTab('jokes')" class="btn-paw flex-1 py-2 px-4 rounded-xl font-bold text-sm md:text-base bg-cat-pink text-white shadow-sm">
+                <i class="fa-solid fa-face-laugh-beam"></i> 冷笑話大全
+            </button>
+            <button id="tab-games" onclick="switchTab('games')" class="btn-paw flex-1 py-2 px-4 rounded-xl font-bold text-sm md:text-base text-cat-dark-pink hover:bg-cat-soft-pink">
+                <i class="fa-solid fa-gamepad"></i> 貓咪遊戲樂園
+            </button>
+        </div>
+    </header>
+
+    <!-- SECTION 1: Cold Jokes -->
+    <main id="section-jokes" class="w-full max-w-xl mx-auto my-auto">
+        <div class="cat-ears bg-white rounded-3xl shadow-xl border-4 border-cat-pink p-6 md:p-8 relative z-10 transition-all">
+            
+            <!-- Category & Index Bar -->
+            <div class="flex justify-between items-center mb-6 border-b-2 border-dashed border-cat-pink/40 pb-4">
+                <span id="joke-id" class="bg-cat-pink/30 text-cat-dark-pink font-bold px-4 py-1 rounded-full text-sm">
+                    第 1 / 100 題
+                </span>
+                <button id="fav-btn" onclick="toggleFavorite()" class="text-gray-300 hover:text-red-400 text-2xl transition-colors" title="收藏這則笑話">
+                    <i class="fa-solid fa-heart"></i>
+                </button>
+            </div>
+
+            <!-- Joke Question -->
+            <div id="joke-container" class="min-h-[130px] flex items-center justify-center text-center p-2 pop-in">
+                <h2 id="joke-question" class="text-xl md:text-2xl font-bold leading-relaxed text-cat-brown">
+                    有一壇酒埋在地下過了一千年，結果他變成了什麼？
+                </h2>
+            </div>
+
+            <!-- Joke Answer Box -->
+            <div id="answer-box" class="mt-4 p-4 bg-cat-soft-pink rounded-2xl border-2 border-cat-pink/50 text-center hidden pop-in">
+                <span class="text-xs text-cat-dark-pink font-bold block mb-1">💡 答案是：</span>
+                <p id="joke-answer" class="text-lg md:text-xl font-black text-cat-dark-pink">
+                    酒精。
+                </p>
+                <p id="joke-reason" class="text-xs text-cat-brown/80 mt-1.5 hidden"></p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-6 flex flex-col gap-3">
+                <button onclick="toggleAnswer()" id="btn-toggle-ans" class="btn-paw w-full bg-cat-orange hover:bg-orange-400 text-white font-bold py-3 px-6 rounded-2xl shadow-md text-lg flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-eye"></i> 看答案
+                </button>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="prevJoke()" class="btn-paw bg-cat-pink hover:bg-cat-dark-pink text-white font-bold py-3 px-4 rounded-2xl shadow-md flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> 上一題
+                    </button>
+                    <button onclick="nextJoke()" class="btn-paw bg-cat-pink hover:bg-cat-dark-pink text-white font-bold py-3 px-4 rounded-2xl shadow-md flex items-center justify-center gap-2">
+                        下一題 <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <button onclick="randomJoke()" class="btn-paw w-full bg-cat-dark-pink hover:bg-pink-600 text-white font-bold py-3 px-6 rounded-2xl shadow-md flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-dice"></i> 隨機來一題喵！
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer Control / Search -->
+        <div class="mt-6 flex flex-wrap justify-between items-center gap-3 px-2">
+            <div class="relative flex-1 min-w-[200px]">
+                <input type="text" id="search-input" oninput="searchJokes()" placeholder="搜尋關鍵字或題號..." 
+                    class="w-full pl-10 pr-4 py-2.5 rounded-2xl border-2 border-cat-pink/60 focus:outline-none focus:border-cat-dark-pink bg-white/90 text-sm font-bold">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-cat-pink"></i>
+            </div>
+            <button onclick="showFavoritesOnly()" id="btn-fav-filter" class="btn-paw px-4 py-2.5 bg-white border-2 border-cat-pink text-cat-dark-pink font-bold rounded-2xl text-sm shadow-sm flex items-center gap-2">
+                <i class="fa-solid fa-heart text-red-400"></i> 收藏清單 (<span id="fav-count">0</span>)
+            </button>
+        </div>
+    </main>
+
+    <!-- SECTION 2: Cat Games Hub -->
+    <main id="section-games" class="w-full max-w-2xl mx-auto my-auto hidden">
+        <!-- Game Selection Grid -->
+        <div id="game-selector" class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-4">
+            <button onclick="selectGame(1)" class="btn-paw p-4 bg-white rounded-2xl border-2 border-cat-pink shadow-md text-center hover:border-cat-dark-pink">
+                <div class="text-3xl md:text-4xl mb-1">🐟</div>
+                <div class="font-bold text-sm md:text-base text-cat-brown">1. 貓咪抓魚</div>
+                <div class="text-xs text-cat-dark-pink">30秒極速捕魚</div>
+            </button>
+            <button onclick="selectGame(2)" class="btn-paw p-4 bg-white rounded-2xl border-2 border-cat-pink shadow-md text-center hover:border-cat-dark-pink">
+                <div class="text-3xl md:text-4xl mb-1">🐭</div>
+                <div class="font-bold text-sm md:text-base text-cat-brown">2. 打地鼠貓咪版</div>
+                <div class="text-xs text-cat-dark-pink">別打到貓咪喔</div>
+            </button>
+            <button onclick="selectGame(3)" class="btn-paw p-4 bg-white rounded-2xl border-2 border-cat-pink shadow-md text-center hover:border-cat-dark-pink">
+                <div class="text-3xl md:text-4xl mb-1">🃏</div>
+                <div class="font-bold text-sm md:text-base text-cat-brown">3. 記憶對對碰</div>
+                <div class="text-xs text-cat-dark-pink">貓咪圖案翻牌</div>
+            </button>
+            <button onclick="selectGame(4)" class="btn-paw p-4 bg-white rounded-2xl border-2 border-cat-pink shadow-md text-center hover:border-cat-dark-pink">
+                <div class="text-3xl md:text-4xl mb-1">🍤</div>
+                <div class="font-bold text-sm md:text-base text-cat-brown">4. 餵貓咪點心</div>
+                <div class="text-xs text-cat-dark-pink">滿足主人的胃</div>
+            </button>
+            <button onclick="selectGame(5)" class="btn-paw p-4 bg-white rounded-2xl border-2 border-cat-pink shadow-md text-center hover:border-cat-dark-pink col-span-2 md:col-span-1">
+                <div class="text-3xl md:text-4xl mb-1">🥫</div>
+                <div class="font-bold text-sm md:text-base text-cat-brown">5. 貓咪接罐頭</div>
+                <div class="text-xs text-cat-dark-pink">左右接住好吃的</div>
+            </button>
+        </div>
+
+        <!-- Game Canvas / Play Area Box -->
+        <div id="game-container" class="bg-white rounded-3xl shadow-xl border-4 border-cat-pink p-4 md:p-6 relative min-h-[420px] flex flex-col justify-between">
+            
+            <!-- Header area inside game -->
+            <div class="flex justify-between items-center mb-3 pb-2 border-b-2 border-dashed border-cat-pink/30">
+                <div class="flex items-center gap-2">
+                    <span id="game-title" class="font-black text-lg text-cat-dark-pink">選擇上方小遊戲開始！</span>
+                </div>
+                <div id="game-stats" class="text-sm font-bold text-cat-brown flex gap-3">
+                    <!-- Dynamic Score & Timer -->
+                </div>
+            </div>
+
+            <!-- Game Arena Body -->
+            <div id="game-arena" class="relative w-full h-[320px] bg-cat-soft-pink rounded-2xl overflow-hidden flex items-center justify-center border border-cat-pink/30">
+                <div class="text-center text-cat-brown/60 font-bold p-6">
+                    <i class="fa-solid fa-paw text-5xl text-cat-pink mb-3 block wiggle"></i>
+                    請點選上方任一款小遊戲開始遊玩喵！
+                </div>
+            </div>
+
+            <!-- Game Control Buttons -->
+            <div id="game-controls" class="mt-4 flex gap-3">
+                <button id="btn-start-game" onclick="startGame()" class="btn-paw flex-1 bg-cat-orange hover:bg-orange-400 text-white font-bold py-2.5 px-4 rounded-xl shadow text-center">
+                    <i class="fa-solid fa-play"></i> 開始遊戲
+                </button>
+                <button id="btn-reset-game" onclick="resetGame()" class="btn-paw bg-gray-200 hover:bg-gray-300 text-cat-brown font-bold py-2.5 px-4 rounded-xl text-center">
+                    <i class="fa-solid fa-rotate-right"></i> 重來
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-6 text-center text-xs text-cat-brown/70 py-2">
+        <p>🐾 喵星人冷笑話與遊戲樂園 • 祝你有美好的一天 🐾</p>
+    </footer>
+
+    <!-- Pure Web Audio API Synthesizer (BGM + Sound Effects) -->
+    <script>
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+        let soundEnabled = true;
+        let musicEnabled = false;
+        let bgmTimer = null;
+        let bgmNoteIndex = 0;
+
+        // BGM Melodic loop notes (Hz frequencies)
+        const bgmNotes = [
+            523.25, 659.25, 783.99, 659.25, 523.25, 659.25, 783.99, 880.00,
+            698.46, 880.00, 1046.50, 880.00, 587.33, 698.46, 880.00, 698.46
+        ];
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioCtx();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('btn-sound');
+            const icon = document.getElementById('icon-sound');
+            if (soundEnabled) {
+                btn.classList.replace('text-gray-400', 'text-cat-dark-pink');
+                icon.className = 'fa-solid fa-volume-high';
+                playSound('meow');
+            } else {
+                btn.classList.replace('text-cat-dark-pink', 'text-gray-400');
+                icon.className = 'fa-solid fa-volume-xmark';
+            }
+        }
+
+        function toggleMusic() {
+            initAudio();
+            musicEnabled = !musicEnabled;
+            const btn = document.getElementById('btn-music');
+            const icon = document.getElementById('icon-music');
+
+            if (musicEnabled) {
+                btn.classList.add('bg-cat-pink', 'text-white');
+                btn.classList.remove('bg-white', 'text-cat-dark-pink');
+                startBGM();
+            } else {
+                btn.classList.remove('bg-cat-pink', 'text-white');
+                btn.classList.add('bg-white', 'text-cat-dark-pink');
+                stopBGM();
+            }
+        }
+
+        function startBGM() {
+            if (bgmTimer) clearInterval(bgmTimer);
+            bgmNoteIndex = 0;
+            bgmTimer = setInterval(() => {
+                if (!musicEnabled || !audioCtx) return;
+                try {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(bgmNotes[bgmNoteIndex], audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.22);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.22);
+
+                    bgmNoteIndex = (bgmNoteIndex + 1) % bgmNotes.length;
+                } catch(e) {}
+            }, 250);
+        }
+
+        function stopBGM() {
+            if (bgmTimer) clearInterval(bgmTimer);
+            bgmTimer = null;
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            initAudio();
+
+            try {
+                const now = audioCtx.currentTime;
+
+                if (type === 'pop') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(350, now);
+                    osc.frequency.exponentialRampToValueAtTime(700, now + 0.08);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+
+                } else if (type === 'meow') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(550, now);
+                    osc.frequency.linearRampToValueAtTime(750, now + 0.12);
+                    osc.frequency.linearRampToValueAtTime(450, now + 0.3);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+
+                } else if (type === 'wrong') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.setValueAtTime(160, now + 0.1);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+
+                } else if (type === 'win') {
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, idx) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+                        gain.gain.setValueAtTime(0.2, now + idx * 0.1);
+                        gain.gain.linearRampToValueAtTime(0.01, now + idx * 0.1 + 0.2);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now + idx * 0.1);
+                        osc.stop(now + idx * 0.1 + 0.2);
+                    });
+
+                } else if (type === 'eat') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(600, now);
+                    osc.frequency.setValueAtTime(800, now + 0.05);
+                    osc.frequency.setValueAtTime(1000, now + 0.1);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                }
+            } catch(e) {}
+        }
+
+        function triggerPawParticle(e) {
+            const paw = document.createElement('div');
+            paw.className = 'paw-particle';
+            paw.innerText = '🐾';
+            paw.style.left = `${e.clientX - 8}px`;
+            paw.style.top = `${e.clientY - 8}px`;
+            document.body.appendChild(paw);
+            setTimeout(() => paw.remove(), 800);
+        }
+    </script>
+
+    <!-- Complete 100 Cold Jokes Data & Interface Logic -->
+    <script>
+        const jokes = [
+            { id: 1, q: "有一壇酒埋在地下過了一千年，結果他變成了什麼？", a: "酒精。" },
+            { id: 2, q: "有一只豬，它走啊走啊，走到了英國，結果他變成了什麼？", a: "Pig。" },
+            { id: 3, q: "上課老師抽查背課文，小豬，小狗，小貓都舉手了，老師會叫誰？", a: "小狗，因為旺旺仙貝。" },
+            { id: 4, q: "蝴蝶，螞蟻，蜘蛛，蜈蚣，他們一起工作，最後哪一個沒有領到酬勞？", a: "蜈蚣，因為無功不受祿。" },
+            { id: 5, q: "動物園裏大象的鼻子最長，那第二長的是誰呢？", a: "小象。" },
+            { id: 6, q: "哪種水果視力最差？", a: "芒果。" },
+            { id: 7, q: "哪兩種蔬菜有手機？", a: "蘿蔔青菜，各有索愛。" },
+            { id: 8, q: "一只烏龜從一堆大便上走過，卻只在上面留下3個腳印，為什麼？", a: "有一只腳捏著鼻子。" },
+            { id: 9, q: "人為什麼要走去床上睡覺呢？", a: "床不會自己走過來。" },
+            { id: 10, q: "原來其實是斯巴達800勇士，為什麼到了電影裏面變成300了？", a: "伍佰去唱歌了。" },
+            { id: 11, q: "小強為什麼能用一只手讓車子停下來？", a: "搭計程車。" },
+            { id: 12, q: "如果有一輛車，司機是王子，乘客是公主，請問這輛車是誰的呢？", a: "如果的。" },
+            { id: 13, q: "金木水火土，誰的腿長？", a: "火腿腸。" },
+            { id: 14, q: "一顆心值多少錢？", a: "1億，因為一心一意嘛！" },
+            { id: 15, q: "颱風天氣要帶多少錢才能出門？", a: "四千萬，因為颱風天氣沒'事千萬'不要出門。" },
+            { id: 16, q: "要考試了，不能看什麼書？", a: "百科全書(百科全輸)。" },
+            { id: 17, q: "如果明天就是世界末日，為什麼今天就有人想自殺？", a: "去天堂佔位置。" },
+            { id: 18, q: "提問：布和紙怕什麼？", a: "布怕一萬，紙怕萬一。", r: "不(布)怕一萬，只(紙)怕萬一。" },
+            { id: 19, q: "鉛筆姓什麼？", a: "蕭", r: "削(蕭)鉛筆。" },
+            { id: 20, q: "麒麟到了北極會變成什麼？", a: "冰淇凌。", r: "冰淇淩(冰麒麟)。" },
+            { id: 21, q: "從1到9哪個數位最勤勞，哪個數位最懶惰？", a: "1懶惰；2勤勞。", r: "一不做，二不休。" },
+            { id: 22, q: "怎樣使麻雀安靜下來？", a: "壓它一下。", r: "鴉雀無聲(壓雀無聲)。" },
+            { id: 23, q: "歷史上哪個人跑的最快？", a: "曹操", r: "說曹操曹操到。" },
+            { id: 24, q: "數字30~50哪個數位比熊的大便厲害？", a: "40", r: "事實勝於雄(熊)辯。" },
+            { id: 25, q: "豬圈裏的豬跑出來怎麼辦？", a: "王力宏", r: "往裏哄。" },
+            { id: 26, q: "又出來怎麼辦？", a: "韓紅", r: "還哄。" },
+            { id: 27, q: "9月28是孔子誕辰，那麼10月28日是什麼日子？", a: "孔子滿月。" },
+            { id: 28, q: "狼來了（猜水果）？", a: "楊桃(羊逃）。" },
+            { id: 29, q: "蔣公(蔣介石)如果還在世的話世界會怎樣？", a: "多一個人..." },
+            { id: 30, q: "這兩塊冰下有鯉魚（四字成語）？", a: "彬彬有禮（冰冰有鯉）。" },
+            { id: 31, q: "豆腐為什麼能打傷人？", a: "因為是凍豆腐。" },
+            { id: 32, q: "一輛客車發生了事故，所有的人都受傷了，為什麼小明卻沒事？", a: "因為他不在車上。" },
+            { id: 33, q: "有個地方能進不能出，請問這是什麼地方？", a: "墳墓。" },
+            { id: 34, q: "雞、鵝百米賽跑，雞比鵝跑得快，為什麼卻後到終點站？", a: "雞跑錯了方向。" },
+            { id: 35, q: "上課鈴聲響了，卻沒有一個同學在教室裏，怎麼回事？", a: "上的是體育課。" },
+            { id: 36, q: "玲玲沒學過算術，老師卻誇她的數學是數一數二的，為什麼？", a: "從一數到二。" },
+            { id: 37, q: "當哥倫布一隻腳邁上新大陸後，緊接著做什麼？", a: "邁另一隻腳。" },
+            { id: 38, q: "有人說吃魚可避免患近視眼，為什麼？", a: "你見過貓戴眼鏡嗎？" },
+            { id: 39, q: "什麼東西嘴裏沒有舌頭？", a: "茶壺嘴。" },
+            { id: 40, q: "什麼樣的官不能發號施令，還得老向別人陪笑？", a: "新郎官。" },
+            { id: 41, q: "一名警察見了小偷拔腿就跑，為什麼？", a: "想快點抓住小偷。" },
+            { id: 42, q: "小明天天吃口香糖，可別人還說他口臭，為什麼？", a: "他天天說髒話。" },
+            { id: 43, q: "青蛙為什麼能比樹跳得高？", a: "因為樹不會跳。" },
+            { id: 44, q: "“你跟豬站在一起”，猜一種動物。", a: "象（像）。" },
+            { id: 45, q: "老王一天要刮四、五十次臉，臉上卻仍有鬍子，這是什麼原因？", a: "老王是個理髮師。" },
+            { id: 46, q: "什麼花不能摸？", a: "火花。" },
+            { id: 47, q: "用什麼可以解開所有的謎？", a: "答案。" },
+            { id: 48, q: "什麼時候，時代廣場的大鐘會響13下？", a: "該修理的時候。" },
+            { id: 49, q: "在古時侯，什麼人沒當爸爸就先當公公了？", a: "太監。" },
+            { id: 50, q: "什麼時候有人敲門，你絕不會說請進？", a: "上廁所的時候。" },
+            { id: 51, q: "黑雞厲害還是白雞厲害？為什麼？", a: "黑雞厲害，能下白蛋，白雞下不了黑蛋。" },
+            { id: 52, q: "為什麼大家都喜歡坐著看電影？", a: "因為站著看腳會酸。" },
+            { id: 53, q: "廢除早自習會造成什麼影響？", a: "少睡半小時。" },
+            { id: 54, q: "請龜兔賽跑，請豬來當裁判，請問龜、兔誰會贏？", a: "不能說！說的人是豬…" },
+            { id: 55, q: "兩個女人與一千只鴨子所說的話有何相似性呢？", a: "無稽（雞）之談。" },
+            { id: 56, q: "農夫家裏有一頭豬和驢，過年的時候你說農夫先殺豬還是驢？", a: "你願意殺豬（傻豬）還是殺驢（儍驢）。" },
+            { id: 57, q: "為什麼飛機飛這麼高都不會撞到星星呢？", a: "因為星星會“閃”。" },
+            { id: 58, q: "一天，一塊三分熟的牛排在街上走著，突然他在前方看到一塊五分熟的牛排，可卻沒有理會他。他們為什麼沒打招呼？", a: "因為他們不熟。" },
+            { id: 59, q: "誰是萬獸之王？", a: "動物園園長。" },
+            { id: 60, q: "什麼樣的人死後還會出現？", a: "電影中的人。" },
+            { id: 61, q: "什麼帽不能戴？", a: "螺帽。" },
+            { id: 62, q: "書店裏買不到什麼書？", a: "遺書。" },
+            { id: 63, q: "大象的左耳朵像什麼？", a: "右耳朵。" },
+            { id: 64, q: "什麼水永遠用不完？", a: "淚水。" },
+            { id: 65, q: "什麼東西有五個頭，但人不覺得它怪呢？", a: "手，腳。" },
+            { id: 66, q: "家人問醫生病人的情況，醫生只舉起5個手指，家人就哭了，是什麼原因呢？", a: "三長兩短。" },
+            { id: 67, q: "把一只雞和一只鵝同時放在冰山上，為什麼雞死了鵝沒死？", a: "鵝是企鵝。" },
+            { id: 68, q: "什麼英文字母讓人們喜歡聽而且聽的人最多？", a: "ＣＤ。" },
+            { id: 69, q: "人的長壽秘訣是什麼？", a: "保持呼吸，不要斷氣。" },
+            { id: 70, q: "三更半夜回家才發現忘記帶鑰匙，家裏又沒有其他人在，這時你最大的願望是什麽？", a: "門忘了鎖。" },
+            { id: 71, q: "黑頭髮有什麽好處？", a: "不怕曬黑。" },
+            { id: 72, q: "狐狸精最擅長迷惑男人，那麽什麽'精'男女一起迷？", a: "酒精。" },
+            { id: 73, q: "經理不會做飯，可有一道菜特别拿手，是什麽？", a: "炒鱿魚。" },
+            { id: 74, q: "什麽酒不能喝？", a: "碘酒。" },
+            { id: 75, q: "爲什麽一瓶標明劇毒的藥對人卻無害？", a: "只要你不去喝它。" },
+            { id: 76, q: "打什麽東西，不必花力氣？", a: "打瞌睡。" },
+            { id: 77, q: "有一種東西，買的人知道，賣的人也知道，只有用的人不知道，是什麽東西？", a: "棺材。" },
+            { id: 78, q: "有人說，女人像一本書，那麽胖女人像什麽書？", a: "合訂本。" },
+            { id: 79, q: "被鱷魚咬和被鲨魚咬後的感覺有什麽不同？", a: "沒有人知道。" },
+            { id: 80, q: "一頭牛，向北走10米，再向西走10米，再向南走10米，倒退右轉，問牛的尾巴朝哪兒？", a: "朝地。" },
+            { id: 81, q: "'先天'是指父母的遺傳，那'後天'是什麽？", a: "明天過後的那天。" },
+            { id: 82, q: "離婚的主要起因是什麽？", a: "結婚。" },
+            { id: 83, q: "9個橙分給13個小朋友，怎麽分才公平？", a: "榨成汁。" },
+            { id: 84, q: "放一支鉛筆在地上，要使任何人都無法跨過，怎麽做？", a: "放在牆邊。" },
+            { id: 85, q: "爲什麽自由女神像老站在紐約港？", a: "她不能坐。" },
+            { id: 86, q: "世界上有什麽東西以近2000公里／小時的速度載著人奔馳，而且不必加油或其它燃料？", a: "地球。" },
+            { id: 87, q: "為了怕身材走樣，結婚後不生孩子的美女怎麽稱呼？", a: "絕代佳人。" },
+            { id: 88, q: "黑人爲什麽喜歡吃白色巧克力？", a: "怕吃到自己的手指。" },
+            { id: 89, q: "什麽人始終不敢洗澡？", a: "泥人。" },
+            { id: 90, q: "爲什麽大部份佛教徒都在北半球？", a: "南'無'阿彌陀佛。" },
+            { id: 91, q: "偷什麽東西不犯法？", a: "偷笑。" },
+            { id: 92, q: "你知道現代的科學家一般都出生在哪嗎？", a: "醫院裡。" },
+            { id: 93, q: "大雁爲什麽要向南飛？", a: "因爲用腳走太慢了。" },
+            { id: 94, q: "冬瓜、黃瓜、西瓜、南瓜都能吃，什麽瓜不能吃？", a: "傻瓜。" },
+            { id: 95, q: "盆裏有6只饅頭，6個小朋友每人分到1只，但盆裏還留着1只，爲什麽？", a: "最後一個小朋友把盆子一起拿走了。" },
+            { id: 96, q: "有一個字，人人見了都會念錯。這是什麽字？", a: "這是'錯'字。" },
+            { id: 97, q: "什麽車子寸步難行？", a: "風車。" },
+            { id: 98, q: "小明從不念書卻得了模範生，爲什麽？", a: "小明是聾啞學生。" },
+            { id: 99, q: "一個盒子有幾個邊？", a: "兩個邊；裡邊和外邊。" },
+            { id: 100, q: "哪一個月有二十八天？", a: "每個月都有28天。" }
+        ];
+
+        let currentIndex = 0;
+        let filteredJokes = [...jokes];
+        let favorites = JSON.parse(localStorage.getItem('cat_joke_favs') || '[]');
+        let isShowAnswer = false;
+        let isOnlyFavs = false;
+
+        function switchTab(tab) {
+            playSound('pop');
+            const jokesSection = document.getElementById('section-jokes');
+            const gamesSection = document.getElementById('section-games');
+            const btnJokes = document.getElementById('tab-jokes');
+            const btnGames = document.getElementById('tab-games');
+
+            if (tab === 'jokes') {
+                jokesSection.classList.remove('hidden');
+                gamesSection.classList.add('hidden');
+                btnJokes.className = "btn-paw flex-1 py-2 px-4 rounded-xl font-bold text-sm md:text-base bg-cat-pink text-white shadow-sm";
+                btnGames.className = "btn-paw flex-1 py-2 px-4 rounded-xl font-bold text-sm md:text-base text-cat-dark-pink hover:bg-cat-soft-pink";
+            } else {
+                jokesSection.classList.add('hidden');
+                gamesSection.classList.remove('hidden');
+                btnGames.className = "btn-paw flex-1 py-2 px-4 rounded-xl font-bold text-sm md:text-base bg-cat-pink text-white shadow-sm";
+                btnJokes.className = "btn-paw flex-1 py-2 px-4 rounded-xl font-bold text-sm md:text-base text-cat-dark-pink hover:bg-cat-soft-pink";
+            }
+        }
+
+        function updateCard() {
+            if (filteredJokes.length === 0) {
+                document.getElementById('joke-id').innerText = "0 / 0";
+                document.getElementById('joke-question').innerText = "找不到相關的冷笑話喵～ 😿";
+                document.getElementById('answer-box').classList.add('hidden');
+                return;
+            }
+
+            const current = filteredJokes[currentIndex];
+            const container = document.getElementById('joke-container');
+            container.classList.remove('pop-in');
+            void container.offsetWidth;
+            container.classList.add('pop-in');
+
+            document.getElementById('joke-id').innerText = `第 ${current.id} / 100 題`;
+            document.getElementById('joke-question').innerText = current.q;
+            document.getElementById('joke-answer').innerText = current.a;
+            
+            const reasonEl = document.getElementById('joke-reason');
+            if (current.r) {
+                reasonEl.innerText = `原因：${current.r}`;
+                reasonEl.classList.remove('hidden');
+            } else {
+                reasonEl.classList.add('hidden');
+            }
+
+            isShowAnswer = false;
+            document.getElementById('answer-box').classList.add('hidden');
+            document.getElementById('btn-toggle-ans').innerHTML = `<i class="fa-solid fa-eye"></i> 看答案`;
+
+            updateFavIcon();
+            updateFavCount();
+        }
+
+        function toggleAnswer() {
+            if (filteredJokes.length === 0) return;
+            playSound('pop');
+            isShowAnswer = !isShowAnswer;
+            const ansBox = document.getElementById('answer-box');
+            const btn = document.getElementById('btn-toggle-ans');
+            
+            if (isShowAnswer) {
+                ansBox.classList.remove('hidden');
+                btn.innerHTML = `<i class="fa-solid fa-eye-slash"></i> 隱藏答案`;
+            } else {
+                ansBox.classList.add('hidden');
+                btn.innerHTML = `<i class="fa-solid fa-eye"></i> 看答案`;
+            }
+        }
+
+        function nextJoke() {
+            if (filteredJokes.length === 0) return;
+            playSound('pop');
+            currentIndex = (currentIndex + 1) % filteredJokes.length;
+            updateCard();
+        }
+
+        function prevJoke() {
+            if (filteredJokes.length === 0) return;
+            playSound('pop');
+            currentIndex = (currentIndex - 1 + filteredJokes.length) % filteredJokes.length;
+            updateCard();
+        }
+
+        function randomJoke() {
+            if (filteredJokes.length === 0) return;
+            playSound('meow');
+            currentIndex = Math.floor(Math.random() * filteredJokes.length);
+            updateCard();
+        }
+
+        function toggleFavorite() {
+            if (filteredJokes.length === 0) return;
+            playSound('meow');
+            const currentId = filteredJokes[currentIndex].id;
+            const favIndex = favorites.indexOf(currentId);
+
+            if (favIndex > -1) {
+                favorites.splice(favIndex, 1);
+            } else {
+                favorites.push(currentId);
+            }
+
+            localStorage.setItem('cat_joke_favs', JSON.stringify(favorites));
+            updateFavIcon();
+            updateFavCount();
+
+            if (isOnlyFavs) {
+                showFavoritesOnly(true);
+            }
+        }
+
+        function updateFavIcon() {
+            if (filteredJokes.length === 0) return;
+            const currentId = filteredJokes[currentIndex].id;
+            const favBtn = document.getElementById('fav-btn');
+            if (favorites.includes(currentId)) {
+                favBtn.className = "text-red-500 text-2xl transition-colors scale-110";
+            } else {
+                favBtn.className = "text-gray-300 hover:text-red-400 text-2xl transition-colors";
+            }
+        }
+
+        function updateFavCount() {
+            document.getElementById('fav-count').innerText = favorites.length;
+        }
+
+        function searchJokes() {
+            const query = document.getElementById('search-input').value.trim().toLowerCase();
+            isOnlyFavs = false;
+            document.getElementById('btn-fav-filter').classList.remove('bg-cat-pink', 'text-white');
+            document.getElementById('btn-fav-filter').classList.add('bg-white', 'text-cat-dark-pink');
+
+            if (query === '') {
+                filteredJokes = [...jokes];
+            } else {
+                filteredJokes = jokes.filter(j => 
+                    j.id.toString() === query || 
+                    j.q.toLowerCase().includes(query) || 
+                    j.a.toLowerCase().includes(query)
+                );
+            }
+            currentIndex = 0;
+            updateCard();
+        }
+
+        function showFavoritesOnly(keepIndex = false) {
+            playSound('pop');
+            const btn = document.getElementById('btn-fav-filter');
+            if (!isOnlyFavs || keepIndex) {
+                isOnlyFavs = true;
+                btn.classList.add('bg-cat-pink', 'text-white');
+                btn.classList.remove('bg-white', 'text-cat-dark-pink');
+                filteredJokes = jokes.filter(j => favorites.includes(j.id));
+                if (!keepIndex) currentIndex = 0;
+                else if (currentIndex >= filteredJokes.length) currentIndex = Math.max(0, filteredJokes.length - 1);
+            } else {
+                isOnlyFavs = false;
+                btn.classList.remove('bg-cat-pink', 'text-white');
+                btn.classList.add('bg-white', 'text-cat-dark-pink');
+                filteredJokes = [...jokes];
+                currentIndex = 0;
+            }
+            updateCard();
+        }
+
+        updateCard();
+    </script>
+
+    <!-- SECTION 3: 5 Cat Interactive Mini Games JS Logic -->
+    <script>
+        let currentGameId = 0;
+        let gameTimer = null;
+        let gameInterval = null;
+        let gameScore = 0;
+        let gameTimeLeft = 30;
+        let isGameRunning = false;
+
+        function selectGame(id) {
+            playSound('pop');
+            clearCurrentGame();
+            currentGameId = id;
+
+            const titleEl = document.getElementById('game-title');
+            const statsEl = document.getElementById('game-stats');
+            const arena = document.getElementById('game-arena');
+
+            switch(id) {
+                case 1:
+                    titleEl.innerText = "🐟 貓咪抓魚";
+                    statsEl.innerHTML = `<span>時間: <b id="game-time">30</b>s</span> <span>得分: <b id="game-score">0</b></span>`;
+                    arena.innerHTML = `<div class="text-center text-cat-brown"><p class="font-bold text-base md:text-lg mb-2">點擊水裡游動的魚！</p><p class="text-xs text-cat-brown/70">普通魚 +10 分，黃金魚 🌟 +30 分！</p></div>`;
+                    break;
+                case 2:
+                    titleEl.innerText = "🐭 打地鼠貓咪版";
+                    statsEl.innerHTML = `<span>時間: <b id="game-time">30</b>s</span> <span>得分: <b id="game-score">0</b></span>`;
+                    arena.innerHTML = `<div class="text-center text-cat-brown"><p class="font-bold text-base md:text-lg mb-2">抓老鼠 🐭 得分！</p><p class="text-xs text-cat-brown/70">千萬不要點到可愛的小貓咪 🐱 扣分喔！</p></div>`;
+                    break;
+                case 3:
+                    titleEl.innerText = "🃏 貓咪記憶對對碰";
+                    statsEl.innerHTML = `<span>步數: <b id="game-moves">0</b></span> <span>配對: <b id="game-pairs">0/6</b></span>`;
+                    arena.innerHTML = `<div class="text-center text-cat-brown"><p class="font-bold text-base md:text-lg mb-2">翻牌配對相同的貓咪點心與用品！</p></div>`;
+                    break;
+                case 4:
+                    titleEl.innerText = "🍤 餵貓咪吃點心";
+                    statsEl.innerHTML = `<span>親密度: <b id="game-score">0</b>%</span>`;
+                    arena.innerHTML = `<div class="text-center text-cat-brown"><p class="font-bold text-base md:text-lg mb-2">看清喵喵想吃的點心！</p><p class="text-xs text-cat-brown/70">選擇正確的食物餵牠，提升 100% 親密度！</p></div>`;
+                    break;
+                case 5:
+                    titleEl.innerText = "🥫 貓咪接罐頭";
+                    statsEl.innerHTML = `<span>時間: <b id="game-time">30</b>s</span> <span>得分: <b id="game-score">0</b></span>`;
+                    arena.innerHTML = `<div class="text-center text-cat-brown"><p class="font-bold text-base md:text-lg mb-2">左右移動托盤接住罐頭！</p><p class="text-xs text-cat-brown/70">罐頭/魚 +10，炸彈辣椒 🌶️ 扣分！</p></div>`;
+                    break;
+            }
+        }
+
+        function clearCurrentGame() {
+            if (gameTimer) clearInterval(gameTimer);
+            if (gameInterval) clearInterval(gameInterval);
+            gameTimer = null;
+            gameInterval = null;
+            isGameRunning = false;
+        }
+
+        function startGame() {
+            if (currentGameId === 0) {
+                alert("請先選擇一款小遊戲喵！");
+                return;
+            }
+            playSound('meow');
+            clearCurrentGame();
+            isGameRunning = true;
+            gameScore = 0;
+
+            switch(currentGameId) {
+                case 1: initFishGame(); break;
+                case 2: initMoleGame(); break;
+                case 3: initMemoryGame(); break;
+                case 4: initFeedGame(); break;
+                case 5: initCatchGame(); break;
+            }
+        }
+
+        function resetGame() {
+            if (currentGameId === 0) return;
+            startGame();
+        }
+
+        function finishGame(customMsg = null) {
+            isGameRunning = false;
+            clearCurrentGame();
+            playSound('win');
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+            }
+
+            const arena = document.getElementById('game-arena');
+            const msg = customMsg || `遊戲結束喵！🎉\n你的最終得分：${gameScore} 分！`;
+            arena.innerHTML = `
+                <div class="text-center p-6 bg-white/90 rounded-2xl shadow-lg border-2 border-cat-pink pop-in">
+                    <i class="fa-solid fa-trophy text-4xl text-cat-orange mb-2 block wiggle"></i>
+                    <h3 class="text-xl font-black text-cat-dark-pink mb-2">恭喜完成！</h3>
+                    <p class="text-cat-brown font-bold whitespace-pre-line mb-4">${msg}</p>
+                    <button onclick="startGame()" class="btn-paw bg-cat-orange text-white font-bold py-2 px-6 rounded-xl shadow">再玩一次 🐾</button>
+                </div>
+            `;
+        }
+
+        /* GAME 1: 貓咪抓魚 */
+        function initFishGame() {
+            gameTimeLeft = 30;
+            gameScore = 0;
+            const arena = document.getElementById('game-arena');
+            arena.innerHTML = `<div id="fish-pool" class="relative w-full h-full cursor-crosshair"></div>`;
+            const pool = document.getElementById('fish-pool');
+
+            document.getElementById('game-score').innerText = "0";
+            document.getElementById('game-time').innerText = "30";
+
+            gameInterval = setInterval(() => {
+                if (!isGameRunning) return;
+                spawnFish(pool);
+            }, 600);
+
+            gameTimer = setInterval(() => {
+                gameTimeLeft--;
+                document.getElementById('game-time').innerText = gameTimeLeft;
+                if (gameTimeLeft <= 0) finishGame();
+            }, 1000);
+        }
+
+        function spawnFish(pool) {
+            if (pool.children.length > 8) return;
+            const fish = document.createElement('div');
+            const isGolden = Math.random() < 0.2;
+            const fishType = isGolden ? '🌟 🐠' : '🐟';
+            const pts = isGolden ? 30 : 10;
+
+            fish.className = 'absolute text-2xl md:text-3xl select-none transition-all duration-300 pop-in';
+            fish.innerHTML = fishType;
+            
+            const startY = Math.random() * (pool.clientHeight - 40);
+            const isLeft = Math.random() < 0.5;
+            let posX = isLeft ? -40 : pool.clientWidth + 10;
+            const speed = (Math.random() * 2 + 1.5) * (isLeft ? 1 : -1);
+
+            fish.style.top = `${startY}px`;
+            fish.style.left = `${posX}px`;
+            if (!isLeft) fish.style.transform = 'scaleX(-1)';
+
+            let moveInt = setInterval(() => {
+                if (!isGameRunning) { clearInterval(moveInt); return; }
+                posX += speed;
+                fish.style.left = `${posX}px`;
+
+                if (posX < -60 || posX > pool.clientWidth + 60) {
+                    clearInterval(moveInt);
+                    fish.remove();
+                }
+            }, 30);
+
+            fish.onclick = (e) => {
+                e.stopPropagation();
+                playSound(isGolden ? 'win' : 'pop');
+                gameScore += pts;
+                document.getElementById('game-score').innerText = gameScore;
+
+                const hit = document.createElement('span');
+                hit.className = 'absolute text-xs font-black text-cat-dark-pink animate-bounce';
+                hit.innerText = `+${pts}`;
+                hit.style.left = `${fish.offsetLeft}px`;
+                hit.style.top = `${fish.offsetTop}px`;
+                pool.appendChild(hit);
+                setTimeout(() => hit.remove(), 600);
+
+                clearInterval(moveInt);
+                fish.remove();
+            };
+
+            pool.appendChild(fish);
+        }
+
+        /* GAME 2: 打地鼠貓咪版 */
+        function initMoleGame() {
+            gameTimeLeft = 30;
+            gameScore = 0;
+            const arena = document.getElementById('game-arena');
+            arena.innerHTML = `
+                <div class="grid grid-cols-3 gap-3 md:gap-4 p-4 w-full max-w-sm mx-auto h-full items-center">
+                    ${[0,1,2,3,4,5,6,7,8].map(i => `
+                        <div class="relative bg-cat-pink/40 border-2 border-cat-pink rounded-2xl h-20 md:h-22 flex items-center justify-center overflow-hidden">
+                            <div id="hole-${i}" class="text-3xl md:text-4xl cursor-pointer select-none transition-transform duration-200 transform translate-y-16">
+                                🐭
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            document.getElementById('game-score').innerText = "0";
+            document.getElementById('game-time').innerText = "30";
+
+            let activeHole = -1;
+            let currentType = 'mouse';
+
+            gameInterval = setInterval(() => {
+                if (!isGameRunning) return;
+                if (activeHole >= 0) {
+                    const prev = document.getElementById(`hole-${activeHole}`);
+                    if (prev) prev.classList.add('translate-y-16');
+                }
+
+                activeHole = Math.floor(Math.random() * 9);
+                currentType = Math.random() < 0.25 ? 'cat' : 'mouse';
+                
+                const el = document.getElementById(`hole-${activeHole}`);
+                if (el) {
+                    el.innerText = currentType === 'cat' ? '🐱' : '🐭';
+                    el.classList.remove('translate-y-16');
+                    
+                    el.onclick = () => {
+                        if (!el.classList.contains('translate-y-16')) {
+                            if (currentType === 'mouse') {
+                                playSound('pop');
+                                gameScore += 10;
+                            } else {
+                                playSound('wrong');
+                                gameScore = Math.max(0, gameScore - 15);
+                            }
+                            document.getElementById('game-score').innerText = gameScore;
+                            el.classList.add('translate-y-16');
+                        }
+                    };
+                }
+            }, 750);
+
+            gameTimer = setInterval(() => {
+                gameTimeLeft--;
+                document.getElementById('game-time').innerText = gameTimeLeft;
+                if (gameTimeLeft <= 0) finishGame();
+            }, 1000);
+        }
+
+        /* GAME 3: 貓咪記憶對對碰 */
+        function initMemoryGame() {
+            const icons = ['🥫', '🐟', '🌿', '🦴', '🐾', '🧶'];
+            const cardsData = [...icons, ...icons].sort(() => Math.random() - 0.5);
+            
+            let moves = 0;
+            let matchedPairs = 0;
+            let flippedCards = [];
+
+            const arena = document.getElementById('game-arena');
+            arena.innerHTML = `
+                <div class="grid grid-cols-4 gap-2 md:gap-3 p-3 w-full max-w-sm mx-auto h-full items-center perspective-1000">
+                    ${cardsData.map((icon, idx) => `
+                        <div class="memory-card relative h-16 md:h-20 rounded-xl cursor-pointer transform-style-3d transition-transform duration-300" data-index="${idx}" data-icon="${icon}">
+                            <div class="absolute inset-0 bg-cat-pink border-2 border-white rounded-xl flex items-center justify-center text-xl text-white font-black shadow backface-hidden">
+                                🐾
+                            </div>
+                            <div class="absolute inset-0 bg-white border-2 border-cat-pink rounded-xl flex items-center justify-center text-2xl md:text-3xl backface-hidden rotate-y-180 shadow">
+                                ${icon}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            document.getElementById('game-moves').innerText = "0";
+            document.getElementById('game-pairs').innerText = "0/6";
+
+            const cardElements = arena.querySelectorAll('.memory-card');
+            cardElements.forEach(card => {
+                card.onclick = () => {
+                    if (!isGameRunning || flippedCards.length >= 2 || card.classList.contains('rotate-y-180') || card.classList.contains('matched')) return;
+
+                    playSound('pop');
+                    card.classList.add('rotate-y-180');
+                    flippedCards.push(card);
+
+                    if (flippedCards.length === 2) {
+                        moves++;
+                        document.getElementById('game-moves').innerText = moves;
+                        const [c1, c2] = flippedCards;
+
+                        if (c1.dataset.icon === c2.dataset.icon) {
+                            playSound('meow');
+                            c1.classList.add('matched');
+                            c2.classList.add('matched');
+                            flippedCards = [];
+                            matchedPairs++;
+                            document.getElementById('game-pairs').innerText = `${matchedPairs}/6`;
+
+                            if (matchedPairs === 6) {
+                                gameScore = Math.max(10, 100 - moves * 5);
+                                setTimeout(() => finishGame(`翻牌完成喵！🌟\n總步數：${moves} 步`), 500);
+                            }
+                        } else {
+                            setTimeout(() => {
+                                playSound('wrong');
+                                c1.classList.remove('rotate-y-180');
+                                c2.classList.remove('rotate-y-180');
+                                flippedCards = [];
+                            }, 800);
+                        }
+                    }
+                };
+            });
+        }
+
+        /* GAME 4: 餵貓咪吃點心 */
+        function initFeedGame() {
+            gameScore = 0;
+            const foods = [
+                { name: '鮮魚', icon: '🐟' },
+                { name: '貓罐頭', icon: '🥫' },
+                { name: '牛奶', icon: '🥛' },
+                { name: '大蝦', icon: '🍤' },
+                { name: '肉乾', icon: '🥩' }
+            ];
+
+            const arena = document.getElementById('game-arena');
+            document.getElementById('game-score').innerText = "0";
+
+            function nextRound() {
+                if (!isGameRunning) return;
+                const target = foods[Math.floor(Math.random() * foods.length)];
+                
+                arena.innerHTML = `
+                    <div class="flex flex-col items-center justify-between h-full p-4 w-full">
+                        <div class="relative flex flex-col items-center">
+                            <div class="bg-white px-4 py-2 rounded-2xl border-2 border-cat-pink font-black text-cat-dark-pink shadow-md mb-2 animate-bounce">
+                                我想吃：${target.icon} ${target.name} 喵！
+                            </div>
+                            <div class="text-6xl wiggle">🐱</div>
+                        </div>
+
+                        <div class="grid grid-cols-5 gap-2 w-full max-w-md mt-2">
+                            ${foods.map(f => `
+                                <button onclick="feedCat('${f.name}', '${target.name}')" class="btn-paw bg-white border-2 border-cat-pink p-2 rounded-2xl flex flex-col items-center text-center shadow">
+                                    <span class="text-2xl md:text-3xl">${f.icon}</span>
+                                    <span class="text-[10px] font-bold text-cat-brown mt-1">${f.name}</span>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            window.feedCat = (chosen, target) => {
+                if (!isGameRunning) return;
+                if (chosen === target) {
+                    playSound('eat');
+                    gameScore += 20;
+                    document.getElementById('game-score').innerText = gameScore;
+                    if (gameScore >= 100) {
+                        finishGame("太棒了！親密度已滿 100%！\n貓咪主子非常滿意喵～ ✨");
+                    } else {
+                        nextRound();
+                    }
+                } else {
+                    playSound('wrong');
+                    gameScore = Math.max(0, gameScore - 10);
+                    document.getElementById('game-score').innerText = gameScore;
+                    nextRound();
+                }
+            };
+
+            nextRound();
+        }
+
+        /* GAME 5: 貓咪接罐頭 */
+        function initCatchGame() {
+            gameTimeLeft = 30;
+            gameScore = 0;
+
+            const arena = document.getElementById('game-arena');
+            arena.innerHTML = `<canvas id="catch-canvas" class="w-full h-full bg-cat-soft-pink rounded-2xl"></canvas>`;
+            const canvas = document.getElementById('catch-canvas');
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = arena.clientWidth;
+            canvas.height = arena.clientHeight;
+
+            document.getElementById('game-score').innerText = "0";
+            document.getElementById('game-time').innerText = "30";
+
+            let basketX = canvas.width / 2 - 30;
+            const basketWidth = 60;
+            const basketHeight = 25;
+
+            let items = [];
+
+            function moveBasket(e) {
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                basketX = clientX - rect.left - basketWidth / 2;
+                if (basketX < 0) basketX = 0;
+                if (basketX > canvas.width - basketWidth) basketX = canvas.width - basketWidth;
+            }
+
+            canvas.addEventListener('mousemove', moveBasket);
+            canvas.addEventListener('touchmove', moveBasket);
+
+            gameInterval = setInterval(() => {
+                if (!isGameRunning) return;
+                const types = [
+                    { icon: '🥫', pts: 10 },
+                    { icon: '🐟', pts: 10 },
+                    { icon: '🍤', pts: 15 },
+                    { icon: '🌶️', pts: -15 },
+                    { icon: '🦴', pts: -10 }
+                ];
+                const item = types[Math.floor(Math.random() * types.length)];
+                items.push({
+                    x: Math.random() * (canvas.width - 30) + 15,
+                    y: -20,
+                    speed: Math.random() * 2 + 2,
+                    ...item
+                });
+            }, 500);
+
+            gameTimer = setInterval(() => {
+                gameTimeLeft--;
+                document.getElementById('game-time').innerText = gameTimeLeft;
+                if (gameTimeLeft <= 0) finishGame();
+            }, 1000);
+
+            function loop() {
+                if (!isGameRunning) return;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = '#FFB7C5';
+                ctx.beginPath();
+                ctx.roundRect(basketX, canvas.height - basketHeight - 10, basketWidth, basketHeight, 12);
+                ctx.fill();
+                ctx.fillStyle = '#5C4033';
+                ctx.font = '14px Zen Maru Gothic';
+                ctx.textAlign = 'center';
+                ctx.fillText('🐱 Basket', basketX + basketWidth/2, canvas.height - 18);
+
+                for (let i = items.length - 1; i >= 0; i--) {
+                    const it = items[i];
+                    it.y += it.speed;
+
+                    ctx.font = '22px serif';
+                    ctx.fillText(it.icon, it.x, it.y);
+
+                    if (it.y >= canvas.height - basketHeight - 20 && it.y <= canvas.height - 10) {
+                        if (it.x >= basketX - 10 && it.x <= basketX + basketWidth + 10) {
+                            if (it.pts > 0) playSound('pop');
+                            else playSound('wrong');
+
+                            gameScore = Math.max(0, gameScore + it.pts);
+                            document.getElementById('game-score').innerText = gameScore;
+                            items.splice(i, 1);
+                            continue;
+                        }
+                    }
+
+                    if (it.y > canvas.height + 20) {
+                        items.splice(i, 1);
+                    }
+                }
+
+                requestAnimationFrame(loop);
+            }
+
+            requestAnimationFrame(loop);
+        }
+    </script>
+</body>
+</html>
