@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小小笑話大王作品展 🌟</title>
+    <!-- 載入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            min-height: 100vh;
+        }
+        /* 卡片彈跳與陰影動畫 */
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .card-hover:hover {
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-between p-6 text-gray-800 select-none">
+
+    <!-- 頂部標題區 -->
+    <header class="text-center mt-6 mb-10">
+        <div class="text-5xl mb-2 animate-bounce">🎈</div>
+        <h1 class="text-3xl md:text-4xl font-black text-purple-700 tracking-wider drop-shadow-sm mb-2">
+            小小笑話大王作品展
+        </h1>
+        <p class="text-sm md:text-base text-gray-600 font-bold">
+            快來看看同學們發揮創意製作的超搞笑冷笑話網頁吧！
+        </p>
+    </header>
+
+    <!-- 學生作品連結網格區 -->
+    <main class="w-full max-w-4xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-12 px-4">
+        
+        <!-- 學生 1：張芯嫙 -->
+        <a href="https://cpaizo.github.io/students/115-1/jokes_張芯嫙.html" target="_blank" 
+           class="card-hover bg-white border-4 border-pink-300 rounded-3xl p-6 flex flex-col items-center text-center shadow-lg cursor-pointer group">
+            <div class="w-16 h-16 bg-pink-100 text-pink-500 rounded-full flex items-center justify-center text-3xl mb-4 group-hover:bg-pink-500 group-hover:text-white transition duration-300">
+                ⭐
+            </div>
+            <h2 class="text-xl font-extrabold text-gray-800 mb-1">張芯嫙 的作品</h2>
+            <p class="text-xs text-gray-400 font-bold mb-4">點擊前往觀賞 ➔</p>
+            <span class="bg-pink-100 text-pink-600 text-xs px-3 py-1 rounded-full font-bold">精選冷笑話</span>
+        </a>
+
+        <!-- 學生 2：余品靚 -->
+        <a href="https://cpaizo.github.io/students/115-1/jokes_余品靚.html" target="_blank" 
+           class="card-hover bg-white border-4 border-yellow-300 rounded-3xl p-6 flex flex-col items-center text-center shadow-lg cursor-pointer group">
+            <div class="w-16 h-16 bg-yellow-100 text-yellow-500 rounded-full flex items-center justify-center text-3xl mb-4 group-hover:bg-yellow-500 group-hover:text-white transition duration-300">
+                🎨
+            </div>
+            <h2 class="text-xl font-extrabold text-gray-800 mb-1">余品靚 的作品</h2>
+            <p class="text-xs text-gray-400 font-bold mb-4">點擊前往觀賞 ➔</p>
+            <span class="bg-yellow-100 text-yellow-700 text-xs px-3 py-1 rounded-full font-bold">精選冷笑話</span>
+        </a>
+
+        <!-- 學生 3：呂定睿 -->
+        <a href="https://cpaizo.github.io/students/115-1/jokes_呂定睿.html" target="_blank" 
+           class="card-hover bg-white border-4 border-blue-300 rounded-3xl p-6 flex flex-col items-center text-center shadow-lg cursor-pointer group">
+            <div class="w-16 h-16 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center text-3xl mb-4 group-hover:bg-blue-500 group-hover:text-white transition duration-300">
+                🚀
+            </div>
+            <h2 class="text-xl font-extrabold text-gray-800 mb-1">呂定睿 的作品</h2>
+            <p class="text-xs text-gray-400 font-bold mb-4">點擊前往觀賞 ➔</p>
+            <span class="bg-blue-100 text-blue-600 text-xs px-3 py-1 rounded-full font-bold">精選冷笑話</span>
+        </a>
+
+        <!-- 學生 4：張倢鈞 -->
+        <a href="https://cpaizo.github.io/students/115-1/jokes_張倢鈞.html" target="_blank" 
+           class="card-hover bg-white border-4 border-purple-300 rounded-3xl p-6 flex flex-col items-center text-center shadow-lg cursor-pointer group">
+            <div class="w-16 h-16 bg-purple-100 text-purple-500 rounded-full flex items-center justify-center text-3xl mb-4 group-hover:bg-purple-500 group-hover:text-white transition duration-300">
+                🎮
+            </div>
+            <h2 class="text-xl font-extrabold text-gray-800 mb-1">張倢鈞 的作品</h2>
+            <p class="text-xs text-gray-400 font-bold mb-4">點擊前往觀賞 ➔</p>
+            <span class="bg-purple-100 text-purple-600 text-xs px-3 py-1 rounded-full font-bold">精選冷笑話</span>
+        </a>
+
+        <!-- 學生 5：盧晨希 -->
+        <a href="https://cpaizo.github.io/students/115-1/jokes_盧晨希.html" target="_blank" 
+           class="card-hover bg-white border-4 border-green-300 rounded-3xl p-6 flex flex-col items-center text-center shadow-lg cursor-pointer group">
+            <div class="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center text-3xl mb-4 group-hover:bg-green-500 group-hover:text-white transition duration-300">
+                🎉
+            </div>
+            <h2 class="text-xl font-extrabold text-gray-800 mb-1">盧晨希 的作品</h2>
+            <p class="text-xs text-gray-400 font-bold mb-4">點擊前往觀賞 ➔</p>
+            <span class="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full font-bold">精選冷笑話</span>
+        </a>
+
+    </main>
+
+    <!-- 底部版權 -->
+    <footer class="text-center text-xs text-gray-500 font-bold mb-4">
+        ✨ 恭喜所有完成網頁的小朋友們！繼續創造更多有趣的程式作品吧！ ✨
+    </footer>
+
+</body>
+</html>
