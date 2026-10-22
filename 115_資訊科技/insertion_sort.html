@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>插入排序法：撲克牌理牌大師</title>
+  <style>
+    :root {
+      --primary: #9b59b6;
+      --primary-dark: #8e44ad;
+      --secondary: #e67e22;
+      --success: #2ecc71;
+      --bg: #f5ee_f8;
+      --card-bg: #FFFFFF;
+      --text: #2c3e50;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, "微軟正黑體";
+      background-color: #F3E8FF;
+      color: var(--text);
+      margin: 0;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .game-container {
+      width: 100%;
+      max-width: 800px;
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 10px 25px rgba(155, 89, 182, 0.15);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    header {
+      text-align: center;
+      border-bottom: 3px dashed #D8B4FE;
+      padding-bottom: 10px;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--primary-dark);
+      font-size: 26px;
+    }
+
+    .subtitle {
+      color: #6B7280;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+
+    .level-select {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .level-btn {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 2px solid var(--primary);
+      background: white;
+      color: var(--primary-dark);
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .level-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #F3E8FF;
+      padding: 10px 15px;
+      border-radius: 12px;
+      font-weight: bold;
+    }
+
+    .stats {
+      display: flex;
+      gap: 15px;
+      font-size: 15px;
+    }
+
+    .stat-box {
+      background: white;
+      padding: 5px 12px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    /* 老師對話框 */
+    .teacher-dialog {
+      display: flex;
+      align-items: center;
+      background: #FDF4FF;
+      border: 2px solid #F0ABFC;
+      border-radius: 15px;
+      padding: 12px 15px;
+      gap: 12px;
+    }
+
+    .teacher-avatar {
+      font-size: 36px;
+      line-height: 1;
+    }
+
+    .teacher-text {
+      font-size: 15px;
+      font-weight: 600;
+      color: #86198F;
+      line-height: 1.4;
+    }
+
+    /* 牌桌區域 */
+    .board-container {
+      background: linear-gradient(180deg, #FAF5FF 0%, #F3E8FF 100%);
+      border: 2px solid #D8B4FE;
+      border-radius: 16px;
+      padding: 25px 10px;
+      min-height: 240px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: #6B7280;
+      align-self: flex-start;
+      margin-left: 20px;
+    }
+
+    .cards-area {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+
+    .card {
+      width: 65px;
+      height: 95px;
+      background: linear-gradient(135deg, #A855F7, #9333EA);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 26px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 6px 12px rgba(147, 51, 234, 0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .card.active-pick {
+      border: 4px solid #F59E0B;
+      transform: translateY(-8px) scale(1.05);
+      box-shadow: 0 10px 20px rgba(245, 158, 11, 0.5);
+    }
+
+    .card.sorted-hand {
+      background: linear-gradient(135deg, #10B981, #059669);
+      box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+    }
+
+    .card-idx {
+      position: absolute;
+      bottom: 4px;
+      font-size: 10px;
+      opacity: 0.8;
+      font-weight: normal;
+    }
+
+    /* 插入點按鈕 */
+    .insert-slot {
+      width: 30px;
+      height: 95px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(168, 85, 247, 0.1);
+      border: 2px dashed #C084FC;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 18px;
+      color: #7C3AED;
+      transition: all 0.2s;
+    }
+
+    .insert-slot:hover {
+      background: #7C3AED;
+      color: white;
+      transform: scale(1.1);
+    }
+
+    /* 控制按鈕區 */
+    .controls {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      font-size: 15px;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary { background: var(--primary-dark); color: white; }
+    .btn-primary:hover { background: #7E22CE; }
+
+    .btn-secondary { background: var(--secondary); color: white; }
+    .btn-secondary:hover { background: #D97706; }
+
+    .btn-outline { background: #E5E7EB; color: #4B5563; }
+    .btn-outline:hover { background: #D1D5DB; }
+
+    /* 說明欄位 */
+    .rule-box {
+      background: #FAF5FF;
+      border-left: 4px solid var(--primary);
+      padding: 12px 15px;
+      border-radius: 0 10px 10px 0;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .rule-box h3 {
+      margin: 0 0 5px 0;
+      color: var(--primary-dark);
+      font-size: 15px;
+    }
+
+    /* 通關彈窗 */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+      animation: popIn 0.3s ease-out;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.7); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .stars {
+      font-size: 40px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="game-container">
+  <header>
+    <h1>🃏 插入排序法：撲克牌理牌大師</h1>
+    <div class="subtitle">每次從牌堆抽一張牌，把它「插」進手上已經排好隊伍的正確縫隙裡！</div>
+  </header>
+
+  <div class="level-select">
+    <button class="level-btn active" onclick="loadLevel(0)">第 1 關 (3張)</button>
+    <button class="level-btn" onclick="loadLevel(1)">第 2 關 (5張)</button>
+    <button class="level-btn" onclick="loadLevel(2)">第 3 關 (6張)</button>
+    <button class="level-btn" onclick="loadLevel(3)">第 4 關 (7張)</button>
+  </div>
+
+  <div class="top-bar">
+    <div class="stats">
+      <div class="stat-box">⏱️ 耗時: <span id="timer">00:00</span></div>
+      <div class="stat-box">🔄 插入次數: <span id="swap-count">0</span> 次</div>
+    </div>
+    <button class="btn btn-outline" style="padding:4px 10px; font-size:12px;" onclick="resetCurrentLevel()">↻ 重來</button>
+  </div>
+
+  <div class="teacher-dialog">
+    <div class="teacher-avatar">🧙‍♂️</div>
+    <div class="teacher-text" id="teacher-hint">
+      準備好了嗎？請把牌堆第一張牌拿起，插入到手牌的正確位置！
+    </div>
+  </div>
+
+  <div class="board-container">
+    <div style="width: 100%;">
+      <div class="section-title">💚 手上已排好隊伍（左側）：</div>
+      <div class="cards-area" id="sorted-area"></div>
+    </div>
+
+    <div style="width: 100%; border-top: 2px dashed #E9D5FF; padding-top: 15px;">
+      <div class="section-title">📦 桌上等待抽取的牌堆（右側）：</div>
+      <div class="cards-area" id="unsorted-area"></div>
+    </div>
+  </div>
+
+  <div class="rule-box">
+    <h3>💡 插入排序法（Insertion Sort）規則：</h3>
+    1. **手牌永遠保持排序**：遊戲一開始會先拿一張牌在手上。<br>
+    2. **抽牌並插入**：點擊桌上牌堆最左邊的那張新牌把它拿起來，然後點擊手牌之間的【+】縫隙把它**插入**進去。<br>
+    3. 把牌堆所有牌都抽完並插好，就順利通關囉！
+  </div>
+</div>
+
+<!-- 通關彈窗 -->
+<div class="modal" id="win-modal">
+  <div class="modal-content">
+    <h2>🎉 理牌大師挑戰成功！</h2>
+    <div class="stars" id="star-rating">⭐⭐⭐</div>
+    <p>你完全掌握了<b>插入排序法（抽牌與插入）</b>的精髓！</p>
+    <p>總花費時間：<span id="final-time">00:00</span><br>總插入次數：<span id="final-swaps">0</span> 次</p>
+    <button class="btn btn-primary" style="margin: 0 auto;" onclick="nextLevel()">挑戰下一關 ➔</button>
+  </div>
+</div>
+
+<script>
+  const levels = [
+    { id: 1, numbers: [5, 2, 8] },
+    { id: 2, numbers: [7, 3, 9, 1, 4] },
+    { id: 3, numbers: [6, 2, 8, 2, 5, 1] },
+    { id: 4, numbers: [9, 4, 1, 7, 3, 8, 2] }
+  ];
+
+  let currentLevelIdx = 0;
+  let sortedHand = [];
+  let unsortedDeck = [];
+  let activeCard = null; // 當前拿在手上的牌
+  let opCount = 0;
+
+  let timerInterval = null;
+  let secondsElapsed = 0;
+
+  function playSound(freq, duration = 0.1) {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      osc.start();
+      gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + duration);
+      osc.stop(ctx.currentTime + duration);
+    } catch(e) {}
+  }
+
+  function startTimer() {
+    clearInterval(timerInterval);
+    secondsElapsed = 0;
+    updateTimerDisplay();
+    timerInterval = setInterval(() => {
+      secondsElapsed++;
+      updateTimerDisplay();
+    }, 1000);
+  }
+
+  function updateTimerDisplay() {
+    const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+    const secs = String(secondsElapsed % 60).padStart(2, '0');
+    document.getElementById('timer').innerText = `${mins}:${secs}`;
+  }
+
+  function loadLevel(idx) {
+    currentLevelIdx = idx;
+    document.querySelectorAll('.level-btn').forEach((btn, i) => {
+      btn.classList.toggle('active', i === idx);
+    });
+    resetCurrentLevel();
+  }
+
+  function resetCurrentLevel() {
+    const level = levels[currentLevelIdx];
+    // 插入排序初始：手牌先拿第一張，其餘在牌堆
+    sortedHand = [level.numbers[0]];
+    unsortedDeck = level.numbers.slice(1);
+    activeCard = null;
+    opCount = 0;
+    document.getElementById('swap-count').innerText = '0';
+    document.getElementById('win-modal').style.display = 'none';
+
+    startTimer();
+    updateHint();
+    renderBoard();
+  }
+
+  function updateHint() {
+    const hintEl = document.getElementById('teacher-hint');
+    if (activeCard !== null) {
+      hintEl.innerHTML = `👉 你手中正拿著數字 <b>【 ${activeCard} 】</b>！請點擊上方手牌之間的 <b>【+】</b> 縫隙把它插入進去。`;
+    } else if (unsortedDeck.length > 0) {
+      hintEl.innerHTML = `👉 牌堆還剩 ${unsortedDeck.length} 張牌。請點擊牌堆最左邊的那張牌把它拿起來！`;
+    } else {
+      hintEl.innerHTML = `🎉 太棒了！所有牌都已經完美插入並排好囉！`;
+    }
+  }
+
+  function renderBoard() {
+    const sortedArea = document.getElementById('sorted-area');
+    const unsortedArea = document.getElementById('unsorted-area');
+    sortedArea.innerHTML = '';
+    unsortedArea.innerHTML = '';
+
+    // 渲染手牌與插入縫隙
+    sortedHand.forEach((val, idx) => {
+      // 縫隙 (左側)
+      if (activeCard !== null) {
+        const slot = document.createElement('div');
+        slot.className = 'insert-slot';
+        slot.innerHTML = '+';
+        slot.onclick = () => insertCardAt(idx);
+        sortedArea.appendChild(slot);
+      }
+
+      const card = document.createElement('div');
+      card.className = 'card sorted-hand';
+      card.innerHTML = `
+        <div style="font-size:16px;">🎴</div>
+        <div>${val}</div>
+      `;
+      sortedArea.appendChild(card);
+    });
+
+    // 最後一個縫隙 (右側)
+    if (activeCard !== null) {
+      const slot = document.createElement('div');
+      slot.className = 'insert-slot';
+      slot.innerHTML = '+';
+      slot.onclick = () => insertCardAt(sortedHand.length);
+      sortedArea.appendChild(slot);
+    }
+
+    // 渲染牌堆
+    unsortedDeck.forEach((val, idx) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      if (activeCard === null && idx === 0) {
+        card.classList.add('active-pick');
+      }
+      card.innerHTML = `
+        <div style="font-size:16px;">🎴</div>
+        <div>${val}</div>
+      `;
+      
+      // 只有牌堆第一張可以點擊抽取
+      if (activeCard === null && idx === 0) {
+        card.onclick = () => pickCard();
+      }
+      unsortedArea.appendChild(card);
+    });
+
+    if (unsortedDeck.length === 0 && activeCard === null) {
+      checkWin();
+    }
+  }
+
+  function pickCard() {
+    if (activeCard !== null) return;
+    activeCard = unsortedDeck.shift();
+    playSound(600, 0.1);
+    updateHint();
+    renderBoard();
+  }
+
+  function insertCardAt(index) {
+    if (activeCard === null) return;
+
+    // 插入到指定位置
+    sortedHand.splice(index, 0, activeCard);
+    activeCard = null;
+    opCount++;
+    document.getElementById('swap-count').innerText = opCount;
+    playSound(800, 0.15);
+
+    updateHint();
+    renderBoard();
+  }
+
+  function checkWin() {
+    // 檢查是否完全由小到大排好
+    let isSorted = true;
+    for (let i = 0; i < sortedHand.length - 1; i++) {
+      if (sortedHand[i] > sortedHand[i + 1]) {
+        isSorted = false;
+        break;
+      }
+    }
+
+    if (isSorted && sortedHand.length === levels[currentLevelIdx].numbers.length) {
+      clearInterval(timerInterval);
+      setTimeout(showWinModal, 400);
+    }
+  }
+
+  function showWinModal() {
+    playSound(1000, 0.4);
+    const modal = document.getElementById('win-modal');
+    document.getElementById('final-time').innerText = document.getElementById('timer').innerText;
+    document.getElementById('final-swaps').innerText = opCount;
+    modal.style.display = 'flex';
+  }
+
+  function nextLevel() {
+    if (currentLevelIdx < levels.length - 1) {
+      loadLevel(currentLevelIdx + 1);
+    } else {
+      loadLevel(0);
+    }
+  }
+
+  loadLevel(0);
+</script>
+
+</body>
+</html>

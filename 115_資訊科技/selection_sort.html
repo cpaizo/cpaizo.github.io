@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>選擇排序法：魔法寶石勇者闖關</title>
+  <style>
+    :root {
+      --primary: #4A90E2;
+      --primary-dark: #357ABD;
+      --secondary: #FF9F43;
+      --accent: #EE5253;
+      --success: #10AC84;
+      --bg: #F0F4F8;
+      --card-bg: #FFFFFF;
+      --text: #2C3E50;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, "微軟正黑體";
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .game-container {
+      width: 100%;
+      max-width: 800px;
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    header {
+      text-align: center;
+      border-bottom: 3px dashed #E2E8F0;
+      padding-bottom: 10px;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--primary);
+      font-size: 26px;
+    }
+
+    .subtitle {
+      color: #7F8C8D;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #EDF2F7;
+      padding: 10px 15px;
+      border-radius: 12px;
+      font-weight: bold;
+    }
+
+    .stats {
+      display: flex;
+      gap: 15px;
+      font-size: 16px;
+    }
+
+    .stat-box {
+      background: white;
+      padding: 5px 12px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    /* 貓咪隊長對話框 */
+    .cat-dialog {
+      display: flex;
+      align-items: center;
+      background: #FFF9DB;
+      border: 2px solid #FFE066;
+      border-radius: 15px;
+      padding: 12px 15px;
+      gap: 12px;
+    }
+
+    .cat-avatar {
+      font-size: 36px;
+      line-height: 1;
+    }
+
+    .cat-text {
+      font-size: 15px;
+      font-weight: 600;
+      color: #D9480F;
+      line-height: 1.4;
+    }
+
+    /* 遊戲卡片區域 */
+    .board-container {
+      background: #F8FAFC;
+      border: 2px solid #E2E8F0;
+      border-radius: 16px;
+      padding: 25px 10px;
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .cards-area {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+
+    .card {
+      width: 70px;
+      height: 100px;
+      background: linear-gradient(135deg, #6C5CE7, #A29BFE);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: grab;
+      box-shadow: 0 6px 12px rgba(108, 92, 231, 0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .card.selected {
+      border: 4px solid #FF9F43;
+      transform: translateY(-10px) scale(1.05);
+      box-shadow: 0 10px 20px rgba(255, 159, 67, 0.5);
+    }
+
+    .card.sorted {
+      background: linear-gradient(135deg, #10AC84, #1DD1A1);
+      box-shadow: 0 4px 8px rgba(16, 172, 132, 0.3);
+      cursor: default;
+    }
+
+    .card.sorted::after {
+      content: "✓";
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      font-size: 14px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-idx {
+      position: absolute;
+      bottom: 5px;
+      font-size: 11px;
+      opacity: 0.8;
+      font-weight: normal;
+    }
+
+    .card-icon {
+      font-size: 20px;
+      margin-bottom: 2px;
+    }
+
+    .dragging {
+      opacity: 0.5;
+    }
+
+    /* 控制按鈕區 */
+    .controls {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      font-size: 15px;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+
+    .btn-secondary { background: var(--secondary); color: white; }
+    .btn-secondary:hover { background: #E67E22; }
+
+    .btn-outline { background: #E2E8F0; color: #4A5568; }
+    .btn-outline:hover { background: #CBD5E0; }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* 關卡選單 */
+    .level-select {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .level-btn {
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 2px solid var(--primary);
+      background: white;
+      color: var(--primary);
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .level-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* 說明區塊 */
+    .rule-box {
+      background: #EBF8FF;
+      border-left: 4px solid var(--primary);
+      padding: 12px 15px;
+      border-radius: 0 10px 10px 0;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .rule-box h3 {
+      margin: 0 0 5px 0;
+      color: var(--primary);
+      font-size: 15px;
+    }
+
+    /* 通關彈窗 */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+      animation: popIn 0.3s ease-out;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.7); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .stars {
+      font-size: 40px;
+      margin: 10px 0;
+    }
+
+    @media (max-width: 600px) {
+      .card { width: 55px; height: 85px; font-size: 22px; }
+      .cat-text { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="game-container">
+  <header>
+    <h1>💎 選擇排序法：魔法寶石勇者闖關</h1>
+    <div class="subtitle">幫助貓咪隊長把寶石「從小到大」排列整齊吧！</div>
+  </header>
+
+  <div class="level-select">
+    <button class="level-btn active" onclick="loadLevel(0)">第 1 關 (3顆)</button>
+    <button class="level-btn" onclick="loadLevel(1)">第 2 關 (5顆)</button>
+    <button class="level-btn" onclick="loadLevel(2)">第 3 關 (6顆)</button>
+    <button class="level-btn" onclick="loadLevel(3)">第 4 關 (7顆)</button>
+  </div>
+
+  <div class="top-bar">
+    <div class="stats">
+      <div class="stat-box">⏱️ 耗時: <span id="timer">00:00</span></div>
+      <div class="stat-box">🔄 交換次數: <span id="swap-count">0</span></div>
+    </div>
+    <button class="btn btn-outline" style="padding:4px 10px; font-size:12px;" onclick="resetCurrentLevel()">↻ 重來</button>
+  </div>
+
+  <div class="cat-dialog">
+    <div class="cat-avatar">🐱</div>
+    <div class="cat-text" id="cat-hint">
+      準備好了嗎？請用滑鼠拖曳寶石，或是點擊兩張寶石交換位置！
+    </div>
+  </div>
+
+  <div class="board-container">
+    <div class="cards-area" id="cards-container">
+      <!-- 卡片動態生成區 -->
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-secondary" onclick="autoDemoStep()">💡 貓咪隊長提示</button>
+  </div>
+
+  <div class="rule-box">
+    <h3>💡 選擇排序法（Selection Sort）小撇步：</h3>
+    1. 每次從<b>還沒排好（紫藍色）</b>的寶石裡，找出<b>最小值</b>。<br>
+    2. 將這個最小的寶石，跟<b>未排序區的最前面一顆</b>交換位置。<br>
+    3. 交換正確後，它就會變成<b>綠色（已鎖定排好）</b>！重複這個步驟就通關囉！
+  </div>
+</div>
+
+<!-- 通關彈窗 -->
+<div class="modal" id="win-modal">
+  <div class="modal-content">
+    <h2>🎉 恭喜通關！</h2>
+    <div class="stars" id="star-rating">⭐⭐⭐</div>
+    <p>你完美運用了<b>選擇排序法</b>！</p>
+    <p>總共花費時間：<span id="final-time">00:00</span><br>總交換次數：<span id="final-swaps">0</span> 次</p>
+    <button class="btn btn-primary" style="margin: 0 auto;" onclick="nextLevel()">挑戰下一關 ➔</button>
+  </div>
+</div>
+
+<script>
+  // 關卡設定：最終過關目標絕對是由小到大
+  const levels = [
+    { id: 1, numbers: [8, 2, 5], target: [2, 5, 8] },
+    { id: 2, numbers: [7, 3, 9, 1, 4], target: [1, 3, 4, 7, 9] },
+    { id: 3, numbers: [6, 2, 8, 2, 5, 1], target: [1, 2, 2, 5, 6, 8] },
+    { id: 4, numbers: [9, 4, 1, 7, 3, 8, 2], target: [1, 2, 3, 4, 7, 8, 9] }
+  ];
+
+  let currentLevelIdx = 0;
+  let currentArray = [];
+  let sortedIndex = 0; // 當前排到第幾個位置
+  let selectedCardIdx = null;
+  let swapCount = 0;
+  
+  // 計時器
+  let timerInterval = null;
+  let secondsElapsed = 0;
+
+  // Web Audio 簡單音效
+  function playSound(freq, duration = 0.1) {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      osc.start();
+      gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + duration);
+      osc.stop(ctx.currentTime + duration);
+    } catch(e) {}
+  }
+
+  function startTimer() {
+    clearInterval(timerInterval);
+    secondsElapsed = 0;
+    updateTimerDisplay();
+    timerInterval = setInterval(() => {
+      secondsElapsed++;
+      updateTimerDisplay();
+    }, 1000);
+  }
+
+  function updateTimerDisplay() {
+    const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+    const secs = String(secondsElapsed % 60).padStart(2, '0');
+    document.getElementById('timer').innerText = `${mins}:${secs}`;
+  }
+
+  function loadLevel(idx) {
+    currentLevelIdx = idx;
+    
+    // 更新 Level 按鈕狀態
+    document.querySelectorAll('.level-btn').forEach((btn, i) => {
+      btn.classList.toggle('active', i === idx);
+    });
+
+    resetCurrentLevel();
+  }
+
+  function resetCurrentLevel() {
+    const level = levels[currentLevelIdx];
+    currentArray = [...level.numbers];
+    sortedIndex = 0;
+    swapCount = 0;
+    selectedCardIdx = null;
+    document.getElementById('swap-count').innerText = '0';
+    document.getElementById('win-modal').style.display = 'none';
+
+    startTimer();
+    updateCatHint();
+    renderCards();
+  }
+
+  function updateCatHint() {
+    const hintEl = document.getElementById('cat-hint');
+    if (sortedIndex >= currentArray.length - 1) {
+      hintEl.innerText = "🎉 太棒了！全部寶石都已經由小到大排好囉！";
+      return;
+    }
+
+    // 找出未排序區間中的最小值
+    let minVal = currentArray[sortedIndex];
+    for (let i = sortedIndex + 1; i < currentArray.length; i++) {
+      if (currentArray[i] < minVal) {
+        minVal = currentArray[i];
+      }
+    }
+
+    hintEl.innerHTML = `請在<b>未排序區域</b>中找到最小值 <b>【 ${minVal} 】</b>，並把它跟第 <b>${sortedIndex + 1}</b> 個位置的寶石交換！`;
+  }
+
+  function renderCards() {
+    const container = document.getElementById('cards-container');
+    container.innerHTML = '';
+
+    currentArray.forEach((val, idx) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      if (idx < sortedIndex) {
+        card.classList.add('sorted');
+      }
+      if (idx === selectedCardIdx) {
+        card.classList.add('selected');
+      }
+
+      card.draggable = idx >= sortedIndex; // 只有未排序的可以拖曳
+
+      card.innerHTML = `
+        <div class="card-icon">💎</div>
+        <div>${val}</div>
+        <div class="card-idx">#${idx + 1}</div>
+      `;
+
+      // 點擊事件
+      card.onclick = () => handleCardClick(idx);
+
+      // 拖曳事件 (HTML5 Drag & Drop)
+      card.ondragstart = (e) => {
+        if (idx < sortedIndex) return;
+        e.dataTransfer.setData('text/plain', idx);
+        card.classList.add('dragging');
+      };
+
+      card.ondragend = () => {
+        card.classList.remove('dragging');
+      };
+
+      card.ondragover = (e) => e.preventDefault();
+
+      card.ondrop = (e) => {
+        e.preventDefault();
+        const fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
+        if (!isNaN(fromIdx) && fromIdx !== idx) {
+          executeSwap(fromIdx, idx);
+        }
+      };
+
+      container.appendChild(card);
+    });
+  }
+
+  function handleCardClick(idx) {
+    if (idx < sortedIndex) return; // 已排序好的不能動
+
+    playSound(400, 0.05);
+
+    if (selectedCardIdx === null) {
+      selectedCardIdx = idx;
+    } else if (selectedCardIdx === idx) {
+      selectedCardIdx = null; // 取消選擇
+    } else {
+      executeSwap(selectedCardIdx, idx);
+      selectedCardIdx = null;
+    }
+    renderCards();
+  }
+
+  function executeSwap(idx1, idx2) {
+    if (idx1 < sortedIndex || idx2 < sortedIndex) return;
+
+    // 交換數字
+    const temp = currentArray[idx1];
+    currentArray[idx1] = currentArray[idx2];
+    currentArray[idx2] = temp;
+
+    swapCount++;
+    document.getElementById('swap-count').innerText = swapCount;
+    playSound(600, 0.15);
+
+    checkProgress();
+    renderCards();
+  }
+
+  function checkProgress() {
+    // 檢查選擇排序法進度：未排序區域的最前面一個是否已經是當前未排序區域中的最小值
+    let isCurrentStepCorrect = true;
+    for (let i = sortedIndex + 1; i < currentArray.length; i++) {
+      if (currentArray[i] < currentArray[sortedIndex]) {
+        isCurrentStepCorrect = false;
+        break;
+      }
+    }
+
+    if (isCurrentStepCorrect) {
+      // 成功鎖定一個位置
+      sortedIndex++;
+      playSound(800, 0.2);
+    }
+
+    // 檢查是否完全排序完成（由小到大）
+    let isFullySorted = true;
+    for (let i = 0; i < currentArray.length - 1; i++) {
+      if (currentArray[i] > currentArray[i + 1]) {
+        isFullySorted = false;
+        break;
+      }
+    }
+
+    if (isFullySorted) {
+      sortedIndex = currentArray.length;
+      clearInterval(timerInterval);
+      setTimeout(showWinModal, 500);
+    } else {
+      updateCatHint();
+    }
+  }
+
+  function autoDemoStep() {
+    if (sortedIndex >= currentArray.length - 1) return;
+
+    // 尋找當前未排序區域的最小值索引
+    let minIdx = sortedIndex;
+    for (let i = sortedIndex + 1; i < currentArray.length; i++) {
+      if (currentArray[i] < currentArray[minIdx]) {
+        minIdx = i;
+      }
+    }
+
+    if (minIdx !== sortedIndex) {
+      executeSwap(minIdx, sortedIndex);
+    } else {
+      // 已經是最小，直接步進
+      sortedIndex++;
+      checkProgress();
+      renderCards();
+    }
+  }
+
+  function showWinModal() {
+    playSound(1000, 0.4);
+    const modal = document.getElementById('win-modal');
+    document.getElementById('final-time').innerText = document.getElementById('timer').innerText;
+    document.getElementById('final-swaps').innerText = swapCount;
+
+    // 星級評分
+    let stars = "⭐⭐⭐";
+    if (swapCount > currentArray.length * 2) stars = "⭐⭐";
+    document.getElementById('star-rating').innerText = stars;
+
+    modal.style.display = 'flex';
+  }
+
+  function nextLevel() {
+    if (currentLevelIdx < levels.length - 1) {
+      loadLevel(currentLevelIdx + 1);
+    } else {
+      loadLevel(0); // 循環回到第一關
+    }
+  }
+
+  // 初始化第一關
+  loadLevel(0);
+</script>
+
+</body>
+</html>
