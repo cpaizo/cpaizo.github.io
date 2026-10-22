@@ -64,6 +64,65 @@
       margin-top: 5px;
     }
 
+    /* 學生資訊輸入區 */
+    .student-info-box {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+      background: #E1F5FE;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #BEE3F8;
+      flex-wrap: wrap;
+    }
+
+    .student-info-box input {
+      padding: 8px 12px;
+      border: 2px solid #90CAF9;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      width: 110px;
+      transition: border-color 0.2s;
+    }
+
+    .student-info-box input:focus {
+      border-color: var(--primary);
+    }
+
+    /* 進度條樣式 */
+    .progress-container {
+      width: 100%;
+      background-color: #E1F5FE;
+      border-radius: 10px;
+      overflow: hidden;
+      height: 22px;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+      position: relative;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #00A8FF, #44BD32);
+      transition: width 0.4s ease;
+    }
+
+    .progress-text {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      color: #01579B;
+    }
+
     .level-select {
       display: flex;
       gap: 8px;
@@ -107,29 +166,6 @@
       padding: 5px 12px;
       border-radius: 8px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-
-    /* 隊長對話框 */
-    .captain-dialog {
-      display: flex;
-      align-items: center;
-      background: #E0F7FA;
-      border: 2px solid #80DEEA;
-      border-radius: 15px;
-      padding: 12px 15px;
-      gap: 12px;
-    }
-
-    .captain-avatar {
-      font-size: 36px;
-      line-height: 1;
-    }
-
-    .captain-text {
-      font-size: 15px;
-      font-weight: 600;
-      color: #00838F;
-      line-height: 1.4;
     }
 
     /* 卡片區域 */
@@ -177,14 +213,12 @@
       transform: translateY(-5px);
     }
 
-    /* 比對中的卡片高亮 */
     .card.comparing {
       border: 4px solid #FF9F43;
       transform: translateY(-8px) scale(1.05);
       box-shadow: 0 10px 20px rgba(255, 159, 67, 0.5);
     }
 
-    /* 已沉底（最右邊排好）的卡片 */
     .card.bubble-done {
       background: linear-gradient(135deg, #2ECC71, #27AE60);
       box-shadow: 0 4px 8px rgba(46, 204, 113, 0.3);
@@ -219,7 +253,6 @@
       margin-bottom: 2px;
     }
 
-    /* 按鈕區 */
     .controls {
       display: flex;
       gap: 10px;
@@ -249,7 +282,6 @@
     .btn-outline { background: #E2E8F0; color: #4A5568; }
     .btn-outline:hover { background: #CBD5E0; }
 
-    /* 說明欄位 */
     .rule-box {
       background: #EBF8FF;
       border-left: 4px solid var(--primary);
@@ -265,7 +297,6 @@
       font-size: 15px;
     }
 
-    /* 通關彈窗 */
     .modal {
       display: none;
       position: fixed;
@@ -287,6 +318,16 @@
       animation: popIn 0.3s ease-out;
     }
 
+    .result-user-info {
+      background: #E1F5FE;
+      padding: 10px;
+      border-radius: 10px;
+      margin: 10px 0;
+      font-weight: bold;
+      font-size: 16px;
+      color: #01579B;
+    }
+
     @keyframes popIn {
       0% { transform: scale(0.7); opacity: 0; }
       100% { transform: scale(1); opacity: 1; }
@@ -299,7 +340,7 @@
 
     @media (max-width: 600px) {
       .card { width: 55px; height: 90px; font-size: 22px; }
-      .captain-text { font-size: 13px; }
+      .student-info-box input { width: 80px; }
     }
   </style>
 </head>
@@ -310,6 +351,19 @@
     <h1>🫧 氣泡排序法：水族館氣泡大冒險</h1>
     <div class="subtitle">氣泡排序規則：只能跟「隔壁」比較，讓大數字像氣泡一樣往右冒！</div>
   </header>
+
+  <!-- 學生資訊輸入區 -->
+  <div class="student-info-box">
+    <input type="text" id="input-class" placeholder="班級" />
+    <input type="text" id="input-seat" placeholder="座號" />
+    <input type="text" id="input-name" placeholder="姓名" />
+  </div>
+
+  <!-- 進度條區塊 -->
+  <div class="progress-container">
+    <div class="progress-bar" id="progress-bar"></div>
+    <div class="progress-text" id="progress-text">進度：0%</div>
+  </div>
 
   <div class="level-select">
     <button class="level-btn active" onclick="loadLevel(0)">第 1 關 (3顆)</button>
@@ -326,13 +380,6 @@
     <button class="btn btn-outline" style="padding:4px 10px; font-size:12px;" onclick="resetCurrentLevel()">↻ 重來</button>
   </div>
 
-  <div class="captain-dialog">
-    <div class="captain-avatar">🐬</div>
-    <div class="captain-text" id="captain-hint">
-      準備好了嗎？點擊隔壁相鄰的兩張卡片，比比看誰比較大！
-    </div>
-  </div>
-
   <div class="board-container">
     <div class="cards-area" id="cards-container">
       <!-- 動態生成卡片區 -->
@@ -346,7 +393,7 @@
 
   <div class="rule-box">
     <h3>💡 氣泡排序法（Bubble Sort）規則：</h3>
-    1. <b>只能與隔壁比較</b>：海豚隊長會標記當前要比較的<b>相鄰兩張氣泡</b>。<br>
+    1. <b>只能與隔壁比較</b>：系統會自動標記當前要比較的<b>相鄰兩張氣泡</b>。<br>
     2. <b>大數字往右邊冒</b>：如果左邊比右邊大，點擊【⇄ 隔壁交換】；如果左邊小於等於右邊，點擊【✓ 順序正確】。<br>
     3. 每繞完一輪，當前<b>最大的數字</b>就會成功「冒」到最右邊並鎖定綠色勾勾！
   </div>
@@ -355,16 +402,18 @@
 <!-- 通關彈窗 -->
 <div class="modal" id="win-modal">
   <div class="modal-content">
-    <h2>🎉 氣泡挑戰成功！</h2>
+    <h2 id="modal-title">🎉 氣泡挑戰成功！</h2>
     <div class="stars" id="star-rating">⭐⭐⭐</div>
+    <div class="result-user-info" id="final-student-info">
+      進度條 25% | 未填寫 學生資訊
+    </div>
     <p>你完全掌握了<b>氣泡排序法（隔壁比較）</b>的精神！</p>
     <p>總花費時間：<span id="final-time">00:00</span><br>總操作次數：<span id="final-swaps">0</span> 次</p>
-    <button class="btn btn-primary" style="margin: 0 auto;" onclick="nextLevel()">挑戰下一關 ➔</button>
+    <button class="btn btn-primary" id="next-level-btn" style="margin: 0 auto;" onclick="nextLevel()">挑戰下一關 ➔</button>
   </div>
 </div>
 
 <script>
-  // 關卡資料，最終目標皆為「從小到大」
   const levels = [
     { id: 1, numbers: [5, 2, 8], target: [2, 5, 8] },
     { id: 2, numbers: [7, 3, 9, 1, 4], target: [1, 3, 4, 7, 9] },
@@ -374,9 +423,12 @@
 
   let currentLevelIdx = 0;
   let currentArray = [];
-  let compareIdx = 0; // 當前正在比較第 compareIdx 和 compareIdx + 1 張
-  let rightSortedCount = 0; // 右邊已經沉底/定位的數量
+  let compareIdx = 0; 
+  let rightSortedCount = 0; 
   let opCount = 0;
+
+  // 記錄已通關的最高關卡數（0 ~ 4）
+  let completedLevelsCount = 0;
 
   let timerInterval = null;
   let secondsElapsed = 0;
@@ -411,6 +463,16 @@
     document.getElementById('timer').innerText = `${mins}:${secs}`;
   }
 
+  function updateProgressBar() {
+    // 每過一關佔 25%，最高 100%
+    const percentage = completedLevelsCount * 25;
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    
+    progressBar.style.width = `${percentage}%`;
+    progressText.innerText = `進度：${percentage}%`;
+  }
+
   function loadLevel(idx) {
     currentLevelIdx = idx;
     document.querySelectorAll('.level-btn').forEach((btn, i) => {
@@ -429,26 +491,7 @@
     document.getElementById('win-modal').style.display = 'none';
 
     startTimer();
-    updateHint();
     renderCards();
-  }
-
-  function updateHint() {
-    const hintEl = document.getElementById('captain-hint');
-    const limit = currentArray.length - 1 - rightSortedCount;
-
-    if (rightSortedCount >= currentArray.length - 1) {
-      hintEl.innerHTML = "🎉 太精彩了！所有氣泡都成功由小到大排好囉！";
-      return;
-    }
-
-    const num1 = currentArray[compareIdx];
-    const num2 = currentArray[compareIdx + 1];
-
-    hintEl.innerHTML = `請比較橘色外框這兩張隔壁氣泡：<b>【 ${num1} 】</b> 與 <b>【 ${num2} 】</b>。<br>` +
-      (num1 > num2 
-        ? `👉 因為 <b>${num1} > ${num2}</b>（左邊比較大），請點擊【<b>⇄ 隔壁交換</b>】！` 
-        : `👉 因為 <b>${num1} ≤ ${num2}</b>（順序正確），請點擊【<b>✓ 順序正確</b>】！`);
   }
 
   function renderCards() {
@@ -461,12 +504,9 @@
       const card = document.createElement('div');
       card.className = 'card';
 
-      // 右邊已完成沉底的卡片
       if (idx >= limit) {
         card.classList.add('bubble-done');
-      } 
-      // 當前正在比較的隔壁兩張
-      else if (idx === compareIdx || idx === compareIdx + 1) {
+      } else if (idx === compareIdx || idx === compareIdx + 1) {
         card.classList.add('comparing');
       }
 
@@ -476,7 +516,6 @@
         <div class="card-idx">#${idx + 1}</div>
       `;
 
-      // 支援直接點選卡片交換隔壁
       card.onclick = () => {
         if (idx === compareIdx || idx === compareIdx + 1) {
           if (currentArray[compareIdx] > currentArray[compareIdx + 1]) {
@@ -491,31 +530,26 @@
     });
   }
 
-  // 動作 1：隔壁交換
   function swapAdjacent() {
     const num1 = currentArray[compareIdx];
     const num2 = currentArray[compareIdx + 1];
 
     if (num1 > num2) {
-      // 交換
       currentArray[compareIdx] = num2;
       currentArray[compareIdx + 1] = num1;
       playSound(500, 0.12);
     } else {
-      // 提示學生不需要換
       playSound(200, 0.2);
     }
 
     stepForward();
   }
 
-  // 動作 2：不交換（順序正確）
   function keepOrder() {
     playSound(700, 0.1);
     stepForward();
   }
 
-  // 推進一步
   function stepForward() {
     opCount++;
     document.getElementById('swap-count').innerText = opCount;
@@ -525,7 +559,6 @@
     if (compareIdx < maxIndexForThisPass) {
       compareIdx++;
     } else {
-      // 一輪結束，最右邊當前最大的氣泡成功「冒」到指定位置沉底
       rightSortedCount++;
       compareIdx = 0;
       playSound(900, 0.25);
@@ -535,7 +568,6 @@
   }
 
   function checkWin() {
-    // 檢查是否完全排好
     let isSorted = true;
     for (let i = 0; i < currentArray.length - 1; i++) {
       if (currentArray[i] > currentArray[i + 1]) {
@@ -547,10 +579,16 @@
     if (isSorted || rightSortedCount >= currentArray.length - 1) {
       rightSortedCount = currentArray.length;
       clearInterval(timerInterval);
+      
+      // 更新已通關數，過 1 關加 25%
+      if (currentLevelIdx + 1 > completedLevelsCount) {
+        completedLevelsCount = currentLevelIdx + 1;
+      }
+      updateProgressBar();
+
       renderCards();
       setTimeout(showWinModal, 500);
     } else {
-      updateHint();
       renderCards();
     }
   }
@@ -561,6 +599,31 @@
     document.getElementById('final-time').innerText = document.getElementById('timer').innerText;
     document.getElementById('final-swaps').innerText = opCount;
 
+    const className = document.getElementById('input-class').value.trim() || '未填寫班級';
+    const seatName = document.getElementById('input-seat').value.trim() || '未填寫座號';
+    const studentName = document.getElementById('input-name').value.trim() || '未填寫姓名';
+
+    const currentPercent = completedLevelsCount * 25;
+
+    // 顯示進度與學生個人資訊
+    document.getElementById('final-student-info').innerText = 
+      `進度條 ${currentPercent}% | ${className} ${seatName}號 ${studentName}`;
+
+    let stars = "⭐⭐⭐";
+    if (opCount > currentArray.length * 4) stars = "⭐⭐";
+    document.getElementById('star-rating').innerText = stars;
+
+    const nextBtn = document.getElementById('next-level-btn');
+    const modalTitle = document.getElementById('modal-title');
+
+    if (currentLevelIdx >= levels.length - 1) {
+      modalTitle.innerText = "🏆 恭喜完成所有氣泡挑戰！";
+      nextBtn.innerText = "完成闖關";
+    } else {
+      modalTitle.innerText = "🎉 氣泡挑戰成功！";
+      nextBtn.innerText = "挑戰下一關 ➔";
+    }
+
     modal.style.display = 'flex';
   }
 
@@ -568,11 +631,12 @@
     if (currentLevelIdx < levels.length - 1) {
       loadLevel(currentLevelIdx + 1);
     } else {
-      loadLevel(0);
+      // 破關第四關後停留在第四關
+      document.getElementById('win-modal').style.display = 'none';
+      loadLevel(levels.length - 1);
     }
   }
 
-  // 初始化第一關
   loadLevel(0);
 </script>
 
