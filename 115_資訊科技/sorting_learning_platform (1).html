@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>國中生排序演算法互動學習網</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .draggable-bar {
+      cursor: grab;
+      user-select: none;
+      touch-action: none;
+      transition: transform 0.15s ease, background-color 0.2s;
+    }
+    .draggable-bar:active {
+      cursor: grabbing;
+      opacity: 0.8;
+    }
+    .dragging {
+      opacity: 0.4;
+    }
+    .bar-anim {
+      transition: height 0.3s ease, background-color 0.3s ease;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 font-sans pb-12">
+
+  <!-- 頂部導覽列 -->
+  <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <h1 class="text-xl font-bold tracking-wide flex items-center gap-2">
+        <span>📊</span> 排序演算法 互動學習網
+      </h1>
+      <nav class="flex bg-indigo-700 p-1 rounded-lg gap-1 text-sm font-medium">
+        <button id="nav-selection" onclick="switchTab('selection')" class="px-4 py-2 rounded-md transition-all bg-white text-indigo-700 shadow font-bold">
+          1. 選擇排序法
+        </button>
+        <button id="nav-insertion" onclick="switchTab('insertion')" class="px-4 py-2 rounded-md transition-all text-indigo-100 hover:text-white font-medium">
+          2. 插入排序法
+        </button>
+        <button id="nav-bubble" onclick="switchTab('bubble')" class="px-4 py-2 rounded-md transition-all text-indigo-100 hover:text-white font-medium">
+          3. 氣泡排序法
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 mt-6">
+
+    <!-- ================= 1. 選擇排序法 ================= -->
+    <section id="tab-selection" class="tab-content">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+        <div class="flex items-center gap-3 border-b pb-3 mb-4">
+          <span class="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-full">單元 1</span>
+          <h2 class="text-2xl font-bold text-slate-800">選擇排序法（Selection Sort）</h2>
+        </div>
+        <p class="text-slate-600 mb-4 leading-relaxed">
+          💡 <b>核心觀念：</b> 每次都掃視「還沒排好」的所有數字，找出其中<b>最小的數字</b>，跟最前面的位置交換。就像在班上挑選最矮的同學站在隊伍最前面一樣！
+        </p>
+
+        <div class="bg-slate-50 border border-slate-200 rounded-lg p-4">
+          <div class="flex justify-between items-center mb-3">
+            <span class="font-bold text-indigo-600 flex items-center gap-1">🎬 示範動畫：[ 7, 2, 9, 4 ]</span>
+            <div class="space-x-2">
+              <button onclick="playSelectionDemo()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition shadow-sm">▶ 播放動畫</button>
+              <button onclick="resetSelectionDemo()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-medium px-3 py-1.5 rounded-lg transition">↺ 重置</button>
+            </div>
+          </div>
+          <div id="selection-demo-bars" class="h-36 bg-white rounded-lg border border-slate-200 flex items-end justify-center gap-4 p-4 mb-2"></div>
+          <p id="selection-demo-msg" class="text-sm font-medium text-slate-600 text-center min-h-[24px]">點擊「▶ 播放動畫」觀察如何每次挑出最小值！</p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <h3 class="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2">
+          <span>✍️</span> 選擇排序實作題（請用手拖曳排成從小到大）
+        </h3>
+        <p class="text-xs text-slate-500 mb-6">運用「每次找最小值放最前面」的觀念，將長條圖調整成<b>從小到大</b>的最終順序。</p>
+
+        <!-- 任務 1 -->
+        <div class="mb-8 p-4 bg-slate-50 rounded-lg border border-slate-200">
+          <h4 class="font-bold text-slate-700 mb-2">任務 1 / 3：基礎排序實作</h4>
+          <p class="text-sm text-slate-600 mb-3">請將亂序數字 <span class="font-mono bg-slate-200 px-1 rounded">[ 8, 3, 5, 2 ]</span> 手動拖曳排成從小到大的正確順序：</p>
+          <div id="drag-container-sel-1" class="drag-container h-32 bg-white rounded-lg border border-slate-200 flex items-end justify-center gap-3 p-3 mb-3"></div>
+          <div class="flex justify-between items-center">
+            <button onclick="checkDragAnswer('sel-1', [2, 3, 5, 8])" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold px-4 py-2 rounded-lg transition shadow-sm">檢查答案</button>
+            <span id="feedback-sel-1" class="text-sm font-bold"></span>
+          </div>
+        </div>
+
+        <!-- 任務 2 -->
+        <div class="mb-8 p-4 bg-slate-50 rounded-lg border border-slate-200">
+          <h4 class="font-bold text-slate-700 mb-2">任務 2 / 3：進階排序實作</h4>
+          <p class="text-sm text-slate-600 mb-3">請將亂序數字 <span class="font-mono bg-slate-200 px-1 rounded">[ 1, 9, 4, 6 ]</span> 手動拖曳排成從小到大的正確順序：</p>
+          <div id="drag-container-sel-2" class="drag-container h-32 bg-white rounded-lg border border-slate-200 flex items-end justify-center gap-3 p-3 mb-3"></div>
+          <div class="flex justify-between items-center">
+            <button onclick="checkDragAnswer('sel-2', [1, 4, 6, 9])" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold px-4 py-2 rounded-lg transition shadow-sm">檢查答案</button>
+            <span id="feedback-sel-2" class="text-sm font-bold"></span>
+          </div>
+        </div>
+
+        <!-- 任務 3 -->
+        <div class="p-4 bg-slate-50 rounded-lg border border-slate-200">
+          <h4 class="font-bold text-slate-700 mb-2">任務 3 / 3：挑戰排序實作</h4>
+          <p class="text-sm text-slate-600 mb-3">請將亂序數字 <span class="font-mono bg-slate-200 px-1 rounded">[ 6, 2, 7, 3 ]</span> 手動拖曳排成從小到大的正確順序：</p>
+          <div id="drag-container-sel-3" class="drag-container h-32 bg-white rounded-lg border border-slate-200 flex items-end justify-center gap-3 p-3 mb-3"></div>
+          <div class="flex justify-between items-center">
+            <button onclick="checkDragAnswer('sel-3', [2, 3, 6, 7])" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold px-4 py-2 rounded-lg transition shadow-sm">檢查答案</button>
+            <span id="feedback-sel-3" class="text-sm font-bold"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 2. 插入排序法 ================= -->
+    <section id="tab-insertion" class="tab-content hidden">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+        <div class="flex items-center gap-3 border-b pb-3 mb-4">
+          <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded-full">單元 2</span>
+          <h2 class="text-2xl font-bold text-slate-800">插入排序法（Insertion Sort）</h2>
+        </div>
+        <p class="text-slate-600 mb-4 leading-relaxed">
+          💡 <b>核心觀念：</b> 就像整理手中的撲克牌！每次拿到一張新牌，就由右向左比對，將它<b>插入到左邊已經排好序的正確位置</b>中。
+        </p>
+
+        <div class="bg-slate-50 border border-slate-200 rounded-lg p-4">
+          <div class="flex justify-between items-center mb-3">
+            <span class="font-bold text-indigo-600 flex items-center gap-1">🎬 示範動畫：[ 5, 2, 4, 1 ]</span>
+            <div class="space-x-2">
+              <button onclick="playInsertionDemo()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition shadow-sm">▶ 播放動畫</button>
+              <button onclick="resetInsertionDemo()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-medium px-3 py-1.5 rounded-lg transition">↺ 重置</button>
+            </div>
+          </div>
+          <div id="insertion-demo-bars" class="h-36 bg-white rounded-lg border border-slate-200 flex items-end justify-center gap-4 p-4 mb-2"></div>
+          <p id="insertion-demo-msg" class="text-sm font-medium text-slate-600 text-center min-h-[24px]">點擊「▶ 播放動畫」觀察如何逐一將新牌插入左邊！</p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <h3 class="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2">
+          <span>✍️</span> 插入排序實作題（請用手拖曳排成從小到大）
+        </h3>
+        <p class="text-xs text-slate-500 mb-6">運用「整理手牌，把新牌插入正確位置」的觀念，將長條圖調整成<b>從小到大</b>的最終順序。</p>
+
+        <!-- 任務 1 -->
+        <div class="mb-8 p-4 bg-slate-50 rounded-lg border border-slate-200">
+          <h4 class="font-bold text-slate-700 mb-2">任務 1 / 3：基礎排序實作</h4>
+          <p class="text-sm text-slate-600 mb-3">請將亂序撲克牌 <span class="font-mono bg-slate-200 px-1 rounded">[ 6, 9, 3 ]</span> 手動拖曳排成從小到大的正確順序：</p>
+          <div id="drag-container-ins-1" class="drag-container h-32 bg-white rounded-lg border border-slate-200 flex items-end justify-center gap-3 p-3 mb-3"></div>
+          <div class="flex justify-between items-center">
+            <button onclick="checkDragAnswer('ins-1', [3, 6, 9])" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold px-4 py-2 rounded-lg transition shadow-sm">檢查答案</button>
+            <span id="feedback-ins-1" class="text-sm font-bold"></span>
+          </div>
+        </div>
+
+        <!-- 任務 2 -->
+        <div class="mb-8 p-4 bg-slate-50 rounded-lg border border-slate-200">
+          <h4 class="font-bold text-slate-700 mb-2">任務 2 / 3：進階排序實作</h4>
+          <p class="text-sm text-slate-600 mb-3">請將亂序撲克牌 <span class="font-mono bg-slate-200 px-1 rounded">[ 2, 4, 8, 5 ]</span> 手動拖曳排成從小到大的正確順序：</p>
+          <div id="drag-container-ins-2" class="drag-container h-32 bg-white rounded-lg border border-slate-200 flex items-end justify-center gap-3 p-3 mb-3"></div>
+          <div class="flex justify-between items-center">
+            <button onclick="checkDragAnswer('ins-2', [2, 4, 5, 8])" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold px-4 py-2 rounded-lg transition shadow-sm">檢查答案</button>
+            <span id="feedback-ins-2" class="text-sm font-bold"></span>
+          </div>
+        </div>
+
+        <!-- 任務 3 -->
+        <div class="p-4 bg-slate-50 rounded-lg border border-slate-200">
+          <h4 class="font-bold text-slate-700 mb-2">任務 3 / 3：挑戰排序實作</h4>
+          <p class="text-sm text-slate-600 mb-3">請將亂序撲克牌 <span class="font-mono bg-slate-200 px-1 rounded">[ 8, 4, 2, 7 ]</span> 手動拖曳排成從小到大的正確順序：</p>
+          <div id="drag-container-ins-3" class="drag-container h-32 bg-white rounded-lg border border-slate-200 flex items-end justify-center gap-3 p-3 mb-3"></div>
+          <div class="flex justify-between items-center">
+            <button onclick="checkDragAnswer('ins-3', [2, 4, 7, 8])" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold px-4 py-2 rounded-lg transition shadow-sm">檢查答案</button>
+            <span id="feedback-ins-3" class="text-sm font-bold"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 3. 氣泡排序法 ================= -->
+    <section id="tab-bubble" class="tab-content hidden">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+        <div class="flex items-center gap-3 border-b pb-3 mb-4">
+          <span class="bg-rose-100 text-rose-800 text-xs font-bold px-2.5 py-1 rounded-full">單元 3</span>
+          <h2 class="text-2xl font-bold text-slate-800">氣泡排序法（Bubble Sort）</h2>
+        </div>
+        <p class="text-slate-600 mb-4 leading-relaxed">
+          💡 <b>核心觀念：</b> 從頭開始，<b>只跟相鄰（隔壁）的元素比較</b>。如果前面比較大就兩兩交換，一路把最大的數字像「水底氣泡」一樣送到最右邊！
+        </p>
+
+        <div class="bg-slate-50 border border-slate-200 rounded-lg p-4">
+          <div class="flex justify-between items-center mb-3">
+            <span class="font-bold text-indigo-600 flex items-center gap-1">🎬 示範動畫：[ 6, 3, 8, 2 ]</span>
+            <div class="space-x-2">
+              <button onclick="playBubbleDemo()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition shadow-sm">▶ 播放動畫</button>
+              <button onclick="resetBubbleDemo()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-medium px-3 py-1.5 rounded-lg transition">↺ 重置</button>
+            </div>
+          </div>
+          <div id="bubble-demo-bars" class="h-36 bg-white rounded-lg border border-slate-200 flex items-end justify-center gap-4 p-4 mb-2"></div>
+          <p id="bubble-demo-msg" class="text-sm font-medium text-slate-600 text-center min-h-[24px]">點擊「▶ 播放動畫」觀察最大值如何像氣泡般浮到最右邊！</p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <h3 class="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2">
+          <span>✍️</span> 氣泡排序實作題（請用手拖曳排成從小到大）
+        </h3>
+        <p class="text-xs text-slate-500 mb-6">運用「兩兩比較，大數往後推」的觀念，將長條圖調整成<b>從小到大</b>的最終順序。</p>
+
+        <!-- 任務 1 -->
+        <div class="mb-8 p-4 bg-slate-50 rounded-lg border border-slate-200">
+          <h4 class="font-bold text-slate-700 mb-2">任務 1 / 3：基礎排序實作</h4>
+          <p class="text-sm text-slate-600 mb-3">請將亂序數字 <span class="font-mono bg-slate-200 px-1 rounded">[ 5, 1, 7, 3 ]</span> 手動拖曳排成從小到大的正確順序：</p>
+          <div id="drag-container-bub-1" class="drag-container h-32 bg-white rounded-lg border border-slate-200 flex items-end justify-center gap-3 p-3 mb-3"></div>
+          <div class="flex justify-between items-center">
+            <button onclick="checkDragAnswer('bub-1', [1, 3, 5, 7])" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold px-4 py-2 rounded-lg transition shadow-sm">檢查答案</button>
+            <span id="feedback-bub-1" class="text-sm font-bold"></span>
+          </div>
+        </div>
+
+        <!-- 任務 2 -->
+        <div class="mb-8 p-4 bg-slate-50 rounded-lg border border-slate-200">
+          <h4 class="font-bold text-slate-700 mb-2">任務 2 / 3：進階排序實作</h4>
+          <p class="text-sm text-slate-600 mb-3">請將亂序數字 <span class="font-mono bg-slate-200 px-1 rounded">[ 9, 3, 6, 1 ]</span> 手動拖曳排成從小到大的正確順序：</p>
+          <div id="drag-container-bub-2" class="drag-container h-32 bg-white rounded-lg border border-slate-200 flex items-end justify-center gap-3 p-3 mb-3"></div>
+          <div class="flex justify-between items-center">
+            <button onclick="checkDragAnswer('bub-2', [1, 3, 6, 9])" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold px-4 py-2 rounded-lg transition shadow-sm">檢查答案</button>
+            <span id="feedback-bub-2" class="text-sm font-bold"></span>
+          </div>
+        </div>
+
+        <!-- 任務 3 -->
+        <div class="p-4 bg-slate-50 rounded-lg border border-slate-200">
+          <h4 class="font-bold text-slate-700 mb-2">任務 3 / 3：挑戰排序實作</h4>
+          <p class="text-sm text-slate-600 mb-3">請將亂序數字 <span class="font-mono bg-slate-200 px-1 rounded">[ 9, 4, 2, 6 ]</span> 手動拖曳排成從小到大的正確順序：</p>
+          <div id="drag-container-bub-3" class="drag-container h-32 bg-white rounded-lg border border-slate-200 flex items-end justify-center gap-3 p-3 mb-3"></div>
+          <div class="flex justify-between items-center">
+            <button onclick="checkDragAnswer('bub-3', [2, 4, 6, 9])" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold px-4 py-2 rounded-lg transition shadow-sm">檢查答案</button>
+            <span id="feedback-bub-3" class="text-sm font-bold"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    const delay = ms => new Promise(res => setTimeout(res, ms));
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+
+      const tabs = ['selection', 'insertion', 'bubble'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`nav-${t}`);
+        if (t === tabName) {
+          btn.className = "px-4 py-2 rounded-md transition-all bg-white text-indigo-700 shadow font-bold";
+        } else {
+          btn.className = "px-4 py-2 rounded-md transition-all text-indigo-100 hover:text-white font-medium";
+        }
+      });
+    }
+
+    // 渲染示範動畫柱狀圖
+    function renderDemoBars(containerId, arr, activeIdx = [], sortedIdx = []) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+      const maxVal = Math.max(...arr, 10);
+
+      arr.forEach((val, idx) => {
+        const bar = document.createElement('div');
+        const heightPct = Math.max((val / maxVal) * 75 + 25, 28);
+        
+        let bgClass = "bg-indigo-500";
+        if (activeIdx.includes(idx)) bgClass = "bg-rose-500";
+        if (sortedIdx.includes(idx)) bgClass = "bg-emerald-500";
+
+        bar.className = `w-12 ${bgClass} text-white font-bold rounded-t-md flex items-center justify-center text-sm bar-anim shadow-sm flex-shrink-0`;
+        bar.style.height = `${heightPct}%`;
+        bar.innerText = val;
+        container.appendChild(bar);
+      });
+    }
+
+    /* 1. 選擇排序動畫 */
+    let selDemoArr = [7, 2, 9, 4];
+    let isSelRunning = false;
+
+    function resetSelectionDemo() {
+      isSelRunning = false;
+      selDemoArr = [7, 2, 9, 4];
+      renderDemoBars('selection-demo-bars', selDemoArr);
+      document.getElementById('selection-demo-msg').innerText = '點擊「▶ 播放動畫」觀察如何每次挑出最小值！';
+    }
+
+    async function playSelectionDemo() {
+      if (isSelRunning) return;
+      isSelRunning = true;
+      let arr = [...selDemoArr];
+      let n = arr.length;
+      let sorted = [];
+
+      for (let i = 0; i < n; i++) {
+        let minIdx = i;
+        document.getElementById('selection-demo-msg').innerText = `第 ${i+1} 輪：準備找出位置 ${i+1} 開始最小的數字...`;
+        renderDemoBars('selection-demo-bars', arr, [i], sorted);
+        await delay(800);
+
+        for (let j = i + 1; j < n; j++) {
+          if (!isSelRunning) return;
+          renderDemoBars('selection-demo-bars', arr, [minIdx, j], sorted);
+          document.getElementById('selection-demo-msg').innerText = `比較 ${arr[j]} 與當前最小值 ${arr[minIdx]}`;
+          await delay(700);
+
+          if (arr[j] < arr[minIdx]) {
+            minIdx = j;
+          }
+        }
+
+        if (minIdx !== i) {
+          document.getElementById('selection-demo-msg').innerText = `找到最小數 ${arr[minIdx]}，與位置 ${i+1} 的 ${arr[i]} 交換！`;
+          [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]];
+          renderDemoBars('selection-demo-bars', arr, [i, minIdx], sorted);
+          await delay(900);
+        }
+        sorted.push(i);
+        renderDemoBars('selection-demo-bars', arr, [], sorted);
+      }
+      document.getElementById('selection-demo-msg').innerText = '🎉 選擇排序完成！每次都成功挑出剩餘項中的最小值。';
+      isSelRunning = false;
+    }
+
+    /* 2. 插入排序動畫 */
+    let insDemoArr = [5, 2, 4, 1];
+    let isInsRunning = false;
+
+    function resetInsertionDemo() {
+      isInsRunning = false;
+      insDemoArr = [5, 2, 4, 1];
+      renderDemoBars('insertion-demo-bars', insDemoArr, [], [0]);
+      document.getElementById('insertion-demo-msg').innerText = '點擊「▶ 播放動畫」觀察如何逐一將新牌插入左邊！';
+    }
+
+    async function playInsertionDemo() {
+      if (isInsRunning) return;
+      isInsRunning = true;
+      let arr = [...insDemoArr];
+      let n = arr.length;
+
+      for (let i = 1; i < n; i++) {
+        let key = arr[i];
+        let j = i - 1;
+
+        document.getElementById('insertion-demo-msg').innerText = `拿起新數字 ${key}，準備由右向左比對並插入左邊...`;
+        renderDemoBars('insertion-demo-bars', arr, [i], Array.from({length: i}, (_, k) => k));
+        await delay(900);
+
+        while (j >= 0 && arr[j] > key) {
+          if (!isInsRunning) return;
+          document.getElementById('insertion-demo-msg').innerText = `${arr[j]} 比 ${key} 大，往右移讓出位置！`;
+          arr[j + 1] = arr[j];
+          renderDemoBars('insertion-demo-bars', arr, [j], Array.from({length: i}, (_, k) => k));
+          j = j - 1;
+          await delay(700);
+        }
+        arr[j + 1] = key;
+        document.getElementById('insertion-demo-msg').innerText = `將 ${key} 插入到正確位置！`;
+        renderDemoBars('insertion-demo-bars', arr, [j + 1], Array.from({length: i + 1}, (_, k) => k));
+        await delay(900);
+      }
+      renderDemoBars('insertion-demo-bars', arr, [], Array.from({length: n}, (_, k) => k));
+      document.getElementById('insertion-demo-msg').innerText = '🎉 插入排序完成！就像手牌已經完全整理好。';
+      isInsRunning = false;
+    }
+
+    /* 3. 氣泡排序動畫 */
+    let bubDemoArr = [6, 3, 8, 2];
+    let isBubRunning = false;
+
+    function resetBubbleDemo() {
+      isBubRunning = false;
+      bubDemoArr = [6, 3, 8, 2];
+      renderDemoBars('bubble-demo-bars', bubDemoArr);
+      document.getElementById('bubble-demo-msg').innerText = '點擊「▶ 播放動畫」觀察最大值如何像氣泡般浮到最右邊！';
+    }
+
+    async function playBubbleDemo() {
+      if (isBubRunning) return;
+      isBubRunning = true;
+      let arr = [...bubDemoArr];
+      let n = arr.length;
+      let sorted = [];
+
+      for (let i = 0; i < n - 1; i++) {
+        for (let j = 0; j < n - i - 1; j++) {
+          if (!isBubRunning) return;
+          renderDemoBars('bubble-demo-bars', arr, [j, j+1], sorted);
+          document.getElementById('bubble-demo-msg').innerText = `比較相鄰的 ${arr[j]} 與 ${arr[j+1]}`;
+          await delay(700);
+
+          if (arr[j] > arr[j+1]) {
+            document.getElementById('bubble-demo-msg').innerText = `${arr[j]} > ${arr[j+1]}，兩者交換位置！`;
+            [arr[j], arr[j+1]] = [arr[j+1], arr[j]];
+            renderDemoBars('bubble-demo-bars', arr, [j, j+1], sorted);
+            await delay(700);
+          }
+        }
+        sorted.push(n - 1 - i);
+        document.getElementById('bubble-demo-msg').innerText = `本輪最大數 ${arr[n - 1 - i]} 已確定推送到右邊！`;
+        renderDemoBars('bubble-demo-bars', arr, [], sorted);
+        await delay(800);
+      }
+      sorted.push(0);
+      renderDemoBars('bubble-demo-bars', arr, [], sorted);
+      document.getElementById('bubble-demo-msg').innerText = '🎉 氣泡排序完成！';
+      isBubRunning = false;
+    }
+
+    /* 4. 手動拖曳練習區題目初始化資料 (方案 B: 全部完全排序) */
+    const quizData = {
+      'sel-1': [8, 3, 5, 2],
+      'sel-2': [1, 9, 4, 6],
+      'sel-3': [6, 2, 7, 3],
+      'ins-1': [6, 9, 3],
+      'ins-2': [2, 4, 8, 5],
+      'ins-3': [8, 4, 2, 7],
+      'bub-1': [5, 1, 7, 3],
+      'bub-2': [9, 3, 6, 1],
+      'bub-3': [9, 4, 2, 6]
+    };
+
+    function initDraggableQuiz(id, initialArr) {
+      const container = document.getElementById(`drag-container-${id}`);
+      container.innerHTML = '';
+      const maxVal = Math.max(...initialArr, 10);
+
+      initialArr.forEach(val => {
+        const bar = document.createElement('div');
+        const heightPct = Math.max((val / maxVal) * 75 + 25, 28);
+        
+        bar.className = 'draggable-bar w-12 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-t-md flex items-center justify-center text-sm shadow flex-shrink-0';
+        bar.style.height = `${heightPct}%`;
+        bar.innerText = val;
+        bar.dataset.value = val;
+        bar.draggable = true;
+
+        bar.addEventListener('dragstart', handleDragStart);
+        bar.addEventListener('dragover', handleDragOver);
+        bar.addEventListener('drop', handleDrop);
+        bar.addEventListener('dragend', handleDragEnd);
+
+        bar.addEventListener('touchstart', handleTouchStart, {passive: false});
+        bar.addEventListener('touchmove', handleTouchMove, {passive: false});
+        bar.addEventListener('touchend', handleTouchEnd);
+
+        container.appendChild(bar);
+      });
+    }
+
+    let dragSrcEl = null;
+
+    function handleDragStart(e) {
+      dragSrcEl = this;
+      this.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function handleDragOver(e) {
+      if (e.preventDefault) e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      return false;
+    }
+
+    function handleDrop(e) {
+      if (e.stopPropagation) e.stopPropagation();
+      if (dragSrcEl !== this) {
+        const container = this.parentNode;
+        const children = Array.from(container.children);
+        const srcIdx = children.indexOf(dragSrcEl);
+        const targetIdx = children.indexOf(this);
+
+        if (srcIdx < targetIdx) {
+          container.insertBefore(dragSrcEl, this.nextSibling);
+        } else {
+          container.insertBefore(dragSrcEl, this);
+        }
+      }
+      return false;
+    }
+
+    function handleDragEnd() {
+      this.classList.remove('dragging');
+    }
+
+    let touchSrcEl = null;
+
+    function handleTouchStart(e) {
+      touchSrcEl = this;
+      this.classList.add('dragging');
+    }
+
+    function handleTouchMove(e) {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const target = document.elementFromPoint(touch.clientX, touch.clientY);
+
+      if (target && target.classList.contains('draggable-bar') && target !== touchSrcEl) {
+        const container = touchSrcEl.parentNode;
+        const children = Array.from(container.children);
+        const srcIdx = children.indexOf(touchSrcEl);
+        const targetIdx = children.indexOf(target);
+
+        if (srcIdx < targetIdx) {
+          container.insertBefore(touchSrcEl, target.nextSibling);
+        } else {
+          container.insertBefore(touchSrcEl, target);
+        }
+      }
+    }
+
+    function handleTouchEnd() {
+      if (touchSrcEl) {
+        touchSrcEl.classList.remove('dragging');
+        touchSrcEl = null;
+      }
+    }
+
+    function checkDragAnswer(id, targetArr) {
+      const container = document.getElementById(`drag-container-${id}`);
+      const currentArr = Array.from(container.children).map(child => parseInt(child.dataset.value));
+      const feedback = document.getElementById(`feedback-${id}`);
+
+      const isCorrect = JSON.stringify(currentArr) === JSON.stringify(targetArr);
+
+      if (isCorrect) {
+        feedback.className = "text-sm font-bold text-emerald-600 animate-bounce";
+        feedback.innerHTML = "🎉 太棒了！順序完全正確！";
+        Array.from(container.children).forEach(child => {
+          child.className = child.className.replace('bg-sky-500', 'bg-emerald-500').replace('bg-sky-600', 'bg-emerald-500').replace('bg-rose-400', 'bg-emerald-500');
+        });
+      } else {
+        feedback.className = "text-sm font-bold text-rose-600";
+        feedback.innerHTML = "❌ 順序還不太對喔，再試著排排看！";
+        Array.from(container.children).forEach(child => {
+          child.className = child.className.replace('bg-sky-500', 'bg-rose-400').replace('bg-emerald-500', 'bg-rose-400');
+        });
+      }
+    }
+
+    window.onload = function() {
+      resetSelectionDemo();
+      resetInsertionDemo();
+      resetBubbleDemo();
+
+      Object.keys(quizData).forEach(id => {
+        initDraggableQuiz(id, quizData[id]);
+      });
+    };
+  </script>
+</body>
+</html>
