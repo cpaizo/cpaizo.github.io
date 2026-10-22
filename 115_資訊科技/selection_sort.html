@@ -64,6 +64,65 @@
       margin-top: 5px;
     }
 
+    /* 學生資訊輸入區 */
+    .student-info-box {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+      background: #F7FAFC;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #E2E8F0;
+      flex-wrap: wrap;
+    }
+
+    .student-info-box input {
+      padding: 8px 12px;
+      border: 2px solid #CBD5E0;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      width: 110px;
+      transition: border-color 0.2s;
+    }
+
+    .student-info-box input:focus {
+      border-color: var(--primary);
+    }
+
+    /* 進度條樣式 */
+    .progress-container {
+      width: 100%;
+      background-color: #EDF2F7;
+      border-radius: 10px;
+      overflow: hidden;
+      height: 22px;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+      position: relative;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #4A90E2, #10AC84);
+      transition: width 0.4s ease;
+    }
+
+    .progress-text {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      color: #2D3748;
+    }
+
     .top-bar {
       display: flex;
       justify-content: space-between;
@@ -85,29 +144,6 @@
       padding: 5px 12px;
       border-radius: 8px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-
-    /* 貓咪隊長對話框 */
-    .cat-dialog {
-      display: flex;
-      align-items: center;
-      background: #FFF9DB;
-      border: 2px solid #FFE066;
-      border-radius: 15px;
-      padding: 12px 15px;
-      gap: 12px;
-    }
-
-    .cat-avatar {
-      font-size: 36px;
-      line-height: 1;
-    }
-
-    .cat-text {
-      font-size: 15px;
-      font-weight: 600;
-      color: #D9480F;
-      line-height: 1.4;
     }
 
     /* 遊戲卡片區域 */
@@ -199,14 +235,6 @@
       opacity: 0.5;
     }
 
-    /* 控制按鈕區 */
-    .controls {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
     .btn {
       padding: 10px 20px;
       font-size: 15px;
@@ -223,16 +251,8 @@
     .btn-primary { background: var(--primary); color: white; }
     .btn-primary:hover { background: var(--primary-dark); }
 
-    .btn-secondary { background: var(--secondary); color: white; }
-    .btn-secondary:hover { background: #E67E22; }
-
     .btn-outline { background: #E2E8F0; color: #4A5568; }
     .btn-outline:hover { background: #CBD5E0; }
-
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
 
     /* 關卡選單 */
     .level-select {
@@ -294,6 +314,16 @@
       animation: popIn 0.3s ease-out;
     }
 
+    .result-user-info {
+      background: #EDF2F7;
+      padding: 10px;
+      border-radius: 10px;
+      margin: 10px 0;
+      font-weight: bold;
+      font-size: 16px;
+      color: #2D3748;
+    }
+
     @keyframes popIn {
       0% { transform: scale(0.7); opacity: 0; }
       100% { transform: scale(1); opacity: 1; }
@@ -306,7 +336,7 @@
 
     @media (max-width: 600px) {
       .card { width: 55px; height: 85px; font-size: 22px; }
-      .cat-text { font-size: 13px; }
+      .student-info-box input { width: 80px; }
     }
   </style>
 </head>
@@ -315,8 +345,21 @@
 <div class="game-container">
   <header>
     <h1>💎 選擇排序法：魔法寶石勇者闖關</h1>
-    <div class="subtitle">幫助貓咪隊長把寶石「從小到大」排列整齊吧！</div>
+    <div class="subtitle">把寶石「從小到大」排列整齊吧！</div>
   </header>
+
+  <!-- 學生資訊輸入區 -->
+  <div class="student-info-box">
+    <input type="text" id="input-class" placeholder="班級" />
+    <input type="text" id="input-seat" placeholder="座號" />
+    <input type="text" id="input-name" placeholder="姓名" />
+  </div>
+
+  <!-- 進度條區塊 -->
+  <div class="progress-container">
+    <div class="progress-bar" id="progress-bar"></div>
+    <div class="progress-text" id="progress-text">進度：0%</div>
+  </div>
 
   <div class="level-select">
     <button class="level-btn active" onclick="loadLevel(0)">第 1 關 (3顆)</button>
@@ -333,21 +376,10 @@
     <button class="btn btn-outline" style="padding:4px 10px; font-size:12px;" onclick="resetCurrentLevel()">↻ 重來</button>
   </div>
 
-  <div class="cat-dialog">
-    <div class="cat-avatar">🐱</div>
-    <div class="cat-text" id="cat-hint">
-      準備好了嗎？請用滑鼠拖曳寶石，或是點擊兩張寶石交換位置！
-    </div>
-  </div>
-
   <div class="board-container">
     <div class="cards-area" id="cards-container">
       <!-- 卡片動態生成區 -->
     </div>
-  </div>
-
-  <div class="controls">
-    <button class="btn btn-secondary" onclick="autoDemoStep()">💡 貓咪隊長提示</button>
   </div>
 
   <div class="rule-box">
@@ -361,16 +393,19 @@
 <!-- 通關彈窗 -->
 <div class="modal" id="win-modal">
   <div class="modal-content">
-    <h2>🎉 恭喜通關！</h2>
+    <h2 id="modal-title">🎉 恭喜通過此關！</h2>
     <div class="stars" id="star-rating">⭐⭐⭐</div>
+    <div class="result-user-info" id="final-student-info">
+      進度條 25% | 未填寫 學生資訊
+    </div>
     <p>你完美運用了<b>選擇排序法</b>！</p>
     <p>總共花費時間：<span id="final-time">00:00</span><br>總交換次數：<span id="final-swaps">0</span> 次</p>
-    <button class="btn btn-primary" style="margin: 0 auto;" onclick="nextLevel()">挑戰下一關 ➔</button>
+    <button class="btn btn-primary" id="next-level-btn" style="margin: 0 auto;" onclick="nextLevel()">挑戰下一關 ➔</button>
   </div>
 </div>
 
 <script>
-  // 關卡設定：最終過關目標絕對是由小到大
+  // 關卡設定：總共 4 關
   const levels = [
     { id: 1, numbers: [8, 2, 5], target: [2, 5, 8] },
     { id: 2, numbers: [7, 3, 9, 1, 4], target: [1, 3, 4, 7, 9] },
@@ -380,15 +415,16 @@
 
   let currentLevelIdx = 0;
   let currentArray = [];
-  let sortedIndex = 0; // 當前排到第幾個位置
+  let sortedIndex = 0; 
   let selectedCardIdx = null;
   let swapCount = 0;
   
-  // 計時器
+  // 記錄已通關的最高進度（0 ~ 4 關）
+  let completedLevelsCount = 0;
+
   let timerInterval = null;
   let secondsElapsed = 0;
 
-  // Web Audio 簡單音效
   function playSound(freq, duration = 0.1) {
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -419,10 +455,19 @@
     document.getElementById('timer').innerText = `${mins}:${secs}`;
   }
 
+  function updateProgressBar() {
+    // 每過一關佔 25%，最高 100%
+    const percentage = completedLevelsCount * 25;
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    
+    progressBar.style.width = `${percentage}%`;
+    progressText.innerText = `進度：${percentage}%`;
+  }
+
   function loadLevel(idx) {
     currentLevelIdx = idx;
     
-    // 更新 Level 按鈕狀態
     document.querySelectorAll('.level-btn').forEach((btn, i) => {
       btn.classList.toggle('active', i === idx);
     });
@@ -440,26 +485,7 @@
     document.getElementById('win-modal').style.display = 'none';
 
     startTimer();
-    updateCatHint();
     renderCards();
-  }
-
-  function updateCatHint() {
-    const hintEl = document.getElementById('cat-hint');
-    if (sortedIndex >= currentArray.length - 1) {
-      hintEl.innerText = "🎉 太棒了！全部寶石都已經由小到大排好囉！";
-      return;
-    }
-
-    // 找出未排序區間中的最小值
-    let minVal = currentArray[sortedIndex];
-    for (let i = sortedIndex + 1; i < currentArray.length; i++) {
-      if (currentArray[i] < minVal) {
-        minVal = currentArray[i];
-      }
-    }
-
-    hintEl.innerHTML = `請在<b>未排序區域</b>中找到最小值 <b>【 ${minVal} 】</b>，並把它跟第 <b>${sortedIndex + 1}</b> 個位置的寶石交換！`;
   }
 
   function renderCards() {
@@ -476,7 +502,7 @@
         card.classList.add('selected');
       }
 
-      card.draggable = idx >= sortedIndex; // 只有未排序的可以拖曳
+      card.draggable = idx >= sortedIndex;
 
       card.innerHTML = `
         <div class="card-icon">💎</div>
@@ -484,10 +510,8 @@
         <div class="card-idx">#${idx + 1}</div>
       `;
 
-      // 點擊事件
       card.onclick = () => handleCardClick(idx);
 
-      // 拖曳事件 (HTML5 Drag & Drop)
       card.ondragstart = (e) => {
         if (idx < sortedIndex) return;
         e.dataTransfer.setData('text/plain', idx);
@@ -513,14 +537,14 @@
   }
 
   function handleCardClick(idx) {
-    if (idx < sortedIndex) return; // 已排序好的不能動
+    if (idx < sortedIndex) return;
 
     playSound(400, 0.05);
 
     if (selectedCardIdx === null) {
       selectedCardIdx = idx;
     } else if (selectedCardIdx === idx) {
-      selectedCardIdx = null; // 取消選擇
+      selectedCardIdx = null;
     } else {
       executeSwap(selectedCardIdx, idx);
       selectedCardIdx = null;
@@ -531,7 +555,6 @@
   function executeSwap(idx1, idx2) {
     if (idx1 < sortedIndex || idx2 < sortedIndex) return;
 
-    // 交換數字
     const temp = currentArray[idx1];
     currentArray[idx1] = currentArray[idx2];
     currentArray[idx2] = temp;
@@ -545,7 +568,6 @@
   }
 
   function checkProgress() {
-    // 檢查選擇排序法進度：未排序區域的最前面一個是否已經是當前未排序區域中的最小值
     let isCurrentStepCorrect = true;
     for (let i = sortedIndex + 1; i < currentArray.length; i++) {
       if (currentArray[i] < currentArray[sortedIndex]) {
@@ -555,12 +577,10 @@
     }
 
     if (isCurrentStepCorrect) {
-      // 成功鎖定一個位置
       sortedIndex++;
       playSound(800, 0.2);
     }
 
-    // 檢查是否完全排序完成（由小到大）
     let isFullySorted = true;
     for (let i = 0; i < currentArray.length - 1; i++) {
       if (currentArray[i] > currentArray[i + 1]) {
@@ -572,30 +592,14 @@
     if (isFullySorted) {
       sortedIndex = currentArray.length;
       clearInterval(timerInterval);
-      setTimeout(showWinModal, 500);
-    } else {
-      updateCatHint();
-    }
-  }
-
-  function autoDemoStep() {
-    if (sortedIndex >= currentArray.length - 1) return;
-
-    // 尋找當前未排序區域的最小值索引
-    let minIdx = sortedIndex;
-    for (let i = sortedIndex + 1; i < currentArray.length; i++) {
-      if (currentArray[i] < currentArray[minIdx]) {
-        minIdx = i;
+      
+      // 更新已通關關卡數（確保不會超過總關卡數 4）
+      if (currentLevelIdx + 1 > completedLevelsCount) {
+        completedLevelsCount = currentLevelIdx + 1;
       }
-    }
+      updateProgressBar();
 
-    if (minIdx !== sortedIndex) {
-      executeSwap(minIdx, sortedIndex);
-    } else {
-      // 已經是最小，直接步進
-      sortedIndex++;
-      checkProgress();
-      renderCards();
+      setTimeout(showWinModal, 500);
     }
   }
 
@@ -605,10 +609,29 @@
     document.getElementById('final-time').innerText = document.getElementById('timer').innerText;
     document.getElementById('final-swaps').innerText = swapCount;
 
-    // 星級評分
+    const className = document.getElementById('input-class').value.trim() || '未填寫班級';
+    const seatName = document.getElementById('input-seat').value.trim() || '未填寫座號';
+    const studentName = document.getElementById('input-name').value.trim() || '未填寫姓名';
+
+    const currentPercent = completedLevelsCount * 25;
+
+    document.getElementById('final-student-info').innerText = 
+      `進度條 ${currentPercent}% | ${className} ${seatName}號 ${studentName}`;
+
     let stars = "⭐⭐⭐";
     if (swapCount > currentArray.length * 2) stars = "⭐⭐";
     document.getElementById('star-rating').innerText = stars;
+
+    const nextBtn = document.getElementById('next-level-btn');
+    const modalTitle = document.getElementById('modal-title');
+
+    if (currentLevelIdx >= levels.length - 1) {
+      modalTitle.innerText = "🏆 恭喜完成所有挑戰！";
+      nextBtn.innerText = "完成闖關";
+    } else {
+      modalTitle.innerText = "🎉 恭喜通過此關！";
+      nextBtn.innerText = "挑戰下一關 ➔";
+    }
 
     modal.style.display = 'flex';
   }
@@ -617,11 +640,12 @@
     if (currentLevelIdx < levels.length - 1) {
       loadLevel(currentLevelIdx + 1);
     } else {
-      loadLevel(0); // 循環回到第一關
+      // 已經是第四關，停留在第四關並關閉彈窗
+      document.getElementById('win-modal').style.display = 'none';
+      loadLevel(levels.length - 1);
     }
   }
 
-  // 初始化第一關
   loadLevel(0);
 </script>
 
