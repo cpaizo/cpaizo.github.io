@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三大排序演算法互動學習館</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome 圖示庫 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts 圓體/繁體中文 -->
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            background-color: #f0fdf4;
+        }
+        
+        /* 卡片平滑移動與轉場動畫 */
+        .bar-card {
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* 自訂可愛滾動條 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #86efac;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4ade80;
+        }
+
+        /* 脈衝提示效果 */
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .pulse-card {
+            animation: pulse-glow 0.8s infinite;
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col pb-12">
+
+    <!-- 頂部標題 Header -->
+    <header class="bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 text-white py-6 px-4 shadow-lg text-center relative overflow-hidden">
+        <div class="max-w-5xl mx-auto relative z-10">
+            <h1 class="text-3xl md:text-5xl font-extrabold tracking-wider drop-shadow-md flex items-center justify-center gap-3">
+                <i class="fa-solid font-black fa-wand-magic-sparkles text-yellow-200"></i>
+                三大排序演算法互動學習館
+                <i class="fa-solid font-black fa-shapes text-yellow-200"></i>
+            </h1>
+            <p class="mt-2 text-yellow-100 text-base md:text-xl font-bold">
+                用動態視覺卡片，帶你輕鬆搞懂：選擇排序、插入排序、氣泡排序！
+            </p>
+        </div>
+        <!-- 裝飾背景圈圈 -->
+        <div class="absolute -top-10 -left-10 w-32 h-32 bg-white/20 rounded-full blur-xl"></div>
+        <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-white/20 rounded-full blur-xl"></div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 mt-8 w-full flex-grow space-y-10">
+
+        <!-- 1. 演算法觀念卡片介紹區 -->
+        <section>
+            <div class="flex items-center gap-2 mb-4">
+                <span class="bg-amber-500 text-white text-lg px-3 py-1 rounded-full font-bold shadow-sm">1</span>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-amber-900">演算法小字典：它們是怎麼運作的？</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- 選擇排序卡片 -->
+                <div class="bg-white border-4 border-sky-300 rounded-3xl p-5 shadow-md hover:shadow-xl transition-all hover:-translate-y-1 relative flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="bg-sky-100 text-sky-800 text-sm font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                                <i class="fa-solid fa-magnifying-glass"></i> 隊長特訓
+                            </span>
+                            <span class="text-3xl">🔍</span>
+                        </div>
+                        <h3 class="text-2xl font-black text-sky-600 mb-2">選擇排序法</h3>
+                        <p class="text-slate-600 font-bold leading-relaxed text-sm md:text-base">
+                            <span class="bg-sky-100 text-sky-800 px-1 rounded">每次挑選最小的！</span><br>
+                            雙眼掃過未排序的所有卡片，找出「最小」的那一張，然後直接跟最前面未定位的位置換隊伍。
+                        </p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-sky-100 text-xs text-sky-600 font-bold flex items-center justify-between">
+                        <span>口訣：全場搜國寶，換到最前面！</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </div>
+
+                <!-- 插入排序卡片 -->
+                <div class="bg-white border-4 border-emerald-300 rounded-3xl p-5 shadow-md hover:shadow-xl transition-all hover:-translate-y-1 relative flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="bg-emerald-100 text-emerald-800 text-sm font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                                <i class="fa-solid fa-cards-blank"></i> 打撲克牌
+                            </span>
+                            <span class="text-3xl">🃏</span>
+                        </div>
+                        <h3 class="text-2xl font-black text-emerald-600 mb-2">插入排序法</h3>
+                        <p class="text-slate-600 font-bold leading-relaxed text-sm md:text-base">
+                            <span class="bg-emerald-100 text-emerald-800 px-1 rounded">抽一張，插對位！</span><br>
+                            就像在整理撲克牌一樣！每次拿出一張新牌，跟手上排好的牌比一比，把它「插隊」到合適的缝隙裡。
+                        </p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-emerald-100 text-xs text-emerald-600 font-bold flex items-center justify-between">
+                        <span>口訣：右手抽新牌，左手插對位！</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </div>
+
+                <!-- 氣泡排序卡片 -->
+                <div class="bg-white border-4 border-rose-300 rounded-3xl p-5 shadow-md hover:shadow-xl transition-all hover:-translate-y-1 relative flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="bg-rose-100 text-rose-800 text-sm font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                                <i class="fa-solid fa-soap"></i> 咕嚕冒泡
+                            </span>
+                            <span class="text-3xl">🫧</span>
+                        </div>
+                        <h3 class="text-2xl font-black text-rose-600 mb-2">氣泡排序法</h3>
+                        <p class="text-slate-600 font-bold leading-relaxed text-sm md:text-base">
+                            <span class="bg-rose-100 text-rose-800 px-1 rounded">兩兩相鄰比大小！</span><br>
+                            就像汽水裡的氣泡！相鄰的兩個人比身高，如果左邊比右邊高就交換，把大數字一路往右邊「冒」過去。
+                        </p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-rose-100 text-xs text-rose-600 font-bold flex items-center justify-between">
+                        <span>口訣：鄰居比一比，大的往右移！</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. 動畫展示核心互動區 -->
+        <section class="bg-white border-4 border-amber-200 rounded-3xl p-4 md:p-8 shadow-xl">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div class="flex items-center gap-2">
+                    <span class="bg-amber-500 text-white text-lg px-3 py-1 rounded-full font-bold shadow-sm">2</span>
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-amber-900">排序動畫實驗室</h2>
+                </div>
+
+                <!-- 演算法切換 Tab 標籤 -->
+                <div class="flex bg-slate-100 p-1.5 rounded-2xl gap-1 border-2 border-slate-200">
+                    <button id="tab-selection" onclick="switchAlgorithm('selection')" 
+                        class="px-3 md:px-5 py-2 rounded-xl text-sm md:text-base font-extrabold transition-all bg-sky-500 text-white shadow-md">
+                        🔍 選擇排序
+                    </button>
+                    <button id="tab-insertion" onclick="switchAlgorithm('insertion')" 
+                        class="px-3 md:px-5 py-2 rounded-xl text-sm md:text-base font-extrabold transition-all text-slate-600 hover:bg-slate-200">
+                        🃏 插入排序
+                    </button>
+                    <button id="tab-bubble" onclick="switchAlgorithm('bubble')" 
+                        class="px-3 md:px-5 py-2 rounded-xl text-sm md:text-base font-extrabold transition-all text-slate-600 hover:bg-slate-200">
+                        🫧 氣泡排序
+                    </button>
+                </div>
+            </div>
+
+            <!-- 控制面板 (控制按鈕與速度設定) -->
+            <div class="bg-amber-50/80 p-4 rounded-2xl border-2 border-amber-100 mb-6 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex flex-wrap items-center gap-2 md:gap-3">
+                    <button onclick="resetArray()" class="bg-purple-500 hover:bg-purple-600 text-white font-extrabold px-4 py-2.5 rounded-xl shadow border-b-4 border-purple-700 active:translate-y-1 active:border-b-0 transition flex items-center gap-1.5 text-sm md:text-base">
+                        <i class="fa-solid fa-dice"></i> 換一組數字
+                    </button>
+                    <button id="btn-start" onclick="togglePlay()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold px-5 py-2.5 rounded-xl shadow border-b-4 border-emerald-700 active:translate-y-1 active:border-b-0 transition flex items-center gap-1.5 text-sm md:text-base">
+                        <i class="fa-solid fa-play" id="play-icon"></i> <span id="play-text">開始排序</span>
+                    </button>
+                    <button id="btn-step" onclick="stepForward()" class="bg-amber-500 hover:bg-amber-600 text-white font-extrabold px-4 py-2.5 rounded-xl shadow border-b-4 border-amber-700 active:translate-y-1 active:border-b-0 transition flex items-center gap-1.5 text-sm md:text-base">
+                        <i class="fa-solid fa-forward-step"></i> 單步執行
+                    </button>
+                </div>
+
+                <!-- 速度選單 -->
+                <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border-2 border-amber-200 text-sm font-bold">
+                    <i class="fa-solid fa-gauge-high text-amber-500"></i>
+                    <span>速度：</span>
+                    <button id="speed-slow" onclick="setSpeed(1000)" class="px-2 py-1 rounded-lg text-slate-600 hover:bg-amber-100">慢</button>
+                    <button id="speed-mid" onclick="setSpeed(500)" class="px-2 py-1 rounded-lg bg-amber-400 text-white font-extrabold">中</button>
+                    <button id="speed-fast" onclick="setSpeed(200)" class="px-2 py-1 rounded-lg text-slate-600 hover:bg-amber-100">快</button>
+                </div>
+            </div>
+
+            <!-- 卡片顏色說明 (Legend) -->
+            <div class="flex flex-wrap items-center justify-center gap-3 md:gap-6 mb-6 text-xs md:text-sm font-extrabold text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <div class="flex items-center gap-1.5">
+                    <span class="w-4 h-4 rounded-md bg-orange-400 inline-block"></span> 未排序
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-4 h-4 rounded-md bg-yellow-300 border-2 border-yellow-500 inline-block"></span> 正在比較
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-4 h-4 rounded-md bg-sky-400 border-2 border-sky-600 inline-block"></span> 當前目標/最小值
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-4 h-4 rounded-md bg-emerald-400 border-2 border-emerald-600 inline-block"></span> 已就位(綠勾勾)
+                </div>
+            </div>
+
+            <!-- 動畫展演舞台 (Canvas Area) -->
+            <div class="relative bg-gradient-to-b from-slate-100 to-slate-200 border-4 border-slate-300 rounded-2xl h-72 md:h-80 flex items-end justify-center gap-2 md:gap-4 p-4 overflow-hidden shadow-inner">
+                <div id="cards-container" class="w-full h-full flex items-end justify-center gap-2 md:gap-4">
+                    <!-- 卡片元素會動態渲染在這裡 -->
+                </div>
+            </div>
+
+            <!-- 動態步驟說明提示框 -->
+            <div class="mt-6 bg-amber-100/80 border-2 border-amber-300 p-4 rounded-2xl flex items-center gap-3 shadow-sm">
+                <div class="bg-amber-500 text-white p-3 rounded-xl flex-shrink-0 text-xl md:text-2xl shadow">
+                    <i class="fa-solid fa-comment-dots"></i>
+                </div>
+                <div class="flex-grow">
+                    <div class="text-xs text-amber-800 font-black tracking-wider uppercase">當前動作說明</div>
+                    <div id="step-description" class="text-base md:text-xl font-black text-amber-950 mt-0.5">
+                        按下「開始排序」或「單步執行」，觀察數字積木是如何移動的！
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 互動隨機問答小測驗區 -->
+        <section class="bg-white border-4 border-indigo-200 rounded-3xl p-6 md:p-8 shadow-xl mb-12">
+            <div class="flex items-center gap-2 mb-6">
+                <span class="bg-indigo-500 text-white text-lg px-3 py-1 rounded-full font-bold shadow-sm">3</span>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-indigo-900">排序小博士擂台賽 🧠</h2>
+            </div>
+
+            <div id="quiz-container" class="bg-indigo-50 p-6 rounded-2xl border-2 border-indigo-100">
+                <div class="flex items-center justify-between mb-3">
+                    <span id="quiz-category" class="bg-indigo-200 text-indigo-800 font-extrabold text-xs px-3 py-1 rounded-full">
+                        小試身手
+                    </span>
+                    <span id="quiz-score" class="font-extrabold text-indigo-600 text-sm">得分：0</span>
+                </div>
+                <h3 id="quiz-question" class="text-xl md:text-2xl font-black text-slate-800 mb-6">
+                    問題加載中...
+                </h3>
+
+                <div id="quiz-options" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- 選項動態生成 -->
+                </div>
+
+                <div id="quiz-feedback" class="mt-4 p-3 rounded-xl font-bold hidden text-center text-lg">
+                    <!-- 反饋訊息 -->
+                </div>
+
+                <div class="mt-6 text-right">
+                    <button onclick="nextQuiz()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold px-5 py-2.5 rounded-xl shadow border-b-4 border-indigo-800 active:translate-y-1 active:border-b-0 transition text-sm md:text-base">
+                        下一題 <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 頁尾 Footer -->
+    <footer class="bg-slate-800 text-slate-300 py-6 text-center font-bold text-sm">
+        <p>🎮 三大排序演算法互動學習館 | 讓程式思維變得簡單又有趣！</p>
+    </footer>
+
+    <!-- JS 邏輯處理 -->
+    <script>
+        // 資料與狀態變數
+        const ARRAY_SIZE = 7;
+        let originalNumbers = [5, 2, 8, 1, 9, 3, 6];
+        let currentNumbers = [];
+        let animationSteps = [];
+        let currentStepIndex = 0;
+        let isPlaying = false;
+        let timer = null;
+        let speed = 500;
+        let currentAlgorithm = 'selection'; // 'selection', 'insertion', 'bubble'
+
+        // 測驗題庫
+        const quizQuestions = [
+            {
+                question: "🃏 我們平常在打撲克牌整理手牌時，最常使用哪一種排序法？",
+                options: ["選擇排序法", "插入排序法", "氣泡排序法"],
+                answer: 1,
+                explain: "答對了！打牌時我們會一張一張抽起來，插入到正確的缝隙裡，這就是「插入排序法」！"
+            },
+            {
+                question: "🫧 哪一種排序法就像汽水泡泡一樣，每次都會把最大的數字往右推到最邊邊？",
+                options: ["氣泡排序法", "選擇排序法", "插入排序法"],
+                answer: 0,
+                explain: "太棒了！氣泡排序法會兩兩比大小，大的就像氣泡一樣冒到最右邊！"
+            },
+            {
+                question: "🔍 「選擇排序法」每一輪主要都在做什麼重要的事情？",
+                options: ["跟旁邊的人隨機換位置", "尋找未排序卡片中『最小』的數字", "把最前面的數字丟掉"],
+                answer: 1,
+                explain: "沒錯！選擇排序法每次都會張大眼睛，找出剩下卡片裡最小的那個！"
+            },
+            {
+                question: "🏆 如果所有的數字都已經完全排好了，那卡片會變成什麼顏色呢？",
+                options: ["紅色", "黃色", "帶有勾勾的綠色"],
+                answer: 2,
+                explain: "答對囉！代表成功定位排好的卡片都會穿上綠色外衣並標記勾勾！"
+            }
+        ];
+        let currentQuizIndex = 0;
+        let score = 0;
+
+        // 頁面載入初始化
+        window.onload = function() {
+            resetArray();
+            loadQuiz();
+        };
+
+        // 1. 陣列與 UI 重置
+        function resetArray() {
+            pauseAnimation();
+            // 隨機產生 7 個 1~10 不重複的數字
+            let nums = Array.from({length: 10}, (_, i) => i + 1);
+            nums.sort(() => Math.random() - 0.5);
+            originalNumbers = nums.slice(0, ARRAY_SIZE);
+            
+            currentNumbers = [...originalNumbers];
+            currentStepIndex = 0;
+            
+            // 預先計算演算法的動畫步驟
+            generateSteps();
+            
+            // 渲染初期畫面
+            renderStep(0);
+        }
+
+        // 2. 切換演算法 Tab
+        function switchAlgorithm(algo) {
+            if (currentAlgorithm === algo) return;
+            currentAlgorithm = algo;
+
+            // 更新 Tab 樣式
+            const tabs = ['selection', 'insertion', 'bubble'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                if (t === algo) {
+                    btn.className = "px-3 md:px-5 py-2 rounded-xl text-sm md:text-base font-extrabold transition-all bg-sky-500 text-white shadow-md";
+                } else {
+                    btn.className = "px-3 md:px-5 py-2 rounded-xl text-sm md:text-base font-extrabold transition-all text-slate-600 hover:bg-slate-200";
+                }
+            });
+
+            resetArray();
+        }
+
+        // 3. 設定速度
+        function setSpeed(ms) {
+            speed = ms;
+            ['slow', 'mid', 'fast'].forEach(s => {
+                document.getElementById(`speed-${s}`).className = "px-2 py-1 rounded-lg text-slate-600 hover:bg-amber-100";
+            });
+            if(ms === 1000) document.getElementById('speed-slow').className = "px-2 py-1 rounded-lg bg-amber-400 text-white font-extrabold";
+            if(ms === 500) document.getElementById('speed-mid').className = "px-2 py-1 rounded-lg bg-amber-400 text-white font-extrabold";
+            if(ms === 200) document.getElementById('speed-fast').className = "px-2 py-1 rounded-lg bg-amber-400 text-white font-extrabold";
+
+            if (isPlaying) {
+                pauseAnimation();
+                startAnimation();
+            }
+        }
+
+        // 4. 生成動畫步驟鏈
+        function generateSteps() {
+            animationSteps = [];
+            let arr = [...originalNumbers];
+            
+            // 記錄初始狀態
+            animationSteps.push({
+                array: [...arr],
+                comparing: [],
+                target: null,
+                sorted: [],
+                desc: "準備好了！請點擊「開始排序」或「單步執行」。"
+            });
+
+            if (currentAlgorithm === 'selection') {
+                generateSelectionSteps(arr);
+            } else if (currentAlgorithm === 'insertion') {
+                generateInsertionSteps(arr);
+            } else if (currentAlgorithm === 'bubble') {
+                generateBubbleSteps(arr);
+            }
+        }
+
+        // --- 選擇排序步驟生成 ---
+        function generateSelectionSteps(arr) {
+            let n = arr.length;
+            let sortedIndices = [];
+
+            for (let i = 0; i < n - 1; i++) {
+                let minIdx = i;
+                animationSteps.push({
+                    array: [...arr],
+                    comparing: [],
+                    target: minIdx,
+                    sorted: [...sortedIndices],
+                    desc: `【第 ${i + 1} 輪】假設位置 ${i + 1} 的數字 [${arr[i]}] 是最小的。`
+                });
+
+                for (let j = i + 1; j < n; j++) {
+                    animationSteps.push({
+                        array: [...arr],
+                        comparing: [j],
+                        target: minIdx,
+                        sorted: [...sortedIndices],
+                        desc: `將 [${arr[j]}] 與目前的最小值 [${arr[minIdx]}] 比較...`
+                    });
+
+                    if (arr[j] < arr[minIdx]) {
+                        minIdx = j;
+                        animationSteps.push({
+                            array: [...arr],
+                            comparing: [],
+                            target: minIdx,
+                            sorted: [...sortedIndices],
+                            desc: `發現更小的數字 [${arr[minIdx]}] 了！更新為新的最小目標！`
+                        });
+                    }
+                }
+
+                if (minIdx !== i) {
+                    animationSteps.push({
+                        array: [...arr],
+                        comparing: [i, minIdx],
+                        target: null,
+                        sorted: [...sortedIndices],
+                        desc: `交換 [${arr[i]}] 與最小數字 [${arr[minIdx]}]，讓最小值排到最前面！`
+                    });
+                    let temp = arr[i];
+                    arr[i] = arr[minIdx];
+                    arr[minIdx] = temp;
+                }
+
+                sortedIndices.push(i);
+                animationSteps.push({
+                    array: [...arr],
+                    comparing: [],
+                    target: null,
+                    sorted: [...sortedIndices],
+                    desc: `數字 [${arr[i]}] 已經成功定位到正確位置！`
+                });
+            }
+            sortedIndices.push(n - 1);
+            animationSteps.push({
+                array: [...arr],
+                comparing: [],
+                target: null,
+                sorted: Array.from({length: n}, (_, i) => i),
+                desc: "🎉 太棒了！選擇排序法完成，所有數字都從小到大排好囉！"
+            });
+        }
+
+        // --- 插入排序步驟生成 ---
+        function generateInsertionSteps(arr) {
+            let n = arr.length;
+            let sortedIndices = [0];
+
+            animationSteps.push({
+                array: [...arr],
+                comparing: [],
+                target: 0,
+                sorted: [0],
+                desc: `第一張卡片 [${arr[0]}] 預設為已排好隊。`
+            });
+
+            for (let i = 1; i < n; i++) {
+                let key = arr[i];
+                let j = i - 1;
+
+                animationSteps.push({
+                    array: [...arr],
+                    comparing: [],
+                    target: i,
+                    sorted: Array.from({length: i}, (_, k) => k),
+                    desc: `【第 ${i} 輪】抽出一張新牌 [${key}]，準備插入到前面正確的位置！`
+                });
+
+                while (j >= 0 && arr[j] > key) {
+                    animationSteps.push({
+                        array: [...arr],
+                        comparing: [j],
+                        target: j + 1,
+                        sorted: Array.from({length: i}, (_, k) => k),
+                        desc: `因為 [${arr[j]}] 比 [${key}] 大，所以把 [${arr[j]}] 往右挪挪位置...`
+                    });
+
+                    arr[j + 1] = arr[j];
+                    j = j - 1;
+
+                    animationSteps.push({
+                        array: [...arr],
+                        comparing: [],
+                        target: j + 1,
+                        sorted: Array.from({length: i}, (_, k) => k),
+                        desc: `挪完位置後的隊伍變化。`
+                    });
+                }
+                arr[j + 1] = key;
+
+                animationSteps.push({
+                    array: [...arr],
+                    comparing: [],
+                    target: j + 1,
+                    sorted: Array.from({length: i + 1}, (_, k) => k),
+                    desc: `把卡片 [${key}] 成功插入到正確位置！`
+                });
+            }
+
+            animationSteps.push({
+                array: [...arr],
+                comparing: [],
+                target: null,
+                sorted: Array.from({length: n}, (_, i) => i),
+                desc: "🎉 太棒了！插入排序法完成，所有牌都乖乖聽話歸位囉！"
+            });
+        }
+
+        // --- 氣泡排序步驟生成 ---
+        function generateBubbleSteps(arr) {
+            let n = arr.length;
+            let sortedIndices = [];
+
+            for (let i = 0; i < n - 1; i++) {
+                for (let j = 0; j < n - i - 1; j++) {
+                    animationSteps.push({
+                        array: [...arr],
+                        comparing: [j, j + 1],
+                        target: null,
+                        sorted: [...sortedIndices],
+                        desc: `比較相鄰的兩個數字：[${arr[j]}] 和 [${arr[j+1]}]...`
+                    });
+
+                    if (arr[j] > arr[j + 1]) {
+                        animationSteps.push({
+                            array: [...arr],
+                            comparing: [j, j + 1],
+                            target: null,
+                            sorted: [...sortedIndices],
+                            desc: `[${arr[j]}] 比 [${arr[j+1]}] 大！大的數字準備往右邊交換冒泡！`
+                        });
+
+                        let temp = arr[j];
+                        arr[j] = arr[j + 1];
+                        arr[j + 1] = temp;
+
+                        animationSteps.push({
+                            array: [...arr],
+                            comparing: [j, j + 1],
+                            target: null,
+                            sorted: [...sortedIndices],
+                            desc: `交換完成！大數字 [${arr[j+1]}] 往右推進了一格。`
+                        });
+                    } else {
+                        animationSteps.push({
+                            array: [...arr],
+                            comparing: [j, j + 1],
+                            target: null,
+                            sorted: [...sortedIndices],
+                            desc: `[${arr[j]}] 比 [${arr[j+1]}] 小，順序正確，不用交換！`
+                        });
+                    }
+                }
+                sortedIndices.push(n - 1 - i);
+                animationSteps.push({
+                    array: [...arr],
+                    comparing: [],
+                    target: null,
+                    sorted: [...sortedIndices],
+                    desc: `🎈 數字 [${arr[n - 1 - i]}] 已經像氣泡一樣冒到了最右邊並定位！`
+                });
+            }
+            sortedIndices.push(0);
+            animationSteps.push({
+                array: [...arr],
+                comparing: [],
+                target: null,
+                sorted: Array.from({length: n}, (_, i) => i),
+                desc: "🎉 太棒了！氣泡排序法完成，所有氣泡都安全升空排好囉！"
+            });
+        }
+
+        // 5. 渲染動畫步驟 UI
+        function renderStep(stepIndex) {
+            const container = document.getElementById('cards-container');
+            const step = animationSteps[stepIndex];
+            if (!step) return;
+
+            container.innerHTML = '';
+            
+            const maxVal = 10; // 卡片最大高度比例基準
+
+            step.array.forEach((val, idx) => {
+                const card = document.createElement('div');
+                const heightPercent = Math.max((val / maxVal) * 80 + 15, 20); // 計算卡片高度
+
+                // 顏色與狀態判定
+                let bgStyle = "bg-gradient-to-t from-orange-400 to-amber-300 border-orange-500 text-orange-950"; 
+                let icon = "";
+                let isPulse = false;
+
+                if (step.sorted.includes(idx)) {
+                    // 已就位
+                    bgStyle = "bg-gradient-to-t from-emerald-400 to-green-300 border-emerald-600 text-emerald-950 shadow-emerald-200";
+                    icon = `<i class="fa-solid fa-circle-check text-emerald-700 text-xs md:text-sm"></i>`;
+                } else if (step.target === idx) {
+                    // 當前目標/最小目標
+                    bgStyle = "bg-gradient-to-t from-sky-400 to-blue-300 border-sky-600 text-sky-950 shadow-sky-200";
+                    icon = `<i class="fa-solid fa-crosshairs text-sky-800 text-xs md:text-sm animate-spin"></i>`;
+                    isPulse = true;
+                } else if (step.comparing.includes(idx)) {
+                    // 比較中
+                    bgStyle = "bg-gradient-to-t from-yellow-300 to-amber-200 border-yellow-500 text-yellow-950 shadow-yellow-200";
+                    icon = `<i class="fa-solid fa-hand-pointer text-amber-700 text-xs md:text-sm"></i>`;
+                    isPulse = true;
+                }
+
+                card.className = `bar-card w-12 md:w-16 rounded-2xl border-4 flex flex-col justify-between items-center py-2 md:py-3 shadow-lg relative font-black ${bgStyle} ${isPulse ? 'pulse-card' : ''}`;
+                card.style.height = `${heightPercent}%`;
+
+                card.innerHTML = `
+                    <div class="text-xs md:text-sm font-black">${icon}</div>
+                    <div class="text-xl md:text-3xl font-black drop-shadow-sm">${val}</div>
+                    <div class="text-[10px] md:text-xs opacity-75">#${idx + 1}</div>
+                `;
+
+                container.appendChild(card);
+            });
+
+            // 更新文字說明
+            document.getElementById('step-description').innerText = step.desc;
+        }
+
+        // 6. 控制流程（播放/暫停/單步）
+        function togglePlay() {
+            if (isPlaying) {
+                pauseAnimation();
+            } else {
+                startAnimation();
+            }
+        }
+
+        function startAnimation() {
+            if (currentStepIndex >= animationSteps.length - 1) {
+                currentStepIndex = 0;
+            }
+            isPlaying = true;
+            document.getElementById('play-icon').className = "fa-solid fa-pause";
+            document.getElementById('play-text').innerText = "暫停動畫";
+
+            timer = setInterval(() => {
+                currentStepIndex++;
+                if (currentStepIndex < animationSteps.length) {
+                    renderStep(currentStepIndex);
+                } else {
+                    pauseAnimation();
+                }
+            }, speed);
+        }
+
+        function pauseAnimation() {
+            isPlaying = false;
+            clearInterval(timer);
+            document.getElementById('play-icon').className = "fa-solid fa-play";
+            document.getElementById('play-text').innerText = "開始排序";
+        }
+
+        function stepForward() {
+            pauseAnimation();
+            if (currentStepIndex < animationSteps.length - 1) {
+                currentStepIndex++;
+                renderStep(currentStepIndex);
+            }
+        }
+
+        // 7. 隨機小測驗邏輯
+        function loadQuiz() {
+            const q = quizQuestions[currentQuizIndex];
+            document.getElementById('quiz-question').innerText = q.question;
+            document.getElementById('quiz-feedback').className = "mt-4 p-3 rounded-xl font-bold hidden text-center text-lg";
+            
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = '';
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "bg-white hover:bg-indigo-100 text-indigo-950 font-extrabold p-4 rounded-xl border-2 border-indigo-200 transition-all text-left text-base md:text-lg shadow-sm flex items-center gap-2";
+                btn.innerHTML = `<span class="bg-indigo-200 text-indigo-800 w-7 h-7 flex items-center justify-center rounded-full text-sm font-bold">${idx + 1}</span> ${opt}`;
+                btn.onclick = () => checkAnswer(idx);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedIdx) {
+            const q = quizQuestions[currentQuizIndex];
+            const feedback = document.getElementById('quiz-feedback');
+            feedback.classList.remove('hidden');
+
+            if (selectedIdx === q.answer) {
+                score += 25;
+                document.getElementById('quiz-score').innerText = `得分：${score}`;
+                feedback.className = "mt-4 p-4 rounded-xl font-black text-center text-base md:text-lg bg-emerald-100 text-emerald-800 border-2 border-emerald-300";
+                feedback.innerHTML = `<i class="fa-solid fa-face-laugh-beam text-2xl"></i> 答對了！${q.explain}`;
+            } else {
+                feedback.className = "mt-4 p-4 rounded-xl font-black text-center text-base md:text-lg bg-rose-100 text-rose-800 border-2 border-rose-300";
+                feedback.innerHTML = `<i class="fa-solid fa-face-sad-tear text-2xl"></i> 再想想看喔！${q.explain}`;
+            }
+        }
+
+        function nextQuiz() {
+            currentQuizIndex = (currentQuizIndex + 1) % quizQuestions.length;
+            loadQuiz();
+        }
+    </script>
+</body>
+</html>
