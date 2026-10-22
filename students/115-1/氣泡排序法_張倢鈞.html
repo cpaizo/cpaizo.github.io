@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>海洋氣泡排序法冒險遊戲</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome 圖示 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts 圓體 -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti 慶祝特效 -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Zen Maru Gothic', 'Fredoka', cursive, sans-serif;
+            background: linear-gradient(180deg, #0284c7 0%, #0369a1 50%, #0c4a6e 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        /* 浮動氣泡背景動畫 */
+        .bg-bubbles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .bg-bubble {
+            position: absolute;
+            bottom: -100px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: rise 10s infinite ease-in;
+        }
+
+        @keyframes rise {
+            0% {
+                bottom: -100px;
+                transform: translateX(0) scale(0.5);
+                opacity: 0;
+            }
+            50% {
+                opacity: 0.8;
+            }
+            100% {
+                bottom: 108vh;
+                transform: translateX(100px) scale(1.2);
+                opacity: 0;
+            }
+        }
+
+        /* 數字氣泡樣式 */
+        .number-bubble {
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), inset 0 -8px 12px rgba(0, 0, 0, 0.15), inset 0 8px 12px rgba(255, 255, 255, 0.6);
+        }
+
+        .number-bubble.comparing {
+            transform: translateY(-20px) scale(1.1);
+            border-color: #f59e0b !important;
+            background: radial-gradient(circle at 30% 30%, #fef08a, #f59e0b) !important;
+            box-shadow: 0 0 25px #f59e0b, inset 0 8px 12px rgba(255, 255, 255, 0.8);
+            animation: pulse-border 1.2s infinite alternate;
+        }
+
+        .number-bubble.sorted {
+            background: radial-gradient(circle at 30% 30%, #86efac, #16a34a) !important;
+            border-color: #22c55e !important;
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.6), inset 0 8px 12px rgba(255, 255, 255, 0.6);
+        }
+
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 15px #f59e0b, inset 0 8px 12px rgba(255, 255, 255, 0.8); }
+            100% { box-shadow: 0 0 30px #fbbf24, inset 0 8px 12px rgba(255, 255, 255, 0.9); }
+        }
+
+        /* 呼吸與晃動動畫 */
+        @keyframes gentle-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .animate-gentle {
+            animation: gentle-bounce 3s infinite ease-in-out;
+        }
+
+        /* 對話框氣泡尾巴 */
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            left: -15px;
+            top: 25px;
+            border-width: 10px 15px 10px 0;
+            border-style: solid;
+            border-color: transparent #ffffff transparent transparent;
+        }
+
+        /* 手機直向對話框尾巴調整 */
+        @media (max-width: 640px) {
+            .speech-bubble::after {
+                left: 30px;
+                top: -15px;
+                border-width: 0 10px 15px 10px;
+                border-color: transparent transparent #ffffff transparent;
+            }
+        }
+
+        /* 自訂按鈕波浪浮雕與點擊效果 */
+        .btn-action {
+            transition: all 0.15s ease;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.25);
+        }
+        .btn-action:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 rgba(0,0,0,0.25);
+        }
+    </style>
+</head>
+<body class="relative flex flex-col justify-between min-h-screen text-slate-800">
+
+    <!-- 背景泡泡動畫容器 -->
+    <div id="bgBubbles" class="bg-bubbles"></div>
+
+    <!-- 頂部導覽列與關卡選擇 -->
+    <header class="relative z-10 w-full p-4 bg-sky-900/40 backdrop-blur-md border-b border-sky-400/30">
+        <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <!-- 遊戲標題 -->
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-amber-400 rounded-full flex items-center justify-center text-2xl shadow-lg border-2 border-white animate-bounce">
+                    🐬
+                </div>
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-black text-white tracking-wide drop-shadow-md">
+                        海洋氣泡排序法 <span class="text-amber-300 text-lg sm:text-xl font-bold">Bubble Sort</span>
+                    </h1>
+                    <p class="text-xs sm:text-sm text-sky-200">跟著海豚老師，幫大大小小的數字泡泡排好隊！</p>
+                </div>
+            </div>
+
+            <!-- 難度選擇按鈕 -->
+            <div class="flex items-center gap-2 bg-sky-950/60 p-1.5 rounded-2xl border border-sky-300/30">
+                <button onclick="changeDifficulty('easy')" id="btn-easy" class="px-3 py-1.5 rounded-xl text-sm font-bold transition-all bg-amber-400 text-amber-950 shadow">
+                    🌱 新手 (3個)
+                </button>
+                <button onclick="changeDifficulty('medium')" id="btn-medium" class="px-3 py-1.5 rounded-xl text-sm font-bold transition-all text-sky-100 hover:text-white">
+                    ⭐ 進階 (5個)
+                </button>
+                <button onclick="changeDifficulty('hard')" id="btn-hard" class="px-3 py-1.5 rounded-xl text-sm font-bold transition-all text-sky-100 hover:text-white">
+                    🔥 挑戰 (7個)
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要遊戲區域 -->
+    <main class="relative z-10 flex-1 max-w-5xl w-full mx-auto p-4 flex flex-col items-center justify-center gap-6">
+
+        <!-- 吉祥物對話與說明區 -->
+        <div class="w-full flex flex-col sm:flex-row items-center sm:items-start gap-4 mt-2">
+            <!-- 吉祥物海豚 -->
+            <div class="flex-shrink-0 flex flex-col items-center group cursor-pointer" onclick="playDolphinSound()">
+                <div class="w-24 h-24 sm:w-28 sm:h-28 bg-gradient-to-tr from-cyan-300 to-sky-100 rounded-full border-4 border-white shadow-xl flex items-center justify-center text-5xl sm:text-6xl animate-gentle relative">
+                    🐬
+                    <span class="absolute -top-1 -right-1 bg-amber-400 text-amber-950 text-xs font-black px-2 py-0.5 rounded-full border border-white shadow">
+                        小海豚
+                    </span>
+                </div>
+            </div>
+
+            <!-- 對話框 -->
+            <div class="speech-bubble relative flex-1 bg-white p-5 rounded-3xl shadow-xl border-4 border-sky-200 w-full">
+                <div id="guide-title" class="text-amber-600 font-extrabold text-base sm:text-lg mb-1 flex items-center gap-2">
+                    <i class="fa-solid fa-lightbulb text-amber-500"></i> 海豚老師的學習指導
+                </div>
+                <p id="guide-text" class="text-slate-700 text-sm sm:text-base font-bold leading-relaxed">
+                    歡迎來到海洋世界！氣泡排序法就像大海裡的氣泡，比較相鄰的兩個數字，**把比較大的數字往右邊傳送**，大的數字就會像氣泡一樣一步步浮到最右邊喔！
+                </p>
+                <div class="mt-2 text-xs font-semibold text-sky-600 bg-sky-50 px-3 py-1.5 rounded-lg inline-block border border-sky-100" id="step-hint">
+                    💡 提示：比較標有亮光圈的兩個數字！
+                </div>
+            </div>
+        </div>
+
+        <!-- 氣泡排序主要舞台區 -->
+        <div class="w-full bg-sky-900/50 backdrop-blur-md rounded-3xl p-6 sm:p-10 border-4 border-sky-300/40 shadow-2xl flex flex-col items-center justify-center gap-8 min-h-[300px] relative">
+            
+            <!-- 指標指示 (箭頭) -->
+            <div class="w-full flex justify-around items-center max-w-2xl px-4 min-h-[28px]">
+                <div id="pointer-container" class="relative w-full h-8">
+                    <!-- JS 動態計算箭頭與標籤位置 -->
+                    <div id="pointer-box" class="absolute transition-all duration-500 flex flex-col items-center -translate-x-1/2 top-0" style="left: 0%; opacity: 0;">
+                        <span class="bg-amber-400 text-amber-950 text-xs font-black px-3 py-0.5 rounded-full shadow border border-white whitespace-nowrap mb-1">
+                            👀 正在比較這兩個
+                        </span>
+                        <i class="fa-solid fa-caret-down text-amber-300 text-2xl animate-bounce"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 數字泡泡容器 -->
+            <div id="bubbles-container" class="flex flex-wrap items-center justify-center gap-3 sm:gap-6 my-2 w-full max-w-3xl min-h-[120px]">
+                <!-- 泡泡由 JavaScript 動態渲染 -->
+            </div>
+
+            <!-- 操作問答與按鈕區 -->
+            <div id="control-panel" class="w-full max-w-lg flex flex-col items-center gap-4 bg-white/95 backdrop-blur p-5 rounded-2xl shadow-xl border-2 border-sky-200">
+                <div id="question-text" class="text-base sm:text-lg font-black text-sky-900 text-center">
+                    請觀察Highlighted的兩個數字：左邊需要和右邊交換嗎？
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-4 w-full justify-center">
+                    <button id="btn-swap" onclick="handleUserChoice(true)" class="btn-action flex-1 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 text-amber-950 font-black text-base sm:text-lg py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 border-2 border-amber-200">
+                        <i class="fa-solid fa-arrows-rotate text-xl"></i> 🔄 需要交換！<br><span class="text-xs font-normal opacity-90">(左邊比右邊大)</span>
+                    </button>
+                    <button id="btn-noswap" onclick="handleUserChoice(false)" class="btn-action flex-1 bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-300 hover:to-teal-400 text-white font-black text-base sm:text-lg py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 border-2 border-teal-200">
+                        <i class="fa-solid fa-circle-check text-xl"></i> ➡️ 不用交換！<br><span class="text-xs font-normal opacity-90">(左邊小於或等於右邊)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 重來/重新抽牌按鈕 -->
+            <button onclick="resetGame()" class="absolute top-4 right-4 text-xs sm:text-sm bg-sky-800/80 hover:bg-sky-700 text-sky-100 font-bold py-2 px-3.5 rounded-xl border border-sky-400/40 flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-rotate-right"></i> 重新出題
+            </button>
+        </div>
+
+        <!-- 觀念補給站 (簡介專區) -->
+        <div class="w-full bg-sky-950/40 backdrop-blur-sm rounded-2xl p-4 border border-sky-300/20 text-sky-100 text-xs sm:text-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-info text-amber-400 text-lg"></i>
+                <span><strong>什麼是氣泡排序法？</strong> 每輪比較相鄰兩數，把大的往右推。一輪結束後，最大的數就會浮到最右邊！</span>
+            </div>
+            <div class="flex items-center gap-4 text-xs font-bold whitespace-nowrap">
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-amber-400 inline-block"></span> 比較中</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> 已就位(已排序)</span>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- 頁尾 -->
+    <footer class="relative z-10 w-full text-center py-3 text-xs text-sky-300/80">
+        海洋氣泡排序法 🌊 國小演算法互動學習網頁
+    </footer>
+
+    <!-- 結算/通關 Modal 對話框 -->
+    <div id="victory-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl border-4 border-amber-300 transform scale-90 transition-transform duration-300" id="modal-card">
+            <div class="text-6xl mb-2 animate-bounce">🏆</div>
+            <h2 class="text-2xl sm:text-3xl font-black text-sky-950 mb-1">太棒了！挑戰成功！</h2>
+            <p class="text-amber-600 font-bold mb-4">你成功完成了氣泡排序！所有數值都從小到大排好了！</p>
+            
+            <div class="bg-sky-50 rounded-2xl p-4 mb-6 border border-sky-100 text-left text-sm text-slate-700 flex flex-col gap-2">
+                <div class="flex justify-between">
+                    <span class="font-bold">關卡難度：</span>
+                    <span id="modal-diff" class="font-black text-sky-600">新手</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="font-bold">總比較次數：</span>
+                    <span id="modal-comparisons" class="font-black text-amber-600">0 次</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="font-bold">答對正確率：</span>
+                    <span id="modal-accuracy" class="font-black text-emerald-600">100%</span>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="closeVictoryModal(); resetGame();" class="flex-1 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 text-amber-950 font-black py-3 rounded-2xl shadow-lg border-2 border-amber-200">
+                    再玩一次 🔄
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 遊戲邏輯與 Web Audio 音效產生器 -->
+    <script>
+        // --- Web Audio API 合成音效 (無需外部資源) ---
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioCtx();
+            }
+        }
+
+        function playSound(type) {
+            try {
+                initAudio();
+                if (!audioCtx) return;
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'correct') {
+                    // 答對：愉悅的升音階雙音
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.15); // E5
+                    osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.3); // G5
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else if (type === 'wrong') {
+                    // 答錯：低沉的提示音
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now); // A3
+                    osc.frequency.setValueAtTime(174.61, now + 0.15); // F3
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (type === 'swap') {
+                    // 交換：水泡聲
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.15);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                } else if (type === 'victory') {
+                    // 勝利音效
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, idx) => {
+                        const noteOsc = audioCtx.createOscillator();
+                        const noteGain = audioCtx.createGain();
+                        noteOsc.type = 'triangle';
+                        noteOsc.frequency.setValueAtTime(freq, now + idx * 0.12);
+                        noteGain.gain.setValueAtTime(0.3, now + idx * 0.12);
+                        noteGain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.12 + 0.3);
+                        noteOsc.connect(noteGain);
+                        noteGain.connect(audioCtx.destination);
+                        noteOsc.start(now + idx * 0.12);
+                        noteOsc.stop(now + idx * 0.12 + 0.3);
+                    });
+                } else if (type === 'dolphin') {
+                    // 海豚叫聲模擬
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(1200, now);
+                    osc.frequency.linearRampToValueAtTime(2400, now + 0.1);
+                    osc.frequency.linearRampToValueAtTime(1500, now + 0.2);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                }
+            } catch (e) {
+                console.log("Audio not allowed or supported yet");
+            }
+        }
+
+        function playDolphinSound() {
+            playSound('dolphin');
+        }
+
+        // --- 狀態變數 ---
+        let currentDifficulty = 'easy'; // 'easy' (3), 'medium' (5), 'hard' (7)
+        let array = [];
+        let i = 0; // 外層迴圈 Pass 計數 (已排好幾個)
+        let j = 0; // 內層當前比較索引
+        let isAnimating = false; // 是否正在進行動畫
+        let totalComparisons = 0;
+        let wrongAttempts = 0;
+        let isCurrentRoundDone = false;
+
+        const config = {
+            easy: { size: 3, label: "新手 (低年級)" },
+            medium: { size: 5, label: "進階 (中年級)" },
+            hard: { size: 7, label: "挑戰 (高年級)" }
+        };
+
+        // --- 初始化與背景氣泡生成 ---
+        window.addEventListener('DOMContentLoaded', () => {
+            createBackgroundBubbles();
+            resetGame();
+
+            // 響應視窗大小調整指標位置
+            window.addEventListener('resize', updatePointerPosition);
+        });
+
+        function createBackgroundBubbles() {
+            const container = document.getElementById('bgBubbles');
+            container.innerHTML = '';
+            for (let k = 0; k < 15; k++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'bg-bubble';
+                const size = Math.random() * 40 + 20;
+                bubble.style.width = `${size}px`;
+                bubble.style.height = `${size}px`;
+                bubble.style.left = `${Math.random() * 100}%`;
+                bubble.style.animationDelay = `${Math.random() * 8}s`;
+                bubble.style.animationDuration = `${Math.random() * 6 + 6}s`;
+                container.appendChild(bubble);
+            }
+        }
+
+        // --- 關卡切換與初始化 ---
+        function changeDifficulty(diff) {
+            if (isAnimating) return;
+            currentDifficulty = diff;
+            
+            // 更新 UI 按鈕樣式
+            ['easy', 'medium', 'hard'].forEach(d => {
+                const btn = document.getElementById(`btn-${d}`);
+                if (d === diff) {
+                    btn.className = "px-3 py-1.5 rounded-xl text-sm font-bold transition-all bg-amber-400 text-amber-950 shadow";
+                } else {
+                    btn.className = "px-3 py-1.5 rounded-xl text-sm font-bold transition-all text-sky-100 hover:text-white";
+                }
+            });
+
+            resetGame();
+        }
+
+        function resetGame() {
+            const size = config[currentDifficulty].size;
+            
+            // 產生 1~99 不重複亂數
+            array = [];
+            while (array.length < size) {
+                const num = Math.floor(Math.random() * 30) + 1; // 數字範圍 1~30 適合小學生
+                if (!array.includes(num)) {
+                    array.push(num);
+                }
+            }
+
+            i = 0;
+            j = 0;
+            totalComparisons = 0;
+            wrongAttempts = 0;
+            isAnimating = false;
+            isCurrentRoundDone = false;
+
+            updateGuideText(`遊戲開始囉！請比較黃色亮起的這兩個數字，左邊有比右邊大嗎？`, `💡 提示：氣泡排序法的目標是讓數字「從小到大」排列！`);
+            renderBubbles();
+            updatePointerPosition();
+            toggleButtons(true);
+        }
+
+        // --- 渲染數字氣泡 ---
+        function renderBubbles() {
+            const container = document.getElementById('bubbles-container');
+            container.innerHTML = '';
+
+            const n = array.length;
+
+            array.forEach((val, idx) => {
+                const bubble = document.createElement('div');
+                bubble.id = `bubble-${idx}`;
+                
+                // 基礎樣式
+                let baseClass = "number-bubble relative flex flex-col items-center justify-center rounded-full border-4 font-black text-white shadow-xl select-none transition-all duration-300 ";
+                
+                // 動態調整大小 (7個時稍微縮小)
+                let sizeClass = n > 5 ? "w-16 h-16 sm:w-20 sm:h-20 text-xl sm:text-2xl" : "w-20 h-20 sm:w-24 sm:h-24 text-2xl sm:text-3xl";
+
+                // 顏色狀態判斷
+                const isSorted = idx >= n - i;
+                const isComparing = !isSorted && (idx === j || idx === j + 1);
+
+                let colorStyle = "";
+                if (isSorted) {
+                    baseClass += "sorted ";
+                } else if (isComparing) {
+                    baseClass += "comparing ";
+                } else {
+                    // 未排序普通狀態
+                    colorStyle = "background: radial-gradient(circle at 30% 30%, #38bdf8, #0284c7); border-color: #7dd3fc;";
+                }
+
+                bubble.className = baseClass + sizeClass;
+                if (colorStyle) bubble.style = colorStyle;
+
+                // 泡泡內容 (數字與光澤特效)
+                bubble.innerHTML = `
+                    <span class="drop-shadow-md z-10">${val}</span>
+                    <span class="absolute top-2 left-3 w-1/3 h-1/3 bg-white/40 rounded-full blur-[1px]"></span>
+                    ${isSorted ? '<i class="fa-solid fa-check text-xs text-green-900 absolute bottom-2"></i>' : ''}
+                `;
+
+                container.appendChild(bubble);
+            });
+
+            updatePointerPosition();
+        }
+
+        // --- 更新指標位置 (指向正在比較中的兩數中間) ---
+        function updatePointerPosition() {
+            const pointerBox = document.getElementById('pointer-box');
+            const n = array.length;
+
+            if (i >= n - 1) {
+                pointerBox.style.opacity = '0';
+                return;
+            }
+
+            const elem1 = document.getElementById(`bubble-${j}`);
+            const elem2 = document.getElementById(`bubble-${j+1}`);
+
+            if (elem1 && elem2) {
+                const rect1 = elem1.getBoundingClientRect();
+                const rect2 = elem2.getBoundingClientRect();
+                const containerRect = document.getElementById('bubbles-container').getBoundingClientRect();
+
+                // 計算兩元素中心點
+                const center1 = rect1.left + rect1.width / 2;
+                const center2 = rect2.left + rect2.width / 2;
+                const midX = (center1 + center2) / 2 - containerRect.left;
+
+                pointerBox.style.left = `${midX}px`;
+                pointerBox.style.opacity = '1';
+            } else {
+                pointerBox.style.opacity = '0';
+            }
+        }
+
+        // --- 處理使用者選擇 ---
+        function handleUserChoice(userSaysSwap) {
+            if (isAnimating) return;
+
+            initAudio();
+            const numLeft = array[j];
+            const numRight = array[j + 1];
+            const actualNeedSwap = numLeft > numRight;
+
+            totalComparisons++;
+
+            if (userSaysSwap === actualNeedSwap) {
+                // 答對了！
+                playSound('correct');
+                if (actualNeedSwap) {
+                    // 需要交換
+                    updateGuideText(`答對了！👏 **${numLeft}** 比 **${numRight}** 大，所以要【交換位置】！看它往右邊浮過去！`, `✨ 太棒了！繼續把大的數字推向右邊！`);
+                    executeSwapAnimation(j, j + 1, () => {
+                        // 更新陣列
+                        [array[j], array[j + 1]] = [array[j + 1], array[j]];
+                        advanceStep();
+                    });
+                } else {
+                    // 不需要交換
+                    updateGuideText(`答對了！👍 **${numLeft}** 比 **${numRight}** 小（或相等），所以【不用交換】，保持原樣！`, `✨ 觀念很清晰喔！繼續進行下一個比較！`);
+                    advanceStep();
+                }
+            } else {
+                // 答錯了！
+                playSound('wrong');
+                wrongAttempts++;
+                if (actualNeedSwap) {
+                    updateGuideText(`再想一下下喔！🤔 **${numLeft}** 比 **${numRight}** 大，所以【應該要交換】才對喔！試試看吧！`, `💡 左邊比較大時，要把大的數字推到右邊喔！`);
+                } else {
+                    updateGuideText(`再觀察看看～ 🧐 **${numLeft}** 已經比 **${numRight}** 小了，所以【不需要交換】喔！`, `💡 左邊已經比較小了，不用換位置～`);
+                }
+            }
+        }
+
+        // --- 執行氣泡交換動畫 ---
+        function executeSwapAnimation(idx1, idx2, callback) {
+            isAnimating = true;
+            toggleButtons(false);
+            playSound('swap');
+
+            const el1 = document.getElementById(`bubble-${idx1}`);
+            const el2 = document.getElementById(`bubble-${idx2}`);
+
+            if (!el1 || !el2) {
+                isAnimating = false;
+                callback();
+                return;
+            }
+
+            const rect1 = el1.getBoundingClientRect();
+            const rect2 = el2.getBoundingClientRect();
+
+            const diffX = rect2.left - rect1.left;
+
+            // 位移 CSS 動畫
+            el1.style.transform = `translate(${diffX}px, -20px) scale(1.1)`;
+            el2.style.transform = `translate(${-diffX}px, -20px) scale(1.1)`;
+
+            setTimeout(() => {
+                isAnimating = false;
+                toggleButtons(true);
+                callback();
+            }, 600);
+        }
+
+        // --- 推進至下一個比較狀態 ---
+        function advanceStep() {
+            const n = array.length;
+            j++;
+
+            // 當前的一輪 (Pass) 結束了
+            if (j >= n - 1 - i) {
+                i++; // 完成一個數字的歸位
+                j = 0; // 重置內層比較
+
+                // 檢查是否全數排序完成
+                if (i >= n - 1) {
+                    renderBubbles();
+                    showVictory();
+                    return;
+                } else {
+                    const sortedNum = array[n - i];
+                    updateGuideText(`🎉 這一輪完成了！最大的數字 **${sortedNum}** 已經順利浮到右邊就位囉！我們接著開始下一輪！`, `🌟 越來越接近成功了！`);
+                }
+            }
+
+            renderBubbles();
+        }
+
+        // --- 通關慶祝 ---
+        function showVictory() {
+            playSound('victory');
+            toggleButtons(false);
+
+            // 觸發彩帶紙屑特效
+            try {
+                confetti({
+                    particleCount: 120,
+                    spread: 80,
+                    origin: { y: 0.6 }
+                });
+            } catch(e){}
+
+            updateGuideText(`🏆 太神了！你成功將所有氣泡數字從小到大排好隊了！`, `🌟 你已經完全掌握氣泡排序法的原理囉！`);
+
+            // 顯示 Modal
+            const modal = document.getElementById('victory-modal');
+            const card = document.getElementById('modal-card');
+
+            document.getElementById('modal-diff').innerText = config[currentDifficulty].label;
+            document.getElementById('modal-comparisons').innerText = `${totalComparisons} 次`;
+            
+            const accuracy = totalComparisons > 0 ? Math.max(0, Math.round(((totalComparisons - wrongAttempts) / totalComparisons) * 100)) : 100;
+            document.getElementById('modal-accuracy').innerText = `${accuracy}%`;
+
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            card.classList.remove('scale-90');
+            card.classList.add('scale-100');
+        }
+
+        function closeVictoryModal() {
+            const modal = document.getElementById('victory-modal');
+            const card = document.getElementById('modal-card');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            card.classList.remove('scale-100');
+            card.classList.add('scale-90');
+        }
+
+        // --- 更新輔助說明文字 ---
+        function updateGuideText(mainText, hintText) {
+            document.getElementById('guide-text').innerHTML = mainText;
+            if (hintText) {
+                document.getElementById('step-hint').innerText = hintText;
+            }
+        }
+
+        // --- 控制按鈕啟用/停用 ---
+        function toggleButtons(enabled) {
+            const btnSwap = document.getElementById('btn-swap');
+            const btnNoSwap = document.getElementById('btn-noswap');
+
+            if (enabled) {
+                btnSwap.disabled = false;
+                btnNoSwap.disabled = false;
+                btnSwap.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnNoSwap.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                btnSwap.disabled = true;
+                btnNoSwap.disabled = true;
+                btnSwap.classList.add('opacity-50', 'cursor-not-allowed');
+                btnNoSwap.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+    </script>
+</body>
+</html>

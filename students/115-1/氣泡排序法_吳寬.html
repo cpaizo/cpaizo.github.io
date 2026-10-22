@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>氣泡排序大冒險 - 國小生演算法樂園</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Fluent rounded feel -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Zen Maru Gothic', 'Fredoka', cursive, sans-serif;
+            background: linear-gradient(180deg, #a1c4fd 0%, #c2e9fb 100%);
+            min-height: 100vh;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Float animation for decorative background bubbles */
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) scale(0.8); opacity: 0.3; }
+            50% { opacity: 0.6; }
+            100% { transform: translateY(-10vh) scale(1.2); opacity: 0; }
+        }
+
+        .bg-bubble {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: floatUp linear infinite;
+        }
+
+        /* Main Game Bubble Styles */
+        .number-bubble {
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: inset -5px -5px 15px rgba(0,0,0,0.1), 0 10px 20px rgba(0,0,0,0.15);
+            background: radial-gradient(circle at 35% 35%, #ffffff 0%, var(--bubble-color) 60%, var(--bubble-dark) 100%);
+        }
+
+        .number-bubble.comparing {
+            transform: translateY(-15px) scale(1.12);
+            box-shadow: 0 0 25px #f6e05e, inset -5px -5px 15px rgba(0,0,0,0.1);
+            border: 4px solid #f6e05e;
+            animation: pulseGlow 1s infinite alternate;
+        }
+
+        .number-bubble.sorted {
+            filter: saturate(1.4);
+            border: 4px solid #48bb78;
+            box-shadow: 0 0 15px #48bb78;
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: translateY(-15px) scale(1.08); box-shadow: 0 0 15px #f6e05e; }
+            100% { transform: translateY(-20px) scale(1.15); box-shadow: 0 0 30px #f6e05e, 0 0 10px #ecc94b; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+
+        .shake-anim {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        /* Glassmorphism panel */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 3px solid rgba(255, 255, 255, 0.6);
+            border-radius: 2rem;
+            box-shadow: 0 20px 40px rgba(31, 38, 135, 0.15);
+        }
+
+        .btn-bounce {
+            transition: all 0.15s ease;
+        }
+        .btn-bounce:active {
+            transform: scale(0.92);
+        }
+
+        /* Custom Scrollbar for tutorial instructions */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-between min-h-screen p-3 sm:p-6 relative overflow-x-hidden">
+
+    <!-- Background Decorative Bubbles -->
+    <div id="bg-bubbles-container" class="fixed inset-0 pointer-events-none z-0"></div>
+
+    <!-- Header Section -->
+    <header class="w-full max-w-4xl z-10 flex justify-between items-center bg-white/70 backdrop-blur-md px-5 py-3 rounded-2xl shadow-sm mb-4">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center text-white text-2xl shadow-md transform -rotate-6">
+                <i class="fa-solid fa-soap"></i>
+            </div>
+            <div>
+                <h1 class="text-xl sm:text-2xl font-black text-blue-600 tracking-wide">氣泡排序大冒險</h1>
+                <p class="text-xs text-blue-400 font-bold">Bubble Sort Kids Adventure</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2 sm:gap-4">
+            <button id="sound-btn" onclick="toggleSound()" class="p-3 bg-white hover:bg-slate-100 text-blue-500 rounded-xl shadow-sm font-bold text-lg transition">
+                <i class="fa-solid fa-volume-high" id="sound-icon"></i>
+            </button>
+            <button onclick="showModeSelect()" class="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 font-black rounded-xl text-sm transition flex items-center gap-1">
+                <i class="fa-solid fa-house"></i> 主選單
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="w-full max-w-4xl flex-1 flex flex-col justify-center items-center z-10 relative my-2">
+
+        <!-- ================= MODE SELECT MENU ================= -->
+        <div id="menu-view" class="w-full glass-card p-6 sm:p-10 text-center flex flex-col items-center gap-6">
+            <div class="inline-block px-4 py-1.5 bg-yellow-300 text-yellow-900 font-black rounded-full text-sm animate-bounce">
+                ✨ 演算法小天才必玩！ ✨
+            </div>
+            <h2 class="text-3xl sm:text-4xl font-black text-slate-800">選擇你想玩的模式吧！</h2>
+            <p class="text-slate-600 max-w-md text-sm sm:text-base">幫小氣泡們排隊！從小到大排好，大的氣泡會像空氣一樣慢慢「浮」到最右邊喔！</p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-2xl mt-2">
+                <!-- Mode 1: Tutorial -->
+                <button onclick="startTutorial()" class="glass-card hover:bg-amber-50/90 border-2 border-amber-300 p-6 flex flex-col items-center gap-3 transition transform hover:-translate-y-2 btn-bounce">
+                    <div class="w-16 h-16 bg-amber-400 text-white rounded-full flex items-center justify-center text-3xl shadow-lg">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <span class="text-xl font-black text-amber-800">教學導覽</span>
+                    <span class="text-xs text-amber-600 font-bold">一步步帶你了解氣泡排序法！</span>
+                </button>
+
+                <!-- Mode 2: Practice Game -->
+                <button onclick="startPracticeGame()" class="glass-card hover:bg-emerald-50/90 border-2 border-emerald-300 p-6 flex flex-col items-center gap-3 transition transform hover:-translate-y-2 btn-bounce">
+                    <div class="w-16 h-16 bg-emerald-400 text-white rounded-full flex items-center justify-center text-3xl shadow-lg">
+                        <i class="fa-solid fa-gamepad"></i>
+                    </div>
+                    <span class="text-xl font-black text-emerald-800">闖關練習</span>
+                    <span class="text-xs text-emerald-600 font-bold">親自動手闖關，挑戰升級！</span>
+                </button>
+
+                <!-- Mode 3: Time Attack -->
+                <button onclick="startTimeAttack()" class="glass-card hover:bg-rose-50/90 border-2 border-rose-300 p-6 flex flex-col items-center gap-3 transition transform hover:-translate-y-2 btn-bounce">
+                    <div class="w-16 h-16 bg-rose-400 text-white rounded-full flex items-center justify-center text-3xl shadow-lg">
+                        <i class="fa-solid fa-stopwatch"></i>
+                    </div>
+                    <span class="text-xl font-black text-rose-800">限時挑戰</span>
+                    <span class="text-xs text-rose-600 font-bold">60秒內比比看能排對幾組！</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= GAMEPLAY AREA (Practice / Time Attack) ================= -->
+        <div id="game-view" class="w-full glass-card p-4 sm:p-8 flex flex-col items-center hidden">
+            <!-- Top Status Bar -->
+            <div class="w-full flex flex-wrap justify-between items-center gap-2 mb-6 bg-white/60 p-3 sm:p-4 rounded-xl border border-white">
+                <!-- Level / Mode info -->
+                <div class="flex items-center gap-2">
+                    <span id="game-mode-badge" class="px-3 py-1 bg-blue-500 text-white font-black rounded-lg text-sm">闖關關卡 1</span>
+                    <span id="streak-badge" class="px-3 py-1 bg-amber-400 text-amber-900 font-black rounded-lg text-sm hidden">🔥 連勝: 0</span>
+                </div>
+
+                <!-- Timer / Score -->
+                <div class="flex items-center gap-4 text-slate-700 font-black">
+                    <div id="timer-box" class="flex items-center gap-1 text-rose-500 hidden">
+                        <i class="fa-solid fa-clock"></i>
+                        <span id="timer-text" class="text-xl">60</span>s
+                    </div>
+                    <div class="flex items-center gap-1 text-amber-500">
+                        <i class="fa-solid fa-star"></i>
+                        <span id="score-text" class="text-xl">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hint Header -->
+            <div id="action-hint" class="text-center mb-6">
+                <p class="text-lg sm:text-2xl font-black text-slate-800">請比較亮起黃光的這兩個氣泡！</p>
+                <p class="text-sm text-slate-500 font-bold">左邊的數字有比右邊大嗎？需要交換位置嗎？</p>
+            </div>
+
+            <!-- Bubbles Display Container -->
+            <div class="w-full min-h-[180px] sm:min-h-[220px] flex items-center justify-center relative my-4 px-2">
+                <div id="bubbles-container" class="flex items-center justify-center gap-2 sm:gap-4 flex-wrap max-w-full">
+                    <!-- Bubbles injected dynamically -->
+                </div>
+            </div>
+
+            <!-- Comparison Indicator Pointer -->
+            <div id="pointer-container" class="h-8 flex justify-center items-center my-1 transition-all duration-300">
+                <span class="text-amber-500 text-xl font-bold animate-bounce"><i class="fa-solid fa-angles-up"></i> 比較這兩個 <i class="fa-solid fa-angles-up"></i></span>
+            </div>
+
+            <!-- Action Controls -->
+            <div id="game-controls" class="w-full max-w-md grid grid-cols-2 gap-4 mt-4">
+                <button onclick="handleUserChoice(true)" class="py-4 px-6 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl shadow-lg hover:shadow-emerald-200/50 font-black text-lg sm:text-xl flex flex-col items-center gap-1 btn-bounce border-b-4 border-emerald-700">
+                    <span class="flex items-center gap-2"><i class="fa-solid fa-arrow-right-arrow-left"></i> 交換位置</span>
+                    <span class="text-xs font-normal opacity-90">(左邊 > 右邊)</span>
+                </button>
+                <button onclick="handleUserChoice(false)" class="py-4 px-6 bg-sky-500 hover:bg-sky-600 text-white rounded-2xl shadow-lg hover:shadow-sky-200/50 font-black text-lg sm:text-xl flex flex-col items-center gap-1 btn-bounce border-b-4 border-sky-700">
+                    <span class="flex items-center gap-2"><i class="fa-solid fa-check"></i> 不必交換</span>
+                    <span class="text-xs font-normal opacity-90">(左邊 ≤ 右邊)</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= TUTORIAL VIEW ================= -->
+        <div id="tutorial-view" class="w-full glass-card p-6 sm:p-8 flex flex-col items-center hidden">
+            <div class="w-full flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-black text-amber-700"><i class="fa-solid fa-book-open"></i> 氣泡排序法原理教學</h3>
+                <span id="tut-step-count" class="text-sm font-black bg-amber-100 text-amber-800 px-3 py-1 rounded-full">步驟 1/5</span>
+            </div>
+
+            <div class="w-full min-h-[160px] flex items-center justify-center my-4 bg-blue-50/50 rounded-2xl border border-blue-100 p-4">
+                <div id="tut-bubbles-container" class="flex items-center justify-center gap-3">
+                    <!-- Tutorial Bubbles injected here -->
+                </div>
+            </div>
+
+            <!-- Tutorial Description Box -->
+            <div class="w-full bg-white p-4 sm:p-5 rounded-2xl shadow-inner border border-slate-100 mb-6 text-center">
+                <p id="tut-description" class="text-lg font-bold text-slate-700 leading-relaxed">
+                    載入教學內容中...
+                </p>
+            </div>
+
+            <!-- Tutorial Navigation Controls -->
+            <div class="flex items-center gap-4">
+                <button id="tut-prev-btn" onclick="prevTutorialStep()" class="px-5 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-black rounded-xl transition btn-bounce disabled:opacity-40">
+                    <i class="fa-solid fa-arrow-left"></i> 上一步
+                </button>
+                <button id="tut-next-btn" onclick="nextTutorialStep()" class="px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-xl transition shadow-md btn-bounce">
+                    下一步 <i class="fa-solid fa-arrow-right"></i>
+                </button>
+                <button onclick="startPracticeGame()" class="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-xl transition shadow-md btn-bounce">
+                    去練習！ <i class="fa-solid fa-play"></i>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal Dialogs (Victory / Failure) -->
+    <div id="modal-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-card bg-white p-8 max-w-sm w-full text-center flex flex-col items-center gap-4 animate-bounce-in">
+            <div id="modal-icon" class="text-6xl text-amber-400">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            <h3 id="modal-title" class="text-2xl font-black text-slate-800">挑戰成功！</h3>
+            <p id="modal-msg" class="text-slate-600 font-bold text-sm">你成功把氣泡依序排好了！太厲害囉！</p>
+            
+            <!-- Stars -->
+            <div id="modal-stars" class="flex gap-2 text-3xl text-amber-400 my-2">
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+            </div>
+
+            <button id="modal-action-btn" onclick="closeModal()" class="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white font-black rounded-xl text-lg shadow-md btn-bounce">
+                繼續挑戰下一關
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center text-xs text-blue-500 font-bold z-10 my-2">
+        氣泡排序小小體驗營 &copy; 讓程式思維變得簡單又有趣！
+    </footer>
+
+    <!-- Game Logic Script -->
+    <script>
+        /* ================= AUDIO SYSTEM (Web Audio API) ================= */
+        let audioCtx = null;
+        let soundEnabled = true;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            initAudio();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'swap') {
+                // Playful bubbly swap tone
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.exponentialRampToValueAtTime(600, now + 0.15);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            } else if (type === 'correct') {
+                // Happy chord chime
+                [523.25, 659.25, 783.99].forEach((freq, idx) => {
+                    const subOsc = audioCtx.createOscillator();
+                    const subGain = audioCtx.createGain();
+                    subOsc.type = 'triangle';
+                    subOsc.frequency.value = freq;
+                    subOsc.connect(subGain);
+                    subGain.connect(audioCtx.destination);
+
+                    subGain.gain.setValueAtTime(0.15, now + idx * 0.08);
+                    subGain.gain.linearRampToValueAtTime(0.01, now + idx * 0.08 + 0.2);
+                    subOsc.start(now + idx * 0.08);
+                    subOsc.stop(now + idx * 0.08 + 0.2);
+                });
+            } else if (type === 'wrong') {
+                // Gentle warning bump
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.linearRampToValueAtTime(110, now + 0.2);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now);
+                osc.stop(now + 0.2);
+            } else if (type === 'win') {
+                // Fanfare notes
+                const notes = [440, 554.37, 659.25, 880];
+                notes.forEach((freq, idx) => {
+                    const subOsc = audioCtx.createOscillator();
+                    const subGain = audioCtx.createGain();
+                    subOsc.type = 'sine';
+                    subOsc.frequency.value = freq;
+                    subOsc.connect(subGain);
+                    subGain.connect(audioCtx.destination);
+
+                    subGain.gain.setValueAtTime(0.2, now + idx * 0.1);
+                    subGain.gain.linearRampToValueAtTime(0.01, now + idx * 0.1 + 0.3);
+                    subOsc.start(now + idx * 0.1);
+                    subOsc.stop(now + idx * 0.1 + 0.3);
+                });
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            if (soundEnabled) {
+                icon.className = 'fa-solid fa-volume-high';
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-slate-400';
+            }
+        }
+
+        /* ================= COLOR PALETTES FOR BUBBLES ================= */
+        const BUBBLE_COLORS = [
+            { bg: '#f472b6', dark: '#db2777' }, // Pink
+            { bg: '#60a5fa', dark: '#2563eb' }, // Blue
+            { bg: '#34d399', dark: '#059669' }, // Green
+            { bg: '#fbbf24', dark: '#d97706' }, // Amber
+            { bg: '#a78bfa', dark: '#7c3aed' }, // Purple
+            { bg: '#f87171', dark: '#dc2626' }, // Red
+            { bg: '#38bdf8', dark: '#0284c7' }  // Sky
+        ];
+
+        /* ================= GAME STATE ================= */
+        let currentMode = 'menu'; // menu, practice, timeattack, tutorial
+        let numbers = [];
+        let curI = 0; // Outer pass index
+        let curJ = 0; // Inner comparison index
+        let isPassSwapped = false; // Flag to track if any swap happened in current pass
+        let sortedBoundary = 0; // Number of elements at end confirmed sorted
+        
+        let score = 0;
+        let streak = 0;
+        let level = 1;
+        let timerInterval = null;
+        let timeLeft = 60;
+
+        /* ================= BACKGROUND DECORATION ================= */
+        function createBgBubbles() {
+            const container = document.getElementById('bg-bubbles-container');
+            container.innerHTML = '';
+            for (let i = 0; i < 15; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'bg-bubble';
+                const size = Math.random() * 40 + 20;
+                bubble.style.width = `${size}px`;
+                bubble.style.height = `${size}px`;
+                bubble.style.left = `${Math.random() * 100}%`;
+                bubble.style.animationDuration = `${Math.random() * 8 + 6}s`;
+                bubble.style.animationDelay = `${Math.random() * 5}s`;
+                container.appendChild(bubble);
+            }
+        }
+
+        /* ================= NAVIGATION ================= */
+        function showModeSelect() {
+            currentMode = 'menu';
+            clearInterval(timerInterval);
+            document.getElementById('menu-view').classList.remove('hidden');
+            document.getElementById('game-view').classList.add('hidden');
+            document.getElementById('tutorial-view').classList.add('hidden');
+            document.getElementById('modal-overlay').classList.add('hidden');
+        }
+
+        /* ================= PRACTICE & TIME ATTACK GAME LOGIC ================= */
+        function startPracticeGame() {
+            currentMode = 'practice';
+            level = 1;
+            score = 0;
+            streak = 0;
+            setupLevel();
+
+            document.getElementById('menu-view').classList.add('hidden');
+            document.getElementById('tutorial-view').classList.add('hidden');
+            document.getElementById('game-view').classList.remove('hidden');
+
+            document.getElementById('game-mode-badge').innerText = `闖關關卡 ${level}`;
+            document.getElementById('streak-badge').classList.remove('hidden');
+            document.getElementById('timer-box').classList.add('hidden');
+            updateScoreUI();
+        }
+
+        function startTimeAttack() {
+            currentMode = 'timeattack';
+            score = 0;
+            timeLeft = 60;
+            level = 3; // start with 5 bubbles in time attack
+            setupLevel();
+
+            document.getElementById('menu-view').classList.add('hidden');
+            document.getElementById('tutorial-view').classList.add('hidden');
+            document.getElementById('game-view').classList.remove('hidden');
+
+            document.getElementById('game-mode-badge').innerText = `⚡ 限時挑戰`;
+            document.getElementById('streak-badge').classList.add('hidden');
+            document.getElementById('timer-box').classList.remove('hidden');
+            document.getElementById('timer-text').innerText = timeLeft;
+
+            updateScoreUI();
+
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer-text').innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    endGame(true, '時間到！超讚的挑戰！');
+                }
+            }, 1000);
+        }
+
+        function setupLevel() {
+            // Determine number of bubbles based on level
+            let count = 3 + Math.min(level - 1, 4); // 3 to 7 bubbles
+            if (currentMode === 'timeattack') count = 5;
+
+            // Generate unique random numbers
+            numbers = [];
+            while (numbers.length < count) {
+                let num = Math.floor(Math.random() * 89) + 10; // 10 to 99
+                if (!numbers.includes(num)) numbers.push(num);
+            }
+
+            curI = 0;
+            curJ = 0;
+            isPassSwapped = false;
+            sortedBoundary = numbers.length - 1;
+
+            renderGameBubbles();
+        }
+
+        function renderGameBubbles() {
+            const container = document.getElementById('bubbles-container');
+            container.innerHTML = '';
+
+            numbers.forEach((val, idx) => {
+                const bubble = document.createElement('div');
+                const colorScheme = BUBBLE_COLORS[idx % BUBBLE_COLORS.length];
+
+                bubble.className = `number-bubble w-16 h-16 sm:w-20 sm:h-20 rounded-full flex flex-col items-center justify-center font-black text-2xl sm:text-3xl text-white cursor-pointer select-none relative`;
+                bubble.style.setProperty('--bubble-color', colorScheme.bg);
+                bubble.style.setProperty('--bubble-dark', colorScheme.dark);
+
+                // Highlight currently comparing pair
+                if (idx === curJ || idx === curJ + 1) {
+                    bubble.classList.add('comparing');
+                }
+
+                // Highlight sorted elements at the end
+                if (idx > sortedBoundary) {
+                    bubble.classList.add('sorted');
+                }
+
+                // Bubble shine highlight
+                bubble.innerHTML = `
+                    <span class="absolute top-2 left-3 w-4 h-2 bg-white/50 rounded-full transform -rotate-45 pointer-events-none"></span>
+                    <span>${val}</span>
+                `;
+
+                container.appendChild(bubble);
+            });
+
+            // Update action hint box
+            const hintText = document.getElementById('action-hint');
+            const numLeft = numbers[curJ];
+            const numRight = numbers[curJ + 1];
+
+            hintText.innerHTML = `
+                <p class="text-lg sm:text-2xl font-black text-slate-800">
+                    比較 <span class="text-amber-600 font-extrabold px-2 py-0.5 bg-amber-100 rounded-lg">${numLeft}</span> 與 
+                    <span class="text-amber-600 font-extrabold px-2 py-0.5 bg-amber-100 rounded-lg">${numRight}</span>
+                </p>
+                <p class="text-sm text-slate-500 font-bold mt-1">
+                    ${numLeft} 比 ${numRight} 大嗎？需要把它往後推（交換）嗎？
+                </p>
+            `;
+        }
+
+        function handleUserChoice(userWantsSwap) {
+            const correctSwapNeeded = numbers[curJ] > numbers[curJ + 1];
+
+            if (userWantsSwap === correctSwapNeeded) {
+                // Correct decision!
+                playSound('correct');
+                score += 10 + (streak * 2);
+                streak++;
+
+                if (correctSwapNeeded) {
+                    // Perform swap with sound
+                    playSound('swap');
+                    let temp = numbers[curJ];
+                    numbers[curJ] = numbers[curJ + 1];
+                    numbers[curJ + 1] = temp;
+                    isPassSwapped = true;
+                }
+
+                advanceStep();
+            } else {
+                // Incorrect decision
+                playSound('wrong');
+                streak = 0;
+                
+                // Shake container for feedback
+                const container = document.getElementById('bubbles-container');
+                container.classList.add('shake-anim');
+                setTimeout(() => container.classList.remove('shake-anim'), 400);
+
+                // Encouraging feedback
+                const numLeft = numbers[curJ];
+                const numRight = numbers[curJ + 1];
+                let msg = correctSwapNeeded ? 
+                    `因為 ${numLeft} 比 ${numRight} 大，所以要把大的往後推（交換）喔！` : 
+                    `因為 ${numLeft} 已經比 ${numRight} 小或相等了，所以不用交換喔！`;
+                
+                showFeedbackModal(false, msg);
+            }
+
+            updateScoreUI();
+        }
+
+        function advanceStep() {
+            curJ++;
+
+            // End of current inner pass
+            if (curJ >= sortedBoundary) {
+                sortedBoundary--; // The largest element floating at the end is now fixed in place!
+                curJ = 0;
+                curI++;
+
+                // Check if completely sorted
+                if (sortedBoundary <= 0) {
+                    setTimeout(() => handleLevelComplete(), 300);
+                    return;
+                }
+            }
+
+            renderGameBubbles();
+        }
+
+        function handleLevelComplete() {
+            playSound('win');
+            confetti({
+                particleCount: 80,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+
+            if (currentMode === 'practice') {
+                level++;
+                document.getElementById('game-mode-badge').innerText = `闖關關卡 ${level}`;
+                showFeedbackModal(true, `恭喜你成功完成了本關排序！做得太棒了！`, true);
+            } else { // Time attack
+                score += 50; // Bonus for completing a set
+                setupLevel();
+            }
+        }
+
+        function updateScoreUI() {
+            document.getElementById('score-text').innerText = score;
+            document.getElementById('streak-badge').innerText = `🔥 連勝: ${streak}`;
+        }
+
+        function showFeedbackModal(isWin, msg, isLevelUp = false) {
+            const modal = document.getElementById('modal-overlay');
+            const title = document.getElementById('modal-title');
+            const msgEl = document.getElementById('modal-msg');
+            const icon = document.getElementById('modal-icon');
+            const btn = document.getElementById('modal-action-btn');
+            const stars = document.getElementById('modal-stars');
+
+            modal.classList.remove('hidden');
+            msgEl.innerText = msg;
+
+            if (isWin) {
+                title.innerText = '🎉 太棒了！關卡完成！';
+                icon.innerHTML = '<i class="fa-solid fa-trophy text-yellow-400 animate-bounce"></i>';
+                stars.classList.remove('hidden');
+                btn.innerText = '挑戰下一關 ➔';
+                btn.onclick = () => {
+                    modal.classList.add('hidden');
+                    setupLevel();
+                };
+            } else {
+                title.innerText = '💡 再思考一下下！';
+                icon.innerHTML = '<i class="fa-solid fa-lightbulb text-amber-400"></i>';
+                stars.classList.add('hidden');
+                btn.innerText = '我知道了，再來一次！';
+                btn.onclick = () => {
+                    modal.classList.add('hidden');
+                };
+            }
+        }
+
+        function endGame(isTimeUp, msg) {
+            playSound('win');
+            confetti({ particleCount: 120, spread: 90, origin: { y: 0.5 } });
+
+            const modal = document.getElementById('modal-overlay');
+            document.getElementById('modal-title').innerText = '🏆 挑戰結束！';
+            document.getElementById('modal-msg').innerText = `${msg}\n你一共獲得了 ${score} 分！`;
+            document.getElementById('modal-icon').innerHTML = '<i class="fa-solid fa-medal text-amber-400"></i>';
+            document.getElementById('modal-stars').classList.remove('hidden');
+
+            const btn = document.getElementById('modal-action-btn');
+            btn.innerText = '返回主選單';
+            btn.onclick = () => showModeSelect();
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.add('hidden');
+        }
+
+        /* ================= TUTORIAL INTERACTIVE MODE ================= */
+        let tutStep = 0;
+        const tutorialData = [
+            {
+                numbers: [42, 15, 28, 8],
+                comparing: [0, 1],
+                desc: "1️⃣ **什麼是氣泡排序法？**<br>想像一下水裡的氣泡，**比較大的氣泡會一直往上浮（往後排）**！我們從最左邊的第一對氣泡開始「兩兩比較」。",
+            },
+            {
+                numbers: [42, 15, 28, 8],
+                comparing: [0, 1],
+                desc: "2️⃣ **比較 42 與 15**<br>42 比 15 **大**！所以大氣泡 42 要往右邊推（**兩者交換位置**）。",
+            },
+            {
+                numbers: [15, 42, 28, 8],
+                comparing: [1, 2],
+                desc: "3️⃣ **繼續比較 42 與 28**<br>氣泡 42 來到第二個位置，繼續跟旁邊的 28 比較！42 比 28 大，所以**再次交換**！",
+            },
+            {
+                numbers: [15, 28, 42, 8],
+                comparing: [2, 3],
+                desc: "4️⃣ **繼續比較 42 與 8**<br>42 又比 8 大，再交換一次！此時最大數 42 已經順利「浮」到了最右邊囉！",
+            },
+            {
+                numbers: [15, 28, 8, 42],
+                comparing: [],
+                sorted: [3],
+                desc: "5️⃣ **完成第一輪（Pass）！**<br>最大的數字 42 已經固定在最後面了！接著我們再對前面的氣泡重複一樣的步驟，全部就能排好囉！",
+            }
+        ];
+
+        function startTutorial() {
+            currentMode = 'tutorial';
+            tutStep = 0;
+            document.getElementById('menu-view').classList.add('hidden');
+            document.getElementById('game-view').classList.add('hidden');
+            document.getElementById('tutorial-view').classList.remove('hidden');
+            renderTutorialStep();
+        }
+
+        function renderTutorialStep() {
+            const data = tutorialData[tutStep];
+            document.getElementById('tut-step-count').innerText = `步驟 ${tutStep + 1}/${tutorialData.length}`;
+            document.getElementById('tut-description').innerHTML = data.desc;
+
+            const container = document.getElementById('tut-bubbles-container');
+            container.innerHTML = '';
+
+            data.numbers.forEach((val, idx) => {
+                const bubble = document.createElement('div');
+                const colorScheme = BUBBLE_COLORS[idx % BUBBLE_COLORS.length];
+
+                bubble.className = `number-bubble w-16 h-16 sm:w-20 sm:h-20 rounded-full flex flex-col items-center justify-center font-black text-2xl text-white relative transition-all duration-300`;
+                bubble.style.setProperty('--bubble-color', colorScheme.bg);
+                bubble.style.setProperty('--bubble-dark', colorScheme.dark);
+
+                if (data.comparing.includes(idx)) {
+                    bubble.classList.add('comparing');
+                }
+                if (data.sorted && data.sorted.includes(idx)) {
+                    bubble.classList.add('sorted');
+                }
+
+                bubble.innerHTML = `
+                    <span class="absolute top-2 left-3 w-4 h-2 bg-white/50 rounded-full transform -rotate-45 pointer-events-none"></span>
+                    <span>${val}</span>
+                `;
+                container.appendChild(bubble);
+            });
+
+            document.getElementById('tut-prev-btn').disabled = tutStep === 0;
+            document.getElementById('tut-next-btn').disabled = tutStep === tutorialData.length - 1;
+        }
+
+        function nextTutorialStep() {
+            if (tutStep < tutorialData.length - 1) {
+                tutStep++;
+                playSound('swap');
+                renderTutorialStep();
+            }
+        }
+
+        function prevTutorialStep() {
+            if (tutStep > 0) {
+                tutStep--;
+                playSound('swap');
+                renderTutorialStep();
+            }
+        }
+
+        // Initialize background bubbles on page load
+        window.onload = function() {
+            createBgBubbles();
+        };
+    </script>
+</body>
+</html>

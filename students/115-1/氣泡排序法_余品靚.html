@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>氣泡排序冒險王 - 國小趣味演算法學習遊戲</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Zen Maru Gothic', 'Fredoka One', sans-serif;
+      background: linear-gradient(180deg, #1A365D 0%, #0F2942 40%, #081B2C 100%);
+      min-height: 100vh;
+      color: #FFFFFF;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    /* Ambient Background Bubbles */
+    .bg-bubble {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.05));
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      animation: floatUp 12s infinite linear;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes floatUp {
+      0% { transform: translateY(105vh) scale(0.5); opacity: 0.2; }
+      50% { opacity: 0.8; }
+      100% { transform: translateY(-10vh) scale(1.2); opacity: 0; }
+    }
+
+    /* Game Card & Bubble Styling */
+    .bubble-item {
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25), inset 0 2px 4px rgba(255,255,255,0.4);
+    }
+
+    .bubble-comparing {
+      transform: scale(1.12) translateY(-12px);
+      box-shadow: 0 0 25px #FBBF24, 0 12px 25px rgba(251, 191, 36, 0.5);
+      border-color: #FBBF24 !important;
+      animation: pulseGlow 1.2s infinite alternate;
+    }
+
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 15px #FBBF24; }
+      100% { box-shadow: 0 0 30px #FBBF24, 0 0 45px #F59E0B; }
+    }
+
+    .bubble-sorted {
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+      border-color: #34D399 !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+    }
+
+    /* Mascot bouncy animation */
+    .mascot-bounce {
+      animation: mascotBounce 2s infinite ease-in-out;
+    }
+
+    @keyframes mascotBounce {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-8px) rotate(3deg); }
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #3B82F6;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen relative overflow-x-hidden">
+
+  <!-- Background Animated Bubbles Container -->
+  <div id="bgBubbles" class="fixed inset-0 pointer-events-none z-0"></div>
+
+  <!-- Header & Navigation -->
+  <header class="relative z-10 w-full max-w-5xl mx-auto px-4 pt-4 pb-2">
+    <div class="bg-slate-900/80 backdrop-blur-md rounded-3xl p-4 border border-cyan-500/30 shadow-2xl flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-12 h-12 bg-cyan-500/20 rounded-2xl flex items-center justify-center border border-cyan-400/40 text-cyan-300 text-2xl shadow-inner">
+          <i class="fa-solid fa-water-ladder"></i>
+        </div>
+        <div>
+          <h1 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-yellow-200 to-pink-300 tracking-wide">
+            氣泡排序冒險王
+          </h1>
+          <p class="text-xs text-cyan-200 font-bold">Bubble Sort Educational Game</p>
+        </div>
+      </div>
+
+      <!-- Mode Selector Tabs -->
+      <div class="flex bg-slate-800/90 p-1.5 rounded-2xl border border-slate-700/80 text-sm font-bold">
+        <button id="btnModeDemo" onclick="switchMode('demo')" class="px-4 py-2 rounded-xl transition flex items-center gap-2 text-slate-300 hover:text-white">
+          <i class="fa-solid fa-play-circle text-amber-400"></i> 動畫演示
+        </button>
+        <button id="btnModePractice" onclick="switchMode('practice')" class="px-4 py-2 rounded-xl transition flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg">
+          <i class="fa-solid fa-graduation-cap text-yellow-300"></i> 闖關練習
+        </button>
+        <button id="btnModeChallenge" onclick="switchMode('challenge')" class="px-4 py-2 rounded-xl transition flex items-center gap-2 text-slate-300 hover:text-white">
+          <i class="fa-solid fa-stopwatch text-rose-400"></i> 限時挑戰
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="relative z-10 flex-1 max-w-5xl w-full mx-auto px-4 py-3 flex flex-col gap-4">
+
+    <!-- Top Dashboard: Game Status, Mascot Advice, & Stars -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+      
+      <!-- Mascot & Advice Panel -->
+      <div class="md:col-span-8 bg-slate-900/80 backdrop-blur-md rounded-3xl p-4 border border-cyan-500/30 flex items-center gap-4 shadow-xl">
+        <div class="relative flex-shrink-0">
+          <div class="w-16 h-16 bg-gradient-to-tr from-cyan-400 to-blue-500 rounded-full flex items-center justify-center text-3xl shadow-lg border-2 border-white/40 mascot-bounce">
+            🐠
+          </div>
+          <span class="absolute -bottom-1 -right-1 bg-amber-400 text-slate-900 text-xs px-2 py-0.5 rounded-full font-black border border-white">
+            波波
+          </span>
+        </div>
+        <div class="flex-1">
+          <div class="flex items-center justify-between mb-1">
+            <span id="mascotTitle" class="text-xs font-bold text-cyan-300 tracking-wider">【 學習小助理 】</span>
+            <span id="passCounter" class="text-xs font-bold text-amber-300 bg-amber-900/40 px-2 py-0.5 rounded-md border border-amber-500/30">
+              第 1 輪排序中
+            </span>
+          </div>
+          <p id="instructionBox" class="text-sm md:text-base font-bold text-slate-100 leading-snug">
+            歡迎來到氣泡排序海底世界！點擊下方的【交換】或【不交換】來幫海洋好朋友由小到大排好隊吧！
+          </p>
+        </div>
+      </div>
+
+      <!-- Stats Panel (Stars, Score, Combo, Timer) -->
+      <div class="md:col-span-4 bg-slate-900/80 backdrop-blur-md rounded-3xl p-4 border border-cyan-500/30 flex flex-col justify-between shadow-xl">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-star text-amber-400 text-xl"></i>
+            <span class="text-xs text-slate-300 font-bold">獲得星星</span>
+          </div>
+          <span id="starDisplay" class="text-xl font-black text-amber-300">⭐⭐⭐</span>
+        </div>
+
+        <div class="flex items-center justify-between mt-2">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-trophy text-yellow-400 text-lg"></i>
+            <span class="text-xs text-slate-300 font-bold">得分</span>
+          </div>
+          <span id="scoreDisplay" class="text-xl font-black text-cyan-300">0</span>
+        </div>
+
+        <div id="challengeTimerContainer" class="hidden flex items-center justify-between mt-2 pt-2 border-t border-slate-700/60">
+          <div class="flex items-center gap-2 text-rose-400">
+            <i class="fa-solid fa-clock text-lg"></i>
+            <span class="text-xs font-bold">剩餘時間</span>
+          </div>
+          <span id="timerDisplay" class="text-xl font-black text-rose-300">30s</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Interactive Sort Area -->
+    <div class="bg-slate-900/90 backdrop-blur-md rounded-3xl p-6 border border-cyan-500/30 shadow-2xl flex flex-col items-center justify-between min-h-[340px] relative overflow-hidden">
+      
+      <!-- Ocean Depth Decor Line -->
+      <div class="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-cyan-950/40 to-transparent pointer-events-none"></div>
+
+      <!-- Control Settings Strip (Array size & Theme) -->
+      <div class="w-full flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-800">
+        <div class="flex items-center gap-3">
+          <label class="text-xs font-bold text-cyan-200 flex items-center gap-1">
+            <i class="fa-solid fa-cubes"></i> 數量:
+          </label>
+          <select id="selectSize" onchange="resetGame()" class="bg-slate-800 text-cyan-200 text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-700 focus:outline-none focus:border-cyan-400">
+            <option value="4">4 個氣泡 (簡單)</option>
+            <option value="5" selected>5 個氣泡 (推薦)</option>
+            <option value="6">6 個氣泡 (進階)</option>
+          </select>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <label class="text-xs font-bold text-cyan-200 flex items-center gap-1">
+            <i class="fa-solid fa-icons"></i> 主題:
+          </label>
+          <select id="selectTheme" onchange="resetGame()" class="bg-slate-800 text-cyan-200 text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-700 focus:outline-none focus:border-cyan-400">
+            <option value="numbers">數字氣泡</option>
+            <option value="animals" selected>海洋可愛動物</option>
+            <option value="bars">高低柱狀圖</option>
+          </select>
+        </div>
+
+        <button onclick="resetGame()" class="text-xs font-bold bg-slate-800 hover:bg-slate-700 text-cyan-300 px-3 py-1.5 rounded-xl border border-slate-700 flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-rotate-right"></i> 重新開始
+        </button>
+      </div>
+
+      <!-- Bubble Cards Container -->
+      <div id="bubbleContainer" class="flex items-end justify-center gap-3 md:gap-6 my-auto py-6 w-full max-w-3xl min-h-[180px]">
+        <!-- Dynamic Cards rendered here -->
+      </div>
+
+      <!-- Interactive Decision Controls for Practice & Challenge Mode -->
+      <div id="userControls" class="w-full max-w-xl flex flex-col items-center gap-3 mt-2 z-10">
+        <div id="compareQuestionHint" class="text-xs md:text-sm font-black text-amber-300 bg-slate-800/90 px-4 py-1.5 rounded-full border border-amber-500/30 text-center">
+          👉 請問這兩個相鄰氣泡需要【交換】位置嗎？ (目標：由小到大排隊)
+        </div>
+
+        <div class="flex items-center justify-center gap-4 w-full">
+          <button id="btnSwap" onclick="handleUserChoice(true)" class="flex-1 max-w-[200px] py-3.5 px-6 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-900 font-black text-lg shadow-lg border-2 border-amber-200 flex items-center justify-center gap-2 transform active:scale-95 transition">
+            <i class="fa-solid fa-right-left"></i> 需要交換！
+          </button>
+          
+          <button id="btnNoSwap" onclick="handleUserChoice(false)" class="flex-1 max-w-[200px] py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black text-lg shadow-lg border-2 border-emerald-200 flex items-center justify-center gap-2 transform active:scale-95 transition">
+            <i class="fa-solid fa-check"></i> 保持順序！
+          </button>
+        </div>
+      </div>
+
+      <!-- Auto Demo Control Controls -->
+      <div id="demoControls" class="hidden w-full max-w-lg flex items-center justify-center gap-4 mt-2 z-10">
+        <button id="btnPlayPause" onclick="toggleDemoPlay()" class="px-6 py-3 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-black text-base shadow-lg flex items-center gap-2">
+          <i class="fa-solid fa-play" id="playIcon"></i> <span id="playText">開始自動演示</span>
+        </button>
+        <div class="flex items-center gap-2 bg-slate-800 px-4 py-2 rounded-2xl border border-slate-700">
+          <span class="text-xs font-bold text-slate-300">演示速度:</span>
+          <button onclick="setDemoSpeed(1500)" class="px-2 py-1 text-xs font-bold rounded bg-slate-700 text-cyan-300 hover:bg-cyan-600 hover:text-white">慢</button>
+          <button onclick="setDemoSpeed(1000)" class="px-2 py-1 text-xs font-bold rounded bg-slate-700 text-cyan-300 hover:bg-cyan-600 hover:text-white">中</button>
+          <button onclick="setDemoSpeed(500)" class="px-2 py-1 text-xs font-bold rounded bg-slate-700 text-cyan-300 hover:bg-cyan-600 hover:text-white">快</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Educational Explanation & Rules Banner -->
+    <div class="bg-slate-900/80 backdrop-blur-md rounded-3xl p-5 border border-cyan-500/30 text-xs md:text-sm text-slate-300 space-y-2">
+      <h3 class="text-sm font-black text-cyan-300 flex items-center gap-2">
+        <i class="fa-solid fa-lightbulb text-amber-400"></i> 什麼是氣泡排序法 (Bubble Sort)？
+      </h3>
+      <p class="leading-relaxed">
+        就像水中的氣泡一樣，<strong class="text-amber-300">較大的氣泡會慢慢浮到最上面（右邊）</strong>！我們每次比較<strong class="text-cyan-200">相鄰的兩個氣泡</strong>，如果左邊比右邊大，就把它們【交換】位置。每一輪比較結束後，當輪最大的氣泡就會固定在最右邊囉！
+      </p>
+    </div>
+
+  </main>
+
+  <!-- Victory / Completion Modal -->
+  <div id="victoryModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border-2 border-cyan-400/50 rounded-3xl p-6 md:p-8 max-w-md w-full text-center shadow-2xl relative">
+      <div class="w-20 h-20 bg-amber-400/20 text-amber-300 rounded-full flex items-center justify-center text-4xl mx-auto mb-4 border-2 border-amber-400/40 animate-bounce">
+        🏆
+      </div>
+      <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-200 to-orange-400 mb-2">
+        太棒了！排序完成！
+      </h2>
+      <p id="modalMessage" class="text-sm text-slate-300 font-bold mb-6">
+        你成功幫所有海洋好朋友由小到大排好隊囉！
+      </p>
+      
+      <div class="bg-slate-800/80 rounded-2xl p-4 mb-6 border border-slate-700/80 space-y-2">
+        <div class="flex justify-between items-center text-sm font-bold">
+          <span class="text-slate-400">獲得總分:</span>
+          <span id="modalScore" class="text-cyan-300 text-lg">100 分</span>
+        </div>
+        <div class="flex justify-between items-center text-sm font-bold">
+          <span class="text-slate-400">評級表現:</span>
+          <span id="modalStars" class="text-amber-300 text-lg">⭐⭐⭐</span>
+        </div>
+      </div>
+
+      <button onclick="resetGame(); closeModal();" class="w-full py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-black rounded-2xl shadow-lg border border-cyan-300/40 transition">
+        再玩一次 <i class="fa-solid fa-rotate-right ml-1"></i>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    /* ==========================================================================
+       GAME STATE & CONFIGURATION
+       ========================================================================== */
+    const ANIMAL_ICONS = [
+      { name: "小蝦米", icon: "🦐", baseValue: 12 },
+      { name: "小丑魚", icon: "🐠", baseValue: 28 },
+      { name: "螃蟹", icon: "🦀", baseValue: 45 },
+      { name: "章魚", icon: "🐙", baseValue: 62 },
+      { name: "海龜", icon: "🐢", baseValue: 78 },
+      { name: "鯊魚", icon: "🦈", baseValue: 90 },
+      { name: "藍鯨", icon: "🐳", baseValue: 99 }
+    ];
+
+    let currentMode = 'practice'; // 'demo', 'practice', 'challenge'
+    let arraySize = 5;
+    let theme = 'animals'; // 'numbers', 'animals', 'bars'
+    
+    let array = [];        // Data array: [{ id, value, label, icon }]
+    let i = 0;              // Outer loop index (current pass)
+    let j = 0;              // Inner loop index (current comparing pair j & j+1)
+    let sortedIndices = []; // Indices that are permanently locked in sorted order
+    let isFinished = false;
+    
+    let score = 0;
+    let stars = 3;
+    let errorsCount = 0;
+    
+    // Auto Demo Control States
+    let demoInterval = null;
+    let isDemoPlaying = false;
+    let demoSpeed = 1000;
+
+    // Time Attack Timer
+    let timerInterval = null;
+    let timeLeft = 30;
+
+    /* ==========================================================================
+       SYNTHESIZED AUDIO EFFECTS (Web Audio API)
+       ========================================================================== */
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) audioCtx = new AudioCtx();
+    }
+
+    function playTone(freq, type = 'sine', duration = 0.15, gainVal = 0.1) {
+      try {
+        initAudio();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) { console.log('Audio error', e); }
+    }
+
+    function playSoundEffect(type) {
+      if (type === 'compare') {
+        playTone(320, 'sine', 0.1, 0.05);
+      } else if (type === 'swap') {
+        playTone(440, 'triangle', 0.12, 0.08);
+        setTimeout(() => playTone(587.33, 'triangle', 0.12, 0.08), 80);
+      } else if (type === 'correct') {
+        playTone(523.25, 'sine', 0.1, 0.08); // C5
+        setTimeout(() => playTone(659.25, 'sine', 0.15, 0.08), 100); // E5
+      } else if (type === 'wrong') {
+        playTone(220, 'sawtooth', 0.2, 0.08); // A3
+      } else if (type === 'win') {
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((f, idx) => {
+          setTimeout(() => playTone(f, 'sine', 0.25, 0.1), idx * 120);
+        });
+      }
+    }
+
+    /* ==========================================================================
+       INITIALIZATION & SETUP
+       ========================================================================== */
+    window.onload = function() {
+      createBackgroundBubbles();
+      resetGame();
+    };
+
+    function createBackgroundBubbles() {
+      const bg = document.getElementById('bgBubbles');
+      bg.innerHTML = '';
+      for (let k = 0; k < 15; k++) {
+        const bubble = document.createElement('div');
+        bubble.className = 'bg-bubble';
+        const size = Math.random() * 40 + 15;
+        bubble.style.width = `${size}px`;
+        bubble.style.height = `${size}px`;
+        bubble.style.left = `${Math.random() * 100}%`;
+        bubble.style.animationDelay = `${Math.random() * 10}s`;
+        bubble.style.animationDuration = `${8 + Math.random() * 8}s`;
+        bg.appendChild(bubble);
+      }
+    }
+
+    function resetGame() {
+      clearInterval(demoInterval);
+      clearInterval(timerInterval);
+      isDemoPlaying = false;
+      updateDemoPlayButton();
+
+      arraySize = parseInt(document.getElementById('selectSize').value);
+      theme = document.getElementById('selectTheme').value;
+      
+      i = 0;
+      j = 0;
+      sortedIndices = [];
+      isFinished = false;
+      errorsCount = 0;
+
+      generateRandomArray();
+      renderBubbles();
+
+      if (currentMode === 'challenge') {
+        score = 0;
+        timeLeft = 30;
+        startTimer();
+      }
+
+      updateMascotInstruction();
+      updateScoreboard();
+    }
+
+    function generateRandomArray() {
+      array = [];
+      if (theme === 'animals') {
+        // Pick random items without duplicate values
+        let shuffled = [...ANIMAL_ICONS].sort(() => 0.5 - Math.random()).slice(0, arraySize);
+        array = shuffled.map((item, idx) => ({
+          id: `item-${idx}-${Date.now()}`,
+          value: item.baseValue,
+          label: item.name,
+          icon: item.icon
+        }));
+      } else {
+        // Numbers or Bars
+        let set = new Set();
+        while (set.size < arraySize) {
+          set.add(Math.floor(Math.random() * 85) + 12);
+        }
+        let values = Array.from(set);
+        array = values.map((val, idx) => ({
+          id: `item-${idx}-${Date.now()}`,
+          value: val,
+          label: `${val}`,
+          icon: theme === 'numbers' ? '🫧' : '📊'
+        }));
+      }
+    }
+
+    /* ==========================================================================
+       MODE SWITCHING
+       ========================================================================== */
+    function switchMode(mode) {
+      currentMode = mode;
+
+      // Update Tab Styles
+      const btnDemo = document.getElementById('btnModeDemo');
+      const btnPractice = document.getElementById('btnModePractice');
+      const btnChallenge = document.getElementById('btnModeChallenge');
+
+      const activeClass = 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg';
+      const inactiveClass = 'text-slate-300 hover:text-white';
+
+      btnDemo.className = `px-4 py-2 rounded-xl transition flex items-center gap-2 ${mode === 'demo' ? activeClass : inactiveClass}`;
+      btnPractice.className = `px-4 py-2 rounded-xl transition flex items-center gap-2 ${mode === 'practice' ? activeClass : inactiveClass}`;
+      btnChallenge.className = `px-4 py-2 rounded-xl transition flex items-center gap-2 ${mode === 'challenge' ? activeClass : inactiveClass}`;
+
+      // Toggle UI Containers
+      const userControls = document.getElementById('userControls');
+      const demoControls = document.getElementById('demoControls');
+      const timerContainer = document.getElementById('challengeTimerContainer');
+
+      if (mode === 'demo') {
+        userControls.classList.add('hidden');
+        demoControls.classList.remove('hidden');
+        timerContainer.classList.add('hidden');
+      } else if (mode === 'practice') {
+        userControls.classList.remove('hidden');
+        demoControls.classList.add('hidden');
+        timerContainer.classList.add('hidden');
+      } else if (mode === 'challenge') {
+        userControls.classList.remove('hidden');
+        demoControls.classList.add('hidden');
+        timerContainer.classList.remove('hidden');
+      }
+
+      resetGame();
+    }
+
+    /* ==========================================================================
+       RENDER BUBBLES / CARDS
+       ========================================================================== */
+    function renderBubbles() {
+      const container = document.getElementById('bubbleContainer');
+      container.innerHTML = '';
+
+      const maxVal = Math.max(...array.map(a => a.value), 100);
+
+      array.forEach((item, index) => {
+        const bubbleEl = document.createElement('div');
+        
+        // Base classes
+        let classes = 'bubble-item relative flex flex-col items-center justify-center rounded-3xl p-3 border-2 transition-all duration-300 select-none ';
+
+        const isComparing = (index === j || index === j + 1) && !isFinished;
+        const isSorted = sortedIndices.includes(index);
+
+        if (isSorted) {
+          classes += 'bubble-sorted border-emerald-300 ';
+        } else if (isComparing) {
+          classes += 'bubble-comparing bg-slate-800 text-amber-300 border-amber-400 ';
+        } else {
+          classes += 'bg-slate-800/90 border-cyan-500/40 text-slate-100 hover:border-cyan-400 ';
+        }
+
+        bubbleEl.className = classes;
+
+        // Dynamic Sizing or Bar Height according to theme
+        if (theme === 'bars') {
+          const heightPercent = Math.max(30, (item.value / maxVal) * 140);
+          bubbleEl.style.height = `${heightPercent}px`;
+          bubbleEl.style.width = '64px';
+          bubbleEl.innerHTML = `
+            <span class="text-xs font-black mb-1">${item.value}</span>
+            <div class="w-full bg-cyan-400/30 rounded-lg flex-1 border border-cyan-300/40"></div>
+          `;
+        } else if (theme === 'animals') {
+          bubbleEl.style.width = '80px';
+          bubbleEl.style.height = '105px';
+          bubbleEl.innerHTML = `
+            <span class="text-3xl mb-1">${item.icon}</span>
+            <span class="text-xs font-bold text-slate-200">${item.label}</span>
+            <span class="text-xs font-black text-amber-300 mt-1">體型 ${item.value}</span>
+          `;
+        } else {
+          // Numbers Theme
+          bubbleEl.style.width = '80px';
+          bubbleEl.style.height = '95px';
+          bubbleEl.innerHTML = `
+            <span class="text-2xl mb-1">${item.icon}</span>
+            <span class="text-xl font-black">${item.value}</span>
+          `;
+        }
+
+        // Index Badge at bottom
+        const indexBadge = document.createElement('div');
+        indexBadge.className = `absolute -bottom-3 text-[10px] font-black px-2 py-0.5 rounded-full border ${
+          isComparing ? 'bg-amber-400 text-slate-900 border-amber-300' : 'bg-slate-800 text-cyan-300 border-cyan-500/30'
+        }`;
+        indexBadge.innerText = `位置 ${index + 1}`;
+        bubbleEl.appendChild(indexBadge);
+
+        container.appendChild(bubbleEl);
+      });
+    }
+
+    /* ==========================================================================
+       USER DECISION & GAME LOGIC (Practice & Challenge)
+       ========================================================================== */
+    function handleUserChoice(userWantsSwap) {
+      if (isFinished) return;
+
+      const shouldSwap = array[j].value > array[j + 1].value;
+
+      if (userWantsSwap === shouldSwap) {
+        // Correct Choice
+        playSoundEffect(shouldSwap ? 'swap' : 'correct');
+        score += 15;
+        
+        if (shouldSwap) {
+          // Perform Swap Animation
+          const temp = array[j];
+          array[j] = array[j + 1];
+          array[j + 1] = temp;
+        }
+
+        advanceStep();
+      } else {
+        // Incorrect Choice
+        playSoundEffect('wrong');
+        errorsCount++;
+        score = Math.max(0, score - 5);
+        if (errorsCount >= 2 && stars > 1) stars = 2;
+        if (errorsCount >= 4 && stars > 1) stars = 1;
+
+        updateMascotInstruction(
+          `再仔細看一次喔！比較 ${array[j].value} 與 ${array[j+1].value}，因為 ${array[j].value} ${shouldSwap ? '大於' : '小於或等於'} ${array[j+1].value}，所以${shouldSwap ? '需要交換！' : '保持順序就可以了！'}`
+        );
+      }
+
+      updateScoreboard();
+    }
+
+    function advanceStep() {
+      j++;
+      // Check if finished current pass
+      if (j >= arraySize - 1 - i) {
+        // Lock the rightmost element of this pass
+        sortedIndices.push(arraySize - 1 - i);
+        j = 0;
+        i++;
+
+        // Check if all elements are sorted
+        if (i >= arraySize - 1) {
+          // Lock remaining index 0
+          sortedIndices.push(0);
+          isFinished = true;
+          renderBubbles();
+          onSortingComplete();
+          return;
+        }
+      }
+
+      renderBubbles();
+      updateMascotInstruction();
+    }
+
+    /* ==========================================================================
+       AUTO DEMO MODE LOGIC
+       ========================================================================== */
+    function toggleDemoPlay() {
+      if (isFinished) resetGame();
+
+      isDemoPlaying = !isDemoPlaying;
+      updateDemoPlayButton();
+
+      if (isDemoPlaying) {
+        runDemoStep();
+        demoInterval = setInterval(runDemoStep, demoSpeed);
+      } else {
+        clearInterval(demoInterval);
+      }
+    }
+
+    function setDemoSpeed(speed) {
+      demoSpeed = speed;
+      if (isDemoPlaying) {
+        clearInterval(demoInterval);
+        demoInterval = setInterval(runDemoStep, demoSpeed);
+      }
+    }
+
+    function updateDemoPlayButton() {
+      const icon = document.getElementById('playIcon');
+      const text = document.getElementById('playText');
+      if (isDemoPlaying) {
+        icon.className = 'fa-solid fa-pause';
+        text.innerText = '暫停演示';
+      } else {
+        icon.className = 'fa-solid fa-play';
+        text.innerText = '開始自動演示';
+      }
+    }
+
+    function runDemoStep() {
+      if (isFinished) {
+        clearInterval(demoInterval);
+        isDemoPlaying = false;
+        updateDemoPlayButton();
+        return;
+      }
+
+      playSoundEffect('compare');
+
+      const shouldSwap = array[j].value > array[j + 1].value;
+
+      if (shouldSwap) {
+        playSoundEffect('swap');
+        const temp = array[j];
+        array[j] = array[j + 1];
+        array[j + 1] = temp;
+      }
+
+      advanceStep();
+    }
+
+    /* ==========================================================================
+       TIMER & SCOREBOARD
+       ========================================================================== */
+    function startTimer() {
+      const timerDisplay = document.getElementById('timerDisplay');
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        timerDisplay.innerText = `${timeLeft}s`;
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          onSortingComplete(true);
+        }
+      }, 1000);
+    }
+
+    function updateScoreboard() {
+      document.getElementById('scoreDisplay').innerText = score;
+      document.getElementById('starDisplay').innerText = '⭐'.repeat(stars);
+    }
+
+    function updateMascotInstruction(customMsg = null) {
+      const instructionBox = document.getElementById('instructionBox');
+      const passCounter = document.getElementById('passCounter');
+
+      passCounter.innerText = `第 ${i + 1} 輪排序中`;
+
+      if (customMsg) {
+        instructionBox.innerText = customMsg;
+        return;
+      }
+
+      if (isFinished) {
+        instructionBox.innerText = "太讚了！所有的氣泡都已經由小到大排好隊囉！";
+        return;
+      }
+
+      const val1 = array[j].value;
+      const val2 = array[j + 1].value;
+      const label1 = array[j].label;
+      const label2 = array[j + 1].label;
+
+      if (theme === 'animals') {
+        instructionBox.innerText = `正在比較：第 ${j + 1} 個【${label1} (體型${val1})】和 第 ${j + 2} 個【${label2} (體型${val2})】。請問需要交換嗎？`;
+      } else {
+        instructionBox.innerText = `正在比較：第 ${j + 1} 個【${val1}】和 第 ${j + 2} 個【${val2}】。右邊需要比左邊大喔！`;
+      }
+    }
+
+    /* ==========================================================================
+       VICTORY / COMPLETION MODAL
+       ========================================================================== */
+    function onSortingComplete(timeOut = false) {
+      clearInterval(timerInterval);
+      clearInterval(demoInterval);
+      playSoundEffect('win');
+
+      const modal = document.getElementById('victoryModal');
+      const modalMessage = document.getElementById('modalMessage');
+      const modalScore = document.getElementById('modalScore');
+      const modalStars = document.getElementById('modalStars');
+
+      if (timeOut) {
+        modalMessage.innerText = "時間到囉！再接再厲，下次一定可以排得更快！";
+      } else {
+        modalMessage.innerText = "太厲害了！你成功掌握了氣泡排序法的絕招！";
+      }
+
+      modalScore.innerText = `${score} 分`;
+      modalStars.innerText = '⭐'.repeat(stars);
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('victoryModal').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>

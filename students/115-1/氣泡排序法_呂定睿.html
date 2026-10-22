@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>機器人氣泡排序大冒險 (Bubble Sort Robot Lab)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts: Fredoka & Zen Maru Gothic -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Zen Maru Gothic', 'Fredoka', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* 機器人與霓虹燈光效果 */
+        .neon-glow-cyan {
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.6), inset 0 0 10px rgba(6, 182, 212, 0.4);
+        }
+        .neon-glow-yellow {
+            box-shadow: 0 0 15px rgba(234, 179, 8, 0.6), inset 0 0 10px rgba(234, 179, 8, 0.4);
+        }
+        .neon-glow-green {
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.6), inset 0 0 10px rgba(34, 197, 94, 0.4);
+        }
+
+        /* 方塊與動畫效果 */
+        .energy-block {
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .comparing-highlight {
+            transform: translateY(-12px) scale(1.05);
+            border-color: #facc15 !important;
+            box-shadow: 0 0 25px rgba(250, 204, 21, 0.8) !important;
+        }
+
+        .sorted-locked {
+            border-color: #22c55e !important;
+            background: linear-gradient(180deg, #15803d 0%, #166534 100%) !important;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.7) !important;
+        }
+
+        /* 機器人天線閃爍 */
+        @keyframes pulse-light {
+            0%, 100% { opacity: 0.3; transform: scale(0.9); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        .antenna-glow {
+            animation: pulse-light 1.5s infinite ease-in-out;
+        }
+
+        /* 機器人浮動動畫 */
+        @keyframes robot-float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+        .robot-floating {
+            animation: robot-float 3s infinite ease-in-out;
+        }
+
+        /* 機器人說話氣泡箭頭 */
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            left: -12px;
+            top: 24px;
+            border-width: 8px 12px 8px 0;
+            border-style: solid;
+            border-color: transparent #1e293b transparent transparent;
+        }
+        @media (max-width: 640px) {
+            .speech-bubble::after {
+                left: 24px;
+                top: -12px;
+                border-width: 0 8px 12px 8px;
+                border-color: transparent transparent #1e293b transparent;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-3 sm:p-6 bg-slate-950 text-slate-100 overflow-x-hidden">
+
+    <!-- 頂部標題列與切換模式 -->
+    <header class="w-full max-w-4xl flex flex-col sm:flex-row items-center justify-between gap-4 mb-4 bg-slate-900/80 p-4 rounded-2xl border-2 border-cyan-500/30 backdrop-blur">
+        <div class="flex items-center gap-3">
+            <div class="p-2 bg-cyan-500/20 rounded-xl border border-cyan-400/40">
+                <svg class="w-8 h-8 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-xl sm:text-2xl font-black tracking-wide text-cyan-300">機器人氣泡排序實驗室</h1>
+                <p class="text-xs text-slate-400">幫助小機器人把能量電池從小排到大吧！</p>
+            </div>
+        </div>
+
+        <!-- 音效控制與模式切換 -->
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <button id="soundToggleBtn" onclick="toggleSound()" class="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl border border-slate-600 text-yellow-400 flex items-center gap-1.5 text-xs font-bold transition active:scale-95">
+                <span id="soundIcon">🔊</span>
+                <span id="soundText" class="hidden sm:inline">音效：開</span>
+            </button>
+            <div class="h-6 w-px bg-slate-700"></div>
+            <select id="modeSelect" onchange="changeGameMode(this.value)" class="bg-cyan-950 border-2 border-cyan-500/60 text-cyan-200 text-sm font-bold rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-cyan-400 cursor-pointer">
+                <option value="learn">📚 模式一：教學引導練習</option>
+                <option value="challenge">⚡ 模式二：自主挑戰關卡</option>
+                <option value="demo">🤖 模式三：機器人自動演示</option>
+            </select>
+        </div>
+    </header>
+
+    <!-- 主要遊戲區域 -->
+    <main class="w-full max-w-4xl flex-1 flex flex-col justify-between gap-4">
+
+        <!-- 機器人助手與對話框 -->
+        <section class="bg-slate-900/90 rounded-2xl p-4 sm:p-5 border-2 border-slate-800 flex flex-col sm:flex-row items-center sm:items-start gap-4 relative shadow-xl">
+            <!-- 機器人吉祥物 SVG -->
+            <div class="relative flex-shrink-0 robot-floating">
+                <!-- 天線發光 -->
+                <div class="w-3 h-3 bg-yellow-400 rounded-full absolute -top-1 left-1/2 -translate-x-1/2 antenna-glow shadow-[0_0_12px_#facc15]"></div>
+                <svg class="w-24 h-24 sm:w-28 sm:h-28 drop-shadow-[0_0_10px_rgba(6,182,212,0.5)]" viewBox="0 0 120 120">
+                    <!-- 天線 -->
+                    <rect x="57" y="10" width="6" height="15" fill="#64748b" />
+                    <!-- 頭部 -->
+                    <rect x="25" y="25" width="70" height="50" rx="12" fill="#334155" stroke="#38bdf8" stroke-width="4" />
+                    <!-- 眼睛 (LED Display) -->
+                    <rect x="35" y="37" width="50" height="22" rx="6" fill="#0f172a" />
+                    <circle id="eyeLeft" cx="47" cy="48" r="6" fill="#38bdf8" />
+                    <circle id="eyeRight" cx="73" cy="48" r="6" fill="#38bdf8" />
+                    <!-- 嘴巴 / 顯示線條 -->
+                    <path id="robotMouth" d="M 48 63 Q 60 70 72 63" stroke="#facc15" stroke-width="3" stroke-linecap="round" fill="none" />
+                    <!-- 身體/底座 -->
+                    <rect x="35" y="78" width="50" height="32" rx="8" fill="#475569" stroke="#0ea5e9" stroke-width="3" />
+                    <circle cx="60" cy="94" r="8" fill="#f43f5e" class="animate-pulse" />
+                    <!-- 手臂 -->
+                    <rect x="12" y="82" width="18" height="8" rx="4" fill="#64748b" />
+                    <rect x="90" y="82" width="18" height="8" rx="4" fill="#64748b" />
+                </svg>
+            </div>
+
+            <!-- 對話框 -->
+            <div class="flex-1 w-full bg-slate-800/90 rounded-xl p-4 border border-cyan-500/30 speech-bubble relative">
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs font-bold text-cyan-400 tracking-wider flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-cyan-400 inline-block animate-ping"></span>
+                        ROBO-GUIDE 語音助手
+                    </span>
+                    <span id="stepCounter" class="text-xs font-mono bg-slate-900 px-2.5 py-0.5 rounded-full text-slate-300 border border-slate-700">步驟: 0</span>
+                </div>
+                <p id="robotDialog" class="text-base sm:text-lg font-bold text-slate-100 leading-relaxed min-h-[50px] flex items-center">
+                    載入中...準備好與小機器人一起學習排序了嗎？
+                </p>
+                <!-- 引導提示細節 -->
+                <div id="explanationDetail" class="mt-2 pt-2 border-t border-slate-700/60 text-xs sm:text-sm text-amber-300 font-medium hidden">
+                    💡 提示細節顯示區
+                </div>
+            </div>
+        </section>
+
+        <!-- 數據狀態與挑戰資訊列 (時間 / 錯誤數 / 星星) -->
+        <div id="statsBar" class="grid grid-cols-3 gap-3">
+            <div class="bg-slate-900/80 rounded-xl p-2.5 border border-slate-800 text-center">
+                <div class="text-xs text-slate-400 font-bold mb-0.5">⏱️ 計時器</div>
+                <div id="timerText" class="text-lg font-black font-mono text-cyan-400">00:00</div>
+            </div>
+            <div class="bg-slate-900/80 rounded-xl p-2.5 border border-slate-800 text-center">
+                <div class="text-xs text-slate-400 font-bold mb-0.5">❌ 錯誤次數</div>
+                <div id="mistakeText" class="text-lg font-black font-mono text-rose-400">0</div>
+            </div>
+            <div class="bg-slate-900/80 rounded-xl p-2.5 border border-slate-800 text-center">
+                <div class="text-xs text-slate-400 font-bold mb-0.5">⭐ 獲得星級</div>
+                <div id="starsText" class="text-lg font-black text-yellow-400">⭐⭐⭐</div>
+            </div>
+        </div>
+
+        <!-- 氣泡排序主要能量陣列區 -->
+        <section class="bg-slate-900/60 rounded-2xl border-2 border-slate-800 p-4 sm:p-8 flex flex-col items-center justify-center min-h-[260px] relative overflow-hidden">
+            <!-- 網格背景紋理 -->
+            <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:2rem_2rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-40 pointer-events-none"></div>
+
+            <!-- 能量塊容器 (動態渲染) -->
+            <div id="arrayContainer" class="flex items-end justify-center gap-2 sm:gap-4 w-full h-48 z-10 px-2">
+                <!-- 方塊會透過 JS 動態新增 -->
+            </div>
+
+            <!-- 指示箭頭 (顯示目前比較的兩個位置) -->
+            <div id="pointerContainer" class="w-full h-8 relative z-10 mt-2 transition-all duration-300">
+                <div id="pointerA" class="absolute transition-all duration-300 -translate-x-1/2 flex flex-col items-center opacity-0">
+                    <span class="text-cyan-400 font-black text-xs sm:text-sm animate-bounce">▲</span>
+                </div>
+                <div id="pointerB" class="absolute transition-all duration-300 -translate-x-1/2 flex flex-col items-center opacity-0">
+                    <span class="text-cyan-400 font-black text-xs sm:text-sm animate-bounce">▲</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 操作按鈕控制區 -->
+        <section class="bg-slate-900/90 rounded-2xl p-4 border-2 border-slate-800">
+            <!-- 模式一：學習練習模式按鈕 (交換 / 不交換) -->
+            <div id="learnControls" class="grid grid-cols-2 gap-4">
+                <button onclick="handleUserChoice(true)" class="py-3.5 px-4 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-lg rounded-xl shadow-lg border-b-4 border-yellow-700 active:translate-y-0.5 active:border-b-0 transition flex items-center justify-center gap-2">
+                    <span>🔄 應該交換</span>
+                </button>
+                <button onclick="handleUserChoice(false)" class="py-3.5 px-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-lg rounded-xl shadow-lg border-b-4 border-teal-700 active:translate-y-0.5 active:border-b-0 transition flex items-center justify-center gap-2">
+                    <span>➡️ 保持原樣 (不交換)</span>
+                </button>
+            </div>
+
+            <!-- 模式二：挑戰模式提示 -->
+            <div id="challengeControls" class="hidden text-center">
+                <p class="text-sm font-bold text-cyan-300 mb-2">👉 點擊任意兩個「相鄰」的能量區塊來進行交換！將它們從小到大排列。</p>
+                <button onclick="checkChallengeSorted()" class="py-2.5 px-6 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl shadow transition">
+                    🔍 檢查是否排序完成
+                </button>
+            </div>
+
+            <!-- 模式三：自動演示控制按鈕 -->
+            <div id="demoControls" class="hidden flex flex-wrap items-center justify-center gap-3">
+                <button id="demoPlayBtn" onclick="toggleDemoAutoPlay()" class="py-2.5 px-6 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black rounded-xl shadow transition flex items-center gap-2">
+                    <span id="demoPlayIcon">▶️</span> <span id="demoPlayText">開始自動演示</span>
+                </button>
+                <button onclick="stepDemoOnce()" class="py-2.5 px-5 bg-slate-700 hover:bg-slate-600 text-cyan-300 font-bold rounded-xl border border-slate-600 transition">
+                    ⏭️ 單步執行
+                </button>
+                <div class="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700 text-xs font-bold">
+                    <span>速度:</span>
+                    <input type="range" id="speedRange" min="400" max="1800" value="1000" step="200" class="w-24 accent-cyan-400 cursor-pointer" onchange="updateDemoSpeed(this.value)">
+                </div>
+            </div>
+
+            <!-- 共用功能區：重設/新關卡 -->
+            <div class="mt-3 pt-3 border-t border-slate-800 flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-400 font-bold">數量：</span>
+                    <button onclick="setArraySize(5)" class="sizeBtn px-2.5 py-1 text-xs font-bold rounded-lg bg-cyan-900/60 border border-cyan-500 text-cyan-200">5個</button>
+                    <button onclick="setArraySize(6)" class="sizeBtn px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-800 border border-slate-700 text-slate-300">6個</button>
+                    <button onclick="setArraySize(7)" class="sizeBtn px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-800 border border-slate-700 text-slate-300">7個</button>
+                </div>
+                <button onclick="resetGame()" class="py-1.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-lg border border-slate-600 transition flex items-center gap-1">
+                    <span>🔄 重新產生數值</span>
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- 頁尾 -->
+    <footer class="mt-4 text-center text-xs text-slate-500 font-bold">
+        🤖 機器人程式邏輯實驗室 &bull; 專為國小生設計的雙向互動氣泡排序學習 Game
+    </footer>
+
+    <!-- 勝利/通關彈出視窗 -->
+    <div id="victoryModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-slate-900 border-2 border-cyan-400 rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-[0_0_50px_rgba(6,182,212,0.4)] transform scale-90 transition-transform duration-300" id="victoryContent">
+            <div class="text-5xl mb-2">🎉</div>
+            <h2 class="text-2xl font-black text-cyan-300 mb-1">任務成功完成！</h2>
+            <p id="victorySubtext" class="text-sm text-slate-300 mb-4">太厲害了！你已經成功掌握了氣泡排序法！</p>
+            
+            <!-- 成績統計 -->
+            <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700 mb-5 space-y-2 text-left text-xs sm:text-sm">
+                <div class="flex justify-between">
+                    <span class="text-slate-400">總花費時間：</span>
+                    <span id="modalTime" class="font-bold text-cyan-400">00:25</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">嘗試錯誤次數：</span>
+                    <span id="modalMistakes" class="font-bold text-rose-400">0 次</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-400">獲得星級評價：</span>
+                    <span id="modalStars" class="text-base text-yellow-400">⭐⭐⭐</span>
+                </div>
+            </div>
+
+            <button onclick="closeVictoryModal()" class="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 font-black text-base rounded-xl shadow-lg border-b-4 border-blue-700 active:translate-y-0.5 active:border-b-0 transition">
+                🚀 再玩一次 / 下一關
+            </button>
+        </div>
+    </div>
+
+    <script>
+        /* ==========================================================================
+           Web Audio API 音效生成器 (不需外部音訊檔)
+           ========================================================================== */
+        let audioCtx = null;
+        let soundEnabled = true;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            initAudio();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'compare') {
+                // 機器人逼逼短音
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, now);
+                osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            } else if (type === 'swap') {
+                // 交換滑音
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.linearRampToValueAtTime(600, now + 0.15);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            } else if (type === 'correct') {
+                // 正確提示雙音
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            } else if (type === 'wrong') {
+                // 錯誤警示音
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.setValueAtTime(140, now + 0.1);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            } else if (type === 'lock') {
+                // 歸位鎖定音
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, now);
+                osc.frequency.setValueAtTime(1174.66, now + 0.08);
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now);
+                osc.stop(now + 0.2);
+            } else if (type === 'win') {
+                // 勝利慶祝短樂音
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, idx) => {
+                    const oscW = audioCtx.createOscillator();
+                    const gainW = audioCtx.createGain();
+                    oscW.connect(gainW);
+                    gainW.connect(audioCtx.destination);
+                    oscW.type = 'triangle';
+                    oscW.frequency.setValueAtTime(freq, now + idx * 0.1);
+                    gainW.gain.setValueAtTime(0.15, now + idx * 0.1);
+                    gainW.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + 0.25);
+                    oscW.start(now + idx * 0.1);
+                    oscW.stop(now + idx * 0.1 + 0.25);
+                });
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundIcon').innerText = soundEnabled ? '🔊' : '🔇';
+            document.getElementById('soundText').innerText = soundEnabled ? '音效：開' : '音效：關';
+        }
+
+
+        /* ==========================================================================
+           遊戲核心狀態與邏輯
+           ========================================================================== */
+        let currentMode = 'learn'; // 'learn', 'challenge', 'demo'
+        let arraySize = 5;
+        let numbers = [];
+        let lockedIndices = []; // 已鎖定歸位的索引
+
+        // 氣泡排序演算法狀態 (用於模式一與模式三)
+        let i = 0; // 外層迴圈
+        let j = 0; // 內層迴圈
+        let totalSteps = 0;
+        let isComplete = false;
+
+        // 挑戰模式狀態
+        let selectedChallengeIndex = null;
+        let mistakes = 0;
+        let startTime = null;
+        let timerInterval = null;
+        let elapsedTime = 0;
+
+        // 自動演示狀態
+        let isDemoAutoPlaying = false;
+        let demoTimer = null;
+        let demoSpeed = 1000;
+
+        // 初始化載入
+        window.onload = function() {
+            resetGame();
+        };
+
+        // 切換數值陣列大小
+        function setArraySize(size) {
+            arraySize = size;
+            const btns = document.querySelectorAll('.sizeBtn');
+            btns.forEach((btn, idx) => {
+                if ((size === 5 && idx === 0) || (size === 6 && idx === 1) || (size === 7 && idx === 2)) {
+                    btn.className = "sizeBtn px-2.5 py-1 text-xs font-bold rounded-lg bg-cyan-900/60 border border-cyan-500 text-cyan-200";
+                } else {
+                    btn.className = "sizeBtn px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-800 border border-slate-700 text-slate-300";
+                }
+            });
+            resetGame();
+        }
+
+        // 切換模式
+        function changeGameMode(mode) {
+            currentMode = mode;
+            document.getElementById('learnControls').classList.add('hidden');
+            document.getElementById('challengeControls').classList.add('hidden');
+            document.getElementById('demoControls').classList.add('hidden');
+
+            if (mode === 'learn') {
+                document.getElementById('learnControls').classList.remove('hidden');
+            } else if (mode === 'challenge') {
+                document.getElementById('challengeControls').classList.remove('hidden');
+            } else if (mode === 'demo') {
+                document.getElementById('demoControls').classList.remove('hidden');
+            }
+
+            stopDemoAutoPlay();
+            resetGame();
+        }
+
+        // 重置遊戲狀態
+        function resetGame() {
+            // 隨機產生 10~99 之間的數字，確保無重複以利小朋友學習
+            numbers = [];
+            while (numbers.length < arraySize) {
+                let num = Math.floor(Math.random() * 85) + 12;
+                if (!numbers.includes(num)) numbers.push(num);
+            }
+
+            i = 0;
+            j = 0;
+            totalSteps = 0;
+            isComplete = false;
+            lockedIndices = [];
+            selectedChallengeIndex = null;
+            mistakes = 0;
+            elapsedTime = 0;
+
+            stopTimer();
+            startTimer();
+
+            updateMistakeUI();
+            renderArray();
+            updatePointers();
+
+            if (currentMode === 'learn') {
+                updateRobotDialog(`歡迎來到練習模式！請觀察亮黃色的這兩個數字，左邊應該比右邊小喔。`);
+                showExplanation(`準備比對：【${numbers[j]}】與【${numbers[j+1]}】。請問它們需要交換嗎？`);
+            } else if (currentMode === 'challenge') {
+                updateRobotDialog(`⚡ 挑戰模式開啟！直接點擊「相鄰的兩個區塊」把它們交換，快點把數字排好！`);
+                showExplanation(`點擊一個方塊，再點擊它隔壁的方塊即可交換。`);
+            } else if (currentMode === 'demo') {
+                updateRobotDialog(`🤖 機器人演示模式。點擊「開始自動演示」看我如何運用氣泡排序！`);
+                showExplanation(`氣泡排序會重複比較相鄰的兩項，把較大的數值慢慢「冒泡」到最右邊。`);
+            }
+        }
+
+        // 繪製陣列 UI
+        function renderArray() {
+            const container = document.getElementById('arrayContainer');
+            container.innerHTML = '';
+
+            const maxVal = Math.max(...numbers, 100);
+
+            numbers.forEach((val, idx) => {
+                // 計算高度百分比 (最低 35%)
+                const heightPercent = Math.max(35, Math.round((val / maxVal) * 100));
+
+                const block = document.createElement('div');
+                block.id = `block-${idx}`;
+                block.onclick = () => handleBlockClick(idx);
+
+                // 基本類別
+                let blockClasses = "energy-block flex-1 max-w-[80px] rounded-2xl flex flex-col items-center justify-between p-2 border-2 cursor-pointer relative shadow-lg ";
+
+                // 判斷狀態與顏色
+                if (lockedIndices.includes(idx)) {
+                    blockClasses += "sorted-locked text-emerald-100 ";
+                } else if ((currentMode === 'learn' || currentMode === 'demo') && (idx === j || idx === j + 1) && !isComplete) {
+                    blockClasses += "comparing-highlight bg-slate-800 border-yellow-400 text-yellow-300 ";
+                } else if (currentMode === 'challenge' && selectedChallengeIndex === idx) {
+                    blockClasses += "bg-cyan-900 border-cyan-400 text-cyan-200 neon-glow-cyan ";
+                } else {
+                    blockClasses += "bg-slate-800/90 border-slate-700 text-slate-200 hover:border-slate-500 ";
+                }
+
+                block.className = blockClasses;
+                block.style.height = `${heightPercent}%`;
+
+                // 內部元素：頂部電池感應器圖示 + 中間數字 + 底部能量條
+                block.innerHTML = `
+                    <div class="flex items-center justify-between w-full text-[10px] font-mono opacity-60">
+                        <span>#${idx + 1}</span>
+                        <span>${lockedIndices.includes(idx) ? '🔒' : '⚡'}</span>
+                    </div>
+                    <div class="text-xl sm:text-2xl font-black font-mono tracking-tight my-auto">
+                        ${val}
+                    </div>
+                    <div class="w-full bg-slate-950/50 rounded-full h-1.5 overflow-hidden">
+                        <div class="h-full ${lockedIndices.includes(idx) ? 'bg-emerald-400' : 'bg-cyan-400'}" style="width: ${heightPercent}%"></div>
+                    </div>
+                `;
+
+                container.appendChild(block);
+            });
+
+            updatePointers();
+        }
+
+        // 更新指示箭頭位置
+        function updatePointers() {
+            const ptrA = document.getElementById('pointerA');
+            const ptrB = document.getElementById('pointerB');
+
+            if (isComplete || currentMode === 'challenge') {
+                ptrA.style.opacity = '0';
+                ptrB.style.opacity = '0';
+                return;
+            }
+
+            const blockA = document.getElementById(`block-${j}`);
+            const blockB = document.getElementById(`block-${j + 1}`);
+
+            if (blockA && blockB) {
+                const containerRect = document.getElementById('arrayContainer').getBoundingClientRect();
+                const rectA = blockA.getBoundingClientRect();
+                const rectB = blockB.getBoundingClientRect();
+
+                const leftA = rectA.left - containerRect.left + rectA.width / 2;
+                const leftB = rectB.left - containerRect.left + rectB.width / 2;
+
+                ptrA.style.left = `${leftA}px`;
+                ptrA.style.opacity = '1';
+
+                ptrB.style.left = `${leftB}px`;
+                ptrB.style.opacity = '1';
+            }
+        }
+
+        /* ==========================================================================
+           模式一：學習練習模式互動邏輯
+           ========================================================================== */
+        function handleUserChoice(userSaysSwap) {
+            if (isComplete || currentMode !== 'learn') return;
+
+            totalSteps++;
+            document.getElementById('stepCounter').innerText = `步驟: ${totalSteps}`;
+
+            const shouldSwap = numbers[j] > numbers[j + 1];
+
+            if (userSaysSwap === shouldSwap) {
+                // 答對了
+                playSound(shouldSwap ? 'swap' : 'correct');
+                setRobotExpression('happy');
+
+                if (shouldSwap) {
+                    // 執行交換
+                    let temp = numbers[j];
+                    numbers[j] = numbers[j + 1];
+                    numbers[j + 1] = temp;
+                    updateRobotDialog(`🎯 太棒了！答對囉！【${numbers[j+1]}】比【${numbers[j]}】大，所以它們交換了位置！`);
+                } else {
+                    updateRobotDialog(`🎯 完全正確！【${numbers[j]}】本來就比【${numbers[j+1]}】小，不需要交換！`);
+                }
+
+                advanceBubbleSortStep();
+            } else {
+                // 答錯了
+                mistakes++;
+                updateMistakeUI();
+                playSound('wrong');
+                setRobotExpression('surprised');
+
+                if (shouldSwap) {
+                    updateRobotDialog(`❌ 哎呀，不對喔！因為【${numbers[j]}】比【${numbers[j+1]}】大，左邊比較大時「應該要交換」喔！`);
+                } else {
+                    updateRobotDialog(`❌ 答錯囉！因為【${numbers[j]}】已經比【${numbers[j+1]}】小了，所以「不需要交換」！`);
+                }
+            }
+        }
+
+        // 推進氣泡排序步驟 (通用)
+        function advanceBubbleSortStep() {
+            j++;
+
+            // 當前輪次結束
+            if (j >= numbers.length - 1 - i) {
+                // 最右邊的元素確定鎖定
+                const lockedIndex = numbers.length - 1 - i;
+                lockedIndices.push(lockedIndex);
+                playSound('lock');
+
+                j = 0;
+                i++;
+
+                // 檢查是否全數排序完成
+                if (i >= numbers.length - 1) {
+                    lockedIndices.push(0); // 第一個也自然歸位
+                    isComplete = true;
+                    renderArray();
+                    triggerVictory();
+                    return;
+                }
+            }
+
+            renderArray();
+            playSound('compare');
+
+            if (currentMode === 'learn') {
+                showExplanation(`下一步比對：【${numbers[j]}】與【${numbers[j+1]}】。請問需要交換嗎？`);
+            }
+        }
+
+
+        /* ==========================================================================
+           模式二：自主挑戰模式邏輯
+           ========================================================================== */
+        function handleBlockClick(index) {
+            if (currentMode !== 'challenge' || isComplete) return;
+
+            // 未選擇第一個
+            if (selectedChallengeIndex === null) {
+                selectedChallengeIndex = index;
+                playSound('compare');
+                renderArray();
+            } else if (selectedChallengeIndex === index) {
+                // 取消選擇
+                selectedChallengeIndex = null;
+                renderArray();
+            } else {
+                // 檢查是否相鄰
+                const diff = Math.abs(selectedChallengeIndex - index);
+                if (diff === 1) {
+                    // 執行手動交換
+                    let temp = numbers[selectedChallengeIndex];
+                    numbers[selectedChallengeIndex] = numbers[index];
+                    numbers[index] = temp;
+
+                    playSound('swap');
+                    totalSteps++;
+                    document.getElementById('stepCounter').innerText = `步驟: ${totalSteps}`;
+
+                    selectedChallengeIndex = null;
+                    renderArray();
+
+                    // 自動檢查是否已經完全排序
+                    if (isSorted(numbers)) {
+                        for (let k = 0; k < numbers.length; k++) lockedIndices.push(k);
+                        isComplete = true;
+                        renderArray();
+                        triggerVictory();
+                    }
+                } else {
+                    // 非相鄰警告
+                    playSound('wrong');
+                    updateRobotDialog(`⚠️ 氣泡排序只能與「相鄰（緊鄰在旁邊）」的區塊交換喔！請重新選擇！`);
+                    selectedChallengeIndex = null;
+                    renderArray();
+                }
+            }
+        }
+
+        function checkChallengeSorted() {
+            if (isSorted(numbers)) {
+                for (let k = 0; k < numbers.length; k++) lockedIndices.push(k);
+                isComplete = true;
+                renderArray();
+                triggerVictory();
+            } else {
+                mistakes++;
+                updateMistakeUI();
+                playSound('wrong');
+                updateRobotDialog(`❌ 還沒完全從小到大排序好喔！再仔細檢查一下哪裡左邊比右邊大？`);
+            }
+        }
+
+        function isSorted(arr) {
+            for (let k = 0; k < arr.length - 1; k++) {
+                if (arr[k] > arr[k + 1]) return false;
+            }
+            return true;
+        }
+
+
+        /* ==========================================================================
+           模式三：自動演示邏輯
+           ========================================================================== */
+        function toggleDemoAutoPlay() {
+            if (isDemoAutoPlaying) {
+                stopDemoAutoPlay();
+            } else {
+                if (isComplete) resetGame();
+                isDemoAutoPlaying = true;
+                document.getElementById('demoPlayIcon').innerText = '⏸️';
+                document.getElementById('demoPlayText').innerText = '暫停演示';
+                runDemoStepLoop();
+            }
+        }
+
+        function stopDemoAutoPlay() {
+            isDemoAutoPlaying = false;
+            if (demoTimer) clearTimeout(demoTimer);
+            document.getElementById('demoPlayIcon').innerText = '▶️';
+            document.getElementById('demoPlayText').innerText = '開始自動演示';
+        }
+
+        function runDemoStepLoop() {
+            if (!isDemoAutoPlaying || isComplete) return;
+
+            stepDemoOnce();
+
+            if (!isComplete) {
+                demoTimer = setTimeout(runDemoStepLoop, demoSpeed);
+            } else {
+                stopDemoAutoPlay();
+            }
+        }
+
+        function stepDemoOnce() {
+            if (isComplete) return;
+
+            totalSteps++;
+            document.getElementById('stepCounter').innerText = `步驟: ${totalSteps}`;
+
+            const numA = numbers[j];
+            const numB = numbers[j + 1];
+
+            if (numA > numB) {
+                // 交換
+                let temp = numbers[j];
+                numbers[j] = numbers[j + 1];
+                numbers[j + 1] = temp;
+                playSound('swap');
+                updateRobotDialog(`🤖 比較【${numA}】與【${numB}】：${numA} > ${numB}，進行交換！`);
+            } else {
+                playSound('compare');
+                updateRobotDialog(`🤖 比較【${numA}】與【${numB}】：${numA} <= ${numB}，保持順序！`);
+            }
+
+            advanceBubbleSortStep();
+        }
+
+        function updateDemoSpeed(val) {
+            demoSpeed = 2200 - parseInt(val); // 數值越大越快
+        }
+
+
+        /* ==========================================================================
+           機器人對話與表情控制器
+           ========================================================================== */
+        function updateRobotDialog(text) {
+            document.getElementById('robotDialog').innerText = text;
+        }
+
+        function showExplanation(text) {
+            const el = document.getElementById('explanationDetail');
+            el.innerText = `💡 ${text}`;
+            el.classList.remove('hidden');
+        }
+
+        function setRobotExpression(exp) {
+            const mouth = document.getElementById('robotMouth');
+            const leftEye = document.getElementById('eyeLeft');
+            const rightEye = document.getElementById('eyeRight');
+
+            if (exp === 'happy') {
+                mouth.setAttribute('d', 'M 48 60 Q 60 72 72 60'); // 大笑
+                leftEye.setAttribute('fill', '#22c55e');
+                rightEye.setAttribute('fill', '#22c55e');
+            } else if (exp === 'surprised') {
+                mouth.setAttribute('d', 'M 54 62 A 6 6 0 1 0 66 62 A 6 6 0 1 0 54 62'); // 圓嘴驚訝
+                leftEye.setAttribute('fill', '#f43f5e');
+                rightEye.setAttribute('fill', '#f43f5e');
+            } else {
+                mouth.setAttribute('d', 'M 48 63 Q 60 70 72 63'); // 正常微笑
+                leftEye.setAttribute('fill', '#38bdf8');
+                rightEye.setAttribute('fill', '#38bdf8');
+            }
+
+            // 2秒後恢復正常表情
+            setTimeout(() => {
+                mouth.setAttribute('d', 'M 48 63 Q 60 70 72 63');
+                leftEye.setAttribute('fill', '#38bdf8');
+                rightEye.setAttribute('fill', '#38bdf8');
+            }, 2000);
+        }
+
+
+        /* ==========================================================================
+           計時器與成績統計
+           ========================================================================== */
+        function startTimer() {
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+                const mins = String(Math.floor(elapsedTime / 60)).padStart(2, '0');
+                const secs = String(elapsedTime % 60).padStart(2, '0');
+                document.getElementById('timerText').innerText = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+        }
+
+        function updateMistakeUI() {
+            document.getElementById('mistakeText').innerText = mistakes;
+            
+            // 計算星級
+            let stars = "⭐⭐⭐";
+            if (mistakes >= 4) stars = "⭐";
+            else if (mistakes >= 2) stars = "⭐⭐";
+
+            document.getElementById('starsText').innerText = stars;
+        }
+
+        /* ==========================================================================
+           通關與慶祝視窗
+           ========================================================================== */
+        function triggerVictory() {
+            stopTimer();
+            playSound('win');
+            setRobotExpression('happy');
+
+            // 紙花特效
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+
+            const mins = String(Math.floor(elapsedTime / 60)).padStart(2, '0');
+            const secs = String(elapsedTime % 60).padStart(2, '0');
+
+            document.getElementById('modalTime').innerText = `${mins} 分 ${secs} 秒`;
+            document.getElementById('modalMistakes').innerText = `${mistakes} 次`;
+            document.getElementById('modalStars').innerText = document.getElementById('starsText').innerText;
+
+            updateRobotDialog(`🎉 萬歲！你成功完成了所有的氣泡排序任務！你真是一名傑出的程式小兵！`);
+
+            const modal = document.getElementById('victoryModal');
+            const content = document.getElementById('victoryContent');
+            
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            content.classList.remove('scale-90');
+            content.classList.add('scale-100');
+        }
+
+        function closeVictoryModal() {
+            const modal = document.getElementById('victoryModal');
+            const content = document.getElementById('victoryContent');
+
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-90');
+
+            resetGame();
+        }
+
+        // 視窗大小改變時重新調整指標位置
+        window.onresize = function() {
+            updatePointers();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>海洋大冒險 - 幼兒與低年級歡樂學習版</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Mochiyom+Pop+One&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', 'Fredoka One', cursive, sans-serif;
+            background: linear-gradient(180deg, #0284c7 0%, #0369a1 40%, #0c4a6e 80%, #082f49 100%);
+            min-height: 100vh;
+            user-select: none;
+            overflow-x: hidden;
+            color: #f0f9ff;
+        }
+
+        /* Ambient seaweeds background */
+        .seaweed {
+            position: absolute;
+            bottom: 0;
+            background: radial-gradient(circle, #10b981 20%, #047857 80%);
+            border-radius: 50% 50% 0 0;
+            transform-origin: bottom center;
+            animation: sway 4s infinite ease-in-out alternate;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        @keyframes sway {
+            0% { transform: rotate(-5deg) scaleX(1); }
+            100% { transform: rotate(8deg) scaleX(1.1); }
+        }
+
+        /* Floating background bubbles */
+        .ambient-bubble {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: floatUp 6s infinite linear;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+            50% { opacity: 0.9; }
+            100% { transform: translateY(-10vh) scale(1.3); opacity: 0; }
+        }
+
+        /* Ocean Creature Card Styling */
+        .creature-card {
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.3s ease, border-color 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3), inset 0 4px 6px rgba(255, 255, 255, 0.4);
+        }
+
+        .creature-swimming {
+            animation: creatureSwim 2.8s ease-in-out infinite alternate;
+        }
+
+        @keyframes creatureSwim {
+            0% { transform: translateY(0px) rotate(-2deg); }
+            100% { transform: translateY(-10px) rotate(4deg); }
+        }
+
+        /* Active Comparison Highlight */
+        .creature-comparing {
+            transform: scale(1.25) translateY(-18px) !important;
+            border-color: #fbbf24 !important;
+            box-shadow: 0 0 35px rgba(251, 191, 36, 0.95), inset 0 4px 12px rgba(255, 255, 255, 0.9) !important;
+            z-index: 30;
+        }
+
+        /* Swap animation classes */
+        .swapping-left {
+            animation: swapRotateRight 0.45s ease-in-out forwards;
+        }
+
+        .swapping-right {
+            animation: swapRotateLeft 0.45s ease-in-out forwards;
+        }
+
+        @keyframes swapRotateRight {
+            0% { transform: scale(1.2) rotate(0deg); }
+            50% { transform: scale(1.35) rotate(20deg) translateY(-25px); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        @keyframes swapRotateLeft {
+            0% { transform: scale(1.2) rotate(0deg); }
+            50% { transform: scale(1.35) rotate(-20deg) translateY(25px); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        /* Sorted state highlight */
+        .creature-sorted {
+            background: linear-gradient(135deg, #10b981, #059669) !important;
+            border-color: #34d399 !important;
+        }
+
+        /* Golden Glow Button Hint for Kids */
+        .btn-glowing-hint {
+            animation: buttonGlow 1.2s infinite alternate ease-in-out !important;
+            box-shadow: 0 0 30px rgba(251, 191, 36, 1) !important;
+        }
+
+        @keyframes buttonGlow {
+            0% { transform: scale(1); filter: brightness(1); }
+            100% { transform: scale(1.08); filter: brightness(1.25); }
+        }
+
+        /* Glassmorphism Panel */
+        .ocean-panel {
+            background: rgba(12, 74, 110, 0.85);
+            backdrop-filter: blur(12px);
+            border: 3.5px solid rgba(56, 189, 248, 0.5);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Captain Whale Bounce Animation */
+        .whale-bounce {
+            animation: whaleBounce 2s infinite ease-in-out;
+        }
+
+        @keyframes whaleBounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-12px) scale(1.05); }
+        }
+
+        .pointer-arrow {
+            animation: arrowFloat 0.7s infinite alternate ease-in-out;
+        }
+
+        @keyframes arrowFloat {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(10px); }
+        }
+
+        canvas {
+            touch-action: none;
+        }
+    </style>
+</head>
+<body class="p-2 sm:p-4 md:p-6 flex flex-col items-center justify-between min-h-screen relative overflow-x-hidden">
+
+    <!-- Ambient Seaweeds -->
+    <div class="seaweed w-8 h-40 left-4"></div>
+    <div class="seaweed w-12 h-60 left-16" style="animation-delay: -1.5s;"></div>
+    <div class="seaweed w-10 h-48 right-6" style="animation-delay: -0.8s;"></div>
+    <div class="seaweed w-14 h-64 right-20" style="animation-delay: -2.2s;"></div>
+
+    <!-- Floating Bubbles -->
+    <div id="ambient-bubbles-container" class="fixed inset-0 pointer-events-none z-0"></div>
+
+    <!-- Header & Scoreboard Bar -->
+    <header class="w-full max-w-5xl flex flex-col sm:flex-row items-center justify-between gap-3 mb-2 z-10">
+        <!-- Logo & Title -->
+        <div class="flex items-center gap-3">
+            <div class="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-tr from-amber-300 to-yellow-200 rounded-full flex items-center justify-center shadow-xl border-4 border-white text-3xl sm:text-4xl">
+                🐳
+            </div>
+            <div>
+                <h1 class="text-2xl sm:text-3xl md:text-4xl font-black text-amber-300 tracking-wide drop-shadow-lg">
+                    海洋大冒險 (歡樂幼兒版) 
+                </h1>
+                <p class="text-xs sm:text-sm font-black text-sky-200">超簡單！跟著亮亮按鈕，輕鬆幫小魚排排隊！</p>
+            </div>
+        </div>
+
+        <!-- Real-time Stats & Wallet -->
+        <div class="flex items-center gap-3 bg-sky-950/90 px-4 py-2.5 rounded-2xl border-2 border-amber-400/60 shadow-xl">
+            <div class="text-center px-2">
+                <span class="block text-xs font-black text-sky-300">珍珠寶箱</span>
+                <span id="stat-pearls" class="text-xl sm:text-2xl font-black text-amber-300 flex items-center justify-center gap-1">🦪 0</span>
+            </div>
+            <div class="h-8 w-0.5 bg-sky-800"></div>
+            <div class="text-center px-2">
+                <span class="block text-xs font-black text-sky-300">過關星數</span>
+                <span id="stat-stars" class="text-sm sm:text-base font-black text-yellow-300">⭐⭐⭐</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Navigation Tabs -->
+    <nav class="w-full max-w-5xl flex flex-wrap items-center justify-between gap-2 z-10 mb-1">
+        <div class="flex bg-sky-950/90 p-1.5 rounded-2xl border-2 border-cyan-400/60 shadow-lg w-full sm:w-auto">
+            <button id="tab-sort" onclick="switchMainTab('sort')" class="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl font-black text-sm sm:text-base transition-all bg-gradient-to-r from-cyan-400 to-blue-500 text-white shadow-md flex items-center justify-center gap-2">
+                <span>🫧</span> 氣泡排序教室
+            </button>
+            <button id="tab-game" onclick="switchMainTab('game')" class="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl font-black text-sm sm:text-base transition-all text-sky-200 hover:text-white hover:bg-sky-800/60 flex items-center justify-center gap-2">
+                <span>🎮</span> 海洋衝刺小遊戲 <span class="bg-amber-400 text-amber-950 text-xs px-2 py-0.5 rounded-full font-black">放鬆休閒</span>
+            </button>
+        </div>
+
+        <!-- Sound & Voice Guidance Toggles -->
+        <div class="flex items-center gap-2">
+            <button onclick="toggleVoicePrompts()" id="btn-voice" class="px-3 py-2 bg-emerald-500/30 hover:bg-emerald-500/40 text-emerald-200 rounded-xl font-black text-xs sm:text-sm border-2 border-emerald-400/60 transition flex items-center gap-1 shadow-md">
+                🗣️ 隊長語音：開啟
+            </button>
+            <button onclick="toggleAudio()" id="btn-audio" class="px-3 py-2 bg-amber-500/30 hover:bg-amber-500/40 text-amber-300 rounded-xl font-black text-xs sm:text-sm border-2 border-amber-400/60 transition flex items-center gap-1 shadow-md">
+                🔊 音效：開啟
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="w-full max-w-5xl flex-1 flex flex-col justify-center items-center gap-3 my-2 z-10">
+
+        <!-- ================= SECTION 1: BUBBLE SORT LEARNING GAME ================= -->
+        <div id="section-sort" class="w-full flex flex-col gap-3">
+            
+            <!-- Controls Bar: Difficulty & Assist Mode -->
+            <div class="w-full flex flex-wrap items-center justify-between gap-2 ocean-panel p-3 rounded-2xl">
+                <!-- Mode Switcher -->
+                <div class="flex bg-sky-950/80 p-1 rounded-xl font-black text-xs sm:text-sm border border-sky-600/50">
+                    <button id="btn-mode-learn" onclick="setGameMode('learn')" class="px-3 py-1.5 rounded-lg transition-all bg-sky-500 text-white shadow-sm">
+                        🎓 觀察示範
+                    </button>
+                    <button id="btn-mode-practice" onclick="setGameMode('practice')" class="px-3 py-1.5 rounded-lg transition-all text-sky-300 hover:bg-sky-800/60">
+                        🎮 自己按按看
+                    </button>
+                </div>
+
+                <!-- Easy Difficulty Levels -->
+                <div class="flex items-center gap-1.5 font-black text-xs sm:text-sm text-sky-100">
+                    <span class="text-amber-300">選擇難度：</span>
+                    <button onclick="changeDifficulty(3)" id="diff-3" class="px-3 py-1.5 rounded-xl border-2 border-amber-300 bg-amber-400 text-amber-950 font-black shadow-md transition scale-105">
+                        👶 幼兒園 (3隻)
+                    </button>
+                    <button onclick="changeDifficulty(4)" id="diff-4" class="px-3 py-1.5 rounded-xl border border-sky-600 bg-sky-900/60 text-sky-200 hover:bg-sky-800 transition">
+                        🌱 低年級 (4隻)
+                    </button>
+                    <button onclick="changeDifficulty(5)" id="diff-5" class="px-3 py-1.5 rounded-xl border border-sky-600 bg-sky-900/60 text-sky-200 hover:bg-sky-800 transition">
+                        ⭐ 中年級 (5隻)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sea Stage - Creature Cards Display Box -->
+            <div class="w-full ocean-panel p-4 sm:p-8 rounded-3xl flex flex-col items-center justify-center relative min-h-[300px] sm:min-h-[360px] overflow-hidden">
+                
+                <!-- Target Pair Direct Visual Hint Pointer -->
+                <div id="pointer-container" class="absolute top-2 transition-all duration-300 flex flex-col items-center z-20 pointer-events-none opacity-0">
+                    <span id="pointer-text-badge" class="bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-300 text-amber-950 font-black text-sm sm:text-base px-5 py-1.5 rounded-full shadow-2xl border-4 border-white flex items-center gap-1 animate-bounce">
+                        💡 提示：左邊比較大，要換位置喔！
+                    </span>
+                    <div class="text-amber-300 text-3xl sm:text-4xl pointer-arrow drop-shadow-lg">👇</div>
+                </div>
+
+                <!-- Dynamic Ocean Creature Cards Container -->
+                <div id="creatures-wrapper" class="flex flex-wrap justify-center items-center gap-4 sm:gap-8 my-auto z-10 py-8 min-h-[160px] w-full">
+                    <!-- Cards rendered dynamically -->
+                </div>
+
+                <!-- Ultra Simple Progress Bar -->
+                <div class="w-full max-w-md bg-sky-950/90 rounded-full h-5 mt-2 overflow-hidden border-2 border-cyan-400/60 shadow-inner">
+                    <div id="progress-bar" class="bg-gradient-to-r from-amber-300 via-yellow-400 to-emerald-400 h-full w-0 transition-all duration-500"></div>
+                </div>
+                <p id="progress-text" class="text-xs sm:text-sm font-black text-sky-200 mt-1">排隊進度：快要完成了！</p>
+            </div>
+
+            <!-- Captain Whale Encouraging Dialogue Box -->
+            <div class="w-full ocean-panel p-4 sm:p-5 rounded-3xl shadow-2xl flex items-center gap-4 border-l-8 border-l-amber-400">
+                <div class="w-16 h-16 sm:w-22 sm:h-22 flex-shrink-0 bg-gradient-to-b from-amber-300 to-orange-400 rounded-3xl border-4 border-white flex items-center justify-center text-4xl sm:text-5xl whale-bounce shadow-lg">
+                    🐳
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-black text-amber-300 text-base sm:text-lg flex items-center gap-1">
+                            鯨魚隊長 (Captain Whale) 🧭
+                        </span>
+                        <span id="hint-tag" class="text-xs bg-amber-400/30 text-amber-200 px-3 py-1 rounded-full border border-amber-300/50 font-black">
+                            隊長小助手
+                        </span>
+                    </div>
+                    <p id="mascot-text" class="text-sm sm:text-base font-black text-white leading-relaxed">
+                        小朋友你好！跟著亮金金的按鈕按，就可以幫海洋夥伴從小到大排好隊囉！加油！
+                    </p>
+                </div>
+            </div>
+
+            <!-- Action Buttons with Glowing Prompts for Easy Play -->
+            <div class="w-full flex flex-col sm:flex-row items-center justify-center gap-3 mt-1">
+                
+                <!-- Main Game Action Buttons -->
+                <div class="flex gap-3 w-full sm:w-auto">
+                    <button id="btn-swap" onclick="userChoice(true)" class="flex-1 sm:flex-none px-6 sm:px-10 py-4 bg-gradient-to-b from-amber-300 via-amber-400 to-orange-500 hover:from-amber-200 hover:to-orange-400 text-amber-950 font-black text-lg sm:text-xl rounded-2xl shadow-2xl border-b-4 border-orange-700 active:translate-y-1 transition flex items-center justify-center gap-2">
+                        <span>🔄</span> 換位置 (Swim Swap)
+                    </button>
+                    <button id="btn-keep" onclick="userChoice(false)" class="flex-1 sm:flex-none px-6 sm:px-10 py-4 bg-gradient-to-b from-cyan-300 via-cyan-400 to-blue-500 hover:from-cyan-200 hover:to-blue-400 text-sky-950 font-black text-lg sm:text-xl rounded-2xl shadow-2xl border-b-4 border-blue-700 active:translate-y-1 transition flex items-center justify-center gap-2">
+                        <span>➡️</span> 不用換 (這樣對了)
+                    </button>
+                </div>
+
+                <!-- Auto Step Button -->
+                <button id="btn-auto-step" onclick="autoStep()" class="hidden px-6 py-4 bg-emerald-400 hover:bg-emerald-300 text-emerald-950 font-black text-base rounded-2xl shadow-xl border-b-4 border-emerald-700 active:translate-y-1 transition items-center gap-2">
+                    <span>⚡</span> 隊長幫我按下一步
+                </button>
+
+                <!-- Reset / New Game -->
+                <button onclick="generateNewCreatures()" class="px-5 py-4 bg-sky-900/90 hover:bg-sky-800 text-sky-100 rounded-2xl font-black text-sm border-2 border-sky-400/50 shadow-lg transition">
+                    🎲 換一組小魚
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= SECTION 2: MINI ARCADE GAME (SUPER RELAXED FISH DASH) ================= -->
+        <div id="section-game" class="w-full flex flex-col gap-3 hidden">
+            
+            <div class="w-full ocean-panel p-4 rounded-3xl flex flex-col items-center justify-center relative overflow-hidden">
+                
+                <!-- Title & Controls -->
+                <div class="w-full flex flex-wrap items-center justify-between gap-2 mb-2 bg-sky-950/90 p-3 rounded-2xl border-2 border-cyan-400/40">
+                    <div class="flex items-center gap-2">
+                        <span class="text-3xl">🐠</span>
+                        <div>
+                            <h2 class="text-lg sm:text-xl font-black text-amber-300">輕鬆海洋衝刺 (Super Easy Fish Dash)</h2>
+                            <p class="text-xs font-black text-sky-200">輕觸螢幕向上游！多達 5 顆心心，快樂採集珍珠吧！</p>
+                        </div>
+                    </div>
+
+                    <!-- Mode Toggle: Super Easy / God Mode -->
+                    <div class="flex items-center gap-2">
+                        <button id="btn-godmode" onclick="toggleGodMode()" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-black text-xs sm:text-sm border-2 border-purple-300 shadow-md transition flex items-center gap-1">
+                            😇 神仙無敵模式：關閉
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Canvas Arcade Container -->
+                <div class="relative w-full max-w-2xl h-[340px] sm:h-[400px] bg-slate-900 rounded-3xl border-4 border-cyan-300 shadow-2xl overflow-hidden">
+                    <canvas id="mini-game-canvas" class="w-full h-full block cursor-pointer"></canvas>
+
+                    <!-- Start Overlay -->
+                    <div id="arcade-start-overlay" class="absolute inset-0 bg-sky-950/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-20">
+                        <span class="text-6xl mb-2 animate-bounce">🐠</span>
+                        <h3 class="text-2xl sm:text-3xl font-black text-amber-300 mb-2">準備好一起游泳了嗎？</h3>
+                        <p class="text-sm text-sky-100 max-w-md mb-5 font-black leading-relaxed">
+                            點擊螢幕讓小魚向上游！<br>
+                            有多達 💖 5 顆心心，而且隨處都有恢復愛心跟閃亮的珍珠喔！
+                        </p>
+                        <button onclick="startArcadeGame()" class="px-10 py-4 bg-gradient-to-r from-amber-300 via-yellow-400 to-orange-500 hover:from-amber-200 hover:to-orange-400 text-amber-950 font-black text-xl rounded-2xl shadow-2xl border-b-4 border-orange-700 active:translate-y-1 transition flex items-center gap-2">
+                            🚀 開始快樂游泳！
+                        </button>
+                    </div>
+
+                    <!-- Game Over Overlay -->
+                    <div id="arcade-over-overlay" class="absolute inset-0 bg-sky-950/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-20 hidden">
+                        <span class="text-6xl mb-2">🌟</span>
+                        <h3 class="text-2xl sm:text-3xl font-black text-amber-300 mb-2">游得太棒了！</h3>
+                        <p id="arcade-final-score" class="text-lg font-black text-sky-100 mb-4">獲得珍珠: 🦪 +0</p>
+                        <div class="flex gap-3">
+                            <button onclick="startArcadeGame()" class="px-8 py-3 bg-emerald-400 hover:bg-emerald-300 text-emerald-950 font-black text-base rounded-2xl shadow-xl border-b-4 border-emerald-700 active:translate-y-1 transition">
+                                🔄 再玩一次
+                            </button>
+                            <button onclick="switchMainTab('sort')" class="px-8 py-3 bg-sky-600 hover:bg-sky-500 text-white font-black text-base rounded-2xl shadow-xl border-b-4 border-sky-800 active:translate-y-1 transition">
+                                🫧 回去排小魚
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HUD Bar below canvas -->
+                <div class="w-full flex items-center justify-between text-sm font-black text-sky-200 mt-2 px-3">
+                    <span id="arcade-hearts" class="text-rose-400 text-lg">💖💖💖💖💖</span>
+                    <span id="arcade-score-display" class="text-amber-300 text-base">採集珍珠: 🦪 0</span>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer Explanation -->
+    <footer class="w-full max-w-4xl text-center py-2 text-xs font-black text-sky-300/80 z-10">
+        🌊 鯨魚隊長的小秘密：只要跟著閃閃發光的按鈕按，就能把小魚通通排好隊喔！
+    </footer>
+
+    <!-- Audio Web API & Web Speech Synthesis -->
+    <script>
+        let audioCtx = null;
+        let isMuted = false;
+        let voicePromptsEnabled = true;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // Web Speech API for Captain Whale Voice Prompts
+        function speakText(text) {
+            if (!voicePromptsEnabled || !('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel(); // Stop previous speech
+            
+            // Clean text from emojis or tags
+            const cleanText = text.replace(/<[^>]*>?/gm, '').replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '');
+            
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'zh-TW';
+            utterance.rate = 0.95; // Friendly gentle pace
+            utterance.pitch = 1.2; // Cheerful pitch for kids
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function toggleVoicePrompts() {
+            voicePromptsEnabled = !voicePromptsEnabled;
+            const btn = document.getElementById('btn-voice');
+            if (voicePromptsEnabled) {
+                btn.innerHTML = '🗣️ 隊長語音：開啟';
+                btn.className = "px-3 py-2 bg-emerald-500/30 hover:bg-emerald-500/40 text-emerald-200 rounded-xl font-black text-xs sm:text-sm border-2 border-emerald-400/60 transition flex items-center gap-1 shadow-md";
+                speakText("隊長語音已開啟！一起排隊吧！");
+            } else {
+                btn.innerHTML = '🔇 隊長語音：關閉';
+                btn.className = "px-3 py-2 bg-slate-800 text-slate-400 rounded-xl font-black text-xs sm:text-sm border-2 border-slate-700 transition flex items-center gap-1 shadow-md";
+                window.speechSynthesis.cancel();
+            }
+        }
+
+        function playSound(type) {
+            if (isMuted) return;
+            initAudio();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'bubble') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(350, now);
+                osc.frequency.exponentialRampToValueAtTime(1400, now + 0.09);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.09);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.09);
+            } else if (type === 'swap') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(250, now);
+                osc.frequency.exponentialRampToValueAtTime(750, now + 0.22);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.22);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.22);
+            } else if (type === 'correct') {
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.07);
+                    gain.gain.setValueAtTime(0.2, now + idx * 0.07);
+                    gain.gain.linearRampToValueAtTime(0.01, now + idx * 0.07 + 0.25);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + idx * 0.07);
+                    osc.stop(now + idx * 0.07 + 0.25);
+                });
+            } else if (type === 'win') {
+                [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.09);
+                    gain.gain.setValueAtTime(0.25, now + idx * 0.09);
+                    gain.gain.linearRampToValueAtTime(0.01, now + idx * 0.09 + 0.4);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + idx * 0.09);
+                    osc.stop(now + idx * 0.09 + 0.4);
+                });
+            } else if (type === 'coin') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(987.77, now);
+                osc.frequency.setValueAtTime(1318.51, now + 0.08);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.2);
+            } else if (type === 'hit') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(60, now + 0.2);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.2);
+            }
+        }
+
+        function toggleAudio() {
+            isMuted = !isMuted;
+            const btn = document.getElementById('btn-audio');
+            if (isMuted) {
+                btn.innerHTML = '🔇 音效：關閉';
+                btn.className = "px-3 py-2 bg-slate-800 text-slate-400 rounded-xl font-black text-xs sm:text-sm border-2 border-slate-700 transition flex items-center gap-1 shadow-md";
+            } else {
+                btn.innerHTML = '🔊 音效：開啟';
+                btn.className = "px-3 py-2 bg-amber-500/30 hover:bg-amber-500/40 text-amber-300 rounded-xl font-black text-xs sm:text-sm border-2 border-amber-400/60 transition flex items-center gap-1 shadow-md";
+                playSound('bubble');
+            }
+        }
+    </script>
+
+    <!-- Main Logic & Kid-friendly Enhancements -->
+    <script>
+        const creatureTypes = [
+            { name: '小丑魚', icon: '🐠', color: 'from-amber-400 to-orange-500 border-amber-200 text-amber-950' },
+            { name: '水母', icon: '🪼', color: 'from-fuchsia-400 to-pink-500 border-fuchsia-200 text-white' },
+            { name: '海葵', icon: '🌺', color: 'from-rose-400 to-pink-600 border-rose-200 text-white' },
+            { name: '螃蟹', icon: '🦀', color: 'from-red-400 to-rose-600 border-red-200 text-white' },
+            { name: '章魚', icon: '🐙', color: 'from-purple-400 to-indigo-600 border-purple-200 text-white' },
+            { name: '海龜', icon: '🐢', color: 'from-emerald-400 to-teal-600 border-emerald-200 text-white' },
+            { name: '龍蝦', icon: '🦞', color: 'from-orange-500 to-red-600 border-orange-200 text-white' },
+            { name: '鯨魚', icon: '🐳', color: 'from-sky-400 to-blue-600 border-sky-200 text-white' }
+        ];
+
+        let pearlWallet = 100;
+        let creatures = [];
+        let creatureCount = 3; // Default 3 for starter ease
+        let mode = 'learn';
+        let currentI = 0;
+        let currentJ = 0;
+        let isSorted = false;
+        let isProcessing = false;
+
+        function switchMainTab(tab) {
+            playSound('bubble');
+            const sortSec = document.getElementById('section-sort');
+            const gameSec = document.getElementById('section-game');
+            const tabSort = document.getElementById('tab-sort');
+            const tabGame = document.getElementById('tab-game');
+
+            if (tab === 'sort') {
+                sortSec.classList.remove('hidden');
+                gameSec.classList.add('hidden');
+                tabSort.className = "flex-1 sm:flex-initial px-5 py-2.5 rounded-xl font-black text-sm sm:text-base transition-all bg-gradient-to-r from-cyan-400 to-blue-500 text-white shadow-md flex items-center justify-center gap-2";
+                tabGame.className = "flex-1 sm:flex-initial px-5 py-2.5 rounded-xl font-black text-sm sm:text-base transition-all text-sky-200 hover:text-white hover:bg-sky-800/60 flex items-center justify-center gap-2";
+            } else {
+                gameSec.classList.remove('hidden');
+                sortSec.classList.add('hidden');
+                tabGame.className = "flex-1 sm:flex-initial px-5 py-2.5 rounded-xl font-black text-sm sm:text-base transition-all bg-gradient-to-r from-amber-300 to-orange-500 text-amber-950 shadow-md flex items-center justify-center gap-2";
+                tabSort.className = "flex-1 sm:flex-initial px-5 py-2.5 rounded-xl font-black text-sm sm:text-base transition-all text-sky-200 hover:text-white hover:bg-sky-800/60 flex items-center justify-center gap-2";
+                initCanvasDimensions();
+            }
+        }
+
+        function initAmbientBubbles() {
+            const container = document.getElementById('ambient-bubbles-container');
+            container.innerHTML = '';
+            for (let i = 0; i < 15; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'ambient-bubble';
+                const size = Math.random() * 24 + 10;
+                bubble.style.width = `${size}px`;
+                bubble.style.height = `${size}px`;
+                bubble.style.left = `${Math.random() * 100}%`;
+                bubble.style.animationDuration = `${Math.random() * 5 + 4}s`;
+                bubble.style.animationDelay = `${Math.random() * 3}s`;
+                container.appendChild(bubble);
+            }
+        }
+
+        function updatePearlWallet(amountToAdd = 0) {
+            pearlWallet += amountToAdd;
+            document.getElementById('stat-pearls').innerText = `🦪 ${pearlWallet}`;
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initAmbientBubbles();
+            generateNewCreatures();
+            updatePearlWallet(0);
+        });
+
+        function changeDifficulty(count) {
+            playSound('bubble');
+            creatureCount = count;
+
+            [3, 4, 5].forEach(n => {
+                const btn = document.getElementById(`diff-${n}`);
+                if (n === count) {
+                    btn.className = "px-3 py-1.5 rounded-xl border-2 border-amber-300 bg-amber-400 text-amber-950 font-black shadow-md transition scale-105";
+                } else {
+                    btn.className = "px-3 py-1.5 rounded-xl border border-sky-600 bg-sky-900/60 text-sky-200 hover:bg-sky-800 transition";
+                }
+            });
+
+            generateNewCreatures();
+        }
+
+        function setGameMode(newMode) {
+            playSound('bubble');
+            mode = newMode;
+            const learnBtn = document.getElementById('btn-mode-learn');
+            const practiceBtn = document.getElementById('btn-mode-practice');
+            const autoBtn = document.getElementById('btn-auto-step');
+
+            if (mode === 'learn') {
+                learnBtn.className = "px-3 py-1.5 rounded-lg transition-all bg-sky-500 text-white shadow-sm";
+                practiceBtn.className = "px-3 py-1.5 rounded-lg transition-all text-sky-300 hover:bg-sky-800/60";
+                autoBtn.classList.remove('hidden');
+                autoBtn.classList.add('flex');
+            } else {
+                practiceBtn.className = "px-3 py-1.5 rounded-lg transition-all bg-sky-500 text-white shadow-sm";
+                learnBtn.className = "px-3 py-1.5 rounded-lg transition-all text-sky-300 hover:bg-sky-800/60";
+                autoBtn.classList.add('hidden');
+                autoBtn.classList.remove('flex');
+            }
+
+            resetGame();
+        }
+
+        function generateNewCreatures() {
+            playSound('bubble');
+            creatures = [];
+            const usedValues = new Set();
+
+            // Very simple small single-digit numbers for easy recognition (1 to 9)
+            while (creatures.length < creatureCount) {
+                const val = Math.floor(Math.random() * 9) + 1;
+                if (!usedValues.has(val)) {
+                    usedValues.add(val);
+                    const typeIndex = creatures.length % creatureTypes.length;
+                    creatures.push({
+                        value: val,
+                        type: creatureTypes[typeIndex]
+                    });
+                }
+            }
+
+            resetGame();
+        }
+
+        function resetGame() {
+            currentI = 0;
+            currentJ = 0;
+            isSorted = false;
+            isProcessing = false;
+
+            document.getElementById('stat-stars').innerText = '⭐⭐⭐';
+
+            renderCreatures();
+            updatePointerAndGlowHints();
+            updateMascotText();
+            updateProgress();
+        }
+
+        function renderCreatures() {
+            const wrapper = document.getElementById('creatures-wrapper');
+            wrapper.innerHTML = '';
+
+            creatures.forEach((item, idx) => {
+                const card = document.createElement('div');
+                card.id = `creature-${idx}`;
+                
+                card.className = `creature-card creature-swimming relative w-20 h-28 sm:w-26 sm:h-36 rounded-3xl border-4 bg-gradient-to-b ${item.type.color} flex flex-col items-center justify-between p-2 sm:p-3 shadow-xl cursor-pointer select-none`;
+                
+                const isItemSorted = isSorted || idx >= creatures.length - currentI;
+
+                if (isItemSorted) {
+                    card.classList.add('creature-sorted');
+                }
+
+                card.innerHTML = `
+                    <div class="text-3xl sm:text-5xl my-auto drop-shadow-md">${item.type.icon}</div>
+                    <div class="w-full bg-black/40 rounded-2xl text-center py-1 border-2 border-white/40 backdrop-blur-sm">
+                        <span class="font-black text-xl sm:text-3xl text-yellow-300 drop-shadow">${item.value}</span>
+                    </div>
+                    <span class="text-xs font-black opacity-90 leading-tight mt-0.5">${item.type.name}</span>
+                `;
+
+                wrapper.appendChild(card);
+            });
+        }
+
+        // Smart Glowing Assistant - highlights the exact button kids should press!
+        function updatePointerAndGlowHints() {
+            const pointer = document.getElementById('pointer-container');
+            const pointerBadge = document.getElementById('pointer-text-badge');
+            const btnSwap = document.getElementById('btn-swap');
+            const btnKeep = document.getElementById('btn-keep');
+
+            btnSwap.classList.remove('btn-glowing-hint');
+            btnKeep.classList.remove('btn-glowing-hint');
+
+            if (isSorted) {
+                pointer.style.opacity = '0';
+                return;
+            }
+
+            const cardA = document.getElementById(`creature-${currentJ}`);
+            const cardB = document.getElementById(`creature-${currentJ + 1}`);
+
+            document.querySelectorAll('.creature-card').forEach(c => c.classList.remove('creature-comparing'));
+
+            if (cardA && cardB) {
+                cardA.classList.add('creature-comparing');
+                cardB.classList.add('creature-comparing');
+
+                const left = creatures[currentJ];
+                const right = creatures[currentJ + 1];
+                const needsSwap = left.value > right.value;
+
+                if (needsSwap) {
+                    pointerBadge.innerText = `💡 ${left.value} 比 ${right.value} 大！按【換位置】！`;
+                    btnSwap.classList.add('btn-glowing-hint');
+                } else {
+                    pointerBadge.innerText = `💡 ${left.value} 比 ${right.value} 小！按【不用換】！`;
+                    btnKeep.classList.add('btn-glowing-hint');
+                }
+
+                const rectA = cardA.getBoundingClientRect();
+                const rectB = cardB.getBoundingClientRect();
+                const wrapperRect = document.getElementById('creatures-wrapper').getBoundingClientRect();
+
+                const centerX = (rectA.left + rectB.right) / 2 - wrapperRect.left;
+                
+                pointer.style.left = `${centerX - 100}px`;
+                pointer.style.opacity = '1';
+            } else {
+                pointer.style.opacity = '0';
+            }
+        }
+
+        function updateMascotText(customMessage = null) {
+            const mascotText = document.getElementById('mascot-text');
+
+            if (isSorted) {
+                const winMsg = `🎉 <b>太厲害了！所有海洋夥伴通通從小到大排好隊囉！</b> 獲得了 <b>🦪 +50 珍珠獎勵</b>！可以去玩衝刺遊戲囉！`;
+                mascotText.innerHTML = winMsg;
+                speakText("太厲害了！所有海洋夥伴都排好隊囉！真棒！");
+                return;
+            }
+
+            if (customMessage) {
+                mascotText.innerHTML = customMessage;
+                speakText(customMessage);
+                return;
+            }
+
+            const left = creatures[currentJ];
+            const right = creatures[currentJ + 1];
+
+            if (left.value > right.value) {
+                const msg = `左邊的 <b>${left.type.icon} (${left.value})</b> 比右邊的 <b>${right.type.icon} (${right.value})</b> 還大喔！請按下<b>閃閃發光的【換位置】</b>按鈕！`;
+                mascotText.innerHTML = msg;
+                speakText(`${left.type.name}比${right.type.name}還要大，請按換位置按鈕！`);
+            } else {
+                const msg = `左邊的 <b>${left.type.icon} (${left.value})</b> 比右邊的 <b>${right.type.icon} (${right.value})</b> 小，這樣排對了！請按下<b>【不用換】</b>！`;
+                mascotText.innerHTML = msg;
+                speakText("這兩隻魚排對了！請按不用換！");
+            }
+        }
+
+        function userChoice(shouldSwap) {
+            if (isSorted || isProcessing) return;
+
+            const left = creatures[currentJ];
+            const right = creatures[currentJ + 1];
+            const needsSwap = left.value > right.value;
+
+            if (shouldSwap !== needsSwap) {
+                playSound('bubble');
+                // Gentle positive reinforcement instead of punishment
+                const hint = needsSwap ? "【換位置】" : "【不用換】";
+                updateMascotText(`沒關係！這兩隻魚應該按下 <b>${hint}</b> 才對喔！試試看按閃閃發光的按鈕吧！`);
+                return;
+            }
+
+            if (shouldSwap) {
+                executeSwapAnimation();
+            } else {
+                playSound('correct');
+                advanceStep();
+            }
+        }
+
+        function executeSwapAnimation() {
+            isProcessing = true;
+            playSound('swap');
+
+            const cardA = document.getElementById(`creature-${currentJ}`);
+            const cardB = document.getElementById(`creature-${currentJ + 1}`);
+
+            cardA.classList.add('swapping-left');
+            cardB.classList.add('swapping-right');
+
+            setTimeout(() => {
+                const temp = creatures[currentJ];
+                creatures[currentJ] = creatures[currentJ + 1];
+                creatures[currentJ + 1] = temp;
+
+                cardA.classList.remove('swapping-left');
+                cardB.classList.remove('swapping-right');
+
+                advanceStep();
+                isProcessing = false;
+            }, 450);
+        }
+
+        function advanceStep() {
+            currentJ++;
+
+            if (currentJ >= creatures.length - 1 - currentI) {
+                currentJ = 0;
+                currentI++;
+            }
+
+            checkIfSorted();
+            renderCreatures();
+            updatePointerAndGlowHints();
+            updateProgress();
+            updateMascotText();
+        }
+
+        function checkIfSorted() {
+            let sorted = true;
+            for (let k = 0; k < creatures.length - 1; k++) {
+                if (creatures[k].value > creatures[k + 1].value) {
+                    sorted = false;
+                    break;
+                }
+            }
+
+            if (sorted || currentI >= creatures.length - 1) {
+                isSorted = true;
+                handleWin();
+            }
+        }
+
+        function updateProgress() {
+            const totalComparisons = (creatureCount * (creatureCount - 1)) / 2;
+            let doneCount = 0;
+            for (let i = 0; i < currentI; i++) {
+                doneCount += (creatureCount - 1 - i);
+            }
+            doneCount += currentJ;
+
+            let percentage = isSorted ? 100 : Math.min(100, Math.round((doneCount / totalComparisons) * 100));
+
+            document.getElementById('progress-bar').style.width = `${percentage}%`;
+            document.getElementById('progress-text').innerText = `排隊進度：${percentage}% (${isSorted ? '完成了！' : '加油中！'})`;
+        }
+
+        function handleWin() {
+            playSound('win');
+            updatePearlWallet(50);
+
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 150,
+                    spread: 90,
+                    origin: { y: 0.6 }
+                });
+            }
+
+            renderCreatures();
+            updatePointerAndGlowHints();
+            updateMascotText();
+        }
+
+        function autoStep() {
+            if (isSorted || isProcessing) return;
+            const left = creatures[currentJ];
+            const right = creatures[currentJ + 1];
+
+            if (left.value > right.value) {
+                userChoice(true);
+            } else {
+                userChoice(false);
+            }
+        }
+
+        // =========================================================================
+        // SECTION 3: SUPER RELAXED MINI ARCADE GAME ENGINE
+        // =========================================================================
+        let canvas, ctx;
+        let arcadeAnimId = null;
+        let arcadeRunning = false;
+        let score = 0;
+        let pearlsCollected = 0;
+        let hearts = 5;
+        let invincibilityTimer = 0;
+        let godMode = false;
+
+        const player = {
+            x: 80,
+            y: 180,
+            radius: 20,
+            vy: 0,
+            gravity: 0.22, // Very gentle floaty gravity
+            jumpStrength: -5.2
+        };
+
+        let obstacles = [];
+        let collectibles = [];
+        let arcadeFrame = 0;
+
+        function initCanvasDimensions() {
+            canvas = document.getElementById('mini-game-canvas');
+            if (!canvas) return;
+            ctx = canvas.getContext('2d');
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+
+        window.addEventListener('resize', initCanvasDimensions);
+
+        function handleJump() {
+            if (!arcadeRunning) return;
+            player.vy = player.jumpStrength;
+            playSound('bubble');
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'ArrowUp') handleJump();
+        });
+
+        document.getElementById('mini-game-canvas')?.addEventListener('pointerdown', handleJump);
+
+        function toggleGodMode() {
+            godMode = !godMode;
+            const btn = document.getElementById('btn-godmode');
+            if (godMode) {
+                btn.innerHTML = '😇 神仙無敵模式：開啟 🌟';
+                btn.className = "px-4 py-2 bg-gradient-to-r from-amber-400 to-yellow-300 text-amber-950 font-black rounded-xl text-xs sm:text-sm border-2 border-white shadow-lg transition scale-105 flex items-center gap-1";
+                speakText("神仙無敵模式已開啟！小魚永遠不會受傷喔！");
+            } else {
+                btn.innerHTML = '😇 神仙無敵模式：關閉';
+                btn.className = "px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-black text-xs sm:text-sm border-2 border-purple-300 shadow-md transition flex items-center gap-1";
+            }
+        }
+
+        function startArcadeGame() {
+            initCanvasDimensions();
+            document.getElementById('arcade-start-overlay').classList.add('hidden');
+            document.getElementById('arcade-over-overlay').classList.add('hidden');
+
+            player.y = canvas.height / 2;
+            player.vy = 0;
+            hearts = 5;
+            invincibilityTimer = 0;
+
+            obstacles = [];
+            collectibles = [];
+            score = 0;
+            pearlsCollected = 0;
+            arcadeFrame = 0;
+            arcadeRunning = true;
+
+            updateHeartsUI();
+
+            if (arcadeAnimId) cancelAnimationFrame(arcadeAnimId);
+            arcadeLoop();
+        }
+
+        function updateHeartsUI() {
+            let heartsStr = '';
+            for (let i = 0; i < hearts; i++) heartsStr += '💖';
+            for (let i = hearts; i < 5; i++) heartsStr += '🖤';
+            document.getElementById('arcade-hearts').innerText = heartsStr;
+        }
+
+        function arcadeLoop() {
+            if (!arcadeRunning) return;
+            arcadeFrame++;
+            if (invincibilityTimer > 0) invincibilityTimer--;
+
+            // Ocean Background
+            const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            grad.addColorStop(0, '#0284c7');
+            grad.addColorStop(1, '#0369a1');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Update Player
+            player.vy += player.gravity;
+            player.y += player.vy;
+
+            // Boundaries
+            if (player.y - player.radius < 0) {
+                player.y = player.radius;
+                player.vy = 0;
+            }
+            if (player.y + player.radius > canvas.height) {
+                player.y = canvas.height - player.radius;
+                player.vy = -3;
+            }
+
+            // Draw Player Fish (Flashes during invincibility)
+            ctx.save();
+            ctx.translate(player.x, player.y);
+            ctx.rotate(Math.min(Math.PI / 4, Math.max(-Math.PI / 4, player.vy * 0.08)));
+
+            if (invincibilityTimer % 10 < 5) {
+                ctx.font = '36px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('🐠', 0, 0);
+
+                if (godMode) {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, player.radius + 10, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#f59e0b';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                }
+            }
+            ctx.restore();
+
+            // Spawn Obstacles (Very slow & infrequent)
+            if (arcadeFrame % 140 === 0) {
+                const obsY = Math.random() * (canvas.height - 120) + 60;
+                obstacles.push({
+                    x: canvas.width + 30,
+                    y: obsY,
+                    radius: 12, // Small hit area
+                    type: Math.random() > 0.5 ? '💣' : '🦈',
+                    speed: 1.5 // 50% slower speed
+                });
+            }
+
+            // Spawn Collectibles (Very abundant Pearls 🦪, Shells 🐚, Recovery Hearts 💖)
+            if (arcadeFrame % 45 === 0) {
+                const colY = Math.random() * (canvas.height - 80) + 40;
+                const rand = Math.random();
+                let type = '🐚';
+                if (rand > 0.6) type = '🦪';
+                if (rand > 0.9) type = '💖';
+
+                collectibles.push({
+                    x: canvas.width + 20,
+                    y: colY,
+                    radius: 20, // Large generous collection radius
+                    type: type
+                });
+            }
+
+            // Process Obstacles
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obs = obstacles[i];
+                obs.x -= obs.speed;
+
+                ctx.font = '28px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(obs.type, obs.x, obs.y);
+
+                // Collision
+                const dist = Math.hypot(player.x - obs.x, player.y - obs.y);
+                if (dist < player.radius + obs.radius) {
+                    if (!godMode && invincibilityTimer === 0) {
+                        hearts--;
+                        invincibilityTimer = 120; // 2 seconds invincibility
+                        playSound('hit');
+                        updateHeartsUI();
+
+                        if (hearts <= 0) {
+                            endArcadeGame();
+                            return;
+                        }
+                    }
+                }
+
+                if (obs.x < -40) obstacles.splice(i, 1);
+            }
+
+            // Process Collectibles
+            for (let i = collectibles.length - 1; i >= 0; i--) {
+                const col = collectibles[i];
+                col.x -= 2.2;
+
+                ctx.font = '28px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(col.type, col.x, col.y);
+
+                const dist = Math.hypot(player.x - col.x, player.y - col.y);
+                if (dist < player.radius + col.radius + 15) { // Magnetic wide pickup
+                    playSound('coin');
+                    if (col.type === '🦪') {
+                        pearlsCollected += 3;
+                        score += 50;
+                    } else if (col.type === '💖') {
+                        if (hearts < 5) hearts++;
+                        updateHeartsUI();
+                    } else {
+                        score += 20;
+                    }
+                    collectibles.splice(i, 1);
+                }
+
+                if (col.x < -30) collectibles.splice(i, 1);
+            }
+
+            document.getElementById('arcade-score-display').innerText = `採集珍珠: 🦪 +${pearlsCollected}`;
+
+            arcadeAnimId = requestAnimationFrame(arcadeLoop);
+        }
+
+        function endArcadeGame() {
+            arcadeRunning = false;
+            playSound('win');
+            updatePearlWallet(pearlsCollected);
+
+            document.getElementById('arcade-final-score').innerText = `採集到的珍珠寶石: 🦪 +${pearlsCollected}`;
+            document.getElementById('arcade-over-overlay').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
