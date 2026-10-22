@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>氣泡排序大冒險 - 🐶 汪汪小狗 7合1 超級遊樂園版</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Fredoka', 'Noto Sans TC', sans-serif;
+            user-select: none;
+            transition: background 0.5s ease;
+        }
+
+        .theme-puppy {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 40%, #f59e0b 100%);
+        }
+        .theme-ocean {
+            background: linear-gradient(135deg, #0284c7 0%, #38bdf8 50%, #bae6fd 100%);
+        }
+        .theme-fruit {
+            background: linear-gradient(135deg, #f43f5e 0%, #fb7185 50%, #fef08a 100%);
+        }
+        .theme-space {
+            background: linear-gradient(135deg, #0f172a 0%, #312e81 50%, #4c1d95 100%);
+        }
+
+        .bubble-card {
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, background-color 0.3s ease;
+        }
+
+        .bubble-float {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(3deg); }
+        }
+
+        .comparing-highlight {
+            box-shadow: 0 0 25px 8px rgba(245, 158, 11, 0.9) !important;
+            border-color: #d97706 !important;
+            transform: scale(1.15) !important;
+            z-index: 30;
+        }
+
+        .sorted-bubble {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+            border-color: #15803d !important;
+            color: white !important;
+            box-shadow: 0 6px 18px rgba(34, 197, 94, 0.5) !important;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #f59e0b;
+            border-radius: 10px;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .mole-hole {
+            background: radial-gradient(circle, #78350f 0%, #451a03 100%);
+            box-shadow: inset 0 8px 12px rgba(0,0,0,0.6);
+        }
+    </style>
+</head>
+<body id="game-body" class="theme-puppy flex flex-col min-h-screen text-slate-800 pb-8">
+
+    <header class="w-full bg-white/90 backdrop-blur-md shadow-md py-3 px-4 md:px-8 flex flex-wrap justify-between items-center sticky top-0 z-40">
+        <div class="flex items-center space-x-3">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-400 to-orange-500 text-white flex items-center justify-center text-2xl shadow-lg shadow-amber-200">
+                <i class="fa-solid fa-dog"></i>
+            </div>
+            <div>
+                <h1 class="text-xl md:text-2xl font-black text-amber-800 tracking-wide flex items-center gap-2">
+                    氣泡排序大冒險
+                    <span class="bg-amber-400 text-amber-950 text-xs px-2.5 py-0.5 rounded-full font-bold">🐶 7合1 遊樂園版</span>
+                </h1>
+                <p class="text-xs text-amber-700 font-medium">Doggy Bubble Sort & 7 Mini-Games Theme Park</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2 md:space-x-3 mt-2 sm:mt-0 flex-wrap gap-y-2">
+            <!-- Theme Selector -->
+            <select id="theme-select" onchange="changeTheme(this.value)" class="bg-amber-50 border border-amber-300 font-bold text-amber-800 text-xs md:text-sm px-3 py-1.5 rounded-xl cursor-pointer hover:bg-amber-100 transition-all">
+                <option value="puppy" selected>🐶 汪汪小狗</option>
+                <option value="ocean">🌊 深海海洋</option>
+                <option value="fruit">🍎 水果樂園</option>
+                <option value="space">🚀 宇宙星空</option>
+            </select>
+
+            <!-- Mode Switcher -->
+            <div class="bg-amber-100 p-1 rounded-2xl flex border border-amber-200">
+                <button id="mode-guided" onclick="switchGameMode('guided')" class="px-3 py-1.5 rounded-xl text-xs md:text-sm font-bold transition-all bg-white text-amber-700 shadow-sm">
+                    <i class="fa-solid fa-graduation-cap mr-1"></i>引導練習
+                </button>
+                <button id="mode-auto" onclick="switchGameMode('auto')" class="px-3 py-1.5 rounded-xl text-xs md:text-sm font-bold transition-all text-slate-600 hover:text-amber-700">
+                    <i class="fa-solid fa-robot mr-1"></i>自動演示
+                </button>
+                <button id="mode-free" onclick="switchGameMode('free')" class="px-3 py-1.5 rounded-xl text-xs md:text-sm font-bold transition-all text-slate-600 hover:text-amber-700">
+                    <i class="fa-solid fa-gamepad mr-1"></i>自由挑戰
+                </button>
+            </div>
+
+            <!-- Mini Game Arcade Hub Launcher Button -->
+            <button onclick="openArcadeHub()" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500 hover:scale-105 text-white flex items-center gap-1.5 font-bold text-xs md:text-sm shadow-md transition-all transform active:scale-95 border border-white/40">
+                <i class="fa-solid fa-dice text-base animate-bounce"></i>
+                <span>🎮 7大汪汪小遊戲</span>
+            </button>
+
+            <!-- Help / Rules Button -->
+            <button onclick="openHelpModal()" class="px-3 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-500 text-amber-950 flex items-center gap-1.5 font-bold text-xs md:text-sm shadow-md transition-all transform active:scale-95" title="遊戲說明與規則">
+                <i class="fa-solid fa-bone text-base"></i>
+                <span>遊戲說明</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-5xl w-full mx-auto p-4 flex flex-col items-center justify-start space-y-5">
+
+        <!-- Scoreboard & Statistics Bar -->
+        <div id="stats-panel" class="w-full glass-panel rounded-3xl p-4 shadow-xl border border-white/80 flex flex-wrap justify-around items-center gap-4">
+            <!-- Combo Counter -->
+            <div class="flex items-center space-x-2 bg-amber-50 px-4 py-2 rounded-2xl border border-amber-200">
+                <i class="fa-solid fa-bolt text-amber-500 text-2xl animate-bounce"></i>
+                <div>
+                    <span class="text-xs text-amber-600 font-bold block">連續答對 (Combo)</span>
+                    <span id="combo-count" class="text-xl font-black text-amber-700">0 連擊</span>
+                </div>
+            </div>
+
+            <!-- Pass / Round Counter -->
+            <div class="flex items-center space-x-2 bg-orange-50 px-4 py-2 rounded-2xl border border-orange-200">
+                <i class="fa-solid fa-paw text-orange-500 text-2xl"></i>
+                <div>
+                    <span class="text-xs text-orange-600 font-bold block">目前輪次 (Pass)</span>
+                    <span id="pass-count" class="text-xl font-black text-orange-700">第 1 輪</span>
+                </div>
+            </div>
+
+            <!-- Difficulty / Array Size -->
+            <div class="flex items-center space-x-2 bg-yellow-50 px-3 py-1.5 rounded-2xl border border-yellow-200">
+                <i class="fa-solid fa-layer-group text-amber-600 text-xl"></i>
+                <div>
+                    <label for="array-size-select" class="text-xs text-amber-700 font-bold block">小狗數量 (難度)</label>
+                    <select id="array-size-select" onchange="resetGame()" class="bg-transparent font-bold text-amber-900 text-sm focus:outline-none cursor-pointer">
+                        <option value="4">4 隻小狗 (幼犬級)</option>
+                        <option value="6" selected>6 隻小狗 (成犬級)</option>
+                        <option value="8">8 隻小狗 (隊長級)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Total Stars / Bones -->
+            <div class="flex items-center space-x-2 bg-purple-50 px-4 py-2 rounded-2xl border border-purple-200">
+                <i class="fa-solid fa-bone text-purple-500 text-2xl"></i>
+                <div>
+                    <span class="text-xs text-purple-600 font-bold block">獲得狗骨頭</span>
+                    <span id="star-count" class="text-xl font-black text-purple-700">0</span>
+                </div>
+            </div>
+
+            <!-- Reset Button -->
+            <button onclick="resetGame()" class="px-4 py-2 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-bold rounded-2xl shadow-lg shadow-amber-200 active:scale-95 transition-all flex items-center space-x-1.5">
+                <i class="fa-solid fa-rotate-right"></i>
+                <span>重新洗牌</span>
+            </button>
+        </div>
+
+        <!-- Instruction / Prompt Card -->
+        <div id="prompt-card" class="w-full glass-panel rounded-3xl p-5 shadow-lg border-2 border-amber-300 text-center relative overflow-hidden transition-all">
+            <div class="absolute top-0 left-0 w-3 h-full bg-amber-500"></div>
+            <p id="prompt-title" class="text-lg md:text-xl font-bold text-amber-950 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-dog text-amber-500"></i>
+                <span>準備開始練習！幫小狗們依數字從小到大排隊！</span>
+            </p>
+            <p id="prompt-desc" class="text-sm md:text-base text-slate-600 mt-1 font-medium">
+                比較相鄰的兩隻小狗，如果左邊的號碼比右邊大，就要讓牠們交換位置喔！
+            </p>
+            
+            <div id="algo-code-box" class="mt-3 inline-flex items-center gap-2 bg-amber-50 text-amber-900 px-3 py-1 rounded-full text-xs font-mono border border-amber-200">
+                <i class="fa-solid fa-code text-amber-600"></i>
+                <span id="algo-code-text">Array[i] vs Array[i+1]</span>
+            </div>
+        </div>
+
+        <!-- Bubble Playground / Canvas Area -->
+        <div class="w-full glass-panel rounded-3xl p-6 md:p-10 shadow-inner border border-white/80 min-h-[290px] flex flex-col justify-center items-center relative overflow-x-auto">
+            
+            <div id="comparison-pointer-container" class="w-full flex justify-center items-center gap-3 md:gap-5 py-6 min-w-max">
+                <!-- Bubbles injected dynamically -->
+            </div>
+
+            <!-- Sorting Progress Bar -->
+            <div class="w-full max-w-md bg-amber-100 h-3.5 rounded-full mt-4 overflow-hidden p-0.5 shadow-inner">
+                <div id="sorting-progress-bar" class="bg-gradient-to-r from-amber-400 via-orange-400 to-emerald-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <span id="progress-text" class="text-xs font-bold text-amber-800 mt-1.5">排隊完成度: 0%</span>
+        </div>
+
+        <!-- Guided Controls -->
+        <div id="guided-controls" class="w-full flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
+            <button onclick="handleUserChoice(true)" class="w-full sm:w-60 py-4 px-6 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-black text-xl rounded-2xl shadow-xl shadow-orange-200 active:scale-95 transition-all flex items-center justify-center space-x-2 border-b-4 border-orange-600">
+                <i class="fa-solid fa-right-left text-2xl"></i>
+                <span>要交換 (Swap)</span>
+            </button>
+
+            <button onclick="handleUserChoice(false)" class="w-full sm:w-60 py-4 px-6 bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-500 hover:to-teal-600 text-white font-black text-xl rounded-2xl shadow-xl shadow-teal-200 active:scale-95 transition-all flex items-center justify-center space-x-2 border-b-4 border-teal-700">
+                <i class="fa-solid fa-check text-2xl"></i>
+                <span>不交換 (Keep)</span>
+            </button>
+        </div>
+
+        <!-- Auto Demonstration Mode Controls -->
+        <div id="auto-controls" class="hidden w-full flex flex-col items-center justify-center gap-3 bg-white/90 border border-amber-200 rounded-2xl p-4 shadow-md">
+            <div class="flex items-center space-x-4">
+                <button id="auto-play-btn" onclick="toggleAutoPlay()" class="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl shadow-md transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-play"></i>
+                    <span>開始自動演示</span>
+                </button>
+                <button onclick="stepAutoPlay()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl shadow-sm transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-forward-step"></i>
+                    <span>單步執行</span>
+                </button>
+            </div>
+            <div class="flex items-center gap-3 text-xs font-bold text-slate-600 mt-1">
+                <span>演示速度:</span>
+                <button onclick="setAutoSpeed(1200)" class="px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-800">慢速</button>
+                <button onclick="setAutoSpeed(700)" class="px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-800">中速</button>
+                <button onclick="setAutoSpeed(350)" class="px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-800">快速</button>
+            </div>
+        </div>
+
+        <!-- Free Controls -->
+        <div id="free-controls" class="hidden w-full text-center bg-amber-50/90 border border-amber-200 rounded-2xl p-4">
+            <p class="text-amber-900 font-bold text-base md:text-lg">
+                <i class="fa-solid fa-hand-pointer mr-1 text-amber-500"></i>
+                點擊任意兩隻「相鄰」的小狗來交換位置！目標是讓號碼從小到大排好隊！
+            </p>
+        </div>
+
+    </main>
+
+    <!-- Feedback Modal -->
+    <div id="feedback-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div id="feedback-card" class="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl border-4 border-amber-300 transform scale-90 transition-all duration-300">
+            <div id="feedback-icon" class="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl mb-3">
+                <i class="fa-solid fa-dog"></i>
+            </div>
+            <h3 id="feedback-title" class="text-2xl font-black text-slate-800 mb-2">答對了！</h3>
+            <p id="feedback-msg" class="text-slate-600 text-sm md:text-base font-medium mb-5">左邊的小狗數字比較大，確實需要交換喔！</p>
+            <button onclick="closeFeedbackModal()" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold text-lg rounded-xl shadow-lg active:scale-95 transition-all">
+                繼續挑戰
+            </button>
+        </div>
+    </div>
+
+    <!-- Victory Modal -->
+    <div id="win-modal" class="fixed inset-0 bg-black/50 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-2xl border-4 border-amber-300 transform scale-90 transition-all duration-300">
+            <div class="w-20 h-20 bg-amber-100 text-amber-500 rounded-full mx-auto flex items-center justify-center text-4xl mb-4 animate-bounce">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            <h2 class="text-3xl font-black text-amber-600 mb-2">太棒了！小狗成功排好隊！</h2>
+            <p class="text-slate-600 font-medium text-base mb-4">
+                你成功運用「氣泡排序法」幫所有汪汪狗狗從小到大排列整齊囉！
+            </p>
+            <div class="bg-amber-50 rounded-2xl p-3 border border-amber-200 mb-6 flex justify-around">
+                <div>
+                    <span class="text-xs text-amber-700 font-bold block">最高 Combo</span>
+                    <span id="win-max-combo" class="text-lg font-black text-amber-800">0</span>
+                </div>
+                <div>
+                    <span class="text-xs text-amber-700 font-bold block">獲得狗骨頭</span>
+                    <span id="win-stars" class="text-lg font-black text-amber-800">0</span>
+                </div>
+            </div>
+            
+            <div class="flex flex-col gap-2">
+                <button onclick="closeWinModal(); openArcadeHub();" class="w-full py-3 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-400 text-white font-black text-base md:text-lg rounded-2xl shadow-lg hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-dice"></i>
+                    <span>前往「7大汪汪小遊戲遊樂園」！</span>
+                </button>
+                <button onclick="closeWinModal(); resetGame();" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-base rounded-2xl active:scale-95 transition-all">
+                    再來一局氣泡排序！
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7 MINI-GAMES ARCADE HUB SELECTION MODAL -->
+    <div id="arcade-hub-modal" class="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-3 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-amber-50 rounded-3xl p-5 md:p-7 max-w-2xl w-full shadow-2xl border-4 border-amber-400 flex flex-col items-center relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeArcadeHub()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-amber-200 hover:bg-amber-300 text-amber-900 font-bold flex items-center justify-center text-xl z-10 shadow">
+                &times;
+            </button>
+            
+            <h2 class="text-2xl md:text-3xl font-black text-amber-900 mb-1 flex items-center gap-2">
+                <i class="fa-solid fa-dice text-amber-500"></i> 汪汪 7 合 1 遊戲遊樂園
+            </h2>
+            <p class="text-xs md:text-sm text-amber-700 font-medium mb-5">點選你最想玩的汪汪小遊戲開始挑戰吧！</p>
+
+            <!-- Grid of 7 Mini Games -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 w-full">
+                <!-- Game 1 -->
+                <button onclick="launchMiniGame(1)" class="bg-gradient-to-br from-amber-100 to-orange-200 hover:from-amber-200 hover:to-orange-300 p-4 rounded-2xl border-2 border-orange-300 text-left shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+                    <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">🦴 🐶</div>
+                    <div>
+                        <h4 class="font-black text-amber-950 text-base">1. 汪汪接骨頭</h4>
+                        <p class="text-xs text-amber-800">接住 falling 骨頭 & 肉塊</p>
+                    </div>
+                </button>
+
+                <!-- Game 2 -->
+                <button onclick="launchMiniGame(2)" class="bg-gradient-to-br from-yellow-100 to-amber-200 hover:from-yellow-200 hover:to-amber-300 p-4 rounded-2xl border-2 border-amber-400 text-left shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+                    <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">🐾 🔨</div>
+                    <div>
+                        <h4 class="font-black text-amber-950 text-base">2. 汪汪打地鼠</h4>
+                        <p class="text-xs text-amber-800">點擊冒出來的搗蛋小狗！</p>
+                    </div>
+                </button>
+
+                <!-- Game 3 -->
+                <button onclick="launchMiniGame(3)" class="bg-gradient-to-br from-sky-100 to-blue-200 hover:from-sky-200 hover:to-blue-300 p-4 rounded-2xl border-2 border-blue-300 text-left shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+                    <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">🎾 🐕</div>
+                    <div>
+                        <h4 class="font-black text-sky-950 text-base">3. 飛盤彈珠台</h4>
+                        <p class="text-xs text-sky-800">用擋板反彈飛盤獲取高分</p>
+                    </div>
+                </button>
+
+                <!-- Game 4 -->
+                <button onclick="launchMiniGame(4)" class="bg-gradient-to-br from-purple-100 to-pink-200 hover:from-purple-200 hover:to-pink-300 p-4 rounded-2xl border-2 border-purple-300 text-left shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+                    <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">🧠 🎴</div>
+                    <div>
+                        <h4 class="font-black text-purple-950 text-base">4. 汪汪記憶翻牌</h4>
+                        <p class="text-xs text-purple-800">翻開卡片考驗記憶力配對</p>
+                    </div>
+                </button>
+
+                <!-- Game 5 -->
+                <button onclick="launchMiniGame(5)" class="bg-gradient-to-br from-emerald-100 to-teal-200 hover:from-emerald-200 hover:to-teal-300 p-4 rounded-2xl border-2 border-emerald-300 text-left shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+                    <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">🐕‍🦺 🗺️</div>
+                    <div>
+                        <h4 class="font-black text-emerald-950 text-base">5. 汪汪迷宮尋寶</h4>
+                        <p class="text-xs text-emerald-800">走過迷宮帶狗狗找到黃金骨頭</p>
+                    </div>
+                </button>
+
+                <!-- Game 6 -->
+                <button onclick="launchMiniGame(6)" class="bg-gradient-to-br from-rose-100 to-red-200 hover:from-rose-200 hover:to-red-300 p-4 rounded-2xl border-2 border-red-300 text-left shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+                    <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">🏃 🐕</div>
+                    <div>
+                        <h4 class="font-black text-rose-950 text-base">6. 汪汪酷跑障礙賽</h4>
+                        <p class="text-xs text-rose-800">跨越障礙奔跑跳躍收集骨頭</p>
+                    </div>
+                </button>
+
+                <!-- Game 7 -->
+                <button onclick="launchMiniGame(7)" class="bg-gradient-to-br from-indigo-100 to-violet-200 hover:from-indigo-200 hover:to-violet-300 p-4 rounded-2xl border-2 border-indigo-300 text-left shadow-sm hover:shadow-md transition-all flex flex-col justify-between sm:col-span-2 md:col-span-1 group">
+                    <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">🎵 🎹</div>
+                    <div>
+                        <h4 class="font-black text-indigo-950 text-base">7. 汪汪汪汪木琴</h4>
+                        <p class="text-xs text-indigo-800">自由敲擊出狗狗汪汪美妙音符</p>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GENERIC MINI GAME CONTAINER MODAL -->
+    <div id="mini-game-container-modal" class="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-3 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-amber-50 rounded-3xl p-4 md:p-6 max-w-lg w-full text-center shadow-2xl border-4 border-amber-400 flex flex-col items-center relative">
+            <button onclick="closeActiveMiniGame()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-amber-200 hover:bg-amber-300 text-amber-900 font-bold flex items-center justify-center text-lg z-10">
+                &times;
+            </button>
+            
+            <h3 id="mg-title" class="text-xl md:text-2xl font-black text-amber-900 mb-1 flex items-center gap-2">
+                <i class="fa-solid fa-gamepad text-amber-500"></i> 汪汪小遊戲
+            </h3>
+            <p id="mg-desc" class="text-xs md:text-sm text-amber-700 font-medium mb-3">使用鍵盤方向鍵或點擊來玩小遊戲！</p>
+            
+            <!-- Dynamic Mini Game Workspace Container -->
+            <div id="mg-workspace" class="relative w-full aspect-[4/3] bg-gradient-to-b from-sky-200 via-amber-100 to-emerald-200 rounded-2xl border-2 border-amber-300 overflow-hidden shadow-inner flex flex-col items-center justify-center">
+                <!-- Mini Game Canvas / Elements generated dynamically -->
+            </div>
+
+            <!-- Mini Game Stats -->
+            <div id="mg-stats-bar" class="w-full flex justify-between items-center mt-3 px-2">
+                <span class="text-xs font-bold text-amber-800">遊戲分數: <b id="mg-score" class="text-base text-orange-600">0</b></span>
+                <span class="text-xs font-bold text-amber-800">剩餘時間: <b id="mg-timer" class="text-base text-amber-900">20</b>s</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help / Explanation Modal -->
+    <div id="help-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl border-4 border-amber-300 max-h-[90vh] overflow-y-auto relative">
+            <div class="flex justify-between items-center mb-4 border-b border-amber-100 pb-3">
+                <h3 class="text-xl md:text-2xl font-black text-amber-800 flex items-center gap-2">
+                    <i class="fa-solid fa-book-open-reader text-amber-500"></i>
+                    📖 遊戲說明與玩法
+                </h3>
+                <button onclick="closeHelpModal()" class="w-8 h-8 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold flex items-center justify-center text-lg transition-all">
+                    &times;
+                </button>
+            </div>
+
+            <div class="space-y-4 text-slate-700 text-sm md:text-base leading-relaxed">
+                <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200">
+                    <h4 class="font-bold text-amber-900 text-base mb-1.5 flex items-center gap-1.5">
+                        <i class="fa-solid fa-lightbulb text-amber-500"></i> 什麼是「氣泡排序法」？
+                    </h4>
+                    <p class="text-slate-600 text-xs md:text-sm">
+                        就像<b>小狗依體型或數字排隊</b>一樣！我們每次只比較<b>兩隻相鄰的小狗</b>：
+                        如果左邊的數字比右邊大，大數字小狗就會像「氣泡冒泡」一樣往右交換，直到最大的數字到達最右邊！
+                    </p>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-slate-800 text-sm md:text-base mb-2 flex items-center gap-1.5">
+                        <i class="fa-solid fa-gamepad text-amber-500"></i> 三大學習模式：
+                    </h4>
+                    <ul class="space-y-2 text-xs md:text-sm">
+                        <li class="bg-amber-50/60 p-2.5 rounded-xl border border-amber-100 flex items-start gap-2">
+                            <span class="bg-amber-500 text-white font-bold text-xs px-2 py-0.5 rounded-md shrink-0 mt-0.5">🎓 引導練習</span>
+                            <span>系統會幫你發光標示兩隻相鄰小狗，由你決定要<b>「交換」</b>還是<b>「不交換」</b>！</span>
+                        </li>
+                        <li class="bg-purple-50/60 p-2.5 rounded-xl border border-purple-100 flex items-start gap-2">
+                            <span class="bg-purple-500 text-white font-bold text-xs px-2 py-0.5 rounded-md shrink-0 mt-0.5">🤖 自動演示</span>
+                            <span>觀看電腦自動為你演示氣泡排序的完整過程！</span>
+                        </li>
+                        <li class="bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100 flex items-start gap-2">
+                            <span class="bg-emerald-500 text-white font-bold text-xs px-2 py-0.5 rounded-md shrink-0 mt-0.5">🎮 自由挑戰</span>
+                            <span>直接點擊任意小狗進行交換，看你能不能用最快速度幫狗狗排好隊！</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <button onclick="closeHelpModal()" class="mt-6 w-full py-3.5 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-black text-base md:text-lg rounded-2xl shadow-lg active:scale-95 transition-all">
+                汪汪！我知道了，開始玩！ 🐶
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Theme Configurations
+        const THEME_CONFIG = {
+            puppy: {
+                bgClass: 'theme-puppy',
+                items: [
+                    { bg: 'from-amber-200 to-yellow-400', border: 'border-amber-500', text: 'text-amber-950', icon: '🐶', label: '柴柴' },
+                    { bg: 'from-orange-200 to-amber-400', border: 'border-orange-500', text: 'text-orange-950', icon: '🐕', label: '黃金' },
+                    { bg: 'from-amber-300 to-amber-500', border: 'border-amber-600', text: 'text-amber-950', icon: '🦮', label: '導盲犬' },
+                    { bg: 'from-yellow-200 to-orange-300', border: 'border-orange-400', text: 'text-amber-900', icon: '🐩', label: '貴賓' },
+                    { bg: 'from-orange-300 to-red-400', border: 'border-red-500', text: 'text-stone-900', icon: '🐾', label: '狗腳印' },
+                    { bg: 'from-amber-100 to-amber-300', border: 'border-amber-400', text: 'text-amber-900', icon: '🦴', label: '骨頭' },
+                    { bg: 'from-stone-200 to-stone-400', border: 'border-stone-500', text: 'text-stone-900', icon: '🐶', label: '小狗' },
+                    { bg: 'from-yellow-300 to-amber-500', border: 'border-amber-600', text: 'text-amber-950', icon: '🐕‍🦺', label: '工作犬' }
+                ]
+            },
+            ocean: {
+                bgClass: 'theme-ocean',
+                items: [
+                    { bg: 'from-pink-300 to-rose-400', border: 'border-pink-400', text: 'text-pink-900', icon: '🐱', label: '小貓' },
+                    { bg: 'from-amber-200 to-yellow-400', border: 'border-amber-400', text: 'text-amber-900', icon: '🐶', label: '狗狗' },
+                    { bg: 'from-emerald-200 to-teal-400', border: 'border-emerald-400', text: 'text-emerald-900', icon: '🐸', label: '青蛙' },
+                    { bg: 'from-sky-200 to-blue-400', border: 'border-sky-400', text: 'text-blue-900', icon: '🐬', label: '海豚' },
+                    { bg: 'from-purple-200 to-indigo-400', border: 'border-purple-400', text: 'text-purple-900', icon: '🐰', label: '兔子' },
+                    { bg: 'from-orange-200 to-amber-400', border: 'border-orange-400', text: 'text-orange-900', icon: '🦊', label: '狐狸' },
+                    { bg: 'from-cyan-200 to-teal-300', border: 'border-cyan-400', text: 'text-cyan-900', icon: '🐧', label: '企鵝' },
+                    { bg: 'from-red-200 to-rose-400', border: 'border-red-400', text: 'text-red-900', icon: '🐙', label: '章魚' }
+                ]
+            },
+            fruit: {
+                bgClass: 'theme-fruit',
+                items: [
+                    { bg: 'from-red-300 to-red-500', border: 'border-red-500', text: 'text-red-950', icon: '🍎', label: '蘋果' },
+                    { bg: 'from-yellow-200 to-amber-400', border: 'border-amber-400', text: 'text-amber-950', icon: '🍌', label: '香蕉' },
+                    { bg: 'from-emerald-300 to-green-500', border: 'border-green-500', text: 'text-green-950', icon: '🥝', label: '奇異果' },
+                    { bg: 'from-purple-300 to-indigo-500', border: 'border-purple-500', text: 'text-purple-950', icon: '🍇', label: '葡萄' },
+                    { bg: 'from-orange-300 to-orange-500', border: 'border-orange-500', text: 'text-orange-950', icon: '🍊', label: '橘子' },
+                    { bg: 'from-pink-300 to-rose-400', border: 'border-rose-400', text: 'text-rose-950', icon: '🍑', label: '水蜜桃' },
+                    { bg: 'from-emerald-200 to-teal-400', border: 'border-teal-400', text: 'text-teal-950', icon: '🍉', label: '西瓜' },
+                    { bg: 'from-yellow-300 to-lime-400', border: 'border-lime-400', text: 'text-lime-950', icon: '🍍', label: '鳳梨' }
+                ]
+            },
+            space: {
+                bgClass: 'theme-space',
+                items: [
+                    { bg: 'from-indigo-400 to-purple-600', border: 'border-purple-400', text: 'text-white', icon: '🚀', label: '火箭' },
+                    { bg: 'from-amber-300 to-yellow-500', border: 'border-amber-300', text: 'text-amber-950', icon: '⭐', label: '星星' },
+                    { bg: 'from-cyan-300 to-blue-600', border: 'border-cyan-300', text: 'text-white', icon: '🪐', label: '行星' },
+                    { bg: 'from-rose-400 to-pink-600', border: 'border-pink-300', text: 'text-white', icon: '🛸', label: '飛碟' },
+                    { bg: 'from-emerald-400 to-teal-600', border: 'border-emerald-300', text: 'text-white', icon: '👽', label: '外星人' },
+                    { bg: 'from-slate-400 to-slate-600', border: 'border-slate-300', text: 'text-white', icon: '☄️', label: '彗星' },
+                    { bg: 'from-violet-400 to-fuchsia-600', border: 'border-violet-300', text: 'text-white', icon: '🌌', label: '銀河' },
+                    { bg: 'from-sky-300 to-indigo-500', border: 'border-sky-300', text: 'text-white', icon: '🌙', label: '月亮' }
+                ]
+            }
+        };
+
+        // Game State Variables
+        let currentTheme = 'puppy';
+        let mode = 'guided'; // 'guided' | 'auto' | 'free'
+        let array = [];
+        let arraySize = 6;
+        let stars = 0;
+        let combo = 0;
+        let maxCombo = 0;
+        let passCount = 1;
+        let sortedCount = 0;
+        let currentI = 0;
+        let isSorted = false;
+
+        // Active Mini Game Loop Variables
+        let activeMiniGameId = 0;
+        let mgLoopReq = null;
+        let mgTimerInterval = null;
+        let audioCtx = null;
+
+        function playSound(type) {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                
+                const now = audioCtx.currentTime;
+
+                if (type === 'bark') {
+                    // Cute synthesized Puppy Bark (汪汪叫聲)
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(450, now);
+                    osc.frequency.exponentialRampToValueAtTime(250, now + 0.12);
+                    gain.gain.setValueAtTime(0.4, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.12);
+
+                    // Second tiny woof echo
+                    setTimeout(() => {
+                        if (!audioCtx) return;
+                        const t2 = audioCtx.currentTime;
+                        const osc2 = audioCtx.createOscillator();
+                        const g2 = audioCtx.createGain();
+                        osc2.type = 'sawtooth';
+                        osc2.frequency.setValueAtTime(520, t2);
+                        osc2.frequency.exponentialRampToValueAtTime(300, t2 + 0.09);
+                        g2.gain.setValueAtTime(0.3, t2);
+                        g2.gain.exponentialRampToValueAtTime(0.01, t2 + 0.09);
+                        osc2.connect(g2);
+                        g2.connect(audioCtx.destination);
+                        osc2.start(t2);
+                        osc2.stop(t2 + 0.09);
+                    }, 130);
+
+                } else if (type === 'pop') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(350, now);
+                    osc.frequency.exponentialRampToValueAtTime(850, now + 0.1);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+
+                } else if (type === 'swap') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(280, now);
+                    osc.frequency.linearRampToValueAtTime(650, now + 0.15);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+
+                } else if (type === 'correct') {
+                    [523.25, 659.25, 783.99].forEach((freq, idx) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+                        gain.gain.setValueAtTime(0.2, now + idx * 0.08);
+                        gain.gain.linearRampToValueAtTime(0.01, now + idx * 0.08 + 0.2);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now + idx * 0.08);
+                        osc.stop(now + idx * 0.08 + 0.2);
+                    });
+
+                } else if (type === 'wrong') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.setValueAtTime(170, now + 0.12);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+
+                } else if (type === 'jump') {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(200, now);
+                    osc.frequency.exponentialRampToValueAtTime(600, now + 0.18);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.18);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.18);
+
+                } else if (type === 'victory') {
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.12);
+                        gain.gain.setValueAtTime(0.3, now + idx * 0.12);
+                        gain.gain.linearRampToValueAtTime(0.01, now + idx * 0.12 + 0.35);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now + idx * 0.12);
+                        osc.stop(now + idx * 0.12 + 0.35);
+                    });
+                }
+            } catch(e){}
+        }
+
+        window.onload = function() {
+            resetGame();
+        };
+
+        function changeTheme(themeKey) {
+            playSound('pop');
+            currentTheme = themeKey;
+            const body = document.getElementById('game-body');
+            body.className = `${THEME_CONFIG[themeKey].bgClass} flex flex-col min-h-screen text-slate-800 pb-8`;
+            renderBubbles();
+        }
+
+        function resetGame() {
+            stopAutoPlay();
+            arraySize = parseInt(document.getElementById('array-size-select').value);
+            array = generateRandomArray(arraySize);
+            passCount = 1;
+            sortedCount = 0;
+            currentI = 0;
+            isSorted = false;
+            combo = 0;
+            updateComboUI();
+
+            document.getElementById('pass-count').innerText = `第 ${passCount} 輪`;
+            updateProgressBar();
+            renderBubbles();
+            updatePrompt();
+        }
+
+        function generateRandomArray(size) {
+            let arr = [];
+            while (arr.length < size) {
+                let num = Math.floor(Math.random() * 30) + 1;
+                if (!arr.includes(num)) arr.push(num);
+            }
+            return arr;
+        }
+
+        function switchGameMode(selectedMode) {
+            playSound('pop');
+            stopAutoPlay();
+            mode = selectedMode;
+            
+            const guidedBtn = document.getElementById('mode-guided');
+            const autoBtn = document.getElementById('mode-auto');
+            const freeBtn = document.getElementById('mode-free');
+
+            const guidedCtrls = document.getElementById('guided-controls');
+            const autoCtrls = document.getElementById('auto-controls');
+            const freeCtrls = document.getElementById('free-controls');
+
+            const activeClass = "px-3 py-1.5 rounded-xl text-xs md:text-sm font-bold transition-all bg-white text-amber-700 shadow-sm";
+            const inactiveClass = "px-3 py-1.5 rounded-xl text-xs md:text-sm font-bold transition-all text-slate-600 hover:text-amber-700";
+
+            guidedBtn.className = mode === 'guided' ? activeClass : inactiveClass;
+            autoBtn.className = mode === 'auto' ? activeClass : inactiveClass;
+            freeBtn.className = mode === 'free' ? activeClass : inactiveClass;
+
+            guidedCtrls.classList.toggle('hidden', mode !== 'guided');
+            autoCtrls.classList.toggle('hidden', mode !== 'auto');
+            freeCtrls.classList.toggle('hidden', mode !== 'free');
+
+            resetGame();
+        }
+
+        function renderBubbles() {
+            const container = document.getElementById('comparison-pointer-container');
+            container.innerHTML = '';
+
+            const themeItems = THEME_CONFIG[currentTheme].items;
+            const maxPassIndex = array.length - 1 - sortedCount;
+
+            array.forEach((val, idx) => {
+                const itemTheme = themeItems[(val - 1) % themeItems.length];
+                const bubbleEl = document.createElement('div');
+                
+                let isComparing = ((mode === 'guided' || mode === 'auto') && (idx === currentI || idx === currentI + 1) && !isSorted);
+                let isFixed = (idx > maxPassIndex);
+
+                let classNames = `bubble-card bubble-float flex flex-col items-center justify-center w-16 h-20 md:w-20 md:h-24 rounded-2xl border-4 shadow-lg cursor-pointer font-black relative transition-all duration-300 `;
+                
+                if (isFixed) {
+                    classNames += `sorted-bubble `;
+                } else if (isComparing) {
+                    classNames += `bg-gradient-to-br ${itemTheme.bg} ${itemTheme.border} ${itemTheme.text} comparing-highlight `;
+                } else {
+                    classNames += `bg-gradient-to-br ${itemTheme.bg} ${itemTheme.border} ${itemTheme.text} hover:scale-105 `;
+                }
+
+                bubbleEl.className = classNames;
+                bubbleEl.onclick = () => onBubbleClick(idx);
+
+                bubbleEl.innerHTML = `
+                    <span class="text-2xl md:text-3xl leading-none select-none mb-1">${itemTheme.icon}</span>
+                    <span class="text-lg md:text-2xl font-black leading-none select-none">${val}</span>
+                `;
+
+                if (isComparing) {
+                    const label = document.createElement('span');
+                    label.className = "absolute -top-7 text-xs bg-amber-400 text-amber-950 px-2 py-0.5 rounded-full font-black shadow-sm animate-pulse whitespace-nowrap";
+                    label.innerText = idx === currentI ? "i (左)" : "i+1 (右)";
+                    bubbleEl.appendChild(label);
+                }
+
+                container.appendChild(bubbleEl);
+            });
+        }
+
+        function handleUserChoice(userWantsSwap) {
+            if (isSorted) return;
+
+            const leftVal = array[currentI];
+            const rightVal = array[currentI + 1];
+            const shouldSwap = leftVal > rightVal;
+
+            if (userWantsSwap === shouldSwap) {
+                playSound('correct');
+                addStars(1);
+                combo++;
+                if (combo > maxCombo) maxCombo = combo;
+                updateComboUI();
+
+                if (shouldSwap) {
+                    swapElements(currentI, currentI + 1);
+                    playSound('swap');
+                    showFeedback(true, `答對了！${leftVal}號小狗比 ${rightVal}號大，成功交換位置！`);
+                } else {
+                    showFeedback(true, `答對了！${leftVal}號小狗小於等於 ${rightVal}號，保持原樣不需交換！`);
+                }
+
+                advanceStep();
+            } else {
+                playSound('wrong');
+                combo = 0;
+                updateComboUI();
+                if (shouldSwap) {
+                    showFeedback(false, `再想想看：${leftVal}號 比 ${rightVal}號 大，應該要「交換」才能讓大數字小狗往後站喔！`);
+                } else {
+                    showFeedback(false, `再想想看：${leftVal}號 已經比 ${rightVal}號 小了，所以「不需要交換」喔！`);
+                }
+            }
+        }
+
+        // Auto Play Logic
+        let autoTimer = null;
+        let isAutoPlaying = false;
+        let autoSpeed = 700;
+
+        function toggleAutoPlay() {
+            playSound('pop');
+            if (isAutoPlaying) stopAutoPlay();
+            else startAutoPlay();
+        }
+
+        function startAutoPlay() {
+            if (isSorted) resetGame();
+            isAutoPlaying = true;
+            const btn = document.getElementById('auto-play-btn');
+            btn.innerHTML = `<i class="fa-solid fa-pause"></i> <span>暫停演示</span>`;
+            
+            autoTimer = setInterval(() => { stepAutoPlay(); }, autoSpeed);
+        }
+
+        function stopAutoPlay() {
+            isAutoPlaying = false;
+            if (autoTimer) clearInterval(autoTimer);
+            const btn = document.getElementById('auto-play-btn');
+            if (btn) btn.innerHTML = `<i class="fa-solid fa-play"></i> <span>開始自動演示</span>`;
+        }
+
+        function setAutoSpeed(ms) {
+            playSound('pop');
+            autoSpeed = ms;
+            if (isAutoPlaying) {
+                stopAutoPlay();
+                startAutoPlay();
+            }
+        }
+
+        function stepAutoPlay() {
+            if (isSorted) { stopAutoPlay(); return; }
+            const leftVal = array[currentI];
+            const rightVal = array[currentI + 1];
+            if (leftVal > rightVal) {
+                swapElements(currentI, currentI + 1);
+                playSound('swap');
+            } else {
+                playSound('pop');
+            }
+            advanceStep();
+        }
+
+        function onBubbleClick(idx) {
+            playSound('bark'); // Play puppy bark on click
+            if (mode !== 'free' || isSorted) return;
+
+            if (idx < array.length - 1) {
+                swapElements(idx, idx + 1);
+                playSound('swap');
+                renderBubbles();
+                checkIfFullySorted();
+            }
+        }
+
+        function swapElements(i, j) {
+            const temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+        }
+
+        function advanceStep() {
+            currentI++;
+            if (currentI >= array.length - 1 - sortedCount) {
+                sortedCount++;
+                currentI = 0;
+                passCount++;
+                document.getElementById('pass-count').innerText = `第 ${passCount} 輪`;
+            }
+
+            updateProgressBar();
+            checkIfFullySorted();
+
+            if (!isSorted) {
+                renderBubbles();
+                updatePrompt();
+            }
+        }
+
+        function checkIfFullySorted() {
+            let sorted = true;
+            for (let i = 0; i < array.length - 1; i++) {
+                if (array[i] > array[i + 1]) {
+                    sorted = false;
+                    break;
+                }
+            }
+
+            if (sorted) {
+                isSorted = true;
+                stopAutoPlay();
+                document.getElementById('sorting-progress-bar').style.width = '100%';
+                document.getElementById('progress-text').innerText = '排隊完成度: 100%';
+                renderBubbles();
+                triggerWin();
+            }
+        }
+
+        function updateProgressBar() {
+            if (isSorted) return;
+            const totalStepsPossible = (arraySize * (arraySize - 1)) / 2;
+            let currentStepProgress = 0;
+            for (let k = 0; k < sortedCount; k++) {
+                currentStepProgress += (arraySize - 1 - k);
+            }
+            currentStepProgress += currentI;
+
+            const percentage = Math.min(100, Math.round((currentStepProgress / totalStepsPossible) * 100));
+            document.getElementById('sorting-progress-bar').style.width = `${percentage}%`;
+            document.getElementById('progress-text').innerText = `排隊完成度: ${percentage}%`;
+        }
+
+        function updatePrompt() {
+            const promptTitle = document.getElementById('prompt-title');
+            const promptDesc = document.getElementById('prompt-desc');
+            const algoCodeText = document.getElementById('algo-code-text');
+
+            if (mode === 'guided' || mode === 'auto') {
+                const left = array[currentI];
+                const right = array[currentI + 1];
+                promptTitle.innerHTML = `<i class="fa-solid fa-dog text-amber-500"></i> 請比較 <span class="text-amber-700 font-black">${left}號</span> 與 <span class="text-orange-600 font-black">${right}號</span> 小狗`;
+                promptDesc.innerText = `請問這兩隻小狗，需要交換位置嗎？`;
+                algoCodeText.innerText = `Pass ${passCount}: Array[${currentI}] (${left}) vs Array[${currentI + 1}] (${right})`;
+            } else {
+                promptTitle.innerHTML = `<i class="fa-solid fa-hand-pointer text-amber-500"></i> 自由挑戰模式`;
+                promptDesc.innerText = `點擊任何小狗，牠會與右邊的小狗交換位置。`;
+                algoCodeText.innerText = `Free Play Mode: Click adjacent puppies to swap`;
+            }
+        }
+
+        function updateComboUI() {
+            document.getElementById('combo-count').innerText = `${combo} 連擊`;
+        }
+
+        function addStars(num) {
+            stars += num;
+            document.getElementById('star-count').innerText = stars;
+        }
+
+        function showFeedback(isCorrect, message) {
+            if (mode === 'auto') return;
+            const modal = document.getElementById('feedback-modal');
+            const card = document.getElementById('feedback-card');
+            const icon = document.getElementById('feedback-icon');
+            const title = document.getElementById('feedback-title');
+            const msg = document.getElementById('feedback-msg');
+
+            if (isCorrect) {
+                icon.className = "w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl mb-3 bg-emerald-100 text-emerald-500";
+                icon.innerHTML = `<i class="fa-solid fa-dog"></i>`;
+                title.innerText = "答對了！好棒喔！";
+                title.className = "text-2xl font-black text-emerald-600 mb-2";
+            } else {
+                icon.className = "w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl mb-3 bg-rose-100 text-rose-500";
+                icon.innerHTML = `<i class="fa-solid fa-bone"></i>`;
+                title.innerText = "差一點點喔！";
+                title.className = "text-2xl font-black text-rose-600 mb-2";
+            }
+
+            msg.innerText = message;
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            card.classList.remove('scale-90');
+            card.classList.add('scale-100');
+        }
+
+        function closeFeedbackModal() {
+            playSound('pop');
+            const modal = document.getElementById('feedback-modal');
+            const card = document.getElementById('feedback-card');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            card.classList.remove('scale-100');
+            card.classList.add('scale-90');
+        }
+
+        function triggerWin() {
+            playSound('victory');
+            addStars(5);
+            document.getElementById('win-max-combo').innerText = `${maxCombo} 連擊`;
+            document.getElementById('win-stars').innerText = stars;
+
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+            }
+
+            setTimeout(() => {
+                const modal = document.getElementById('win-modal');
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+            }, 500);
+        }
+
+        function closeWinModal() {
+            playSound('pop');
+            document.getElementById('win-modal').classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        function openHelpModal() {
+            playSound('pop');
+            document.getElementById('help-modal').classList.remove('opacity-0', 'pointer-events-none');
+        }
+
+        function closeHelpModal() {
+            playSound('pop');
+            document.getElementById('help-modal').classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        function openArcadeHub() {
+            playSound('pop');
+            document.getElementById('arcade-hub-modal').classList.remove('opacity-0', 'pointer-events-none');
+        }
+
+        function closeArcadeHub() {
+            playSound('pop');
+            document.getElementById('arcade-hub-modal').classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        function launchMiniGame(gameId) {
+            playSound('pop');
+            closeArcadeHub();
+            activeMiniGameId = gameId;
+            const container = document.getElementById('mini-game-container-modal');
+            const title = document.getElementById('mg-title');
+            const desc = document.getElementById('mg-desc');
+            const workspace = document.getElementById('mg-workspace');
+
+            workspace.innerHTML = ''; // Reset active workspace
+            container.classList.remove('opacity-0', 'pointer-events-none');
+
+            if (gameId === 1) {
+                title.innerHTML = `🦴 1. 汪汪接骨頭`;
+                desc.innerText = `滑鼠拖曳或按鍵盤 ⬅️ ➡️ 控制狗狗接住骨頭！`;
+                setupGame1(workspace);
+            } else if (gameId === 2) {
+                title.innerHTML = `🐾 2. 汪汪打地鼠`;
+                desc.innerText = `快速點擊冒出來的小狗獲得分數！`;
+                setupGame2(workspace);
+            } else if (gameId === 3) {
+                title.innerHTML = `🎾 3. 飛盤彈珠台`;
+                desc.innerText = `移動底部擋板反彈飛盤！`;
+                setupGame3(workspace);
+            } else if (gameId === 4) {
+                title.innerHTML = `🧠 4. 汪汪記憶翻牌`;
+                desc.innerText = `點擊卡片，翻出兩張一樣的小狗來消除！`;
+                setupGame4(workspace);
+            } else if (gameId === 5) {
+                title.innerHTML = `🐕‍🦺 5. 汪汪迷宮尋寶`;
+                desc.innerText = `按鍵盤方向鍵或按鈕引導狗狗走到 🦴 骨頭位置！`;
+                setupGame5(workspace);
+            } else if (gameId === 6) {
+                title.innerHTML = `🏃 6. 汪汪酷跑障礙賽`;
+                desc.innerText = `按 [空白鍵] 或 [跳躍] 讓狗狗跨越障礙物！`;
+                setupGame6(workspace);
+            } else if (gameId === 7) {
+                title.innerHTML = `🎵 7. 汪汪汪汪木琴`;
+                desc.innerText = `點擊琴鍵，彈奏出清亮狗狗音樂！`;
+                setupGame7(workspace);
+            }
+        }
+
+        function closeActiveMiniGame() {
+            playSound('pop');
+            if (mgLoopReq) cancelAnimationFrame(mgLoopReq);
+            if (mgTimerInterval) clearInterval(mgTimerInterval);
+            document.getElementById('mini-game-container-modal').classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        /* ---------------- GAME 1: 接骨頭 ---------------- */
+        function setupGame1(ws) {
+            ws.innerHTML = `<canvas id="mgCanvas" class="w-full h-full block cursor-pointer"></canvas>`;
+            const cvs = document.getElementById('mgCanvas');
+            const ctx = cvs.getContext('2d');
+            cvs.width = 360; cvs.height = 270;
+
+            let dogX = 150, score = 0, timeLeft = 20, items = [];
+            document.getElementById('mg-score').innerText = score;
+            document.getElementById('mg-timer').innerText = timeLeft;
+
+            cvs.onmousemove = (e) => {
+                const rect = cvs.getBoundingClientRect();
+                dogX = (e.clientX - rect.left) - 25;
+            };
+
+            mgTimerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('mg-timer').innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    closeActiveMiniGame();
+                    addStars(Math.floor(score / 10));
+                    playSound('victory');
+                    alert(`🎉 遊戲結束！您獲得 ${score} 分，額外賺到 ${Math.floor(score/10)} 根骨頭！`);
+                }
+            }, 1000);
+
+            function loop() {
+                ctx.clearRect(0, 0, cvs.width, cvs.height);
+                ctx.font = "32px sans-serif";
+                ctx.fillText("🐶", Math.max(0, Math.min(310, dogX)), 250);
+
+                if (Math.random() < 0.06) {
+                    items.push({ x: Math.random() * 320, y: 0, icon: Math.random() < 0.8 ? '🦴' : '💣', pts: Math.random() < 0.8 ? 10 : -10 });
+                }
+
+                for (let i = items.length - 1; i >= 0; i--) {
+                    let it = items[i];
+                    it.y += 3;
+                    ctx.fillText(it.icon, it.x, it.y);
+
+                    if (it.y > 220 && Math.abs(it.x - dogX) < 35) {
+                        score += it.pts;
+                        if (score < 0) score = 0;
+                        document.getElementById('mg-score').innerText = score;
+                        playSound(it.pts > 0 ? 'bark' : 'wrong');
+                        items.splice(i, 1);
+                    }
+                }
+                mgLoopReq = requestAnimationFrame(loop);
+            }
+            loop();
+        }
+
+        /* ---------------- GAME 2: 打地鼠 ---------------- */
+        function setupGame2(ws) {
+            ws.className += " grid grid-cols-3 gap-3 p-4";
+            let score = 0, timeLeft = 15;
+            document.getElementById('mg-score').innerText = score;
+            document.getElementById('mg-timer').innerText = timeLeft;
+
+            let holes = [];
+            for (let i = 0; i < 6; i++) {
+                let btn = document.createElement('button');
+                btn.className = "mole-hole rounded-2xl flex items-center justify-center text-4xl select-none transition-transform active:scale-95";
+                btn.innerText = "🕳️";
+                btn.onclick = () => {
+                    if (btn.innerText === "🐶") {
+                        score += 10;
+                        document.getElementById('mg-score').innerText = score;
+                        playSound('bark');
+                        btn.innerText = "💥";
+                        setTimeout(() => btn.innerText = "🕳️", 300);
+                    }
+                };
+                ws.appendChild(btn);
+                holes.push(btn);
+            }
+
+            let moleTimer = setInterval(() => {
+                let randHole = holes[Math.floor(Math.random() * holes.length)];
+                if (randHole.innerText === "🕳️") {
+                    randHole.innerText = "🐶";
+                    setTimeout(() => { if (randHole.innerText === "🐶") randHole.innerText = "🕳️"; }, 800);
+                }
+            }, 600);
+
+            mgTimerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('mg-timer').innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(moleTimer);
+                    closeActiveMiniGame();
+                    addStars(Math.floor(score / 10));
+                    playSound('victory');
+                    alert(`🎉 打地鼠結束！總分：${score} 分！`);
+                }
+            }, 1000);
+        }
+
+        /* ---------------- GAME 3: 彈珠台 ---------------- */
+        function setupGame3(ws) {
+            ws.innerHTML = `<canvas id="mgCanvas" class="w-full h-full block cursor-pointer"></canvas>`;
+            const cvs = document.getElementById('mgCanvas');
+            const ctx = cvs.getContext('2d');
+            cvs.width = 360; cvs.height = 270;
+
+            let padX = 140, ballX = 180, ballY = 100, dx = 3, dy = -3, score = 0;
+            document.getElementById('mg-score').innerText = score;
+
+            cvs.onmousemove = (e) => {
+                const rect = cvs.getBoundingClientRect();
+                padX = e.clientX - rect.left - 40;
+            };
+
+            function loop() {
+                ctx.clearRect(0, 0, cvs.width, cvs.height);
+                
+                // Paddle
+                ctx.fillStyle = "#f59e0b";
+                ctx.fillRect(Math.max(0, Math.min(280, padX)), 250, 80, 12);
+
+                // Ball
+                ctx.font = "20px sans-serif";
+                ctx.fillText("🎾", ballX, ballY);
+
+                ballX += dx; ballY += dy;
+                if (ballX < 0 || ballX > 340) { dx = -dx; playSound('pop'); }
+                if (ballY < 20) { dy = -dy; playSound('pop'); }
+
+                if (ballY > 230 && ballX > padX && ballX < padX + 80) {
+                    dy = -dy;
+                    score += 10;
+                    document.getElementById('mg-score').innerText = score;
+                    playSound('bark');
+                }
+
+                if (ballY > 270) {
+                    playSound('wrong');
+                    closeActiveMiniGame();
+                    alert(`🎾 飛盤掉落！遊戲結束，得分：${score}！`);
+                    return;
+                }
+
+                mgLoopReq = requestAnimationFrame(loop);
+            }
+            loop();
+        }
+
+        /* ---------------- GAME 4: 記憶翻牌 ---------------- */
+        function setupGame4(ws) {
+            ws.className += " grid grid-cols-4 gap-2 p-3";
+            const icons = ['🐶', '🐶', '🐕', '🐕', '🐩', '🐩', '🦴', '🦴'];
+            icons.sort(() => Math.random() - 0.5);
+
+            let flipped = [], score = 0;
+            document.getElementById('mg-score').innerText = score;
+
+            icons.forEach((ic, i) => {
+                let card = document.createElement('button');
+                card.className = "bg-amber-300 hover:bg-amber-400 font-black text-2xl rounded-xl flex items-center justify-center border-2 border-amber-500 shadow";
+                card.innerText = "❓";
+                card.onclick = () => {
+                    if (card.innerText !== "❓" || flipped.length >= 2) return;
+                    card.innerText = ic;
+                    playSound('pop');
+                    flipped.push({ card, ic });
+
+                    if (flipped.length === 2) {
+                        if (flipped[0].ic === flipped[1].ic) {
+                            score += 20;
+                            document.getElementById('mg-score').innerText = score;
+                            playSound('bark');
+                            flipped = [];
+                            if (score >= 80) {
+                                playSound('victory');
+                                setTimeout(() => { closeActiveMiniGame(); alert("🎉 恭喜完成記憶翻牌測驗！"); }, 500);
+                            }
+                        } else {
+                            playSound('wrong');
+                            setTimeout(() => {
+                                flipped[0].card.innerText = "❓";
+                                flipped[1].card.innerText = "❓";
+                                flipped = [];
+                            }, 700);
+                        }
+                    }
+                };
+                ws.appendChild(card);
+            });
+        }
+
+        /* ---------------- GAME 5: 迷宮尋寶 ---------------- */
+        function setupGame5(ws) {
+            ws.innerHTML = `<div class="relative w-64 h-64 bg-amber-100 border-4 border-amber-400 rounded-2xl grid grid-cols-4 grid-rows-4 p-1 gap-1">
+                <div id="mz-dog" class="text-3xl flex items-center justify-center">🐶</div>
+                <div class="bg-amber-800 rounded"></div><div></div><div class="bg-amber-800 rounded"></div>
+                <div></div><div class="bg-amber-800 rounded"></div><div></div><div></div>
+                <div class="bg-amber-800 rounded"></div><div></div><div class="bg-amber-800 rounded"></div><div></div>
+                <div></div><div></div><div></div><div class="text-3xl flex items-center justify-center">🦴</div>
+            </div>
+            <div class="flex gap-2 mt-2">
+                <button onclick="moveMaze('up')" class="px-3 py-1 bg-amber-300 font-bold rounded-lg">⬆️</button>
+                <button onclick="moveMaze('down')" class="px-3 py-1 bg-amber-300 font-bold rounded-lg">⬇️</button>
+                <button onclick="moveMaze('left')" class="px-3 py-1 bg-amber-300 font-bold rounded-lg">⬅️</button>
+                <button onclick="moveMaze('right')" class="px-3 py-1 bg-amber-300 font-bold rounded-lg">➡️</button>
+            </div>`;
+
+            let px = 0, py = 0;
+            window.moveMaze = function(dir) {
+                if (dir === 'right') px = Math.min(3, px + 1);
+                if (dir === 'left') px = Math.max(0, px - 1);
+                if (dir === 'down') py = Math.min(3, py + 1);
+                if (dir === 'up') py = Math.max(0, py - 1);
+
+                playSound('pop');
+                if (px === 3 && py === 3) {
+                    addStars(5);
+                    playSound('victory');
+                    closeActiveMiniGame();
+                    alert("🎉 狗狗順利走出迷宮找到骨頭囉！獲得 5 根骨頭！");
+                }
+            };
+        }
+
+        /* ---------------- GAME 6: 障礙賽 ---------------- */
+        function setupGame6(ws) {
+            ws.innerHTML = `<canvas id="mgCanvas" class="w-full h-full block cursor-pointer"></canvas>`;
+            const cvs = document.getElementById('mgCanvas');
+            const ctx = cvs.getContext('2d');
+            cvs.width = 360; cvs.height = 270;
+
+            let dogY = 200, vy = 0, score = 0, obsX = 360;
+            document.getElementById('mg-score').innerText = score;
+
+            ws.onclick = () => { if (dogY >= 200) { vy = -11; playSound('jump'); } };
+
+            function loop() {
+                ctx.clearRect(0, 0, cvs.width, cvs.height);
+
+                // Gravity
+                dogY += vy; vy += 0.6;
+                if (dogY > 200) { dogY = 200; vy = 0; }
+
+                ctx.font = "32px sans-serif";
+                ctx.fillText("🐕", 40, dogY);
+
+                // Obstacle
+                obsX -= 4;
+                if (obsX < -30) { obsX = 360; score += 10; document.getElementById('mg-score').innerText = score; playSound('bark'); }
+                ctx.fillText("🪨", obsX, 205);
+
+                // Collision
+                if (obsX < 60 && obsX > 20 && dogY > 170) {
+                    playSound('wrong');
+                    closeActiveMiniGame();
+                    alert(`💥 撞到石頭囉！總分：${score} 分！`);
+                    return;
+                }
+
+                mgLoopReq = requestAnimationFrame(loop);
+            }
+            loop();
+        }
+
+        /* ---------------- GAME 7: 木琴 ---------------- */
+        function setupGame7(ws) {
+            ws.className += " flex items-center justify-center p-3 gap-1.5";
+            const freqs = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
+            const colors = ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-green-400', 'bg-teal-400', 'bg-blue-400', 'bg-indigo-400', 'bg-purple-400'];
+
+            freqs.forEach((f, i) => {
+                let bar = document.createElement('button');
+                bar.className = `${colors[i]} hover:brightness-110 text-white font-black rounded-2xl h-48 w-9 flex items-end justify-center pb-3 shadow-lg transform active:scale-95 border-b-4 border-black/20`;
+                bar.innerText = i + 1;
+                bar.onclick = () => {
+                    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    osc.connect(g); g.connect(audioCtx.destination);
+                    osc.frequency.value = f;
+                    g.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    g.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+                };
+                ws.appendChild(bar);
+            });
+        }
+    </script>
+</body>
+</html>
