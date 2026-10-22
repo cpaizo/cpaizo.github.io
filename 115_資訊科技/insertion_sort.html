@@ -63,6 +63,65 @@
       margin-top: 5px;
     }
 
+    /* 學生資訊輸入區 */
+    .student-info-box {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+      background: #FAF5FF;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #E9D5FF;
+      flex-wrap: wrap;
+    }
+
+    .student-info-box input {
+      padding: 8px 12px;
+      border: 2px solid #D8B4FE;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      width: 110px;
+      transition: border-color 0.2s;
+    }
+
+    .student-info-box input:focus {
+      border-color: var(--primary-dark);
+    }
+
+    /* 進度條樣式 */
+    .progress-container {
+      width: 100%;
+      background-color: #E9D5FF;
+      border-radius: 10px;
+      overflow: hidden;
+      height: 22px;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+      position: relative;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #9b59b6, #2ecc71);
+      transition: width 0.4s ease;
+    }
+
+    .progress-text {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      color: #4C1D95;
+    }
+
     .level-select {
       display: flex;
       gap: 8px;
@@ -106,29 +165,6 @@
       padding: 5px 12px;
       border-radius: 8px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-
-    /* 老師對話框 */
-    .teacher-dialog {
-      display: flex;
-      align-items: center;
-      background: #FDF4FF;
-      border: 2px solid #F0ABFC;
-      border-radius: 15px;
-      padding: 12px 15px;
-      gap: 12px;
-    }
-
-    .teacher-avatar {
-      font-size: 36px;
-      line-height: 1;
-    }
-
-    .teacher-text {
-      font-size: 15px;
-      font-weight: 600;
-      color: #86198F;
-      line-height: 1.4;
     }
 
     /* 牌桌區域 */
@@ -195,14 +231,6 @@
       box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
     }
 
-    .card-idx {
-      position: absolute;
-      bottom: 4px;
-      font-size: 10px;
-      opacity: 0.8;
-      font-weight: normal;
-    }
-
     /* 插入點按鈕 */
     .insert-slot {
       width: 30px;
@@ -225,14 +253,6 @@
       transform: scale(1.1);
     }
 
-    /* 控制按鈕區 */
-    .controls {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
     .btn {
       padding: 10px 20px;
       font-size: 15px;
@@ -248,9 +268,6 @@
 
     .btn-primary { background: var(--primary-dark); color: white; }
     .btn-primary:hover { background: #7E22CE; }
-
-    .btn-secondary { background: var(--secondary); color: white; }
-    .btn-secondary:hover { background: #D97706; }
 
     .btn-outline { background: #E5E7EB; color: #4B5563; }
     .btn-outline:hover { background: #D1D5DB; }
@@ -293,6 +310,16 @@
       animation: popIn 0.3s ease-out;
     }
 
+    .result-user-info {
+      background: #F3E8FF;
+      padding: 10px;
+      border-radius: 10px;
+      margin: 10px 0;
+      font-weight: bold;
+      font-size: 16px;
+      color: #5B21B6;
+    }
+
     @keyframes popIn {
       0% { transform: scale(0.7); opacity: 0; }
       100% { transform: scale(1); opacity: 1; }
@@ -301,6 +328,11 @@
     .stars {
       font-size: 40px;
       margin: 10px 0;
+    }
+
+    @media (max-width: 600px) {
+      .card { width: 55px; height: 85px; font-size: 22px; }
+      .student-info-box input { width: 80px; }
     }
   </style>
 </head>
@@ -311,6 +343,19 @@
     <h1>🃏 插入排序法：撲克牌理牌大師</h1>
     <div class="subtitle">每次從牌堆抽一張牌，把它「插」進手上已經排好隊伍的正確縫隙裡！</div>
   </header>
+
+  <!-- 學生資訊輸入區 -->
+  <div class="student-info-box">
+    <input type="text" id="input-class" placeholder="班級" />
+    <input type="text" id="input-seat" placeholder="座號" />
+    <input type="text" id="input-name" placeholder="姓名" />
+  </div>
+
+  <!-- 進度條區塊 -->
+  <div class="progress-container">
+    <div class="progress-bar" id="progress-bar"></div>
+    <div class="progress-text" id="progress-text">進度：0%</div>
+  </div>
 
   <div class="level-select">
     <button class="level-btn active" onclick="loadLevel(0)">第 1 關 (3張)</button>
@@ -325,13 +370,6 @@
       <div class="stat-box">🔄 插入次數: <span id="swap-count">0</span> 次</div>
     </div>
     <button class="btn btn-outline" style="padding:4px 10px; font-size:12px;" onclick="resetCurrentLevel()">↻ 重來</button>
-  </div>
-
-  <div class="teacher-dialog">
-    <div class="teacher-avatar">🧙‍♂️</div>
-    <div class="teacher-text" id="teacher-hint">
-      準備好了嗎？請把牌堆第一張牌拿起，插入到手牌的正確位置！
-    </div>
   </div>
 
   <div class="board-container">
@@ -357,11 +395,14 @@
 <!-- 通關彈窗 -->
 <div class="modal" id="win-modal">
   <div class="modal-content">
-    <h2>🎉 理牌大師挑戰成功！</h2>
+    <h2 id="modal-title">🎉 理牌大師挑戰成功！</h2>
     <div class="stars" id="star-rating">⭐⭐⭐</div>
+    <div class="result-user-info" id="final-student-info">
+      進度條 25% | 未填寫 學生資訊
+    </div>
     <p>你完全掌握了<b>插入排序法（抽牌與插入）</b>的精髓！</p>
     <p>總花費時間：<span id="final-time">00:00</span><br>總插入次數：<span id="final-swaps">0</span> 次</p>
-    <button class="btn btn-primary" style="margin: 0 auto;" onclick="nextLevel()">挑戰下一關 ➔</button>
+    <button class="btn btn-primary" id="next-level-btn" style="margin: 0 auto;" onclick="nextLevel()">挑戰下一關 ➔</button>
   </div>
 </div>
 
@@ -376,8 +417,11 @@
   let currentLevelIdx = 0;
   let sortedHand = [];
   let unsortedDeck = [];
-  let activeCard = null; // 當前拿在手上的牌
+  let activeCard = null; 
   let opCount = 0;
+
+  // 記錄已完成通關的最高關卡數（0 ~ 4）
+  let completedLevelsCount = 0;
 
   let timerInterval = null;
   let secondsElapsed = 0;
@@ -412,6 +456,16 @@
     document.getElementById('timer').innerText = `${mins}:${secs}`;
   }
 
+  function updateProgressBar() {
+    // 每過一關佔 25%，最高 100%
+    const percentage = completedLevelsCount * 25;
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    
+    progressBar.style.width = `${percentage}%`;
+    progressText.innerText = `進度：${percentage}%`;
+  }
+
   function loadLevel(idx) {
     currentLevelIdx = idx;
     document.querySelectorAll('.level-btn').forEach((btn, i) => {
@@ -422,7 +476,6 @@
 
   function resetCurrentLevel() {
     const level = levels[currentLevelIdx];
-    // 插入排序初始：手牌先拿第一張，其餘在牌堆
     sortedHand = [level.numbers[0]];
     unsortedDeck = level.numbers.slice(1);
     activeCard = null;
@@ -431,19 +484,7 @@
     document.getElementById('win-modal').style.display = 'none';
 
     startTimer();
-    updateHint();
     renderBoard();
-  }
-
-  function updateHint() {
-    const hintEl = document.getElementById('teacher-hint');
-    if (activeCard !== null) {
-      hintEl.innerHTML = `👉 你手中正拿著數字 <b>【 ${activeCard} 】</b>！請點擊上方手牌之間的 <b>【+】</b> 縫隙把它插入進去。`;
-    } else if (unsortedDeck.length > 0) {
-      hintEl.innerHTML = `👉 牌堆還剩 ${unsortedDeck.length} 張牌。請點擊牌堆最左邊的那張牌把它拿起來！`;
-    } else {
-      hintEl.innerHTML = `🎉 太棒了！所有牌都已經完美插入並排好囉！`;
-    }
   }
 
   function renderBoard() {
@@ -452,9 +493,7 @@
     sortedArea.innerHTML = '';
     unsortedArea.innerHTML = '';
 
-    // 渲染手牌與插入縫隙
     sortedHand.forEach((val, idx) => {
-      // 縫隙 (左側)
       if (activeCard !== null) {
         const slot = document.createElement('div');
         slot.className = 'insert-slot';
@@ -472,7 +511,6 @@
       sortedArea.appendChild(card);
     });
 
-    // 最後一個縫隙 (右側)
     if (activeCard !== null) {
       const slot = document.createElement('div');
       slot.className = 'insert-slot';
@@ -481,7 +519,6 @@
       sortedArea.appendChild(slot);
     }
 
-    // 渲染牌堆
     unsortedDeck.forEach((val, idx) => {
       const card = document.createElement('div');
       card.className = 'card';
@@ -493,7 +530,6 @@
         <div>${val}</div>
       `;
       
-      // 只有牌堆第一張可以點擊抽取
       if (activeCard === null && idx === 0) {
         card.onclick = () => pickCard();
       }
@@ -509,26 +545,22 @@
     if (activeCard !== null) return;
     activeCard = unsortedDeck.shift();
     playSound(600, 0.1);
-    updateHint();
     renderBoard();
   }
 
   function insertCardAt(index) {
     if (activeCard === null) return;
 
-    // 插入到指定位置
     sortedHand.splice(index, 0, activeCard);
     activeCard = null;
     opCount++;
     document.getElementById('swap-count').innerText = opCount;
     playSound(800, 0.15);
 
-    updateHint();
     renderBoard();
   }
 
   function checkWin() {
-    // 檢查是否完全由小到大排好
     let isSorted = true;
     for (let i = 0; i < sortedHand.length - 1; i++) {
       if (sortedHand[i] > sortedHand[i + 1]) {
@@ -539,6 +571,13 @@
 
     if (isSorted && sortedHand.length === levels[currentLevelIdx].numbers.length) {
       clearInterval(timerInterval);
+      
+      // 更新已通關數，過 1 關加 25%
+      if (currentLevelIdx + 1 > completedLevelsCount) {
+        completedLevelsCount = currentLevelIdx + 1;
+      }
+      updateProgressBar();
+
       setTimeout(showWinModal, 400);
     }
   }
@@ -548,6 +587,32 @@
     const modal = document.getElementById('win-modal');
     document.getElementById('final-time').innerText = document.getElementById('timer').innerText;
     document.getElementById('final-swaps').innerText = opCount;
+
+    const className = document.getElementById('input-class').value.trim() || '未填寫班級';
+    const seatName = document.getElementById('input-seat').value.trim() || '未填寫座號';
+    const studentName = document.getElementById('input-name').value.trim() || '未填寫姓名';
+
+    const currentPercent = completedLevelsCount * 25;
+
+    // 顯示進度與學生個人資訊
+    document.getElementById('final-student-info').innerText = 
+      `進度條 ${currentPercent}% | ${className} ${seatName}號 ${studentName}`;
+
+    let stars = "⭐⭐⭐";
+    if (opCount > levels[currentLevelIdx].numbers.length * 2) stars = "⭐⭐";
+    document.getElementById('star-rating').innerText = stars;
+
+    const nextBtn = document.getElementById('next-level-btn');
+    const modalTitle = document.getElementById('modal-title');
+
+    if (currentLevelIdx >= levels.length - 1) {
+      modalTitle.innerText = "🏆 恭喜完成所有理牌挑戰！";
+      nextBtn.innerText = "完成闖關";
+    } else {
+      modalTitle.innerText = "🎉 理牌大師挑戰成功！";
+      nextBtn.innerText = "挑戰下一關 ➔";
+    }
+
     modal.style.display = 'flex';
   }
 
@@ -555,7 +620,9 @@
     if (currentLevelIdx < levels.length - 1) {
       loadLevel(currentLevelIdx + 1);
     } else {
-      loadLevel(0);
+      // 破關第四關後停留在第四關
+      document.getElementById('win-modal').style.display = 'none';
+      loadLevel(levels.length - 1);
     }
   }
 
