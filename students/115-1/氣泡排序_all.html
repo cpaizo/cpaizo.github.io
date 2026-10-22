@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>115-1 學生氣泡排序法作品藝廊</title>
+  <style>
+    :root {
+      --primary: #00A8FF;
+      --primary-dark: #0097E6;
+      --accent: #FF9F43;
+      --bg: #E8F7FF;
+      --card-bg: #FFFFFF;
+      --text-main: #2C3E50;
+      --text-muted: #636E72;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, "微軟正黑體";
+      background-color: var(--bg);
+      color: var(--text-main);
+      padding: 30px 15px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 35px;
+      background: white;
+      padding: 25px 20px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 168, 255, 0.12);
+      border-bottom: 5px solid var(--primary);
+    }
+
+    h1 {
+      color: var(--primary-dark);
+      font-size: 28px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 15px;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #E1F5FE;
+      color: var(--primary-dark);
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .student-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border: 2px solid transparent;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .student-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 6px;
+      background: linear-gradient(90deg, #00C6FF, #0072FF);
+    }
+
+    .student-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 14px 28px rgba(0, 168, 255, 0.2);
+      border-color: #80DEEA;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 15px;
+    }
+
+    .avatar {
+      width: 48px;
+      height: 48px;
+      background: #E0F7FA;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .student-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .student-name {
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--text-main);
+    }
+
+    .project-tag {
+      font-size: 12px;
+      color: var(--primary-dark);
+      font-weight: 600;
+    }
+
+    .btn-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      padding: 10px 0;
+      background: var(--primary);
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      border-radius: 10px;
+      transition: background 0.2s ease;
+      font-size: 14px;
+    }
+
+    .btn-link:hover {
+      background: var(--primary-dark);
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 22px; }
+      .gallery-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>🫧 115-1 學生氣泡排序法作品展示藝廊</h1>
+    <p class="subtitle">點擊下方按鈕，觀看同學們親自設計創作的氣泡排序法作品！</p>
+    <div class="badge">共有 6 位同學作品</div>
+  </header>
+
+  <div class="gallery-grid">
+    <!-- 余品靚 -->
+    <div class="student-card">
+      <div class="card-header">
+        <div class="avatar">🐱</div>
+        <div class="student-info">
+          <div class="student-name">余品靚</div>
+          <div class="project-tag">氣泡排序法作品</div>
+        </div>
+      </div>
+      <a href="https://cpaizo.github.io/students/115-1/氣泡排序法_余品靚.html" target="_blank" class="btn-link">
+        前往觀看作品 ➔
+      </a>
+    </div>
+
+    <!-- 吳寬 -->
+    <div class="student-card">
+      <div class="card-header">
+        <div class="avatar">🐶</div>
+        <div class="student-info">
+          <div class="student-name">吳寬</div>
+          <div class="project-tag">氣泡排序法作品</div>
+        </div>
+      </div>
+      <a href="https://cpaizo.github.io/students/115-1/氣泡排序法_吳寬.html" target="_blank" class="btn-link">
+        前往觀看作品 ➔
+      </a>
+    </div>
+
+    <!-- 呂定睿 -->
+    <div class="student-card">
+      <div class="card-header">
+        <div class="avatar">🦊</div>
+        <div class="student-info">
+          <div class="student-name">呂定睿</div>
+          <div class="project-tag">氣泡排序法作品</div>
+        </div>
+      </div>
+      <a href="https://cpaizo.github.io/students/115-1/氣泡排序法_呂定睿.html" target="_blank" class="btn-link">
+        前往觀看作品 ➔
+      </a>
+    </div>
+
+    <!-- 張芯嫙 -->
+    <div class="student-card">
+      <div class="card-header">
+        <div class="avatar">🐰</div>
+        <div class="student-info">
+          <div class="student-name">張芯嫙</div>
+          <div class="project-tag">氣泡排序法作品</div>
+        </div>
+      </div>
+      <a href="https://cpaizo.github.io/students/115-1/氣泡排序法_張芯嫙.html" target="_blank" class="btn-link">
+        前往觀看作品 ➔
+      </a>
+    </div>
+
+    <!-- 張倢鈞 -->
+    <div class="student-card">
+      <div class="card-header">
+        <div class="avatar">🦁</div>
+        <div class="student-info">
+          <div class="student-name">張倢鈞</div>
+          <div class="project-tag">氣泡排序法作品</div>
+        </div>
+      </div>
+      <a href="https://cpaizo.github.io/students/115-1/氣泡排序法_張倢鈞.html" target="_blank" class="btn-link">
+        前往觀看作品 ➔
+      </a>
+    </div>
+
+    <!-- 盧晨希 -->
+    <div class="student-card">
+      <div class="card-header">
+        <div class="avatar">🐼</div>
+        <div class="student-info">
+          <div class="student-name">盧晨希</div>
+          <div class="project-tag">氣泡排序法作品</div>
+        </div>
+      </div>
+      <a href="https://cpaizo.github.io/students/115-1/氣泡排序法_盧晨希.html" target="_blank" class="btn-link">
+        前往觀看作品 ➔
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 115-1 程式設計課程 學生專題作品展</p>
+  </footer>
+</div>
+
+</body>
+</html>
