@@ -390,17 +390,17 @@
   </div>
 </div>
 
-<!-- 通關彈窗 -->
+<!-- 100% 通關彈窗 -->
 <div class="modal" id="win-modal">
   <div class="modal-content">
-    <h2 id="modal-title">🎉 恭喜通過此關！</h2>
+    <h2 id="modal-title">🏆 恭喜完成所有挑戰！</h2>
     <div class="stars" id="star-rating">⭐⭐⭐</div>
     <div class="result-user-info" id="final-student-info">
-      進度條 25% | 未填寫 學生資訊
+      進度條 100% | 未填寫 學生資訊
     </div>
-    <p>你完美運用了<b>選擇排序法</b>！</p>
+    <p id="modal-desc">你已經通關所有 4 個關卡，真正完成 100% 了！</p>
     <p>總共花費時間：<span id="final-time">00:00</span><br>總交換次數：<span id="final-swaps">0</span> 次</p>
-    <button class="btn btn-primary" id="next-level-btn" style="margin: 0 auto;" onclick="nextLevel()">挑戰下一關 ➔</button>
+    <button class="btn btn-primary" id="next-level-btn" style="margin: 0 auto;" onclick="closeModal()">完成闖關</button>
   </div>
 </div>
 
@@ -419,7 +419,8 @@
   let selectedCardIdx = null;
   let swapCount = 0;
   
-  // 記錄已通關的最高進度（0 ~ 4 關）
+  // 記錄每一關是否已經通關過 (索引 0~3 分別對應第 1~4 關)
+  let clearedLevels = [false, false, false, false];
   let completedLevelsCount = 0;
 
   let timerInterval = null;
@@ -456,7 +457,7 @@
   }
 
   function updateProgressBar() {
-    // 每過一關佔 25%，最高 100%
+    // 依據實際獨立通關的關卡數計算百分比 (每關 25%)
     const percentage = completedLevelsCount * 25;
     const progressBar = document.getElementById('progress-bar');
     const progressText = document.getElementById('progress-text');
@@ -593,13 +594,25 @@
       sortedIndex = currentArray.length;
       clearInterval(timerInterval);
       
-      // 更新已通關關卡數（確保不會超過總關卡數 4）
-      if (currentLevelIdx + 1 > completedLevelsCount) {
-        completedLevelsCount = currentLevelIdx + 1;
-      }
+      // 標記當前關卡為已通關
+      clearedLevels[currentLevelIdx] = true;
+      
+      // 計算總共通過了幾關
+      completedLevelsCount = clearedLevels.filter(Boolean).length;
       updateProgressBar();
 
-      setTimeout(showWinModal, 500);
+      // 檢查是否真正達到 100% (4關全部通關)
+      if (completedLevelsCount === 4) {
+        setTimeout(showWinModal, 500);
+      } else {
+        // 還沒滿 100% 時，不跳出彈窗，短暫提示後自動前往下一關
+        playSound(1000, 0.3);
+        setTimeout(() => {
+          if (currentLevelIdx < levels.length - 1) {
+            loadLevel(currentLevelIdx + 1);
+          }
+        }, 1200);
+      }
     }
   }
 
@@ -613,37 +626,18 @@
     const seatName = document.getElementById('input-seat').value.trim() || '未填寫座號';
     const studentName = document.getElementById('input-name').value.trim() || '未填寫姓名';
 
-    const currentPercent = completedLevelsCount * 25;
-
     document.getElementById('final-student-info').innerText = 
-      `進度條 ${currentPercent}% | ${className} ${seatName}號 ${studentName}`;
+      `進度條 100% | ${className} ${seatName}號 ${studentName}`;
 
     let stars = "⭐⭐⭐";
     if (swapCount > currentArray.length * 2) stars = "⭐⭐";
     document.getElementById('star-rating').innerText = stars;
 
-    const nextBtn = document.getElementById('next-level-btn');
-    const modalTitle = document.getElementById('modal-title');
-
-    if (currentLevelIdx >= levels.length - 1) {
-      modalTitle.innerText = "🏆 恭喜完成所有挑戰！";
-      nextBtn.innerText = "完成闖關";
-    } else {
-      modalTitle.innerText = "🎉 恭喜通過此關！";
-      nextBtn.innerText = "挑戰下一關 ➔";
-    }
-
     modal.style.display = 'flex';
   }
 
-  function nextLevel() {
-    if (currentLevelIdx < levels.length - 1) {
-      loadLevel(currentLevelIdx + 1);
-    } else {
-      // 已經是第四關，停留在第四關並關閉彈窗
-      document.getElementById('win-modal').style.display = 'none';
-      loadLevel(levels.length - 1);
-    }
+  function closeModal() {
+    document.getElementById('win-modal').style.display = 'none';
   }
 
   loadLevel(0);
