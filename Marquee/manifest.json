@@ -1,0 +1,20 @@
+{
+  "name": "全螢幕跑馬燈 Pro",
+  "short_name": "跑馬燈",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#1e1e1e",
+  "icons": [
+    {
+      "src": "Marquee.jpg",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "Marquee.jpg",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
