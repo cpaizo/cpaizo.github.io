@@ -288,7 +288,7 @@
       font-size: 15px;
     }
 
-    /* 通關彈窗 */
+    /* 100% 通關彈窗 */
     .modal {
       display: none;
       position: fixed;
@@ -392,17 +392,17 @@
   </div>
 </div>
 
-<!-- 通關彈窗 -->
+<!-- 100% 通關彈窗 -->
 <div class="modal" id="win-modal">
   <div class="modal-content">
-    <h2 id="modal-title">🎉 理牌大師挑戰成功！</h2>
+    <h2 id="modal-title">🏆 恭喜完成所有理牌挑戰！</h2>
     <div class="stars" id="star-rating">⭐⭐⭐</div>
     <div class="result-user-info" id="final-student-info">
-      進度條 25% | 未填寫 學生資訊
+      進度條 100% | 未填寫 學生資訊
     </div>
-    <p>你完全掌握了<b>插入排序法（抽牌與插入）</b>的精髓！</p>
+    <p id="modal-desc">你已經通關所有 4 個關卡，真正完成 100% 了！</p>
     <p>總花費時間：<span id="final-time">00:00</span><br>總插入次數：<span id="final-swaps">0</span> 次</p>
-    <button class="btn btn-primary" id="next-level-btn" style="margin: 0 auto;" onclick="nextLevel()">挑戰下一關 ➔</button>
+    <button class="btn btn-primary" id="next-level-btn" style="margin: 0 auto;" onclick="closeModal()">完成闖關</button>
   </div>
 </div>
 
@@ -420,7 +420,8 @@
   let activeCard = null; 
   let opCount = 0;
 
-  // 記錄已完成通關的最高關卡數（0 ~ 4）
+  // 記錄每一關是否已通關
+  let clearedLevels = [false, false, false, false];
   let completedLevelsCount = 0;
 
   let timerInterval = null;
@@ -457,7 +458,6 @@
   }
 
   function updateProgressBar() {
-    // 每過一關佔 25%，最高 100%
     const percentage = completedLevelsCount * 25;
     const progressBar = document.getElementById('progress-bar');
     const progressText = document.getElementById('progress-text');
@@ -572,13 +572,23 @@
     if (isSorted && sortedHand.length === levels[currentLevelIdx].numbers.length) {
       clearInterval(timerInterval);
       
-      // 更新已通關數，過 1 關加 25%
-      if (currentLevelIdx + 1 > completedLevelsCount) {
-        completedLevelsCount = currentLevelIdx + 1;
-      }
+      // 標記當前關卡已通關
+      clearedLevels[currentLevelIdx] = true;
+      completedLevelsCount = clearedLevels.filter(Boolean).length;
       updateProgressBar();
 
-      setTimeout(showWinModal, 400);
+      // 只有當真正完成 100% (4關全破) 時才跳出彈窗
+      if (completedLevelsCount === 4) {
+        setTimeout(showWinModal, 400);
+      } else {
+        // 未滿 100% 時提示並自動前往下一關
+        playSound(1000, 0.3);
+        setTimeout(() => {
+          if (currentLevelIdx < levels.length - 1) {
+            loadLevel(currentLevelIdx + 1);
+          }
+        }, 1200);
+      }
     }
   }
 
@@ -592,38 +602,18 @@
     const seatName = document.getElementById('input-seat').value.trim() || '未填寫座號';
     const studentName = document.getElementById('input-name').value.trim() || '未填寫姓名';
 
-    const currentPercent = completedLevelsCount * 25;
-
-    // 顯示進度與學生個人資訊
     document.getElementById('final-student-info').innerText = 
-      `進度條 ${currentPercent}% | ${className} ${seatName}號 ${studentName}`;
+      `進度條 100% | ${className} ${seatName}號 ${studentName}`;
 
     let stars = "⭐⭐⭐";
     if (opCount > levels[currentLevelIdx].numbers.length * 2) stars = "⭐⭐";
     document.getElementById('star-rating').innerText = stars;
 
-    const nextBtn = document.getElementById('next-level-btn');
-    const modalTitle = document.getElementById('modal-title');
-
-    if (currentLevelIdx >= levels.length - 1) {
-      modalTitle.innerText = "🏆 恭喜完成所有理牌挑戰！";
-      nextBtn.innerText = "完成闖關";
-    } else {
-      modalTitle.innerText = "🎉 理牌大師挑戰成功！";
-      nextBtn.innerText = "挑戰下一關 ➔";
-    }
-
     modal.style.display = 'flex';
   }
 
-  function nextLevel() {
-    if (currentLevelIdx < levels.length - 1) {
-      loadLevel(currentLevelIdx + 1);
-    } else {
-      // 破關第四關後停留在第四關
-      document.getElementById('win-modal').style.display = 'none';
-      loadLevel(levels.length - 1);
-    }
+  function closeModal() {
+    document.getElementById('win-modal').style.display = 'none';
   }
 
   loadLevel(0);
