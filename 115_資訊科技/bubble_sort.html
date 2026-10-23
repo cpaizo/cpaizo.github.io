@@ -219,6 +219,17 @@
       box-shadow: 0 10px 20px rgba(255, 159, 67, 0.5);
     }
 
+    .card.error-shake {
+      border: 4px solid var(--accent);
+      animation: shake 0.3s ease-in-out;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
     .card.bubble-done {
       background: linear-gradient(135deg, #2ECC71, #27AE60);
       box-shadow: 0 4px 8px rgba(46, 204, 113, 0.3);
@@ -295,6 +306,15 @@
       margin: 0 0 5px 0;
       color: var(--primary-dark);
       font-size: 15px;
+    }
+
+    /* 錯誤提示文字 */
+    .error-hint {
+      color: var(--accent);
+      font-weight: bold;
+      text-align: center;
+      height: 20px;
+      font-size: 14px;
     }
 
     /* 100% 通關彈窗 */
@@ -376,7 +396,7 @@
   <div class="top-bar">
     <div class="stats">
       <div class="stat-box">⏱️ 耗時: <span id="timer">00:00</span></div>
-      <div class="stat-box">🔄 比較/交換: <span id="swap-count">0</span> 次</div>
+      <div class="stat-box">🔄 操作次數: <span id="swap-count">0</span> 次</div>
     </div>
     <button class="btn btn-outline" style="padding:4px 10px; font-size:12px;" onclick="resetCurrentLevel()">↻ 重來</button>
   </div>
@@ -387,15 +407,17 @@
     </div>
   </div>
 
+  <div class="error-hint" id="error-hint"></div>
+
   <div class="controls">
-    <button class="btn btn-primary" onclick="swapAdjacent()" id="btn-swap">⇄ 隔壁交換</button>
-    <button class="btn btn-secondary" onclick="keepOrder()" id="btn-keep">✓ 順序正確（不用換）</button>
+    <button class="btn btn-primary" onclick="trySwap()">⇄ 隔壁交換</button>
+    <button class="btn btn-secondary" onclick="tryKeep()">✓ 順序正確（不用換）</button>
   </div>
 
   <div class="rule-box">
     <h3>💡 氣泡排序法（Bubble Sort）規則：</h3>
     1. <b>只能與隔壁比較</b>：系統會自動標記當前要比較的<b>相鄰兩張氣泡</b>。<br>
-    2. <b>大數字往右邊冒</b>：如果左邊比右邊大，點擊【⇄ 隔壁交換】；如果左邊小於等於右邊，點擊【✓ 順序正確】。<br>
+    2. <b>大數字往右邊冒</b>：如果左邊比右邊大，必須點擊【⇄ 隔壁交換】；如果左邊小於等於右邊，必須點擊【✓ 順序正確】。<br>
     3. 每繞完一輪，當前<b>最大的數字</b>就會成功「冒」到最右邊並鎖定綠色勾勾！
   </div>
 </div>
@@ -416,10 +438,10 @@
 
 <script>
   const levels = [
-    { id: 1, numbers: [5, 2, 8], target: [2, 5, 8] },
-    { id: 2, numbers: [7, 3, 9, 1, 4], target: [1, 3, 4, 7, 9] },
-    { id: 3, numbers: [6, 2, 8, 2, 5, 1], target: [1, 2, 2, 5, 6, 8] },
-    { id: 4, numbers: [9, 4, 1, 7, 3, 8, 2], target: [1, 2, 3, 4, 7, 8, 9] }
+    { id: 1, numbers: [5, 2, 8] },
+    { id: 2, numbers: [7, 3, 9, 1, 4] },
+    { id: 3, numbers: [6, 2, 8, 2, 5, 1] },
+    { id: 4, numbers: [9, 4, 1, 7, 3, 8, 2] }
   ];
 
   let currentLevelIdx = 0;
@@ -428,7 +450,6 @@
   let rightSortedCount = 0; 
   let opCount = 0;
 
-  // 記錄每一關是否已通關
   let clearedLevels = [false, false, false, false];
   let completedLevelsCount = 0;
 
@@ -490,6 +511,7 @@
     opCount = 0;
     document.getElementById('swap-count').innerText = '0';
     document.getElementById('win-modal').style.display = 'none';
+    document.getElementById('error-hint').innerText = '';
 
     startTimer();
     renderCards();
@@ -517,38 +539,57 @@
         <div class="card-idx">#${idx + 1}</div>
       `;
 
-      card.onclick = () => {
-        if (idx === compareIdx || idx === compareIdx + 1) {
-          if (currentArray[compareIdx] > currentArray[compareIdx + 1]) {
-            swapAdjacent();
-          } else {
-            keepOrder();
-          }
-        }
-      };
-
       container.appendChild(card);
     });
   }
 
-  function swapAdjacent() {
+  // 玩家點擊「隔壁交換」
+  function trySwap() {
     const num1 = currentArray[compareIdx];
     const num2 = currentArray[compareIdx + 1];
 
     if (num1 > num2) {
+      // 邏輯正確：左邊大於右邊，確實需要交換
+      clearError();
       currentArray[compareIdx] = num2;
       currentArray[compareIdx + 1] = num1;
       playSound(500, 0.12);
+      stepForward();
     } else {
-      playSound(200, 0.2);
+      // 邏輯錯誤：左邊沒有大於右邊，不應該交換！
+      showError("❌ 錯誤：左邊比右邊小或相等，不需要交換喔！");
     }
-
-    stepForward();
   }
 
-  function keepOrder() {
-    playSound(700, 0.1);
-    stepForward();
+  // 玩家點擊「順序正確」
+  function tryKeep() {
+    const num1 = currentArray[compareIdx];
+    const num2 = currentArray[compareIdx + 1];
+
+    if (num1 <= num2) {
+      // 邏輯正確：左邊小於等於右邊，不用換
+      clearError();
+      playSound(700, 0.1);
+      stepForward();
+    } else {
+      // 邏輯錯誤：左邊大於右邊，必須交換！
+      showError("❌ 錯誤：左邊比右邊大，必須進行「隔壁交換」！");
+    }
+  }
+
+  function showError(msg) {
+    playSound(180, 0.2);
+    document.getElementById('error-hint').innerText = msg;
+    
+    // 讓比對中的卡片閃爍紅色提示
+    document.querySelectorAll('.card.comparing').forEach(card => {
+      card.classList.add('error-shake');
+      setTimeout(() => card.classList.remove('error-shake'), 300);
+    });
+  }
+
+  function clearError() {
+    document.getElementById('error-hint').innerText = '';
   }
 
   function stepForward() {
@@ -569,6 +610,7 @@
   }
 
   function checkWin() {
+    // 檢查是否整條陣列已經完全排序完畢
     let isSorted = true;
     for (let i = 0; i < currentArray.length - 1; i++) {
       if (currentArray[i] > currentArray[i + 1]) {
@@ -581,18 +623,15 @@
       rightSortedCount = currentArray.length;
       clearInterval(timerInterval);
       
-      // 標記當前關卡已通關
       clearedLevels[currentLevelIdx] = true;
       completedLevelsCount = clearedLevels.filter(Boolean).length;
       updateProgressBar();
 
       renderCards();
 
-      // 只有當真正完成 100% (4關全破) 時才跳出彈窗
       if (completedLevelsCount === 4) {
         setTimeout(showWinModal, 500);
       } else {
-        // 未滿 100% 時提示並自動前往下一關
         playSound(1100, 0.3);
         setTimeout(() => {
           if (currentLevelIdx < levels.length - 1) {
