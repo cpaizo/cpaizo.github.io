@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>全螢幕跑馬燈 Pro</title>
+  <title>全螢幕跑馬燈 Pro - 循環版</title>
   
   <meta name="theme-color" content="#1e1e1e">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -194,7 +194,7 @@
       line-height: 1;
       top: 50%;
       transform: translateY(-50%);
-      display: none; /* 預設完全不渲染與計算動畫 */
+      display: none;
     }
 
     .mirror {
@@ -266,7 +266,7 @@
     
     <!-- 開場主題文字、時間與獨立顏色 -->
     <div class="form-group">
-      <label for="intro-text">開場主題 (留空則直接跑馬燈)：</label>
+      <label for="intro-text">開場主題 (留空則純內容循環)：</label>
       <input type="text" id="intro-text" value="號外" placeholder="例如：號外、最新消息">
     </div>
 
@@ -368,8 +368,8 @@
     </div>
 
     <p class="tip">
-      💡 流程提示：<br>
-      開場主題 $\rightarrow$ 完全黑屏 0.1 秒 $\rightarrow$ 內容從最右側全新起跑！
+      🔄 循環播放機制：<br>
+      主題 $\rightarrow$ 0.1秒黑屏 $\rightarrow$ 內容跑完一輪 $\rightarrow$ 0.1秒黑屏 $\rightarrow$ 重複主題...
     </p>
   </div>
 
@@ -405,8 +405,7 @@
 
     let currentFontSize = 25;
     let isFullscreen = false;
-    let timer1 = null;
-    let timer2 = null;
+    let mainTimer = null;
 
     introColorInput.addEventListener('input', e => introColorVal.textContent = e.target.value);
     textColorInput.addEventListener('input', e => textColorVal.textContent = e.target.value);
@@ -461,16 +460,11 @@
       const s = getSettings();
       isFullscreen = true;
 
-      // 清除未完成的計時器
       clearAllTimers();
 
       fullscreenDiv.style.backgroundColor = s.bgColor;
       fullscreenDiv.style.display = 'block';
       controls.classList.add('hidden');
-
-      // 確保內容層在一開始完全隱藏且沒有動畫
-      marqueeText.style.display = 'none';
-      marqueeText.style.animationName = 'none';
 
       if (fullscreenDiv.requestFullscreen) {
         fullscreenDiv.requestFullscreen();
@@ -478,11 +472,22 @@
         fullscreenDiv.webkitRequestFullscreen();
       }
 
+      // 開始循環播放流程
+      runLoopCycle(s);
+    }
+
+    // 主循環控制函式
+    function runLoopCycle(s) {
+      if (!isFullscreen) return;
+
       const introText = s.introText.trim();
       const introDuration = (parseFloat(s.introDuration) || 2) * 1000;
 
       if (introText) {
-        // 【階段 1】：播放開場主題
+        // 【步驟 1】：顯示主題
+        marqueeText.style.display = 'none';
+        marqueeText.style.animationName = 'none';
+
         introTitle.style.display = 'block';
         introTitle.textContent = introText;
         introTitle.style.color = s.introColor;
@@ -491,27 +496,29 @@
         introTitle.className = '';
         if (s.effect !== 'none') introTitle.classList.add(`effect-${s.effect}`);
 
-        // 主題播放完畢後
-        timer1 = setTimeout(() => {
-          // 【階段 2】：隱藏主題，進入 0.1 秒全黑（純背景）
+        // 主題顯示結束後，進入步驟 2
+        mainTimer = setTimeout(() => {
           introTitle.style.display = 'none';
 
-          timer2 = setTimeout(() => {
-            // 【階段 3】：0.1 秒全黑時間到了，此時才初始化並啟動跑馬燈動畫
+          // 【步驟 2】：黑屏 0.1 秒
+          mainTimer = setTimeout(() => {
+            // 【步驟 3】：顯示並播放內容跑馬燈
             startMainMarquee(s);
-          }, 100); // 準確 0.1 秒（100 毫秒）全黑
+          }, 100);
 
         }, introDuration);
 
       } else {
-        // 若無主題，直接啟動跑馬燈
+        // 如果無主題，直接播放內容
         introTitle.style.display = 'none';
         startMainMarquee(s);
       }
     }
 
-    // 啟動主跑馬燈（此時才綁定與觸發 CSS 動畫）
+    // 啟動內容跑馬燈（單次完整播完後通知循環）
     function startMainMarquee(s) {
+      if (!isFullscreen) return;
+
       marqueeText.innerHTML = s.text.trim() ? s.text.replace(/\n/g, '<br>') : "請輸入文字";
       marqueeText.style.color = s.textColor;
       marqueeText.style.fontFamily = s.fontFamily;
@@ -525,18 +532,23 @@
       if (s.mirror === 'true') marqueeText.classList.add('mirror');
 
       const dir = s.direction;
-      const speed = s.speed + 's';
+      const speedSec = parseFloat(s.speed) || 10;
+      const speed = speedSec + 's';
 
-      // 顯示跑馬燈 DOM 元素
       marqueeText.style.display = 'block';
+
+      // 監聽動畫播完一輪事件 (animationend) 或是使用精確倒數
+      // 為了支援所有動畫模式，我們精準計算單次動畫時間
+      let totalAnimTimeMs = speedSec * 1000;
 
       if (dir === 'static') {
         marqueeText.classList.add('dir-static');
+        // 固定置中模式預設展示 5 秒後換下一輪主題
+        totalAnimTimeMs = 5000; 
       } else if (dir === 'left' || dir === 'right') {
-        // 精確測量文字寬度並建立全新 Animation Time
         requestAnimationFrame(() => {
           const textWidth = marqueeText.offsetWidth;
-          const keyframesName = (dir === 'left') ? 'scroll-left-custom' : 'scroll-right-custom';
+          const keyframesName = (dir === 'left') ? 'scroll-left-loop' : 'scroll-right-loop';
           
           let styleSheet = document.getElementById('dynamic-marquee-style');
           if (!styleSheet) {
@@ -561,18 +573,31 @@
             `;
           }
 
-          // 正式指派動畫（從 0% 的 100vw 右側起跑）
+          // 設置動畫只播放一次 (1 次 = 1 個循環)
           marqueeText.style.animationName = keyframesName;
           marqueeText.style.animationDuration = speed;
           marqueeText.style.animationTimingFunction = 'linear';
-          marqueeText.style.animationIterationCount = 'infinite';
+          marqueeText.style.animationIterationCount = '1';
         });
       } else {
         marqueeText.style.animationName = `move-${dir}`;
         marqueeText.style.animationDuration = speed;
         marqueeText.style.animationTimingFunction = 'linear';
-        marqueeText.style.animationIterationCount = 'infinite';
+        marqueeText.style.animationIterationCount = '1';
       }
+
+      // 【步驟 4】：當內容跑完一輪後 $\rightarrow$ 黑屏 0.1 秒 $\rightarrow$ 重新開始下一輪循環
+      mainTimer = setTimeout(() => {
+        marqueeText.style.display = 'none';
+        marqueeText.style.animationName = 'none';
+
+        // 黑屏 0.1 秒
+        mainTimer = setTimeout(() => {
+          // 重新觸發主題與內容的完整循環
+          runLoopCycle(s);
+        }, 100);
+
+      }, totalAnimTimeMs);
     }
 
     function updateFontSize() {
@@ -580,8 +605,7 @@
     }
 
     function clearAllTimers() {
-      if (timer1) clearTimeout(timer1);
-      if (timer2) clearTimeout(timer2);
+      if (mainTimer) clearTimeout(mainTimer);
     }
 
     fullscreenDiv.addEventListener('click', () => {
