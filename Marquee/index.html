@@ -5,24 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>全螢幕跑馬燈 Pro</title>
   
-  <!-- ==================== PWA & App 相關設定 ==================== -->
-  <!-- 設置 App 主題顏色 (手機狀態列) -->
   <meta name="theme-color" content="#1e1e1e">
-  <!-- 允許 iOS 將網頁加入主畫面後以全螢幕模式運行 -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="跑馬燈">
   
-  <!-- App Icon (使用你生成的簡單設計 Icon，需命名為 icon.png) -->
   <link rel="apple-touch-icon" href="icon.png">
   <link rel="icon" type="image/png" href="icon.png">
-
-  <!-- PWA Manifest 連結 (使 App 可安裝) -->
-  <!-- 
-    注意：在本地直接打開 HTML 檔案時，Manifest 可能不會生效。
-    需將此檔案與 icon.png 上傳至伺服器 (如 GitHub Pages) 後，
-    手機瀏覽器才會提示「安裝至主畫面」。
-  -->
   <link rel="manifest" href="manifest.json">
 
   <style>
@@ -30,7 +19,7 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      -webkit-touch-callout: none; /* 禁止 iOS 長按彈出選單 */
+      -webkit-touch-callout: none;
     }
 
     body {
@@ -41,10 +30,9 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      overflow: hidden; /* 防止 PWA 模式下出現滾動條 */
+      overflow: hidden;
     }
 
-    /* ==================== 控制面板樣式 ==================== */
     .controls-container {
       background-color: #1e1e1e;
       padding: 25px;
@@ -54,9 +42,8 @@
       max-width: 500px;
       border: 1px solid #333;
       z-index: 10;
-      transition: opacity 0.3s ease;
       overflow-y: auto;
-      max-height: 90vh; /* 防止內容過多 */
+      max-height: 90vh;
     }
 
     h2 {
@@ -69,7 +56,6 @@
       gap: 10px;
     }
 
-    /* Icon 樣式 */
     h2 img {
       width: 32px;
       height: 32px;
@@ -94,14 +80,14 @@
       border-radius: 8px;
       background-color: #2a2a2a;
       color: #fff;
-      font-size: 16px; /* 防止 iOS 輸入時自動放大 */
+      font-size: 16px;
       outline: none;
-      -webkit-appearance: none; /* 清除原生樣式 */
+      -webkit-appearance: none;
     }
 
     textarea {
       resize: vertical;
-      height: 70px;
+      height: 60px;
       line-height: 1.4;
     }
 
@@ -135,14 +121,6 @@
       padding: 0;
     }
 
-    ::-webkit-color-swatch-wrapper {
-      padding: 0;
-    }
-    ::-webkit-color-swatch {
-      border: none;
-      border-radius: 6px;
-    }
-
     .btn-group {
       display: flex;
       gap: 10px;
@@ -158,7 +136,6 @@
       font-weight: bold;
       cursor: pointer;
       transition: all 0.2s;
-      -webkit-tap-highlight-color: transparent; /* 禁止點擊高亮 */
     }
 
     .btn-primary {
@@ -166,19 +143,10 @@
       color: white;
     }
 
-    .btn-primary:hover {
-      background-color: #0056b3;
-    }
-
     .btn-secondary {
       background-color: #333;
       color: #ccc;
       border: 1px solid #555;
-    }
-
-    .btn-secondary:hover {
-      background-color: #444;
-      color: #fff;
     }
 
     .tip {
@@ -189,7 +157,7 @@
       line-height: 1.5;
     }
 
-    /* ==================== 全螢幕跑馬燈區域 (關鍵) ==================== */
+    /* ==================== 全螢幕跑馬燈區域 ==================== */
     #marquee-fullscreen {
       display: none;
       position: fixed;
@@ -201,39 +169,41 @@
       overflow: hidden;
       cursor: pointer;
       user-select: none;
-      /* 支援 iPhone X 瀏海屏 */
-      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     }
 
+    /* 開場主題標題樣式 */
+    #intro-title {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-weight: 900;
+      font-size: 35vh;
+      white-space: nowrap;
+      z-index: 2;
+      display: none;
+      animation: pulse-zoom 0.8s ease-in-out infinite alternate;
+    }
+
+    /* 跑馬燈內容 */
     .marquee-content {
       position: absolute;
       white-space: nowrap;
-      will-change: transform; /* 優化性能 */
+      will-change: transform;
       font-weight: bold;
       line-height: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      top: 50%;
+      transform: translateY(-50%);
+      display: none; /* 預設完全不渲染與計算動畫 */
     }
 
-    /* 鏡像翻轉效果 */
     .mirror {
-      transform: scaleX(-1) !important;
+      transform: translateY(-50%) scaleX(-1) !important;
     }
 
-    /* ---- 1. 視覺特效 ---- */
-    /* 閃爍 */
-    .effect-blink {
-      animation-name: blink-anim;
-      animation-iteration-count: infinite;
-    }
-
-    /* 霓虹發光 */
-    .effect-glow {
-      text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 40px currentColor;
-    }
-
-    /* 彩虹漸層文字 */
+    /* 視覺特效 */
+    .effect-blink { animation: blink-anim 1s infinite; }
+    .effect-glow { text-shadow: 0 0 15px currentColor, 0 0 30px currentColor, 0 0 50px currentColor; }
     .effect-rainbow {
       background: linear-gradient(to right, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff);
       -webkit-background-clip: text;
@@ -242,58 +212,47 @@
       animation: rainbow-anim 3s linear infinite;
     }
 
-    /* ---- 2. 動畫方向 ---- */
-    /* 從右向左 (←) - 修正 Y 軸置中 */
-    @keyframes move-left {
-      0% { left: 100vw; transform: translateY(-50%); }
-      100% { left: -100%; transform: translateY(-50%); }
+    /* ---- 動畫定義 ---- */
+    @keyframes pulse-zoom {
+      0% {
+        transform: translate(-50%, -50%) scale(0.85);
+        opacity: 0.8;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(1.15);
+        opacity: 1;
+      }
     }
 
-    /* 從左向右 (→) */
-    @keyframes move-right {
-      0% { left: -100%; transform: translateY(-50%); }
-      100% { left: 100vw; transform: translateY(-50%); }
-    }
-
-    /* 由下向上 (↑) */
-    @keyframes move-up {
-      0% { top: 100vh; left: 50%; transform: translateX(-50%); }
-      100% { top: -100%; left: 50%; transform: translateX(-50%); }
-    }
-
-    /* 由上向下 (↓) */
-    @keyframes move-down {
-      0% { top: -100%; left: 50%; transform: translateX(-50%); }
-      100% { top: 100vh; left: 50%; transform: translateX(-50%); }
-    }
-
-    /* 閃爍動畫 */
     @keyframes blink-anim {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.1; }
     }
 
-    /* 彩虹變色動畫 */
     @keyframes rainbow-anim {
       to { background-position: 200% center; }
     }
 
-    /* 固定位置置中 */
+    @keyframes move-up {
+      0% { top: 100vh; left: 50%; transform: translateX(-50%); }
+      100% { top: -100%; left: 50%; transform: translateX(-50%); }
+    }
+    @keyframes move-down {
+      0% { top: -100%; left: 50%; transform: translateX(-50%); }
+      100% { top: 100vh; left: 50%; transform: translateX(-50%); }
+    }
+
     .dir-static {
       left: 50% !important;
       top: 50% !important;
       transform: translate(-50%, -50%) !important;
       animation: none !important;
-      white-space: normal; /* 允許換行 */
+      white-space: normal;
       text-align: center;
       width: 90vw;
     }
     
-    /* PWA 模式下隱藏控制面板時的過渡 */
-    .hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
+    .hidden { opacity: 0; pointer-events: none; }
   </style>
 </head>
 <body>
@@ -305,16 +264,36 @@
       跑馬燈 Pro
     </h2>
     
-    <!-- 3. 多行文字 -->
+    <!-- 開場主題文字、時間與獨立顏色 -->
     <div class="form-group">
-      <label for="text-input">跑馬燈文字 (支援換行)：</label>
-      <textarea id="text-input" placeholder="請輸入文字...">歡迎光臨！&#10;應援首選 App&#10;Touch to Start</textarea>
+      <label for="intro-text">開場主題 (留空則直接跑馬燈)：</label>
+      <input type="text" id="intro-text" value="號外" placeholder="例如：號外、最新消息">
     </div>
 
-    <!-- 1. 顏色自訂 -->
     <div class="row-group">
       <div class="form-group">
-        <label>文字顏色：</label>
+        <label>主題顏色：</label>
+        <div class="color-picker-wrapper">
+          <input type="color" id="intro-color" value="#ff0055">
+          <span id="intro-color-val" style="font-size:12px;">#ff0055</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="intro-duration">主題停留(秒)：</label>
+        <input type="number" id="intro-duration" value="2" min="1" max="10">
+      </div>
+    </div>
+
+    <!-- 內容跑馬燈 -->
+    <div class="form-group">
+      <label for="text-input">內容跑馬燈文字：</label>
+      <textarea id="text-input" placeholder="請輸入文字...">北市若再停班停課G7還能在大巨蛋熱戰？</textarea>
+    </div>
+
+    <!-- 顏色 -->
+    <div class="row-group">
+      <div class="form-group">
+        <label>內容顏色：</label>
         <div class="color-picker-wrapper">
           <input type="color" id="text-color" value="#ffff00">
           <span id="text-color-val" style="font-size:12px;">#ffff00</span>
@@ -329,7 +308,7 @@
       </div>
     </div>
 
-    <!-- 1. 字體與特效 -->
+    <!-- 字體與特效 -->
     <div class="row-group">
       <div class="form-group">
         <label for="font-family">字體風格：</label>
@@ -337,7 +316,6 @@
           <option value="sans-serif">標準黑體</option>
           <option value="serif">經典明體</option>
           <option value="monospace">等寬字體</option>
-          <option value="'Noto Sans TC', sans-serif">圓體 (若系統支援)</option>
         </select>
       </div>
       <div class="form-group">
@@ -351,7 +329,7 @@
       </div>
     </div>
 
-    <!-- 2. 移動方向與控制 -->
+    <!-- 方向與鏡像 -->
     <div class="row-group">
       <div class="form-group">
         <label for="direction">滾動方向：</label>
@@ -367,7 +345,7 @@
         <label for="mirror-toggle">鏡像翻轉：</label>
         <select id="mirror-toggle">
           <option value="false" selected>正常顯示</option>
-          <option value="true">左右鏡像 (隔窗用)</option>
+          <option value="true">左右鏡像</option>
         </select>
       </div>
     </div>
@@ -375,8 +353,8 @@
     <!-- 速度與大小 -->
     <div class="row-group">
       <div class="form-group">
-        <label for="font-size">字體大小 (vh)：</label>
-        <input type="number" id="font-size" value="30" min="5" max="90">
+        <label for="font-size">內容大小 (vh)：</label>
+        <input type="number" id="font-size" value="25" min="5" max="90">
       </div>
       <div class="form-group">
         <label for="speed">滾動速度 (秒)：</label>
@@ -384,27 +362,29 @@
       </div>
     </div>
 
-    <!-- 3. 功能按鈕 -->
     <div class="btn-group">
       <button class="btn-primary" id="start-btn">開啟全螢幕跑馬燈</button>
       <button class="btn-secondary" id="share-btn">複製分享連結</button>
     </div>
 
     <p class="tip">
-      💡 操作提示：<br>
-      全螢幕下**點擊畫面**即可退出。<br>
-      全螢幕下**滾輪或雙指縮放**可即時調整字體！
+      💡 流程提示：<br>
+      開場主題 $\rightarrow$ 完全黑屏 0.1 秒 $\rightarrow$ 內容從最右側全新起跑！
     </p>
   </div>
 
   <!-- 全螢幕跑馬燈區域 -->
   <div id="marquee-fullscreen">
+    <div id="intro-title"></div>
     <div class="marquee-content" id="marquee-text"></div>
   </div>
 
   <script>
-    // ==================== 基礎設定與 DOM ====================
     const controls = document.getElementById('controls');
+    const introTextInput = document.getElementById('intro-text');
+    const introColorInput = document.getElementById('intro-color');
+    const introColorVal = document.getElementById('intro-color-val');
+    const introDurationInput = document.getElementById('intro-duration');
     const textInput = document.getElementById('text-input');
     const textColorInput = document.getElementById('text-color');
     const textColorVal = document.getElementById('text-color-val');
@@ -420,18 +400,23 @@
     const startBtn = document.getElementById('start-btn');
     const shareBtn = document.getElementById('share-btn');
     const fullscreenDiv = document.getElementById('marquee-fullscreen');
+    const introTitle = document.getElementById('intro-title');
     const marqueeText = document.getElementById('marquee-text');
 
-    let currentFontSize = 30;
+    let currentFontSize = 25;
     let isFullscreen = false;
+    let timer1 = null;
+    let timer2 = null;
 
-    // 顏色選擇同步顯示文字
+    introColorInput.addEventListener('input', e => introColorVal.textContent = e.target.value);
     textColorInput.addEventListener('input', e => textColorVal.textContent = e.target.value);
     bgColorInput.addEventListener('input', e => bgColorVal.textContent = e.target.value);
 
-    // ==================== 3. 讀取與儲存設定 (localStorage & URL Query) ====================
     function getSettings() {
       return {
+        introText: introTextInput.value,
+        introColor: introColorInput.value,
+        introDuration: introDurationInput.value,
         text: textInput.value,
         textColor: textColorInput.value,
         bgColor: bgColorInput.value,
@@ -449,23 +434,13 @@
     }
 
     function loadSettings() {
-      // 1. 優先嘗試讀取 URL 參數 (供分享使用)
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.has('text')) {
-        textInput.value = urlParams.get('text');
-        if (urlParams.has('tc')) textColorInput.value = textColorVal.textContent = decodeURIComponent(urlParams.get('tc'));
-        if (urlParams.has('bg')) bgColorInput.value = bgColorVal.textContent = decodeURIComponent(urlParams.get('bg'));
-        if (urlParams.has('dir')) directionInput.value = urlParams.get('dir');
-        if (urlParams.has('fx')) effectStyleInput.value = urlParams.get('fx');
-        if (urlParams.has('fs')) fontSizeInput.value = urlParams.get('fs');
-        return; // 讀取完 URL 後直接返回，不載入 localStorage
-      }
-
-      // 2. 如果 URL 沒有參數，讀取 localStorage
       const saved = localStorage.getItem('marquee_settings_pro');
       if (saved) {
         try {
           const s = JSON.parse(saved);
+          introTextInput.value = s.introText !== undefined ? s.introText : '號外';
+          introColorInput.value = introColorVal.textContent = s.introColor || '#ff0055';
+          introDurationInput.value = s.introDuration || 2;
           textInput.value = s.text || '';
           textColorInput.value = textColorVal.textContent = s.textColor || '#ffff00';
           bgColorInput.value = bgColorVal.textContent = s.bgColor || '#000000';
@@ -473,195 +448,165 @@
           effectStyleInput.value = s.effect || 'glow';
           directionInput.value = s.direction || 'left';
           mirrorToggle.value = s.mirror || 'false';
-          fontSizeInput.value = s.fontSize || 30;
+          fontSizeInput.value = s.fontSize || 25;
           speedInput.value = s.speed || 10;
         } catch(e) {}
       }
     }
 
-    // 複製分享 URL
-    shareBtn.addEventListener('click', () => {
-      const s = getSettings();
-      const params = new URLSearchParams({
-        text: s.text,
-        tc: s.textColor,
-        bg: s.bgColor,
-        dir: s.direction,
-        fx: s.effect,
-        fs: s.fontSize
-      });
-      const shareUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
-      
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(shareUrl).then(() => {
-          alert('已複製設定連結！');
-        }).catch(err => {
-          alert('複製失敗，請手動複製網址');
-        });
-      } else {
-        alert('此瀏覽器不支援自動複製，請手動複製網址：\n' + shareUrl);
-      }
-    });
-
-    // ==================== 啟動全螢幕與樣式套用 ====================
     startBtn.addEventListener('click', launchMarquee);
 
     function launchMarquee() {
-      saveSettings(); // 啟動前先儲存
-
+      saveSettings();
       const s = getSettings();
       isFullscreen = true;
 
-      // --- 內容處理 ---
-      // 處理多行，將換行符替換為 <br>
-      marqueeText.innerHTML = s.text.trim() ? s.text.replace(/\n/g, '<br>') : "跑馬燈 Pro";
+      // 清除未完成的計時器
+      clearAllTimers();
 
-      // --- 基本樣式套用 ---
       fullscreenDiv.style.backgroundColor = s.bgColor;
+      fullscreenDiv.style.display = 'block';
+      controls.classList.add('hidden');
+
+      // 確保內容層在一開始完全隱藏且沒有動畫
+      marqueeText.style.display = 'none';
+      marqueeText.style.animationName = 'none';
+
+      if (fullscreenDiv.requestFullscreen) {
+        fullscreenDiv.requestFullscreen();
+      } else if (fullscreenDiv.webkitRequestFullscreen) {
+        fullscreenDiv.webkitRequestFullscreen();
+      }
+
+      const introText = s.introText.trim();
+      const introDuration = (parseFloat(s.introDuration) || 2) * 1000;
+
+      if (introText) {
+        // 【階段 1】：播放開場主題
+        introTitle.style.display = 'block';
+        introTitle.textContent = introText;
+        introTitle.style.color = s.introColor;
+        introTitle.style.fontFamily = s.fontFamily;
+
+        introTitle.className = '';
+        if (s.effect !== 'none') introTitle.classList.add(`effect-${s.effect}`);
+
+        // 主題播放完畢後
+        timer1 = setTimeout(() => {
+          // 【階段 2】：隱藏主題，進入 0.1 秒全黑（純背景）
+          introTitle.style.display = 'none';
+
+          timer2 = setTimeout(() => {
+            // 【階段 3】：0.1 秒全黑時間到了，此時才初始化並啟動跑馬燈動畫
+            startMainMarquee(s);
+          }, 100); // 準確 0.1 秒（100 毫秒）全黑
+
+        }, introDuration);
+
+      } else {
+        // 若無主題，直接啟動跑馬燈
+        introTitle.style.display = 'none';
+        startMainMarquee(s);
+      }
+    }
+
+    // 啟動主跑馬燈（此時才綁定與觸發 CSS 動畫）
+    function startMainMarquee(s) {
+      marqueeText.innerHTML = s.text.trim() ? s.text.replace(/\n/g, '<br>') : "請輸入文字";
       marqueeText.style.color = s.textColor;
       marqueeText.style.fontFamily = s.fontFamily;
       
-      currentFontSize = parseInt(s.fontSize) || 30;
-      updateFontSize(); // 套用字體大小
+      currentFontSize = parseInt(s.fontSize) || 25;
+      updateFontSize();
 
-      // --- 特效與方向重置 (關鍵) ---
-      // 清空所有舊的類名，只保留基礎類
       marqueeText.className = 'marquee-content';
-      // 移除舊的 CSS animation 屬性
-      marqueeText.style.animationName = '';
-      marqueeText.style.animationDuration = '';
-      marqueeText.style.top = ''; // 重置垂直位置
 
-      // --- 1. 特效套用 ---
       if (s.effect !== 'none') marqueeText.classList.add(`effect-${s.effect}`);
-
-      // --- 2. 鏡像套用 ---
       if (s.mirror === 'true') marqueeText.classList.add('mirror');
 
-      // --- 2. 方向與速度套用 ---
       const dir = s.direction;
       const speed = s.speed + 's';
-      
+
+      // 顯示跑馬燈 DOM 元素
+      marqueeText.style.display = 'block';
+
       if (dir === 'static') {
-        // 固定位置
         marqueeText.classList.add('dir-static');
+      } else if (dir === 'left' || dir === 'right') {
+        // 精確測量文字寬度並建立全新 Animation Time
+        requestAnimationFrame(() => {
+          const textWidth = marqueeText.offsetWidth;
+          const keyframesName = (dir === 'left') ? 'scroll-left-custom' : 'scroll-right-custom';
+          
+          let styleSheet = document.getElementById('dynamic-marquee-style');
+          if (!styleSheet) {
+            styleSheet = document.createElement('style');
+            styleSheet.id = 'dynamic-marquee-style';
+            document.head.appendChild(styleSheet);
+          }
+
+          if (dir === 'left') {
+            styleSheet.innerHTML = `
+              @keyframes ${keyframesName} {
+                0% { transform: translate(100vw, -50%); }
+                100% { transform: translate(-${textWidth}px, -50%); }
+              }
+            `;
+          } else {
+            styleSheet.innerHTML = `
+              @keyframes ${keyframesName} {
+                0% { transform: translate(-${textWidth}px, -50%); }
+                100% { transform: translate(100vw, -50%); }
+              }
+            `;
+          }
+
+          // 正式指派動畫（從 0% 的 100vw 右側起跑）
+          marqueeText.style.animationName = keyframesName;
+          marqueeText.style.animationDuration = speed;
+          marqueeText.style.animationTimingFunction = 'linear';
+          marqueeText.style.animationIterationCount = 'infinite';
+        });
       } else {
-        // 滾動動畫
         marqueeText.style.animationName = `move-${dir}`;
         marqueeText.style.animationDuration = speed;
         marqueeText.style.animationTimingFunction = 'linear';
         marqueeText.style.animationIterationCount = 'infinite';
-
-        // 對於左右滾動 (left/right)，需要設置 top 50% 來垂直置中
-        if (dir === 'left' || dir === 'right') {
-          marqueeText.style.top = '50%';
-        }
-      }
-
-      // --- 顯示全螢幕 ---
-      fullscreenDiv.style.display = 'block';
-      controls.classList.add('hidden'); // PWA 模式下隱藏控制面板
-
-      // 請求原生全螢幕 (電腦/Android)
-      if (fullscreenDiv.requestFullscreen) {
-        fullscreenDiv.requestFullscreen();
-      } else if (fullscreenDiv.webkitRequestFullscreen) { /* Safari/iOS */
-        fullscreenDiv.webkitRequestFullscreen();
       }
     }
 
-    // ==================== 2. 全螢幕互動與退出 ====================
-    
-    // 更新字體大小顯示
     function updateFontSize() {
       marqueeText.style.fontSize = `${currentFontSize}vh`;
     }
 
-    // A. 滾輪調整字體大小 (電腦)
-    fullscreenDiv.addEventListener('wheel', (e) => {
-      if (!isFullscreen) return;
-      e.preventDefault();
-      if (e.deltaY < 0) {
-        currentFontSize = Math.min(currentFontSize + 2, 95); // 限制最大值
-      } else {
-        currentFontSize = Math.max(currentFontSize - 2, 5);  // 限制最小值
-      }
-      updateFontSize();
-    }, { passive: false });
+    function clearAllTimers() {
+      if (timer1) clearTimeout(timer1);
+      if (timer2) clearTimeout(timer2);
+    }
 
-    // B. 雙指縮放調整字體大小 (手機) - 簡化版實現
-    let initialDist = 0;
-    fullscreenDiv.addEventListener('touchstart', (e) => {
-      if (e.touches.length === 2) {
-        initialDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-      }
-    });
-
-    fullscreenDiv.addEventListener('touchmove', (e) => {
-      if (!isFullscreen || e.touches.length !== 2) return;
-      e.preventDefault();
-      const currentDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-      const diff = currentDist - initialDist;
-      
-      if (Math.abs(diff) > 10) { // 設置靈敏度門檻
-        if (diff > 0) currentFontSize = Math.min(currentFontSize + 1, 95);
-        else currentFontSize = Math.max(currentFontSize - 1, 5);
-        updateFontSize();
-        initialDist = currentDist; // 更新起始距離，使其平滑
-      }
-    }, { passive: false });
-
-    // C. 點擊畫面退出全螢幕
-    fullscreenDiv.addEventListener('click', (e) => {
-      // 防止雙指縮放時觸發點擊
-      if (e.detail === 0) return; 
+    fullscreenDiv.addEventListener('click', () => {
       exitMarquee();
     });
 
-    // D. 鍵盤 Esc 退出
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && isFullscreen) exitMarquee();
     });
 
-    // 退出全螢幕處理函數
     function exitMarquee() {
       isFullscreen = false;
-      // 退出原生全螢幕
+      clearAllTimers();
+      
       if (document.fullscreenElement || document.webkitFullscreenElement) {
         if (document.exitFullscreen) document.exitFullscreen();
         else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
       }
-      // 隱藏跑馬燈層，顯示控制面板
       fullscreenDiv.style.display = 'none';
+      introTitle.style.display = 'none';
+      marqueeText.style.display = 'none';
       controls.classList.remove('hidden');
     }
 
-    // 監聽原生全螢幕狀態變化 (處理 Esc 鍵情況)
-    const fsChangeEvents = ['fullscreenchange', 'webkitfullscreenchange'];
-    fsChangeEvents.forEach(evt => {
-      document.addEventListener(evt, () => {
-        if (!document.fullscreenElement && !document.webkitFullscreenElement && isFullscreen) {
-          exitMarquee(); // 使用者在全螢幕狀態下按了 Esc 或 iOS 下滑退出
-        }
-      });
-    });
-
-    // ==================== 初始化 ====================
-    // A. 載入設定
     loadSettings();
-
-    // B. 註冊 Service Worker (PWA 離線支援與安裝)
-    // 注意：需在 HTTPS 環境下才生效
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        // 在本地檔案模式 (file://) 下不註冊 SW，防止報錯
-        if (location.protocol === 'https:' || location.hostname === 'localhost') {
-          navigator.serviceWorker.register('sw.js').catch(err => {
-            console.log('Service Worker 註冊失敗:', err);
-          });
-        }
-      });
-    }
   </script>
 </body>
 </html>
