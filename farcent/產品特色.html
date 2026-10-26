@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>產品特色專區</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Noto Serif TC (日系襯線字) & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'jp-bg': '#FAF8F5',       /* 溫潤米白 */
+                        'jp-card': '#FFFFFF',     /* 純白卡片 */
+                        'jp-border': '#EAE6E1',   /* 柔和細線 */
+                        'jp-text': '#333130',     /* 沉穩深灰 */
+                        'jp-subtext': '#7C7875',  /* 柔和灰棕 */
+                        'jp-accent': '#8C8275',   /* 日系莫蘭迪茶色 */
+                        'jp-hover-bg': '#F4F0EB'  /* 懸停底色 */
+                    },
+                    fontFamily: {
+                        serif: ['"Noto Serif TC"', 'serif'],
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #FAF8F5;
+            color: #333130;
+            font-family: 'Plus Jakarta Sans', 'Noto Serif TC', serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 日式極簡圓角與細微動態過渡 */
+        .jp-card-transition {
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* 幾何點綴與線條動畫 */
+        .link-line {
+            position: relative;
+        }
+        .link-line::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 1px;
+            background-color: #8C8275;
+            transition: width 0.3s ease;
+        }
+        .group:hover .link-line::after {
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-jp-accent selection:text-white">
+
+    <!-- 頁頭標題區塊 -->
+    <header class="pt-16 pb-8 md:pt-24 md:pb-12 text-center px-4">
+        <div class="inline-block px-3 py-1 mb-4 border border-jp-border rounded-full text-xs text-jp-subtext tracking-widest uppercase">
+            Product Collection
+        </div>
+        <h1 class="text-2xl md:text-3xl font-normal tracking-widest text-jp-text font-serif mb-3">
+            生活選品・特色專區
+        </h1>
+        <p class="text-xs md:text-sm text-jp-subtext font-light tracking-wider max-w-md mx-auto">
+            以純粹自然的設計，為日常空間帶來沉靜與舒適
+        </p>
+        <div class="w-8 h-[1px] bg-jp-accent opacity-40 mx-auto mt-6"></div>
+    </header>
+
+    <!-- 主內容區塊：強制的 2x2 網格配置 -->
+    <main class="w-full max-w-4xl mx-auto px-4 md:px-8 py-4 flex-grow flex items-center">
+        <div class="grid grid-cols-2 gap-4 md:gap-8 w-full">
+
+            <!-- 卡片 1: 香氛去味 -->
+            <a href="https://cpaizo.github.io/farcent/01product.html" 
+               target="_blank" 
+               rel="noopener noreferrer" 
+               class="group jp-card-transition bg-jp-card border border-jp-border rounded-lg p-6 md:p-10 text-center flex flex-col justify-between items-center hover:shadow-xl hover:shadow-jp-accent/5 hover:-translate-y-1 hover:border-jp-accent/60">
+                <div class="my-auto py-4">
+                    <span class="text-[10px] text-jp-subtext tracking-widest block mb-2 font-mono">01</span>
+                    <h2 class="text-base md:text-xl font-medium font-serif text-jp-text mb-2 group-hover:text-jp-accent transition-colors">
+                        香氛去味
+                    </h2>
+                    <p class="text-xs md:text-sm text-jp-subtext font-light tracking-wider hidden sm:block">
+                        靜謐香氣・清新空間
+                    </p>
+                </div>
+                <div class="mt-4 pt-2">
+                    <span class="link-line text-[11px] md:text-xs text-jp-accent tracking-widest uppercase font-medium inline-flex items-center gap-1">
+                        查看詳情 
+                        <svg class="w-3 h-3 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                        </svg>
+                    </span>
+                </div>
+            </a>
+
+            <!-- 卡片 2: 茶樹莊園 天然清潔系列 -->
+            <a href="https://cpaizo.github.io/farcent/02product.html" 
+               target="_blank" 
+               rel="noopener noreferrer" 
+               class="group jp-card-transition bg-jp-card border border-jp-border rounded-lg p-6 md:p-10 text-center flex flex-col justify-between items-center hover:shadow-xl hover:shadow-jp-accent/5 hover:-translate-y-1 hover:border-jp-accent/60">
+                <div class="my-auto py-4">
+                    <span class="text-[10px] text-jp-subtext tracking-widest block mb-2 font-mono">02</span>
+                    <h2 class="text-base md:text-xl font-medium font-serif text-jp-text mb-2 group-hover:text-jp-accent transition-colors">
+                        茶樹莊園
+                    </h2>
+                    <p class="text-xs md:text-sm text-jp-subtext font-light tracking-wider hidden sm:block">
+                        天然清潔・純淨呵護
+                    </p>
+                </div>
+                <div class="mt-4 pt-2">
+                    <span class="link-line text-[11px] md:text-xs text-jp-accent tracking-widest uppercase font-medium inline-flex items-center gap-1">
+                        查看詳情 
+                        <svg class="w-3 h-3 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                        </svg>
+                    </span>
+                </div>
+            </a>
+
+            <!-- 卡片 3: 克潮靈 產品系列 -->
+            <a href="https://cpaizo.github.io/farcent/03product.html" 
+               target="_blank" 
+               rel="noopener noreferrer" 
+               class="group jp-card-transition bg-jp-card border border-jp-border rounded-lg p-6 md:p-10 text-center flex flex-col justify-between items-center hover:shadow-xl hover:shadow-jp-accent/5 hover:-translate-y-1 hover:border-jp-accent/60">
+                <div class="my-auto py-4">
+                    <span class="text-[10px] text-jp-subtext tracking-widest block mb-2 font-mono">03</span>
+                    <h2 class="text-base md:text-xl font-medium font-serif text-jp-text mb-2 group-hover:text-jp-accent transition-colors">
+                        克潮靈
+                    </h2>
+                    <p class="text-xs md:text-sm text-jp-subtext font-light tracking-wider hidden sm:block">
+                        高效除濕・乾爽生活
+                    </p>
+                </div>
+                <div class="mt-4 pt-2">
+                    <span class="link-line text-[11px] md:text-xs text-jp-accent tracking-widest uppercase font-medium inline-flex items-center gap-1">
+                        查看詳情 
+                        <svg class="w-3 h-3 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                        </svg>
+                    </span>
+                </div>
+            </a>
+
+            <!-- 卡片 4: 居家打掃工具 -->
+            <a href="https://cpaizo.github.io/farcent/04product.html" 
+               target="_blank" 
+               rel="noopener noreferrer" 
+               class="group jp-card-transition bg-jp-card border border-jp-border rounded-lg p-6 md:p-10 text-center flex flex-col justify-between items-center hover:shadow-xl hover:shadow-jp-accent/5 hover:-translate-y-1 hover:border-jp-accent/60">
+                <div class="my-auto py-4">
+                    <span class="text-[10px] text-jp-subtext tracking-widest block mb-2 font-mono">04</span>
+                    <h2 class="text-base md:text-xl font-medium font-serif text-jp-text mb-2 group-hover:text-jp-accent transition-colors">
+                        居家打掃工具
+                    </h2>
+                    <p class="text-xs md:text-sm text-jp-subtext font-light tracking-wider hidden sm:block">
+                        輕巧省力・質感日常
+                    </p>
+                </div>
+                <div class="mt-4 pt-2">
+                    <span class="link-line text-[11px] md:text-xs text-jp-accent tracking-widest uppercase font-medium inline-flex items-center gap-1">
+                        查看詳情 
+                        <svg class="w-3 h-3 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                        </svg>
+                    </span>
+                </div>
+            </a>
+
+        </div>
+    </main>
+
+    <!-- 頁尾聲明區塊 -->
+    <footer class="w-full mt-12 py-8 border-t border-jp-border bg-[#F5F2EC]">
+        <div class="max-w-xl mx-auto px-4 text-center">
+            <p class="text-xs text-jp-subtext font-light leading-relaxed tracking-wider">
+                【教學示範聲明】<br>
+                本網站僅供資訊教學與功能模擬測試使用，非真實營運之網路商店。
+            </p>
+        </div>
+    </footer>
+
+</body>
+</html>
