@@ -1,667 +1,559 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>五年級夢幻跑馬燈 (Class Marquee PWA)</title>
-    <!-- Tailwind CSS for styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome icons for friendly visual UI -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Cute Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Mochiypop+One&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>國小五年級 酷炫跑馬燈 PWA</title>
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <!-- PWA Web App Manifest embedded via Blob Data URI JS below -->
-    <meta name="theme-color" content="#ec4899">
-    <meta name="description" content="專為國小生設計的彩色互動跑馬燈，支援離線與全螢幕播放！">
-    
-    <style>
-        /* 1. 自訂字型設定 (Custom Font Families) */
-        .font-cute { font-family: 'Mochiypop One', 'Fredoka', cursive, sans-serif; }
-        .font-sans-tc { font-family: 'Noto Sans TC', sans-serif; }
-        .font-impact { font-family: 'Impact', 'Arial Black', sans-serif; }
+  <!-- iOS 專屬圖示 -->
+  <link id="appleIcon" rel="apple-touch-icon" href="">
 
-        /* 2. 跑馬燈滾動動畫定義 (Scroll Animations) */
-        @keyframes scroll-left {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
-        }
-        @keyframes scroll-right {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-        @keyframes bounce-blink {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.15); opacity: 0.8; }
-        }
+  <!-- PWA Manifest -->
+  <link id="pwaManifest" rel="manifest" href="">
 
-        .animate-scroll-left {
-            display: inline-block;
-            white-space: nowrap;
-            animation: scroll-left var(--speed, 10s) linear infinite;
-        }
-        .animate-scroll-right {
-            display: inline-block;
-            white-space: nowrap;
-            animation: scroll-right var(--speed, 10s) linear infinite;
-        }
-        .animate-bounce-blink {
-            display: inline-block;
-            white-space: nowrap;
-            animation: bounce-blink var(--speed, 2s) ease-in-out infinite;
-        }
+  <!-- Tailwind CSS 樣式庫 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google 字體與 VT323 LED 字體 -->
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@700;900&family=VT323&display=swap" rel="stylesheet">
 
-        /* 動畫暫停類別 (Pause state) */
-        .paused {
-            animation-play-state: paused !important;
-        }
+  <style>
+    body {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      touch-action: manipulation;
+    }
 
-        /* 3. 飄浮背景特效的核心動畫 (Floating Particle Keyframes) */
-        @keyframes floatUpAndRotate {
-            0% {
-                transform: translateY(110vh) scale(0.6) rotate(0deg);
-                opacity: 0;
-            }
-            20% {
-                opacity: 0.9;
-            }
-            80% {
-                opacity: 0.9;
-            }
-            100% {
-                transform: translateY(-15vh) scale(1.3) rotate(360deg);
-                opacity: 0;
-            }
-        }
+    /* ========================================== */
+    /* 使用 em 單位，讓描邊與發光隨著字體等比例放大縮小 */
+    /* ========================================== */
+    .glow-neon {
+      text-shadow: 0 0 0.15em currentColor, 0 0 0.35em currentColor, 0 0 0.7em currentColor;
+      -webkit-text-stroke: 0px transparent;
+    }
 
-        /* 粒子元素基本樣式 (Ensuring correct Z-Index & bright visibility) */
-        .floating-particle {
-            position: absolute;
-            pointer-events: none; /* 讓粒子不會阻擋滑鼠點擊 */
-            user-select: none;
-            will-change: transform, opacity;
-            animation: floatUpAndRotate var(--duration, 6s) linear infinite;
-            animation-delay: var(--delay, 0s);
-            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
-        }
+    .glow-soft {
+      text-shadow: 0 0 0.2em rgba(255, 255, 255, 0.9), 0 0 0.5em currentColor;
+      -webkit-text-stroke: 0px transparent;
+    }
 
-        /* 4. 跑馬燈 LED 點陣外框發光效果 (LED Glow) */
-        .led-glow {
-            text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
-        }
+    .glow-led {
+      font-family: 'VT323', monospace;
+      letter-spacing: 0.05em;
+      text-shadow: 0 0 0.1em currentColor, 0 0 0.25em currentColor;
+      -webkit-text-stroke: 0px transparent;
+    }
 
-        /* 隱藏滾動條 (Hide Scrollbars) */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
-        }
-    </style>
+    /* 火熱描邊：使用 em 單位，字體越大描邊越粗！ */
+    .glow-stroke {
+      -webkit-text-stroke: 0.045em #ffffff;
+      text-shadow: 0 0 0.25em currentColor;
+    }
+
+    .glow-none {
+      text-shadow: none;
+      -webkit-text-stroke: 0px transparent;
+    }
+
+    /* 手機全螢幕相容模式 (CSS Fallback) */
+    .css-fullscreen {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      z-index: 99999 !important;
+      border: none !important;
+      border-radius: 0 !important;
+    }
+  </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans-tc min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-pink-500 selection:text-white">
+<body class="bg-slate-900 text-white min-h-screen flex flex-col overflow-x-hidden select-none">
 
-    <!-- 頂部標題列 (Header - Z-Index 30) -->
-    <header class="relative z-30 bg-slate-900/80 backdrop-blur border-b border-slate-800 px-4 py-3 flex justify-between items-center shadow-lg">
-        <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-pink-500 via-purple-500 to-yellow-400 flex items-center justify-center text-2xl shadow-md">
-                🚀
-            </div>
-            <div>
-                <h1 class="text-xl md:text-2xl font-bold bg-gradient-to-r from-pink-400 via-purple-300 to-indigo-400 bg-clip-text text-transparent">
-                    夢幻班級超級跑馬燈
-                </h1>
-                <p class="text-xs text-slate-400 hidden sm:block">國小五年級資訊課 - PWA 離線互動網頁專案</p>
-            </div>
+  <!-- ========================================== -->
+  <!-- 1. 跑馬燈舞台區 -->
+  <!-- ========================================== -->
+  <main id="marqueeStage" class="relative w-full h-[50vh] md:h-[55vh] overflow-hidden flex items-center justify-center border-b-4 border-indigo-500 shadow-2xl transition-all duration-300 bg-slate-950">
+    
+    <!-- 背景飄浮畫布 -->
+    <canvas id="particleCanvas" class="absolute inset-0 z-0 pointer-events-auto block"></canvas>
+
+    <!-- 跑馬燈文字區塊 -->
+    <div id="marqueeContainer" class="absolute z-10 whitespace-nowrap flex items-center left-0 pointer-events-none">
+      <span id="marqueeText" class="inline-block font-extrabold glow-neon">
+        🌟 國小五年一班 加油！ 🚀
+      </span>
+    </div>
+
+    <!-- 全螢幕切換按鈕 -->
+    <button id="fullScreenBtn" onclick="toggleFullScreen()" class="absolute top-4 right-4 z-20 bg-indigo-600/90 hover:bg-indigo-500 text-white px-4 py-2 rounded-full backdrop-blur-md shadow-lg flex items-center gap-2 text-sm md:text-base border border-indigo-400 active:scale-95 transition-all duration-300">
+      <span>📺</span> <span id="fullScreenText">全螢幕展示</span>
+    </button>
+  </main>
+
+  <!-- ========================================== -->
+  <!-- 2. 下方控制面板 (學生操作區) -->
+  <!-- ========================================== -->
+  <section class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-6 space-y-6">
+    
+    <!-- 快速口號選單 -->
+    <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700 shadow-md">
+      <label class="block text-sm font-bold text-indigo-300 mb-2">⚡ 快速選擇口號：</label>
+      <div class="flex flex-wrap gap-2">
+        <button onclick="setPreset('🏫 五年級加油！比賽拿第一！')" class="px-3 py-1.5 bg-indigo-900/60 hover:bg-indigo-700 text-indigo-200 text-sm rounded-xl border border-indigo-500/30">🏫 班級加油</button>
+        <button onclick="setPreset('🎂 祝大家生日快樂！天天開心！')" class="px-3 py-1.5 bg-pink-900/60 hover:bg-pink-700 text-pink-200 text-sm rounded-xl border border-pink-500/30">🎂 生日祝福</button>
+        <button onclick="setPreset('☀️ 今日天氣晴朗！放學去運動！')" class="px-3 py-1.5 bg-amber-900/60 hover:bg-amber-700 text-amber-200 text-sm rounded-xl border border-amber-500/30">☀️ 好心情</button>
+        <button onclick="setPreset('🏆 資訊課 PWA 實作成功！')" class="px-3 py-1.5 bg-emerald-900/60 hover:bg-emerald-700 text-emerald-200 text-sm rounded-xl border border-emerald-500/30">🏆 課堂展示</button>
+      </div>
+    </div>
+
+    <!-- 文字內容與方向 -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="md:col-span-2 bg-slate-800/80 p-4 rounded-2xl border border-slate-700">
+        <label for="textInput" class="block text-sm font-bold text-indigo-300 mb-2">✏️ 自訂跑馬燈內容：</label>
+        <input type="text" id="textInput" value="🌟 國小五年一班 加油！ 🚀" class="w-full px-4 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-white font-bold outline-none focus:ring-2 focus:ring-indigo-500">
+      </div>
+
+      <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700">
+        <label class="block text-sm font-bold text-indigo-300 mb-2">↔️ 滾動方向：</label>
+        <select id="directionSelect" class="w-full px-3 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-white font-bold outline-none cursor-pointer">
+          <option value="right-to-left">← 由右向左 (經典重複)</option>
+          <option value="left-to-right">→ 由左向右</option>
+          <option value="bounce">↔ 左右來回彈跳</option>
+          <option value="static">⏸️ 靜止置中</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 主題與顏色設定 -->
+    <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700 space-y-4">
+      <h3 class="text-base font-bold text-indigo-200 flex items-center gap-2">
+        <span>🎨</span> 視覺色彩與發光主題設定
+      </h3>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- 文字顏色 -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1.5">🔤 文字顏色</label>
+          <div class="flex items-center gap-2">
+            <input type="color" id="textColorInput" value="#ffea00" class="w-10 h-10 rounded-lg border-0 bg-transparent cursor-pointer">
+            <span id="colorHexText" class="text-xs font-mono text-slate-400">#ffea00</span>
+          </div>
         </div>
 
-        <!-- 功能按鈕區：安裝 PWA 與全螢幕 -->
-        <div class="flex items-center space-x-2">
-            <button id="pwa-install-btn" class="hidden bg-emerald-500 hover:bg-emerald-600 text-white text-xs md:text-sm font-bold px-3 py-2 rounded-xl transition shadow flex items-center space-x-1 animate-pulse">
-                <i class="fa-solid fa-download"></i>
-                <span>安裝到桌面</span>
-            </button>
-            <button id="fullscreen-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs md:text-sm font-bold px-3 py-2 rounded-xl transition shadow flex items-center space-x-1">
-                <i class="fa-solid fa-expand"></i>
-                <span class="hidden sm:inline">全螢幕播放</span>
-            </button>
-        </div>
-    </header>
-
-    <!-- 主展示區：跑馬燈看板 (Marquee Container - Z-Index 20) -->
-    <main id="display-area" class="relative z-20 flex-1 flex items-center justify-center bg-slate-950/90 my-2 mx-2 md:mx-6 rounded-3xl border-4 border-slate-800 shadow-2xl overflow-hidden min-h-[260px] transition-all duration-300 cursor-pointer group">
-        
-        <!-- 背景飄浮裝飾粒子容器 (Floating Particles Container - Layered inside display area at Z-Index 0) -->
-        <div id="particles-container" class="absolute inset-0 pointer-events-none overflow-hidden z-0"></div>
-
-        <!-- 跑馬燈內容包裹器 (Z-Index 10: 放在粒子上方) -->
-        <div id="marquee-container" class="relative z-10 w-full overflow-hidden flex items-center justify-center py-6 px-4">
-            <div id="marquee-text" class="animate-scroll-left font-cute text-yellow-300 text-6xl tracking-wide select-none" style="--speed: 8s;">
-                🌟 501班加油！大家一起努力學習！ 🎉
-            </div>
+        <!-- 發光主題 -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1.5">✨ 文字發光主題</label>
+          <select id="glowThemeSelect" class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-xl text-white text-xs font-bold cursor-pointer">
+            <option value="glow-neon">霓虹強光 (Neon)</option>
+            <option value="glow-soft">柔和夢幻 (Soft Glow)</option>
+            <option value="glow-led">LED 點陣 (LED Display)</option>
+            <option value="glow-stroke">火熱描邊 (Outline)</option>
+            <option value="glow-none">純色不發光 (Flat)</option>
+          </select>
         </div>
 
-        <!-- 畫面互動提示 (Click anywhere in dark box to create particles) -->
-        <div class="absolute top-3 left-4 text-[11px] text-slate-500 pointer-events-none z-10 opacity-70 group-hover:opacity-100 transition">
-            💡 提示：點擊螢幕看板可以產生飄浮幸運星！
+        <!-- 背景風格 -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1.5">🖼️ 背景主題風格</label>
+          <select id="bgPresetSelect" class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-xl text-white text-xs font-bold cursor-pointer">
+            <option value="bg-slate-950">🌌 深邃夜空 (經典黑)</option>
+            <option value="gradient-party">🎉 霓虹派對 (藍紫漸層)</option>
+            <option value="gradient-cyber">⚡ 賽博朋克 (藍綠漸層)</option>
+            <option value="gradient-sunset">🌅 浪漫夕陽 (橘紅漸層)</option>
+            <option value="gradient-aurora">🌲 極光森林 (青綠漸層)</option>
+            <option value="custom">🎨 自訂純色背景</option>
+          </select>
         </div>
 
-        <!-- 播放/暫停動態指示燈浮鈕 (Floating Play/Pause Controller) -->
-        <button id="pause-toggle-btn" title="點擊暫停/繼續" class="absolute bottom-3 right-3 z-20 bg-slate-800/80 hover:bg-slate-700 text-white w-10 h-10 rounded-full border border-slate-600 flex items-center justify-center text-sm shadow transition backdrop-blur opacity-80 hover:opacity-100">
-            <i id="pause-icon" class="fa-solid fa-pause"></i>
-        </button>
-    </main>
-
-    <!-- 下方控制面板 (Interactive Control Panel - Z-Index 30) -->
-    <section class="relative z-30 bg-slate-900/95 backdrop-blur border-t border-slate-800 p-4 md:p-6 rounded-t-3xl shadow-2xl max-w-6xl mx-auto w-full">
-        
-        <!-- Quick Presets 快選句庫 -->
-        <div class="mb-4">
-            <label class="block text-xs md:text-sm font-bold text-pink-300 mb-2 flex items-center">
-                <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> 快速選擇常用標語 (Quick Presets)
-            </label>
-            <div class="flex flex-wrap gap-2">
-                <button class="preset-btn bg-slate-800 hover:bg-pink-600 text-xs md:text-sm text-slate-200 hover:text-white px-3 py-1.5 rounded-xl border border-slate-700 transition">
-                    🌟 501班加油！🎉
-                </button>
-                <button class="preset-btn bg-slate-800 hover:bg-pink-600 text-xs md:text-sm text-slate-200 hover:text-white px-3 py-1.5 rounded-xl border border-slate-700 transition">
-                    🎂 祝大家生日快樂！🎁
-                </button>
-                <button class="preset-btn bg-slate-800 hover:bg-pink-600 text-xs md:text-sm text-slate-200 hover:text-white px-3 py-1.5 rounded-xl border border-slate-700 transition">
-                    ☀️ 今天天氣真好，心情美美噠！
-                </button>
-                <button class="preset-btn bg-slate-800 hover:bg-pink-600 text-xs md:text-sm text-slate-200 hover:text-white px-3 py-1.5 rounded-xl border border-slate-700 transition">
-                    📚 認真學習，天天向上！
-                </button>
-                <button class="preset-btn bg-slate-800 hover:bg-pink-600 text-xs md:text-sm text-slate-200 hover:text-white px-3 py-1.5 rounded-xl border border-slate-700 transition">
-                    🏆 運動會全力以赴，勇奪第一！
-                </button>
-            </div>
+        <!-- 自訂背景顏色 -->
+        <div id="customBgContainer" class="hidden">
+          <label class="block text-xs font-bold text-slate-300 mb-1.5">🖌️ 自訂背景顏色</label>
+          <input type="color" id="bgColorInput" value="#0f172a" class="w-10 h-10 rounded-lg border-0 bg-transparent cursor-pointer">
         </div>
+      </div>
+    </div>
 
-        <!-- 多功能設定選單 (Settings Grid) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            
-            <!-- 1. 文字輸入框 (Text Input) -->
-            <div class="bg-slate-950/60 p-3.5 rounded-2xl border border-slate-800 flex flex-col justify-between">
-                <label for="text-input" class="block text-xs md:text-sm font-bold text-slate-300 mb-1">
-                    <i class="fa-solid fa-pen-to-square text-pink-400 mr-1"></i> 輸入跑馬燈文字
-                </label>
-                <input type="text" id="text-input" value="🌟 501班加油！大家一起努力學習！ 🎉" 
-                       placeholder="請輸入想顯示的文字..." 
-                       class="w-full bg-slate-800 border border-slate-700 focus:border-pink-500 text-white rounded-xl px-3 py-2 text-sm md:text-base outline-none transition">
-            </div>
+    <!-- 速度、大小與背景特效 -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700">
+        <div class="flex justify-between mb-1"><label class="text-sm font-bold text-indigo-300">🏃 滾動速度</label><span id="speedVal" class="text-xs text-indigo-200 font-mono">5</span></div>
+        <input type="range" id="speedInput" min="1" max="15" value="5" class="w-full accent-indigo-500 cursor-pointer">
+      </div>
 
-            <!-- 2. 方向與滾動模式 (Direction & Animation Mode) -->
-            <div class="bg-slate-950/60 p-3.5 rounded-2xl border border-slate-800 flex flex-col justify-between">
-                <label class="block text-xs md:text-sm font-bold text-slate-300 mb-1">
-                    <i class="fa-solid fa-arrows-left-right text-blue-400 mr-1"></i> 滾動方向與效果
-                </label>
-                <div class="grid grid-cols-3 gap-1.5">
-                    <button id="dir-left" class="dir-btn bg-pink-600 text-white text-xs py-2 rounded-xl font-bold transition flex flex-col items-center justify-center">
-                        <i class="fa-solid fa-arrow-left mb-0.5"></i> 向左走
-                    </button>
-                    <button id="dir-right" class="dir-btn bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-2 rounded-xl font-bold transition flex flex-col items-center justify-center">
-                        <i class="fa-solid fa-arrow-right mb-0.5"></i> 向右走
-                    </button>
-                    <button id="dir-bounce" class="dir-btn bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-2 rounded-xl font-bold transition flex flex-col items-center justify-center">
-                        <i class="fa-solid fa-expand mb-0.5"></i> 彈跳閃爍
-                    </button>
-                </div>
-            </div>
+      <!-- 文字大小最大至 240px -->
+      <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700">
+        <div class="flex justify-between mb-1"><label class="text-sm font-bold text-indigo-300">🔍 文字大小</label><span id="fontSizeVal" class="text-xs text-indigo-200 font-mono">60px</span></div>
+        <input type="range" id="fontSizeInput" min="24" max="240" value="60" class="w-full accent-indigo-500 cursor-pointer">
+      </div>
 
-            <!-- 3. 速度控制 (Scroll Speed Slider) -->
-            <div class="bg-slate-950/60 p-3.5 rounded-2xl border border-slate-800 flex flex-col justify-between">
-                <div class="flex justify-between items-center mb-1">
-                    <label for="speed-slider" class="text-xs md:text-sm font-bold text-slate-300">
-                        <i class="fa-solid fa-gauge-high text-yellow-400 mr-1"></i> 滾動速度
-                    </label>
-                    <span id="speed-value-text" class="text-xs text-yellow-400 font-bold">中速 (8秒)</span>
-                </div>
-                <input type="range" id="speed-slider" min="2" max="20" step="1" value="8" 
-                       class="w-full accent-pink-500 bg-slate-800 rounded-lg h-2 cursor-pointer">
-                <div class="flex justify-between text-[10px] text-slate-400 mt-1">
-                    <span>快速 (2s)</span>
-                    <span>中速 (10s)</span>
-                    <span>慢速 (20s)</span>
-                </div>
-            </div>
+      <!-- 特效選單 (含關閉特效) -->
+      <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700">
+        <label class="block text-sm font-bold text-indigo-300 mb-1">✨ 背景飄浮特效圖案</label>
+        <select id="particleTypeSelect" class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-xl text-white text-sm font-bold cursor-pointer">
+          <option value="star">⭐ 燦爛星星</option>
+          <option value="heart">💖 溫馨愛心</option>
+          <option value="bubble">🫧 夢幻氣泡</option>
+          <option value="sparkle">✨ 閃耀星光</option>
+          <option value="party">🎉 派對表情</option>
+          <option value="none">🚫 無 (關閉背景特效)</option>
+        </select>
+      </div>
+    </div>
+  </section>
 
-            <!-- 4. 字體大小與字型 (Font Size & Font Family) -->
-            <div class="bg-slate-950/60 p-3.5 rounded-2xl border border-slate-800 flex flex-col justify-between">
-                <div class="flex justify-between items-center mb-1">
-                    <label for="size-slider" class="text-xs md:text-sm font-bold text-slate-300">
-                        <i class="fa-solid fa-text-height text-green-400 mr-1"></i> 文字大小
-                    </label>
-                    <span id="size-value-text" class="text-xs text-green-400 font-bold">60 px</span>
-                </div>
-                <input type="range" id="size-slider" min="30" max="140" value="60" 
-                       class="w-full accent-green-500 bg-slate-800 rounded-lg h-2 cursor-pointer mb-2">
-                
-                <!-- 字型選擇 -->
-                <div class="flex items-center space-x-2">
-                    <span class="text-xs text-slate-400">字型:</span>
-                    <select id="font-family-select" class="bg-slate-800 text-xs text-slate-200 border border-slate-700 rounded-lg px-2 py-1 outline-none focus:border-green-400 flex-1">
-                        <option value="font-cute">可愛情趣體 (Cute)</option>
-                        <option value="font-sans-tc">標準黑體 (Standard)</option>
-                        <option value="font-impact">粗體強調 (Impact)</option>
-                    </select>
-                </div>
-            </div>
+  <!-- ========================================== -->
+  <!-- 3. JavaScript 邏輯控制 -->
+  <!-- ========================================== -->
+  <script>
+    // --- 1. 自動生成相容 PNG Icon ---
+    function generateDynamicPngIcon() {
+      const c = document.createElement('canvas');
+      c.width = 192;
+      c.height = 192;
+      const ctx = c.getContext('2d');
 
-            <!-- 5. 顏色風格選擇 (Theme & Color Pickers) -->
-            <div class="bg-slate-950/60 p-3.5 rounded-2xl border border-slate-800 flex flex-col justify-between">
-                <label class="block text-xs md:text-sm font-bold text-slate-300 mb-1">
-                    <i class="fa-solid fa-palette text-purple-400 mr-1"></i> 顏色與發光主題
-                </label>
-                <div class="flex items-center justify-between space-x-2">
-                    <!-- 自訂文字顏色 -->
-                    <div class="flex items-center space-x-1">
-                        <span class="text-xs text-slate-400">字色:</span>
-                        <input type="color" id="text-color-picker" value="#fde047" class="w-7 h-7 rounded-lg border-0 cursor-pointer bg-transparent">
-                    </div>
-                    <!-- 自訂背景顏色 -->
-                    <div class="flex items-center space-x-1">
-                        <span class="text-xs text-slate-400">背景:</span>
-                        <input type="color" id="bg-color-picker" value="#020617" class="w-7 h-7 rounded-lg border-0 cursor-pointer bg-transparent">
-                    </div>
-                    <!-- 特效開關 -->
-                    <button id="glow-toggle-btn" class="bg-slate-800 hover:bg-purple-600 text-xs text-slate-200 px-2.5 py-1.5 rounded-xl border border-slate-700 transition flex items-center">
-                        <i class="fa-solid fa-lightbulb text-yellow-300 mr-1"></i> 霓虹發光
-                    </button>
-                </div>
-            </div>
+      ctx.fillStyle = '#4f46e5';
+      ctx.beginPath();
+      ctx.roundRect(0, 0, 192, 192, 40);
+      ctx.fill();
 
-            <!-- 6. 增強版動態飄浮背景特效控制器 (Enhanced Particle Effect Control) -->
-            <div class="bg-slate-950/60 p-3.5 rounded-2xl border border-slate-800 flex flex-col justify-between space-y-2">
-                <div class="flex justify-between items-center">
-                    <label class="block text-xs md:text-sm font-bold text-amber-300">
-                        <i class="fa-solid fa-sparkles mr-1"></i> 飄浮背景粒子特效
-                    </label>
-                    <span id="particle-count-badge" class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-bold">18 個粒子</span>
-                </div>
-                
-                <!-- 粒子圖案選單 -->
-                <div class="grid grid-cols-5 gap-1">
-                    <button data-shape="stars" class="shape-btn bg-amber-500/30 text-amber-200 border border-amber-500/60 text-xs py-1 rounded-xl font-bold transition">⭐ 星星</button>
-                    <button data-shape="hearts" class="shape-btn bg-slate-800 text-slate-400 border border-slate-700 text-xs py-1 rounded-xl font-bold transition">💖 愛心</button>
-                    <button data-shape="bubbles" class="shape-btn bg-slate-800 text-slate-400 border border-slate-700 text-xs py-1 rounded-xl font-bold transition">🫧 氣泡</button>
-                    <button data-shape="sparkles" class="shape-btn bg-slate-800 text-slate-400 border border-slate-700 text-xs py-1 rounded-xl font-bold transition">✨ 閃爍</button>
-                    <button data-shape="off" class="shape-btn bg-slate-800 text-slate-400 border border-slate-700 text-xs py-1 rounded-xl font-bold transition">🚫 關閉</button>
-                </div>
+      ctx.font = '100px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('📢', 96, 102);
 
-                <!-- 數量與速度微調 -->
-                <div class="flex items-center space-x-2 text-xs text-slate-400 pt-1">
-                    <span class="whitespace-nowrap">數量:</span>
-                    <input type="range" id="particle-density-slider" min="5" max="40" value="18" class="w-full accent-amber-400 bg-slate-800 h-1.5 rounded-lg cursor-pointer">
-                </div>
-            </div>
+      const pngDataUrl = c.toDataURL('image/png');
+      document.getElementById('appleIcon').href = pngDataUrl;
 
-        </div>
-    </section>
+      const manifestObj = {
+        name: "學生酷炫跑馬燈",
+        short_name: "跑馬燈",
+        start_url: "./index.html",
+        display: "standalone",
+        background_color: "#0f172a",
+        theme_color: "#4f46e5",
+        icons: [{ src: pngDataUrl, sizes: "192x192", type: "image/png" }]
+      };
 
-    <!-- 頁尾與說明 (Footer) -->
-    <footer class="relative z-30 text-center py-2 text-[11px] text-slate-500 border-t border-slate-900 bg-slate-950">
-        五年級資訊課學習範例 | 包含 HTML DOM 控制、CSS keyframes 動畫與 PWA 快存技術
-    </footer>
+      document.getElementById('pwaManifest').href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifestObj));
+    }
 
+    generateDynamicPngIcon();
 
-    <!-- JavaScript 邏輯控制區 (JS Logic & Particle Engine & PWA) -->
-    <script>
-        /* =============================================================
-         * 1. 元素抓取 (DOM Elements Selection)
-         * ============================================================= */
-        const marqueeText = document.getElementById('marquee-text');
-        const marqueeContainer = document.getElementById('marquee-container');
-        const displayArea = document.getElementById('display-area');
-        const textInput = document.getElementById('text-input');
-        
-        const speedSlider = document.getElementById('speed-slider');
-        const speedValueText = document.getElementById('speed-value-text');
-        
-        const sizeSlider = document.getElementById('size-slider');
-        const sizeValueText = document.getElementById('size-value-text');
-        
-        const fontSelect = document.getElementById('font-family-select');
-        const textColorPicker = document.getElementById('text-color-picker');
-        const bgColorPicker = document.getElementById('bg-color-picker');
-        const glowToggleBtn = document.getElementById('glow-toggle-btn');
-        
-        const dirLeftBtn = document.getElementById('dir-left');
-        const dirRightBtn = document.getElementById('dir-right');
-        const dirBounceBtn = document.getElementById('dir-bounce');
-        
-        const pauseToggleBtn = document.getElementById('pause-toggle-btn');
-        const pauseIcon = document.getElementById('pause-icon');
-        const fullscreenBtn = document.getElementById('fullscreen-btn');
-        
-        const presetBtns = document.querySelectorAll('.preset-btn');
-        const particlesContainer = document.getElementById('particles-container');
-        const shapeBtns = document.querySelectorAll('.shape-btn');
-        const particleDensitySlider = document.getElementById('particle-density-slider');
-        const particleCountBadge = document.getElementById('particle-count-badge');
+    // --- 2. DOM 元素獲取 ---
+    const marqueeContainer = document.getElementById('marqueeContainer');
+    const marqueeText = document.getElementById('marqueeText');
+    const marqueeStage = document.getElementById('marqueeStage');
+    const fullScreenBtn = document.getElementById('fullScreenBtn');
+    const fullScreenText = document.getElementById('fullScreenText');
+    const textInput = document.getElementById('textInput');
+    const speedInput = document.getElementById('speedInput');
+    const speedVal = document.getElementById('speedVal');
+    const fontSizeInput = document.getElementById('fontSizeInput');
+    const fontSizeVal = document.getElementById('fontSizeVal');
+    const textColorInput = document.getElementById('textColorInput');
+    const colorHexText = document.getElementById('colorHexText');
+    const directionSelect = document.getElementById('directionSelect');
+    const particleTypeSelect = document.getElementById('particleTypeSelect');
+    const glowThemeSelect = document.getElementById('glowThemeSelect');
+    const bgPresetSelect = document.getElementById('bgPresetSelect');
+    const customBgContainer = document.getElementById('customBgContainer');
+    const bgColorInput = document.getElementById('bgColorInput');
 
-        // 狀態變數 (State Management)
-        let isPaused = false;
-        let isGlowing = false;
-        let activeShape = 'stars';
-        let particleCount = 18;
+    let posX = 0;
+    let directionMultiplier = -1;
+    let isFullScreenMode = false;
 
-        /* =============================================================
-         * 2. 跑馬燈文字與樣式控制 (Marquee Text & Style Handlers)
-         * ============================================================= */
-        
-        // 即時文字更新
-        textInput.addEventListener('input', (e) => {
-            marqueeText.textContent = e.target.value || '請輸入文字...';
-        });
+    // 重置跑馬燈起始位置
+    function resetPosition() {
+      const stageWidth = marqueeStage.clientWidth || window.innerWidth;
+      const direction = directionSelect.value;
+      if (direction === 'right-to-left') {
+        posX = stageWidth;
+      } else if (direction === 'left-to-right') {
+        posX = -marqueeContainer.clientWidth;
+      } else {
+        posX = stageWidth / 2 - marqueeContainer.clientWidth / 2;
+      }
+    }
 
-        // 快速標語點擊帶入
-        presetBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const text = btn.textContent.trim();
-                textInput.value = text;
-                marqueeText.textContent = text;
-            });
-        });
+    function updateMarquee() {
+      marqueeText.textContent = textInput.value || '請輸入文字...';
+      const sizePx = fontSizeInput.value;
+      marqueeText.style.fontSize = `${sizePx}px`;
+      fontSizeVal.textContent = `${sizePx}px`;
+      marqueeText.style.color = textColorInput.value;
+      colorHexText.textContent = textColorInput.value;
+      speedVal.textContent = speedInput.value;
 
-        // 調整滾動速度
-        speedSlider.addEventListener('input', (e) => {
-            const val = e.target.value;
-            marqueeText.style.setProperty('--speed', `${val}s`);
-            
-            if (val <= 4) speedValueText.textContent = `快速 (${val}秒)`;
-            else if (val <= 12) speedValueText.textContent = `中速 (${val}秒)`;
-            else speedValueText.textContent = `慢速 (${val}秒)`;
-        });
+      // 載入發光主題樣式（使用 CSS em 自動縮放）
+      marqueeText.className = `inline-block font-extrabold ${glowThemeSelect.value}`;
+    }
 
-        // 調整文字大小
-        sizeSlider.addEventListener('input', (e) => {
-            const size = e.target.value;
-            marqueeText.style.fontSize = `${size}px`;
-            sizeValueText.textContent = `${size} px`;
-        });
+    function updateBackground() {
+      const preset = bgPresetSelect.value;
+      marqueeStage.style.background = '';
+      marqueeStage.className = "relative w-full h-[50vh] md:h-[55vh] overflow-hidden flex items-center justify-center border-b-4 border-indigo-500 shadow-2xl transition-all duration-300";
 
-        // 切換字型
-        fontSelect.addEventListener('change', (e) => {
-            marqueeText.className = marqueeText.className.replace(/font-\S+/g, '');
-            marqueeText.classList.add(e.target.value);
-        });
+      if (preset === 'bg-slate-950') {
+        marqueeStage.classList.add('bg-slate-950');
+        customBgContainer.classList.add('hidden');
+      } else if (preset === 'gradient-party') {
+        marqueeStage.style.background = 'linear-gradient(135deg, #1e1b4b 0%, #4c1d95 50%, #831843 100%)';
+        customBgContainer.classList.add('hidden');
+      } else if (preset === 'gradient-cyber') {
+        marqueeStage.style.background = 'linear-gradient(135deg, #022c22 0%, #064e3b 50%, #0f172a 100%)';
+        customBgContainer.classList.add('hidden');
+      } else if (preset === 'gradient-sunset') {
+        marqueeStage.style.background = 'linear-gradient(135deg, #451a03 0%, #78350f 50%, #831843 100%)';
+        customBgContainer.classList.add('hidden');
+      } else if (preset === 'gradient-aurora') {
+        marqueeStage.style.background = 'linear-gradient(135deg, #064e3b 0%, #1e1b4b 100%)';
+        customBgContainer.classList.add('hidden');
+      } else if (preset === 'custom') {
+        customBgContainer.classList.remove('hidden');
+        marqueeStage.style.backgroundColor = bgColorInput.value;
+      }
+    }
 
-        // 文字與背景顏色
-        textColorPicker.addEventListener('input', (e) => {
-            marqueeText.style.color = e.target.value;
-        });
+    // --- 3. 跑馬燈平滑動畫 ---
+    function animateMarquee() {
+      const stageWidth = marqueeStage.clientWidth || window.innerWidth;
+      const textWidth = marqueeContainer.clientWidth;
+      const speed = parseFloat(speedInput.value);
+      const direction = directionSelect.value;
 
-        bgColorPicker.addEventListener('input', (e) => {
-            displayArea.style.backgroundColor = e.target.value;
-        });
+      if (direction === 'static') {
+        marqueeContainer.style.left = '50%';
+        marqueeContainer.style.transform = 'translateX(-50%)';
+      } else {
+        marqueeContainer.style.left = '0px';
 
-        // 發光效果開關
-        glowToggleBtn.addEventListener('click', () => {
-            isGlowing = !isGlowing;
-            if (isGlowing) {
-                marqueeText.classList.add('led-glow');
-                glowToggleBtn.classList.replace('bg-slate-800', 'bg-purple-600');
-            } else {
-                marqueeText.classList.remove('led-glow');
-                glowToggleBtn.classList.replace('bg-purple-600', 'bg-slate-800');
-            }
-        });
-
-        /* =============================================================
-         * 3. 跑馬燈方向與暫停 (Direction & Playback Control)
-         * ============================================================= */
-        function setDirection(direction) {
-            marqueeText.classList.remove('animate-scroll-left', 'animate-scroll-right', 'animate-bounce-blink');
-            
-            [dirLeftBtn, dirRightBtn, dirBounceBtn].forEach(btn => {
-                btn.classList.replace('bg-pink-600', 'bg-slate-800');
-                btn.classList.replace('text-white', 'text-slate-300');
-            });
-
-            if (direction === 'left') {
-                marqueeText.classList.add('animate-scroll-left');
-                dirLeftBtn.classList.replace('bg-slate-800', 'bg-pink-600');
-                dirLeftBtn.classList.replace('text-slate-300', 'text-white');
-            } else if (direction === 'right') {
-                marqueeText.classList.add('animate-scroll-right');
-                dirRightBtn.classList.replace('bg-slate-800', 'bg-pink-600');
-                dirRightBtn.classList.replace('text-slate-300', 'text-white');
-            } else if (direction === 'bounce') {
-                marqueeText.classList.add('animate-bounce-blink');
-                dirBounceBtn.classList.replace('bg-slate-800', 'bg-pink-600');
-                dirBounceBtn.classList.replace('text-slate-300', 'text-white');
-            }
+        if (direction === 'right-to-left') {
+          posX -= speed;
+          if (posX < -textWidth) {
+            posX = stageWidth;
+          }
+        } else if (direction === 'left-to-right') {
+          posX += speed;
+          if (posX > stageWidth) {
+            posX = -textWidth;
+          }
+        } else if (direction === 'bounce') {
+          posX += speed * directionMultiplier;
+          if (posX <= 0) directionMultiplier = 1;
+          else if (posX >= stageWidth - textWidth) directionMultiplier = -1;
         }
 
-        dirLeftBtn.addEventListener('click', () => setDirection('left'));
-        dirRightBtn.addEventListener('click', () => setDirection('right'));
-        dirBounceBtn.addEventListener('click', () => setDirection('bounce'));
+        marqueeContainer.style.transform = `translateX(${posX}px)`;
+      }
 
-        // 暫停與繼續切換
-        function togglePause() {
-            isPaused = !isPaused;
-            if (isPaused) {
-                marqueeText.classList.add('paused');
-                pauseIcon.classList.replace('fa-pause', 'fa-play');
-                pauseToggleBtn.classList.add('bg-pink-600');
-            } else {
-                marqueeText.classList.remove('paused');
-                pauseIcon.classList.replace('fa-play', 'fa-pause');
-                pauseToggleBtn.classList.remove('bg-pink-600');
-            }
+      requestAnimationFrame(animateMarquee);
+    }
+
+    function setPreset(text) {
+      textInput.value = text;
+      updateMarquee();
+      resetPosition();
+    }
+
+    // --- 4. 全螢幕模式控制 ---
+    function toggleFullScreen() {
+      if (!isFullScreenMode) {
+        if (marqueeStage.requestFullscreen) {
+          marqueeStage.requestFullscreen().catch(() => enableCssFullscreen());
+        } else {
+          enableCssFullscreen();
         }
+        isFullScreenMode = true;
+        fullScreenBtn.classList.add('opacity-0', 'pointer-events-none');
+        fullScreenText.textContent = '❌ 退出';
+      } else {
+        exitFullScreenMode();
+      }
+      triggerReflowAndSyncCanvas();
+    }
 
-        pauseToggleBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); // 避免觸發背景點擊產生粒子
-            togglePause();
-        });
+    function enableCssFullscreen() {
+      marqueeStage.classList.add('css-fullscreen');
+    }
 
-        /* =============================================================
-         * 4. 飄浮背景粒子引擎 (Robust Floating Particle Engine)
-         * ============================================================= */
-        
-        // 圖案清單 (Shape dictionary)
-        const particleIcons = {
-            stars: ['⭐', '🌟', '💫', '✨', '🟡'],
-            hearts: ['💖', '❤️', '💕', '🌸', '💘'],
-            bubbles: ['🫧', '💧', '🔵', '⚪', '🫧'],
-            sparkles: ['✨', '💎', '⚡', '🌙', '⭐']
-        };
+    function exitFullScreenMode() {
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      }
+      marqueeStage.classList.remove('css-fullscreen');
+      isFullScreenMode = false;
+      fullScreenBtn.classList.remove('opacity-0', 'pointer-events-none');
+      fullScreenText.textContent = '全螢幕展示';
+      triggerReflowAndSyncCanvas();
+    }
 
-        // 清除並重構所有粒子
-        function renderParticles() {
-            particlesContainer.innerHTML = ''; // 清空舊元素
-            
-            if (activeShape === 'off') {
-                particleCountBadge.textContent = '已關閉';
-                return;
-            }
+    function triggerReflowAndSyncCanvas() {
+      setTimeout(() => { syncCanvasDimensions(); }, 50);
+      setTimeout(() => { syncCanvasDimensions(); }, 250);
+    }
 
-            particleCountBadge.textContent = `${particleCount} 個粒子`;
-            const shapes = particleIcons[activeShape] || particleIcons.stars;
+    marqueeStage.addEventListener('mousemove', showBtnTemporarily);
+    marqueeStage.addEventListener('click', showBtnTemporarily);
 
-            // 根據設定的數量建立粒子
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'floating-particle';
-                
-                // 隨機選擇圖案、大小、位置與動畫延遲
-                const symbol = shapes[Math.floor(Math.random() * shapes.length)];
-                const leftPos = Math.random() * 100; // 水平百分比 (0-100%)
-                const size = Math.random() * 24 + 18; // 字型大小 (18px - 42px)
-                const duration = Math.random() * 5 + 4; // 動畫週期 (4s - 9s)
-                const delay = Math.random() * -10; // 負延遲能讓畫面開啟時就有粒子
+    let hideTimeout;
+    function showBtnTemporarily() {
+      if (isFullScreenMode) {
+        fullScreenBtn.classList.remove('opacity-0', 'pointer-events-none');
+        clearTimeout(hideTimeout);
+        hideTimeout = setTimeout(() => {
+          if (isFullScreenMode) {
+            fullScreenBtn.classList.add('opacity-0', 'pointer-events-none');
+          }
+        }, 3000);
+      }
+    }
 
-                particle.textContent = symbol;
-                particle.style.left = `${leftPos}%`;
-                particle.style.fontSize = `${size}px`;
-                particle.style.setProperty('--duration', `${duration}s`);
-                particle.style.setProperty('--delay', `${delay}s`);
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement && isFullScreenMode) {
+        exitFullScreenMode();
+      }
+    });
 
-                particlesContainer.appendChild(particle);
-            }
+    // --- 5. 事件監聽 ---
+    textInput.addEventListener('input', () => { updateMarquee(); resetPosition(); });
+    fontSizeInput.addEventListener('input', () => { updateMarquee(); resetPosition(); });
+    textColorInput.addEventListener('input', updateMarquee);
+    glowThemeSelect.addEventListener('change', updateMarquee);
+    speedInput.addEventListener('input', () => speedVal.textContent = speedInput.value);
+    directionSelect.addEventListener('change', resetPosition);
+    bgPresetSelect.addEventListener('change', updateBackground);
+    bgColorInput.addEventListener('input', updateBackground);
+
+    // --- 6. 核心 Canvas 粒子動畫系統 ---
+    const canvas = document.getElementById('particleCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function syncCanvasDimensions() {
+      const w = marqueeStage.clientWidth || window.innerWidth;
+      const h = marqueeStage.clientHeight || (window.innerHeight * 0.5);
+
+      if (w > 0 && h > 0) {
+        canvas.width = w;
+        canvas.height = h;
+      }
+      initParticles();
+    }
+
+    window.addEventListener('resize', syncCanvasDimensions);
+
+    class Particle {
+      constructor(x, y, isBurst = false) {
+        const cw = canvas.width || window.innerWidth;
+        const ch = canvas.height || 300;
+        this.x = x || Math.random() * cw;
+        this.y = y || ch + Math.random() * 20;
+        this.size = Math.random() * 18 + 12;
+        this.speedY = isBurst ? (Math.random() - 0.5) * 6 : -(Math.random() * 1.5 + 0.8);
+        this.speedX = isBurst ? (Math.random() - 0.5) * 6 : (Math.random() - 0.5) * 1;
+        this.opacity = Math.random() * 0.7 + 0.3;
+        this.type = particleTypeSelect.value;
+      }
+
+      update() {
+        const cw = canvas.width || window.innerWidth;
+        const ch = canvas.height || 300;
+
+        this.x += this.speedX;
+        this.y += this.speedY;
+
+        if (this.y < -30) {
+          this.y = ch + 10;
+          this.x = Math.random() * cw;
         }
+      }
 
-        // 點擊跑馬燈看板時，動態生成互動爆發粒子 (Click Interaction)
-        displayArea.addEventListener('click', (e) => {
-            if (activeShape === 'off') return;
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        ctx.font = `${this.size}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
 
-            const rect = displayArea.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            
-            // 每次點擊產生 3 個快速飄升的驚喜粒子
-            const shapes = particleIcons[activeShape] || particleIcons.stars;
-            for (let i = 0; i < 3; i++) {
-                const burstParticle = document.createElement('div');
-                burstParticle.className = 'floating-particle';
-                
-                const symbol = shapes[Math.floor(Math.random() * shapes.length)];
-                const size = Math.random() * 28 + 24;
-                const offset = (Math.random() - 0.5) * 60; // 隨機偏移
-                
-                burstParticle.textContent = symbol;
-                burstParticle.style.left = `${Math.max(2, Math.min(95, ((clickX + offset) / rect.width) * 100))}%`;
-                burstParticle.style.fontSize = `${size}px`;
-                burstParticle.style.setProperty('--duration', '3s');
-                burstParticle.style.setProperty('--delay', '0s');
+        let symbol = '⭐';
+        if (this.type === 'heart') symbol = '💖';
+        if (this.type === 'bubble') symbol = '🫧';
+        if (this.type === 'sparkle') symbol = '✨';
+        if (this.type === 'party') symbol = '🎉';
 
-                particlesContainer.appendChild(burstParticle);
+        ctx.fillText(symbol, this.x, this.y);
+        ctx.restore();
+      }
+    }
 
-                // 動畫結束後自動清理，避免過多 DOM 元素累積
-                setTimeout(() => burstParticle.remove(), 3000);
-            }
-        });
-
-        // 粒子圖案按鈕切換事件
-        shapeBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                shapeBtns.forEach(b => {
-                    b.classList.replace('bg-amber-500/30', 'bg-slate-800');
-                    b.classList.replace('text-amber-200', 'text-slate-400');
-                    b.classList.replace('border-amber-500/60', 'border-slate-700');
-                });
-                
-                btn.classList.replace('bg-slate-800', 'bg-amber-500/30');
-                btn.classList.replace('text-slate-400', 'text-amber-200');
-                btn.classList.replace('border-slate-700', 'border-amber-500/60');
-                
-                activeShape = btn.getAttribute('data-shape');
-                renderParticles();
-            });
-        });
-
-        // 粒子密度數量調整
-        particleDensitySlider.addEventListener('input', (e) => {
-            particleCount = parseInt(e.target.value);
-            if (activeShape !== 'off') {
-                renderParticles();
-            }
-        });
-
-        // 初始載入粒子
-        renderParticles();
-
-        /* =============================================================
-         * 5. 全螢幕功能 (Fullscreen Handler)
-         * ============================================================= */
-        fullscreenBtn.addEventListener('click', () => {
-            if (!document.fullscreenElement) {
-                displayArea.requestFullscreen().catch(err => {
-                    alert(`無法切換至全螢幕: ${err.message}`);
-                });
-            } else {
-                document.exitFullscreen();
-            }
-        });
-
-        /* =============================================================
-         * 6. PWA (Progressive Web App) 離線快取與安裝支援
-         * ============================================================= */
-        
-        // 1. 動態建立 PWA Web Manifest (Blob URL)
-        const manifestData = {
-            name: "五年級夢幻跑馬燈",
-            short_name: "夢幻跑馬燈",
-            description: "國小五年級資訊課 - 彩色互動跑馬燈 PWA 網頁應用程式",
-            start_url: "./",
-            display: "standalone",
-            background_color: "#020617",
-            theme_color: "#ec4899",
-            icons: [
-                {
-                    src: "https://placehold.co/192x192/ec4899/ffffff?text=跑馬燈",
-                    sizes: "192x192",
-                    type: "image/png"
-                },
-                {
-                    src: "https://placehold.co/512x512/ec4899/ffffff?text=跑馬燈",
-                    sizes: "512x512",
-                    type: "image/png"
-                }
-            ]
-        };
-
-        const manifestBlob = new Blob([JSON.stringify(manifestData)], { type: 'application/json' });
-        const manifestUrl = URL.createObjectURL(manifestBlob);
-        const manifestLink = document.createElement('link');
-        manifestLink.rel = 'manifest';
-        manifestLink.href = manifestUrl;
-        document.head.appendChild(manifestLink);
-
-        // 2. 註冊內嵌 Service Worker 實現離線使用
-        if ('serviceWorker' in navigator) {
-            const swCode = `
-                const CACHE_NAME = 'marquee-pwa-v2';
-                self.addEventListener('install', (e) => {
-                    e.waitUntil(
-                        caches.open(CACHE_NAME).then((cache) => {
-                            return cache.addAll(['./']);
-                        })
-                    );
-                });
-                self.addEventListener('fetch', (e) => {
-                    e.respondWith(
-                        caches.match(e.request).then((res) => res || fetch(e.request))
-                    );
-                });
-            `;
-            const swBlob = new Blob([swCode], { type: 'application/javascript' });
-            const swUrl = URL.createObjectURL(swBlob);
-
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register(swUrl)
-                    .then(() => console.log('PWA Service Worker 註冊成功！'))
-                    .catch((err) => console.log('Service Worker 註冊失敗:', err));
-            });
+    function initParticles() {
+      particles = [];
+      if (particleTypeSelect.value !== 'none') {
+        const cw = canvas.width || window.innerWidth;
+        const pCount = cw < 600 ? 20 : 35;
+        for (let i = 0; i < pCount; i++) {
+          particles.push(new Particle(Math.random() * cw, Math.random() * (canvas.height || 300)));
         }
+      }
+    }
 
-        // 3. PWA 安裝按鈕接管 (Install Prompt)
-        let deferredPrompt;
-        const pwaInstallBtn = document.getElementById('pwa-install-btn');
+    function animateParticles() {
+      const cw = canvas.width || window.innerWidth;
+      const ch = canvas.height || 300;
 
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            pwaInstallBtn.classList.remove('hidden');
+      ctx.clearRect(0, 0, cw, ch);
+
+      if (particleTypeSelect.value !== 'none') {
+        if (particles.length === 0) {
+          initParticles();
+        }
+        particles.forEach(p => {
+          p.update();
+          p.draw();
         });
+      }
 
-        pwaInstallBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    console.log('使用者已安裝夢幻跑馬燈 PWA');
-                }
-                deferredPrompt = null;
-                pwaInstallBtn.classList.add('hidden');
-            }
-        });
-    </script>
+      requestAnimationFrame(animateParticles);
+    }
+
+    marqueeStage.addEventListener('click', (e) => {
+      if (particleTypeSelect.value === 'none') return;
+      const rect = canvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+      for (let i = 0; i < 6; i++) {
+        particles.push(new Particle(clickX, clickY, true));
+      }
+    });
+
+    particleTypeSelect.addEventListener('change', () => {
+      initParticles();
+    });
+
+    // 啟動初始化與迴圈
+    syncCanvasDimensions();
+    updateMarquee();
+    updateBackground();
+    resetPosition();
+    animateMarquee();
+    animateParticles();
+
+    // --- 7. PWA Service Worker 註冊 ---
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        const swCode = `
+          self.addEventListener('install', e => self.skipWaiting());
+          self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
+        `;
+        const blob = new Blob([swCode], { type: 'text/javascript' });
+        navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+      });
+    }
+  </script>
 </body>
 </html>
