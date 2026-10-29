@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>炫彩霓虹動態招牌 & 7大街機小遊戲 PWA</title>
+    
+    <!-- PWA Meta -->
+    <meta name="theme-color" content="#090d16">
+    <meta name="description" content="結合動態霓虹跑馬燈招牌與7款炫彩懷舊街機小遊戲的 PWA 應用">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- Dynamic Manifest -->
+    <script>
+        const manifestData = {
+            name: "霓虹招牌與街機遊戲",
+            short_name: "霓虹街機",
+            start_url: "./",
+            display: "standalone",
+            background_color: "#090d16",
+            theme_color: "#090d16",
+            icons: [{
+                src: "https://img.icons8.com/color/512/neon-light.png",
+                sizes: "512x512",
+                type: "image/png"
+            }]
+        };
+        const blob = new Blob([JSON.stringify(manifestData)], { type: 'application/json' });
+        const link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = URL.createObjectURL(blob);
+        document.head.appendChild(link);
+    </script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        neon: {
+                            cyan: '#00f3ff',
+                            pink: '#ff007f',
+                            purple: '#b000ff',
+                            yellow: '#ffe600',
+                            green: '#00ff66'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Monoton&family=Orbitron:wght@500;800;900&family=Press+Start+2P&family=Noto+Sans+TC:wght@700;900&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-neon { font-family: 'Monoton', cursive; }
+        .font-arcade { font-family: 'Press Start 2P', cursive; }
+        .font-tc { font-family: 'Noto Sans TC', sans-serif; }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #05060a;
+            color: #f1f5f9;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        .scanlines {
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.3) 50%
+            ), linear-gradient(
+                90deg,
+                rgba(255, 0, 0, 0.03),
+                rgba(0, 255, 0, 0.01),
+                rgba(0, 0, 255, 0.03)
+            );
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        .neon-glow {
+            transition: color 0.2s ease, text-shadow 0.2s ease;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; filter: drop-shadow(0 0 15px var(--glow-color)) drop-shadow(0 0 30px var(--glow-color)); }
+            50% { opacity: 0.6; filter: drop-shadow(0 0 5px var(--glow-color)); }
+        }
+
+        @keyframes flicker-neon {
+            0%, 100%, 18%, 22%, 25%, 53%, 57% { opacity: 1; }
+            20%, 24%, 55% { opacity: 0.25; }
+        }
+
+        .animate-pulse-glow { animation: pulse-glow 2s infinite ease-in-out; }
+        .animate-flicker { animation: flicker-neon 2.5s infinite; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        canvas {
+            image-rendering: pixelated;
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen w-screen relative font-tc">
+
+    <!-- TOP NEON MARQUEE SIGN BANNER -->
+    <header id="marquee-header" class="relative z-30 bg-slate-950/90 border-b border-cyan-500/30 shadow-[0_0_20px_rgba(0,243,255,0.2)] transition-all duration-300">
+        <div class="h-16 sm:h-20 w-full flex items-center overflow-hidden relative cursor-pointer" onclick="handleHeaderClick()">
+            <div id="marquee-text-container" class="whitespace-nowrap w-full flex justify-center items-center">
+                <div id="marquee-text" class="neon-glow font-orbitron font-black text-2xl sm:text-4xl text-center tracking-wider">
+                    ✨ 歡迎光臨 霓虹招牌街機樂園 ✨
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Switcher Bar -->
+        <div class="flex items-center justify-between px-4 py-1.5 bg-slate-900/90 border-t border-slate-800 text-xs">
+            <div class="flex items-center gap-2">
+                <button onclick="switchTab('sign')" id="tab-btn-sign" class="px-3 py-1 rounded-full font-bold bg-cyan-500 text-slate-950 flex items-center gap-1.5 transition-all">
+                    <i data-lucide="tv" class="w-3.5 h-3.5"></i> 霓虹招牌模式
+                </button>
+                <button onclick="switchTab('arcade')" id="tab-btn-arcade" class="px-3 py-1 rounded-full font-bold bg-slate-800 text-slate-300 hover:text-white flex items-center gap-1.5 transition-all">
+                    <i data-lucide="gamepad-2" class="w-3.5 h-3.5 text-pink-400"></i> 7大遊戲街機
+                </button>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button id="pwa-install-btn" onclick="installPWA()" class="hidden bg-gradient-to-r from-pink-500 to-purple-600 text-white px-2.5 py-1 rounded-full text-[11px] font-bold items-center gap-1">
+                    <i data-lucide="download" class="w-3 h-3"></i> 安裝 App
+                </button>
+                <button onclick="toggleFullscreen()" class="p-1.5 text-slate-400 hover:text-white bg-slate-800 rounded-lg" title="全螢幕">
+                    <i data-lucide="maximize" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="scanlines absolute inset-0 z-20"></div>
+
+    <!-- MAIN VIEW CONTAINERS -->
+    <main class="flex-grow relative z-10 overflow-hidden flex flex-col">
+
+        <!-- ================= MODE 1: NEON SIGN DISPLAY & CUSTOMIZER ================= -->
+        <section id="view-sign" class="w-full h-full flex flex-col justify-between relative bg-slate-950 p-4">
+            
+            <canvas id="sign-bg-canvas" class="absolute inset-0 w-full h-full z-0 pointer-events-none"></canvas>
+
+            <!-- Large Center Sign Preview -->
+            <div id="large-sign-stage" class="relative z-10 flex-grow flex items-center justify-center overflow-hidden my-2 cursor-pointer" onclick="handleStageClick(event)" ondblclick="toggleFullscreen()">
+                <div id="large-sign-text" class="neon-glow font-orbitron font-black text-4xl sm:text-7xl md:text-8xl text-center whitespace-nowrap">
+                    ✨ 歡迎光臨 霓虹招牌街機樂園 ✨
+                </div>
+            </div>
+
+            <!-- Sign Control Panel -->
+            <div id="sign-controls" class="relative z-20 bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-2xl p-4 space-y-3 max-w-4xl mx-auto w-full shadow-2xl">
+                
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <span class="text-xs font-bold text-cyan-400 flex items-center gap-1">
+                        <i data-lucide="sliders" class="w-4 h-4"></i> 招牌即時客製化控制面板
+                    </span>
+                    <!-- Presets -->
+                    <div class="flex items-center gap-1 text-[11px]">
+                        <span class="text-slate-400">主題:</span>
+                        <button onclick="applyPreset('cyberpunk')" class="px-2 py-0.5 bg-slate-800 hover:bg-cyan-500/20 text-cyan-300 rounded">賽博</button>
+                        <button onclick="applyPreset('cafe')" class="px-2 py-0.5 bg-slate-800 hover:bg-yellow-500/20 text-yellow-300 rounded">咖啡</button>
+                        <button onclick="applyPreset('disco')" class="px-2 py-0.5 bg-slate-800 hover:bg-pink-500/20 text-pink-300 rounded">迪斯可</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div class="space-y-1.5">
+                        <label class="text-[11px] text-slate-400">招牌跑馬燈文字</label>
+                        <input type="text" id="sign-input-text" value="✨ 歡迎光臨 霓虹招牌街機樂園 ✨" oninput="updateSignConfig()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-sm text-white focus:border-cyan-400 outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-[11px] text-slate-400">字體風格</label>
+                            <select id="sign-font-select" onchange="updateSignConfig()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2 py-1.5 text-xs text-white outline-none">
+                                <option value="font-orbitron">Orbitron 科技</option>
+                                <option value="font-neon">Monoton 霓虹</option>
+                                <option value="font-arcade">Press Start 街機</option>
+                                <option value="font-tc">標準粗體 TC</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[11px] text-slate-400">動態滾動</label>
+                            <select id="sign-dir-select" onchange="updateSignConfig()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2 py-1.5 text-xs text-white outline-none">
+                                <option value="rtl">向左滾動 (RTL)</option>
+                                <option value="ltr">向右滾動 (LTR)</option>
+                                <option value="bounce">來回彈跳 (Bounce)</option>
+                                <option value="static">靜止置中</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="text-[10px] text-slate-400 block">文字顏色</label>
+                            <input type="color" id="sign-color-text" value="#ffffff" oninput="updateSignConfig()" class="w-full h-7 rounded-lg bg-transparent cursor-pointer">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 block">霓虹光暈</label>
+                            <input type="color" id="sign-color-glow" value="#00f3ff" oninput="updateSignConfig()" class="w-full h-7 rounded-lg bg-transparent cursor-pointer">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 block">燈光特效</label>
+                            <select id="sign-fx-select" onchange="updateSignConfig()" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-1 text-[11px] text-white outline-none">
+                                <option value="pulse">呼吸 Pulse</option>
+                                <option value="flicker">閃爍 Flicker</option>
+                                <option value="none">常亮 Glow</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= MODE 2: 7 ARCADE MINI-GAMES SELECTOR & PLAY STAGE ================= -->
+        <section id="view-arcade" class="w-full h-full flex flex-col relative bg-slate-950 hidden">
+            
+            <!-- Game Selector Menu -->
+            <div id="game-menu" class="w-full h-full overflow-y-auto p-4 sm:p-6 no-scrollbar">
+                <div class="max-w-5xl mx-auto space-y-6">
+                    <div class="text-center space-y-2">
+                        <h2 class="text-2xl sm:text-3xl font-black font-orbitron tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-pink-500 to-yellow-400">
+                            7大炫彩霓虹街機小遊戲
+                        </h2>
+                        <p class="text-xs text-slate-400">點擊下方遊戲名稱即可即刻開始挑戰最高紀錄！</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Game 1 -->
+                        <div onclick="launchGame('snake')" class="bg-slate-900/80 border border-cyan-500/30 hover:border-cyan-400 p-4 rounded-2xl cursor-pointer hover:scale-[1.02] transition-all group shadow-lg">
+                            <div class="flex items-center gap-3">
+                                <div class="p-3 bg-cyan-500/20 text-cyan-400 rounded-xl group-hover:bg-cyan-500 group-hover:text-slate-950 transition-colors">
+                                    <i data-lucide="worm" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-base text-cyan-300">1. 霓虹貪食蛇</h3>
+                                    <p class="text-xs text-slate-400">Neon Snake - 經典蛇蛇穿梭吃發光粒子</p>
+                                </div>
+                            </div>
+                            <div class="mt-3 flex justify-between items-center text-xs text-slate-400 pt-2 border-t border-slate-800">
+                                <span>最高分: <strong id="score-best-snake" class="text-cyan-400">0</strong></span>
+                                <span class="text-cyan-400 group-hover:translate-x-1 transition-transform">開始遊戲 →</span>
+                            </div>
+                        </div>
+
+                        <!-- Game 2 -->
+                        <div onclick="launchGame('breaker')" class="bg-slate-900/80 border border-pink-500/30 hover:border-pink-400 p-4 rounded-2xl cursor-pointer hover:scale-[1.02] transition-all group shadow-lg">
+                            <div class="flex items-center gap-3">
+                                <div class="p-3 bg-pink-500/20 text-pink-400 rounded-xl group-hover:bg-pink-500 group-hover:text-slate-950 transition-colors">
+                                    <i data-lucide="layout-grid" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-base text-pink-300">2. 賽博彈球打磚塊</h3>
+                                    <p class="text-xs text-slate-400">Cyber Brick Breaker - 霓虹擋板反彈擊碎磚塊</p>
+                                </div>
+                            </div>
+                            <div class="mt-3 flex justify-between items-center text-xs text-slate-400 pt-2 border-t border-slate-800">
+                                <span>最高分: <strong id="score-best-breaker" class="text-pink-400">0</strong></span>
+                                <span class="text-pink-400 group-hover:translate-x-1 transition-transform">開始遊戲 →</span>
+                            </div>
+                        </div>
+
+                        <!-- Game 3 -->
+                        <div onclick="launchGame('flappy')" class="bg-slate-900/80 border border-yellow-500/30 hover:border-yellow-400 p-4 rounded-2xl cursor-pointer hover:scale-[1.02] transition-all group shadow-lg">
+                            <div class="flex items-center gap-3">
+                                <div class="p-3 bg-yellow-500/20 text-yellow-400 rounded-xl group-hover:bg-yellow-500 group-hover:text-slate-950 transition-colors">
+                                    <i data-lucide="bird" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-base text-yellow-300">3. 霓虹飛鳥</h3>
+                                    <p class="text-xs text-slate-400">Neon Flappy Bird - 點擊飛行避開光柱 obstacles</p>
+                                </div>
+                            </div>
+                            <div class="mt-3 flex justify-between items-center text-xs text-slate-400 pt-2 border-t border-slate-800">
+                                <span>最高分: <strong id="score-best-flappy" class="text-yellow-400">0</strong></span>
+                                <span class="text-yellow-400 group-hover:translate-x-1 transition-transform">開始遊戲 →</span>
+                            </div>
+                        </div>
+
+                        <!-- Game 4 (NEW: Neon Memory Pairs) -->
+                        <div onclick="launchGame('memory')" class="bg-slate-900/80 border border-purple-500/30 hover:border-purple-400 p-4 rounded-2xl cursor-pointer hover:scale-[1.02] transition-all group shadow-lg">
+                            <div class="flex items-center gap-3">
+                                <div class="p-3 bg-purple-500/20 text-purple-400 rounded-xl group-hover:bg-purple-500 group-hover:text-slate-950 transition-colors">
+                                    <i data-lucide="brain" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-base text-purple-300">4. 霓虹記憶對對碰</h3>
+                                    <p class="text-xs text-slate-400">Neon Memory Pairs - 翻牌匹配對應霓虹圖案</p>
+                                </div>
+                            </div>
+                            <div class="mt-3 flex justify-between items-center text-xs text-slate-400 pt-2 border-t border-slate-800">
+                                <span>最高配對: <strong id="score-best-memory" class="text-purple-400">0</strong></span>
+                                <span class="text-purple-400 group-hover:translate-x-1 transition-transform">開始遊戲 →</span>
+                            </div>
+                        </div>
+
+                        <!-- Game 5 (NEW: Neon Pong) -->
+                        <div onclick="launchGame('pong')" class="bg-slate-900/80 border border-emerald-500/30 hover:border-emerald-400 p-4 rounded-2xl cursor-pointer hover:scale-[1.02] transition-all group shadow-lg">
+                            <div class="flex items-center gap-3">
+                                <div class="p-3 bg-emerald-500/20 text-emerald-400 rounded-xl group-hover:bg-emerald-500 group-hover:text-slate-950 transition-colors">
+                                    <i data-lucide="swords" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-base text-emerald-300">5. 雙人霓虹乒乓</h3>
+                                    <p class="text-xs text-slate-400">Neon Air Hockey Pong - 經典對決發光球桌</p>
+                                </div>
+                            </div>
+                            <div class="mt-3 flex justify-between items-center text-xs text-slate-400 pt-2 border-t border-slate-800">
+                                <span>最高分: <strong id="score-best-pong" class="text-emerald-400">0</strong></span>
+                                <span class="text-emerald-400 group-hover:translate-x-1 transition-transform">開始遊戲 →</span>
+                            </div>
+                        </div>
+
+                        <!-- Game 6 -->
+                        <div onclick="launchGame('tictactoe')" class="bg-slate-900/80 border border-blue-500/30 hover:border-blue-400 p-4 rounded-2xl cursor-pointer hover:scale-[1.02] transition-all group shadow-lg">
+                            <div class="flex items-center gap-3">
+                                <div class="p-3 bg-blue-500/20 text-blue-400 rounded-xl group-hover:bg-blue-500 group-hover:text-slate-950 transition-colors">
+                                    <i data-lucide="grid-3x3" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-base text-blue-300">6. 霓虹圈圈叉叉</h3>
+                                    <p class="text-xs text-slate-400">Tic-Tac-Toe - 雙人對決或與AI智慧挑戰</p>
+                                </div>
+                            </div>
+                            <div class="mt-3 flex justify-between items-center text-xs text-slate-400 pt-2 border-t border-slate-800">
+                                <span>勝場: <strong id="score-best-tictactoe" class="text-blue-400">0</strong></span>
+                                <span class="text-blue-400 group-hover:translate-x-1 transition-transform">開始遊戲 →</span>
+                            </div>
+                        </div>
+
+                        <!-- Game 7 -->
+                        <div onclick="launchGame('shooter')" class="bg-slate-900/80 border border-red-500/30 hover:border-red-400 p-4 rounded-2xl cursor-pointer hover:scale-[1.02] transition-all group shadow-lg sm:col-span-2 lg:col-span-1">
+                            <div class="flex items-center gap-3">
+                                <div class="p-3 bg-red-500/20 text-red-400 rounded-xl group-hover:bg-red-500 group-hover:text-slate-950 transition-colors">
+                                    <i data-lucide="crosshair" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-base text-red-300">7. 霓虹太空射擊</h3>
+                                    <p class="text-xs text-slate-400">Space Invaders - 擊落降落的發光外星敵機</p>
+                                </div>
+                            </div>
+                            <div class="mt-3 flex justify-between items-center text-xs text-slate-400 pt-2 border-t border-slate-800">
+                                <span>最高分: <strong id="score-best-shooter" class="text-red-400">0</strong></span>
+                                <span class="text-red-400 group-hover:translate-x-1 transition-transform">開始遊戲 →</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACTIVE GAME VIEWPORT STAGE -->
+            <div id="game-container" class="w-full h-full flex flex-col items-center justify-between p-2 sm:p-4 hidden relative">
+                
+                <div class="w-full max-w-2xl flex items-center justify-between bg-slate-900/90 border border-slate-800 px-4 py-2 rounded-xl mb-2 z-10">
+                    <button onclick="quitGame()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg flex items-center gap-1">
+                        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> 返回選單
+                    </button>
+                    <span id="game-title-display" class="font-bold text-sm text-cyan-400">霓虹遊戲</span>
+                    <div class="text-xs font-mono">得分: <span id="game-score-display" class="text-yellow-400 font-bold text-base">0</span></div>
+                </div>
+
+                <div class="relative flex-grow w-full max-w-2xl flex items-center justify-center overflow-hidden">
+                    <canvas id="game-canvas" class="bg-black rounded-2xl border border-slate-800 shadow-[0_0_30px_rgba(0,0,0,0.8)] w-full h-full max-h-[500px] object-contain"></canvas>
+                    
+                    <div id="game-overlay" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-20 hidden rounded-2xl">
+                        <h3 id="overlay-title" class="text-3xl font-black font-orbitron text-pink-500 mb-2">GAME OVER</h3>
+                        <p id="overlay-desc" class="text-sm text-slate-300 mb-6">最終得分: 0</p>
+                        <button id="overlay-restart-btn" onclick="restartCurrentGame()" class="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-pink-500 text-slate-950 font-black rounded-xl hover:scale-105 transition-all text-sm">
+                            再次挑戰 Try Again
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Mobile Controller -->
+                <div id="mobile-controls" class="w-full max-w-2xl mt-2 flex items-center justify-between gap-2 px-2 z-10">
+                    <div class="grid grid-cols-3 gap-1.5 w-36">
+                        <div></div>
+                        <button onpointerdown="triggerMobileKey('Up')" class="bg-slate-800/80 active:bg-cyan-500 text-slate-200 p-3 rounded-xl flex items-center justify-center">▲</button>
+                        <div></div>
+                        <button onpointerdown="triggerMobileKey('Left')" class="bg-slate-800/80 active:bg-cyan-500 text-slate-200 p-3 rounded-xl flex items-center justify-center">◀</button>
+                        <button onpointerdown="triggerMobileKey('Down')" class="bg-slate-800/80 active:bg-cyan-500 text-slate-200 p-3 rounded-xl flex items-center justify-center">▼</button>
+                        <button onpointerdown="triggerMobileKey('Right')" class="bg-slate-800/80 active:bg-cyan-500 text-slate-200 p-3 rounded-xl flex items-center justify-center">▶</button>
+                    </div>
+                    <button onpointerdown="triggerMobileKey('Action')" class="flex-grow bg-gradient-to-r from-pink-600 to-purple-600 active:from-pink-500 active:to-purple-500 text-white font-bold py-5 rounded-2xl shadow-lg flex items-center justify-center text-sm">
+                        按鈕 (Action / Jump / Shoot)
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <script>
+        /* ================= APP STATE ================= */
+        let activeTab = 'sign';
+        let currentGameId = null;
+        let gameLoopReq = null;
+        let gameScore = 0;
+        let signScrollPos = 0;
+        let signDirectionForward = true;
+
+        const signBgCanvas = document.getElementById('sign-bg-canvas');
+        const signBgCtx = signBgCanvas.getContext('2d');
+        const gameCanvas = document.getElementById('game-canvas');
+        const gameCtx = gameCanvas.getContext('2d');
+
+        const highScores = JSON.parse(localStorage.getItem('neon_arcade_scores') || '{}');
+
+        /* ================= INITIALIZATION ================= */
+        window.onload = () => {
+            lucide.createIcons();
+            resizeCanvases();
+            window.addEventListener('resize', resizeCanvases);
+            updateSignConfig();
+            loadHighScoresDisplay();
+            registerServiceWorker();
+            requestAnimationFrame(renderSignBgLoop);
+        };
+
+        function resizeCanvases() {
+            signBgCanvas.width = window.innerWidth;
+            signBgCanvas.height = window.innerHeight;
+            
+            gameCanvas.width = 600;
+            gameCanvas.height = 400;
+        }
+
+        /* ================= TAB SWITCHING ================= */
+        function switchTab(tab) {
+            activeTab = tab;
+            const viewSign = document.getElementById('view-sign');
+            const viewArcade = document.getElementById('view-arcade');
+            const btnSign = document.getElementById('tab-btn-sign');
+            const btnArcade = document.getElementById('tab-btn-arcade');
+
+            if (tab === 'sign') {
+                viewSign.classList.remove('hidden');
+                viewArcade.classList.add('hidden');
+                btnSign.className = "px-3 py-1 rounded-full font-bold bg-cyan-500 text-slate-950 flex items-center gap-1.5 transition-all";
+                btnArcade.className = "px-3 py-1 rounded-full font-bold bg-slate-800 text-slate-300 hover:text-white flex items-center gap-1.5 transition-all";
+            } else {
+                viewSign.classList.add('hidden');
+                viewArcade.classList.remove('hidden');
+                btnArcade.className = "px-3 py-1 rounded-full font-bold bg-pink-500 text-white flex items-center gap-1.5 transition-all";
+                btnSign.className = "px-3 py-1 rounded-full font-bold bg-slate-800 text-slate-300 hover:text-white flex items-center gap-1.5 transition-all";
+            }
+        }
+
+        /* ================= PRESETS ================= */
+        function applyPreset(preset) {
+            if (preset === 'cyberpunk') {
+                document.getElementById('sign-input-text').value = "⚡ CYBERPUNK 2088 ⚡";
+                document.getElementById('sign-font-select').value = "font-orbitron";
+                document.getElementById('sign-color-text').value = "#00f3ff";
+                document.getElementById('sign-color-glow').value = "#ff007f";
+                document.getElementById('sign-fx-select').value = "pulse";
+            } else if (preset === 'cafe') {
+                document.getElementById('sign-input-text').value = "☕ OPEN 歡迎光臨";
+                document.getElementById('sign-font-select').value = "font-tc";
+                document.getElementById('sign-color-text').value = "#ffe600";
+                document.getElementById('sign-color-glow').value = "#ff007f";
+                document.getElementById('sign-fx-select').value = "none";
+            } else if (preset === 'disco') {
+                document.getElementById('sign-input-text').value = "🕺 DISCO NIGHT 🕺";
+                document.getElementById('sign-font-select').value = "font-neon";
+                document.getElementById('sign-color-text').value = "#ffffff";
+                document.getElementById('sign-color-glow').value = "#b000ff";
+                document.getElementById('sign-fx-select').value = "flicker";
+            }
+            updateSignConfig();
+        }
+
+        /* ================= NEON SIGN CONFIG & ANIMATION ================= */
+        function updateSignConfig() {
+            const text = document.getElementById('sign-input-text').value || " ";
+            const font = document.getElementById('sign-font-select').value;
+            const textColor = document.getElementById('sign-color-text').value;
+            const glowColor = document.getElementById('sign-color-glow').value;
+            const effect = document.getElementById('sign-fx-select').value;
+
+            const marqueeText = document.getElementById('marquee-text');
+            marqueeText.innerText = text;
+            marqueeText.className = `neon-glow ${font} font-black text-2xl sm:text-4xl text-center tracking-wider`;
+            marqueeText.style.color = textColor;
+            marqueeText.style.textShadow = `0 0 10px ${glowColor}, 0 0 20px ${glowColor}, 0 0 30px ${glowColor}`;
+
+            const largeText = document.getElementById('large-sign-text');
+            largeText.innerText = text;
+            largeText.className = `neon-glow ${font} font-black text-4xl sm:text-7xl md:text-8xl text-center whitespace-nowrap`;
+            largeText.style.color = textColor;
+            largeText.style.textShadow = `0 0 15px ${glowColor}, 0 0 30px ${glowColor}, 0 0 50px ${glowColor}`;
+            
+            largeText.style.setProperty('--glow-color', glowColor);
+            largeText.classList.remove('animate-pulse-glow', 'animate-flicker');
+            if (effect === 'pulse') largeText.classList.add('animate-pulse-glow');
+            if (effect === 'flicker') largeText.classList.add('animate-flicker');
+        }
+
+        function renderSignBgLoop() {
+            if (activeTab === 'sign') {
+                const dir = document.getElementById('sign-dir-select').value;
+                const largeText = document.getElementById('large-sign-text');
+                
+                if (dir === 'rtl') {
+                    signScrollPos -= 2;
+                    if (signScrollPos < -window.innerWidth) signScrollPos = window.innerWidth;
+                    largeText.style.transform = `translateX(${signScrollPos}px)`;
+                } else if (dir === 'ltr') {
+                    signScrollPos += 2;
+                    if (signScrollPos > window.innerWidth) signScrollPos = -window.innerWidth;
+                    largeText.style.transform = `translateX(${signScrollPos}px)`;
+                } else if (dir === 'bounce') {
+                    if (signDirectionForward) {
+                        signScrollPos += 3;
+                        if (signScrollPos > 200) signDirectionForward = false;
+                    } else {
+                        signScrollPos -= 3;
+                        if (signScrollPos < -200) signDirectionForward = true;
+                    }
+                    largeText.style.transform = `translateX(${signScrollPos}px)`;
+                } else {
+                    largeText.style.transform = `translateX(0px)`;
+                }
+
+                signBgCtx.fillStyle = 'rgba(5, 6, 10, 0.2)';
+                signBgCtx.fillRect(0, 0, signBgCanvas.width, signBgCanvas.height);
+            }
+            requestAnimationFrame(renderSignBgLoop);
+        }
+
+        function handleStageClick(e) {
+            const glowColor = document.getElementById('sign-color-glow').value;
+            signBgCtx.fillStyle = glowColor;
+            signBgCtx.beginPath();
+            signBgCtx.arc(e.clientX, e.clientY, 30, 0, Math.PI * 2);
+            signBgCtx.fill();
+        }
+
+        function handleHeaderClick() {
+            switchTab('sign');
+        }
+
+        /* ================= HIGH SCORES ================= */
+        function loadHighScoresDisplay() {
+            ['snake', 'breaker', 'flappy', 'memory', 'pong', 'tictactoe', 'shooter'].forEach(id => {
+                const el = document.getElementById(`score-best-${id}`);
+                if (el) el.innerText = highScores[id] || 0;
+            });
+        }
+
+        function saveHighScore(gameId, score) {
+            if (!highScores[gameId] || score > highScores[gameId]) {
+                highScores[gameId] = score;
+                localStorage.setItem('neon_arcade_scores', JSON.stringify(highScores));
+                loadHighScoresDisplay();
+            }
+        }
+
+        /* ================= 7 MINI-GAMES LAUNCHER ENGINE ================= */
+        let gameInput = { Up: false, Down: false, Left: false, Right: false, Action: false };
+        let gameState = {};
+
+        function launchGame(gameId) {
+            currentGameId = gameId;
+            document.getElementById('game-menu').classList.add('hidden');
+            document.getElementById('game-container').classList.remove('hidden');
+            document.getElementById('game-overlay').classList.add('hidden');
+
+            const titleMap = {
+                snake: '1. 霓虹貪食蛇 Neon Snake',
+                breaker: '2. 賽博彈球打磚塊 Cyber Breaker',
+                flappy: '3. 霓虹飛鳥 Neon Flappy',
+                memory: '4. 霓虹記憶對對碰 Neon Memory',
+                pong: '5. 雙人霓虹乒乓 Neon Pong',
+                tictactoe: '6. 霓虹圈圈叉叉 Tic-Tac-Toe',
+                shooter: '7. 霓虹太空射擊 Space Shooter'
+            };
+            document.getElementById('game-title-display').innerText = titleMap[gameId];
+            
+            gameScore = 0;
+            updateGameScore(0);
+
+            initGameEngine(gameId);
+        }
+
+        function quitGame() {
+            if (gameLoopReq) cancelAnimationFrame(gameLoopReq);
+            document.getElementById('game-container').classList.add('hidden');
+            document.getElementById('game-menu').classList.remove('hidden');
+            currentGameId = null;
+        }
+
+        function updateGameScore(val) {
+            gameScore = val;
+            document.getElementById('game-score-display').innerText = gameScore;
+        }
+
+        function gameOver(customText) {
+            if (gameLoopReq) cancelAnimationFrame(gameLoopReq);
+            saveHighScore(currentGameId, gameScore);
+            
+            const overlay = document.getElementById('game-overlay');
+            document.getElementById('overlay-title').innerText = "GAME OVER";
+            document.getElementById('overlay-desc').innerText = customText || `最終得分: ${gameScore}`;
+            overlay.classList.remove('hidden');
+        }
+
+        function restartCurrentGame() {
+            launchGame(currentGameId);
+        }
+
+        function triggerMobileKey(key) {
+            gameInput[key] = true;
+            setTimeout(() => { gameInput[key] = false; }, 150);
+            if (currentGameId === 'flappy' && key === 'Action') flappyJump();
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (!currentGameId) return;
+            if (e.key === 'ArrowUp' || e.key === 'w') { gameInput.Up = true; if(currentGameId==='flappy') flappyJump(); }
+            if (e.key === 'ArrowDown' || e.key === 's') gameInput.Down = true;
+            if (e.key === 'ArrowLeft' || e.key === 'a') gameInput.Left = true;
+            if (e.key === 'ArrowRight' || e.key === 'd') gameInput.Right = true;
+            if (e.key === ' ' || e.key === 'Enter') { gameInput.Action = true; if(currentGameId==='flappy') flappyJump(); }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowUp' || e.key === 'w') gameInput.Up = false;
+            if (e.key === 'ArrowDown' || e.key === 's') gameInput.Down = false;
+            if (e.key === 'ArrowLeft' || e.key === 'a') gameInput.Left = false;
+            if (e.key === 'ArrowRight' || e.key === 'd') gameInput.Right = false;
+            if (e.key === ' ' || e.key === 'Enter') gameInput.Action = false;
+        });
+
+        /* ================= GAME 1: NEON SNAKE ================= */
+        function initSnake() {
+            gameState = {
+                snake: [{x: 10, y: 10}, {x: 9, y: 10}, {x: 8, y: 10}],
+                dir: {x: 1, y: 0},
+                food: {x: 15, y: 10},
+                gridSize: 20,
+                cols: 30,
+                rows: 20,
+                moveTimer: 0
+            };
+            runSnakeLoop();
+        }
+
+        function runSnakeLoop() {
+            gameState.moveTimer++;
+            if (gameState.moveTimer % 6 === 0) {
+                if (gameInput.Up && gameState.dir.y === 0) gameState.dir = {x: 0, y: -1};
+                if (gameInput.Down && gameState.dir.y === 0) gameState.dir = {x: 0, y: 1};
+                if (gameInput.Left && gameState.dir.x === 0) gameState.dir = {x: -1, y: 0};
+                if (gameInput.Right && gameState.dir.x === 0) gameState.dir = {x: 1, y: 0};
+
+                const head = {x: gameState.snake[0].x + gameState.dir.x, y: gameState.snake[0].y + gameState.dir.y};
+
+                if (head.x < 0 || head.x >= gameState.cols || head.y < 0 || head.y >= gameState.rows) {
+                    return gameOver("撞擊邊界！遊戲結束");
+                }
+                for (let seg of gameState.snake) {
+                    if (seg.x === head.x && seg.y === head.y) return gameOver("咬到自己了！");
+                }
+
+                gameState.snake.unshift(head);
+
+                if (head.x === gameState.food.x && head.y === gameState.food.y) {
+                    updateGameScore(gameScore + 10);
+                    gameState.food = {
+                        x: Math.floor(Math.random() * gameState.cols),
+                        y: Math.floor(Math.random() * gameState.rows)
+                    };
+                } else {
+                    gameState.snake.pop();
+                }
+            }
+
+            gameCtx.fillStyle = '#05060a';
+            gameCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+
+            gameCtx.fillStyle = '#ff007f';
+            gameCtx.shadowBlur = 15;
+            gameCtx.shadowColor = '#ff007f';
+            gameCtx.fillRect(gameState.food.x * 20 + 2, gameState.food.y * 20 + 2, 16, 16);
+
+            gameCtx.fillStyle = '#00f3ff';
+            gameCtx.shadowColor = '#00f3ff';
+            gameState.snake.forEach((seg, i) => {
+                gameCtx.fillRect(seg.x * 20 + 1, seg.y * 20 + 1, 18, 18);
+            });
+            gameCtx.shadowBlur = 0;
+
+            gameLoopReq = requestAnimationFrame(runSnakeLoop);
+        }
+
+        /* ================= GAME 2: CYBER BRICK BREAKER ================= */
+        function initBreaker() {
+            gameState = {
+                paddle: {x: 250, w: 100, h: 12},
+                ball: {x: 300, y: 350, vx: 4, vy: -4, r: 7},
+                bricks: []
+            };
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 8; c++) {
+                    gameState.bricks.push({x: c * 72 + 15, y: r * 25 + 30, w: 65, h: 18, active: true, color: ['#ff007f', '#00f3ff', '#ffe600', '#00ff66'][r]});
+                }
+            }
+            runBreakerLoop();
+        }
+
+        function runBreakerLoop() {
+            if (gameInput.Left && gameState.paddle.x > 0) gameState.paddle.x -= 7;
+            if (gameInput.Right && gameState.paddle.x < gameCanvas.width - gameState.paddle.w) gameState.paddle.x += 7;
+
+            const b = gameState.ball;
+            b.x += b.vx;
+            b.y += b.vy;
+
+            if (b.x < b.r || b.x > gameCanvas.width - b.r) b.vx *= -1;
+            if (b.y < b.r) b.vy *= -1;
+
+            const p = gameState.paddle;
+            if (b.y + b.r >= gameCanvas.height - 20 && b.x >= p.x && b.x <= p.x + p.w) {
+                b.vy = -Math.abs(b.vy);
+            }
+
+            if (b.y > gameCanvas.height) return gameOver("球落下了！");
+
+            let activeCount = 0;
+            gameState.bricks.forEach(br => {
+                if (br.active) {
+                    activeCount++;
+                    if (b.x > br.x && b.x < br.x + br.w && b.y - b.r < br.y + br.h && b.y + b.r > br.y) {
+                        br.active = false;
+                        b.vy *= -1;
+                        updateGameScore(gameScore + 15);
+                    }
+                }
+            });
+            if (activeCount === 0) return gameOver("恭喜清空所有磚塊！");
+
+            gameCtx.fillStyle = '#05060a';
+            gameCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+
+            gameState.bricks.forEach(br => {
+                if (br.active) {
+                    gameCtx.fillStyle = br.color;
+                    gameCtx.shadowBlur = 10;
+                    gameCtx.shadowColor = br.color;
+                    gameCtx.fillRect(br.x, br.y, br.w, br.h);
+                }
+            });
+
+            gameCtx.fillStyle = '#00f3ff';
+            gameCtx.shadowColor = '#00f3ff';
+            gameCtx.fillRect(p.x, gameCanvas.height - 20, p.w, p.h);
+
+            gameCtx.fillStyle = '#ffffff';
+            gameCtx.beginPath();
+            gameCtx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+            gameCtx.fill();
+            gameCtx.shadowBlur = 0;
+
+            gameLoopReq = requestAnimationFrame(runBreakerLoop);
+        }
+
+        /* ================= GAME 3: NEON FLAPPY BIRD ================= */
+        function initFlappy() {
+            gameState = {
+                bird: {y: 200, vy: 0, gravity: 0.35, jump: -6.5},
+                pipes: [],
+                frame: 0
+            };
+            runFlappyLoop();
+        }
+
+        function flappyJump() {
+            if (currentGameId === 'flappy') gameState.bird.vy = gameState.bird.jump;
+        }
+
+        function runFlappyLoop() {
+            gameState.frame++;
+            const b = gameState.bird;
+            b.vy += b.gravity;
+            b.y += b.vy;
+
+            if (gameState.frame % 90 === 0) {
+                const gapY = Math.floor(Math.random() * 180) + 80;
+                gameState.pipes.push({x: gameCanvas.width, gapY: gapY, gapH: 110, passed: false});
+            }
+
+            gameState.pipes.forEach(p => {
+                p.x -= 2.5;
+                if (!p.passed && p.x < 100) {
+                    p.passed = true;
+                    updateGameScore(gameScore + 10);
+                }
+            });
+
+            if (b.y < 0 || b.y > gameCanvas.height) return gameOver("飛鳥墜毀！");
+            for (let p of gameState.pipes) {
+                if (p.x < 120 && p.x + 50 > 100) {
+                    if (b.y < p.gapY || b.y > p.gapY + p.gapH) return gameOver("撞到霓虹光柱！");
+                }
+            }
+
+            gameCtx.fillStyle = '#05060a';
+            gameCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+
+            gameCtx.fillStyle = '#ff007f';
+            gameCtx.shadowBlur = 12;
+            gameCtx.shadowColor = '#ff007f';
+            gameState.pipes.forEach(p => {
+                gameCtx.fillRect(p.x, 0, 50, p.gapY);
+                gameCtx.fillRect(p.x, p.gapY + p.gapH, 50, gameCanvas.height - (p.gapY + p.gapH));
+            });
+
+            gameCtx.fillStyle = '#ffe600';
+            gameCtx.shadowColor = '#ffe600';
+            gameCtx.beginPath();
+            gameCtx.arc(100, b.y, 12, 0, Math.PI * 2);
+            gameCtx.fill();
+            gameCtx.shadowBlur = 0;
+
+            gameLoopReq = requestAnimationFrame(runFlappyLoop);
+        }
+
+        /* ================= GAME 4: NEON MEMORY PAIRS (NEW) ================= */
+        function initMemory() {
+            const icons = ['⚡', '💎', '🌙', '🔥', '⭐', '🚀'];
+            const deck = [...icons, ...icons].sort(() => Math.random() - 0.5);
+            gameState = {
+                cards: deck.map((icon, id) => ({ id, icon, flipped: false, matched: false })),
+                flippedCards: [],
+                matches: 0
+            };
+            runMemoryLoop();
+        }
+
+        function handleMemoryClick(index) {
+            const c = gameState.cards[index];
+            if (c.flipped || c.matched || gameState.flippedCards.length >= 2) return;
+
+            c.flipped = true;
+            gameState.flippedCards.push(c);
+
+            if (gameState.flippedCards.length === 2) {
+                const [c1, c2] = gameState.flippedCards;
+                if (c1.icon === c2.icon) {
+                    c1.matched = true;
+                    c2.matched = true;
+                    gameState.matches++;
+                    updateGameScore(gameScore + 20);
+                    gameState.flippedCards = [];
+                    if (gameState.matches === 6) {
+                        setTimeout(() => gameOver("🎉 恭喜完成所有配對！"), 400);
+                    }
+                } else {
+                    setTimeout(() => {
+                        c1.flipped = false;
+                        c2.flipped = false;
+                        gameState.flippedCards = [];
+                    }, 800);
+                }
+            }
+        }
+
+        function runMemoryLoop() {
+            gameCtx.fillStyle = '#05060a';
+            gameCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+
+            const cols = 4;
+            const rows = 3;
+            const cardW = 100;
+            const cardH = 90;
+            const startX = 70;
+            const startY = 50;
+
+            gameState.cards.forEach((c, i) => {
+                const col = i % cols;
+                const row = Math.floor(i / cols);
+                const x = startX + col * (cardW + 20);
+                const y = startY + row * (cardH + 15);
+
+                gameCtx.shadowBlur = c.flipped || c.matched ? 15 : 0;
+                gameCtx.shadowColor = c.matched ? '#00ff66' : '#b000ff';
+                gameCtx.fillStyle = c.matched ? '#002211' : (c.flipped ? '#1e1b4b' : '#0f172a');
+                gameCtx.strokeStyle = c.matched ? '#00ff66' : '#b000ff';
+                gameCtx.lineWidth = 2;
+
+                gameCtx.fillRect(x, y, cardW, cardH);
+                gameCtx.strokeRect(x, y, cardW, cardH);
+
+                if (c.flipped || c.matched) {
+                    gameCtx.font = '32px sans-serif';
+                    gameCtx.fillStyle = '#ffffff';
+                    gameCtx.textAlign = 'center';
+                    gameCtx.textBaseline = 'middle';
+                    gameCtx.fillText(c.icon, x + cardW / 2, y + cardH / 2);
+                } else {
+                    gameCtx.font = '20px Orbitron';
+                    gameCtx.fillStyle = '#b000ff';
+                    gameCtx.textAlign = 'center';
+                    gameCtx.textBaseline = 'middle';
+                    gameCtx.fillText("?", x + cardW / 2, y + cardH / 2);
+                }
+            });
+            gameCtx.shadowBlur = 0;
+
+            gameLoopReq = requestAnimationFrame(runMemoryLoop);
+        }
+
+        /* ================= GAME 5: NEON PONG (NEW) ================= */
+        function initPong() {
+            gameState = {
+                paddleUser: { y: 160, h: 80, w: 12 },
+                paddleAI: { y: 160, h: 80, w: 12 },
+                ball: { x: 300, y: 200, vx: 5, vy: 3, r: 8 },
+                scoreAI: 0
+            };
+            runPongLoop();
+        }
+
+        function runPongLoop() {
+            // User Control
+            if (gameInput.Up && gameState.paddleUser.y > 0) gameState.paddleUser.y -= 6;
+            if (gameInput.Down && gameState.paddleUser.y < gameCanvas.height - gameState.paddleUser.h) gameState.paddleUser.y += 6;
+
+            // Simple AI Control
+            const aiCenter = gameState.paddleAI.y + gameState.paddleAI.h / 2;
+            if (aiCenter < gameState.ball.y - 10 && gameState.paddleAI.y < gameCanvas.height - gameState.paddleAI.h) gameState.paddleAI.y += 4;
+            if (aiCenter > gameState.ball.y + 10 && gameState.paddleAI.y > 0) gameState.paddleAI.y -= 4;
+
+            // Ball Movement
+            const b = gameState.ball;
+            b.x += b.vx;
+            b.y += b.vy;
+
+            // Bounce Top / Bottom
+            if (b.y < b.r || b.y > gameCanvas.height - b.r) b.vy *= -1;
+
+            // Collision Left Paddle (User)
+            if (b.x - b.r <= 30 && b.y >= gameState.paddleUser.y && b.y <= gameState.paddleUser.y + gameState.paddleUser.h) {
+                b.vx = Math.abs(b.vx) + 0.2;
+                updateGameScore(gameScore + 10);
+            }
+
+            // Collision Right Paddle (AI)
+            if (b.x + b.r >= gameCanvas.width - 30 && b.y >= gameState.paddleAI.y && b.y <= gameState.paddleAI.y + gameState.paddleAI.h) {
+                b.vx = -Math.abs(b.vx) - 0.2;
+            }
+
+            // Score check
+            if (b.x < 0) return gameOver(`AI 獲勝！最終得分: ${gameScore}`);
+            if (b.x > gameCanvas.width) {
+                b.x = 300; b.y = 200; b.vx = -4;
+                updateGameScore(gameScore + 50);
+            }
+
+            // Render
+            gameCtx.fillStyle = '#05060a';
+            gameCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+
+            // Center Net
+            gameCtx.strokeStyle = '#1e293b';
+            gameCtx.beginPath();
+            gameCtx.setLineDash([8, 8]);
+            gameCtx.moveTo(300, 0); gameCtx.lineTo(300, 400);
+            gameCtx.stroke();
+            gameCtx.setLineDash([]);
+
+            // User Paddle
+            gameCtx.fillStyle = '#00f3ff';
+            gameCtx.shadowBlur = 15;
+            gameCtx.shadowColor = '#00f3ff';
+            gameCtx.fillRect(18, gameState.paddleUser.y, gameState.paddleUser.w, gameState.paddleUser.h);
+
+            // AI Paddle
+            gameCtx.fillStyle = '#ff007f';
+            gameCtx.shadowColor = '#ff007f';
+            gameCtx.fillRect(gameCanvas.width - 30, gameState.paddleAI.y, gameState.paddleAI.w, gameState.paddleAI.h);
+
+            // Ball
+            gameCtx.fillStyle = '#ffe600';
+            gameCtx.shadowColor = '#ffe600';
+            gameCtx.beginPath();
+            gameCtx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+            gameCtx.fill();
+            gameCtx.shadowBlur = 0;
+
+            gameLoopReq = requestAnimationFrame(runPongLoop);
+        }
+
+        /* ================= GAME 6: TIC-TAC-TOE NEON ================= */
+        function initTicTacToe() {
+            gameState = {
+                board: Array(9).fill(null),
+                turn: 'X',
+                winner: null
+            };
+            runTicTacToeLoop();
+        }
+
+        function handleTicTacToeClick(idx) {
+            if (gameState.board[idx] || gameState.winner) return;
+
+            gameState.board[idx] = gameState.turn;
+            checkTicTacToeWinner();
+
+            if (!gameState.winner) {
+                gameState.turn = gameState.turn === 'X' ? 'O' : 'X';
+                if (gameState.turn === 'O') setTimeout(ticTacToeAiMove, 300);
+            }
+        }
+
+        function ticTacToeAiMove() {
+            const emptyIndices = gameState.board.map((v, i) => v === null ? i : null).filter(v => v !== null);
+            if (emptyIndices.length > 0) {
+                const choice = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+                gameState.board[choice] = 'O';
+                checkTicTacToeWinner();
+                if (!gameState.winner) gameState.turn = 'X';
+            }
+        }
+
+        function checkTicTacToeWinner() {
+            const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+            for (let w of wins) {
+                if (gameState.board[w[0]] && gameState.board[w[0]] === gameState.board[w[1]] && gameState.board[w[0]] === gameState.board[w[2]]) {
+                    gameState.winner = gameState.board[w[0]];
+                    if (gameState.winner === 'X') {
+                        updateGameScore(gameScore + 1);
+                        setTimeout(() => gameOver("🎉 恭喜戰勝 AI！"), 500);
+                    } else {
+                        setTimeout(() => gameOver("🤖 AI 贏得了本局！"), 500);
+                    }
+                    return;
+                }
+            }
+            if (!gameState.board.includes(null)) {
+                gameState.winner = 'Tie';
+                setTimeout(() => gameOver("平局 Draw！"), 500);
+            }
+        }
+
+        function runTicTacToeLoop() {
+            gameCtx.fillStyle = '#05060a';
+            gameCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+
+            gameCtx.strokeStyle = '#334155';
+            gameCtx.lineWidth = 4;
+            for (let i = 1; i < 3; i++) {
+                gameCtx.beginPath(); gameCtx.moveTo(i * 130 + 105, 50); gameCtx.lineTo(i * 130 + 105, 350); gameCtx.stroke();
+                gameCtx.beginPath(); gameCtx.moveTo(105, i * 100 + 50); gameCtx.lineTo(495, i * 100 + 50); gameCtx.stroke();
+            }
+
+            gameState.board.forEach((val, i) => {
+                const col = i % 3;
+                const row = Math.floor(i / 3);
+                const cx = col * 130 + 170;
+                const cy = row * 100 + 100;
+
+                if (val === 'X') {
+                    gameCtx.strokeStyle = '#00f3ff';
+                    gameCtx.shadowBlur = 15;
+                    gameCtx.shadowColor = '#00f3ff';
+                    gameCtx.beginPath();
+                    gameCtx.moveTo(cx - 30, cy - 30); gameCtx.lineTo(cx + 30, cy + 30);
+                    gameCtx.moveTo(cx + 30, cy - 30); gameCtx.lineTo(cx - 30, cy + 30);
+                    gameCtx.stroke();
+                } else if (val === 'O') {
+                    gameCtx.strokeStyle = '#ff007f';
+                    gameCtx.shadowBlur = 15;
+                    gameCtx.shadowColor = '#ff007f';
+                    gameCtx.beginPath();
+                    gameCtx.arc(cx, cy, 30, 0, Math.PI * 2);
+                    gameCtx.stroke();
+                }
+            });
+            gameCtx.shadowBlur = 0;
+
+            gameLoopReq = requestAnimationFrame(runTicTacToeLoop);
+        }
+
+        /* ================= GAME 7: NEON SPACE SHOOTER ================= */
+        function initShooter() {
+            gameState = {
+                ship: {x: 280, y: 350, w: 40, h: 30},
+                bullets: [],
+                enemies: [],
+                timer: 0
+            };
+            runShooterLoop();
+        }
+
+        function runShooterLoop() {
+            gameState.timer++;
+
+            if (gameInput.Left && gameState.ship.x > 0) gameState.ship.x -= 6;
+            if (gameInput.Right && gameState.ship.x < gameCanvas.width - gameState.ship.w) gameState.ship.x += 6;
+
+            if (gameInput.Action && gameState.timer % 10 === 0) {
+                gameState.bullets.push({x: gameState.ship.x + 18, y: gameState.ship.y, vy: -8});
+            }
+
+            if (gameState.timer % 50 === 0) {
+                gameState.enemies.push({x: Math.random() * (gameCanvas.width - 30), y: 0, vy: 2, w: 30, h: 25});
+            }
+
+            gameState.bullets.forEach(b => { b.y += b.vy; });
+            gameState.enemies.forEach(e => { e.y += e.vy; });
+
+            gameState.bullets.forEach((b, bi) => {
+                gameState.enemies.forEach((e, ei) => {
+                    if (b.x > e.x && b.x < e.x + e.w && b.y > e.y && b.y < e.y + e.h) {
+                        gameState.bullets.splice(bi, 1);
+                        gameState.enemies.splice(ei, 1);
+                        updateGameScore(gameScore + 20);
+                    }
+                });
+            });
+
+            for (let e of gameState.enemies) {
+                if (e.y > gameCanvas.height - 40) return gameOver("敵機入侵底線！");
+            }
+
+            gameCtx.fillStyle = '#05060a';
+            gameCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+
+            gameCtx.fillStyle = '#00f3ff';
+            gameCtx.shadowBlur = 10;
+            gameCtx.shadowColor = '#00f3ff';
+            gameCtx.fillRect(gameState.ship.x, gameState.ship.y, gameState.ship.w, gameState.ship.h);
+
+            gameCtx.fillStyle = '#ffe600';
+            gameCtx.shadowColor = '#ffe600';
+            gameState.bullets.forEach(b => { gameCtx.fillRect(b.x, b.y, 4, 10); });
+
+            gameCtx.fillStyle = '#ff007f';
+            gameCtx.shadowColor = '#ff007f';
+            gameState.enemies.forEach(e => { gameCtx.fillRect(e.x, e.y, e.w, e.h); });
+            gameCtx.shadowBlur = 0;
+
+            gameLoopReq = requestAnimationFrame(runShooterLoop);
+        }
+
+        /* ================= GAME CLICK LISTENER DISPATCHER ================= */
+        gameCanvas.addEventListener('click', (e) => {
+            const rect = gameCanvas.getBoundingClientRect();
+            const scaleX = gameCanvas.width / rect.width;
+            const scaleY = gameCanvas.height / rect.height;
+            const mx = (e.clientX - rect.left) * scaleX;
+            const my = (e.clientY - rect.top) * scaleY;
+
+            if (currentGameId === 'tictactoe') {
+                for (let i = 0; i < 9; i++) {
+                    const col = i % 3; const row = Math.floor(i / 3);
+                    const x = col * 130 + 105; const y = row * 100 + 50;
+                    if (mx >= x && mx <= x + 130 && my >= y && my <= y + 100) handleTicTacToeClick(i);
+                }
+            } else if (currentGameId === 'memory') {
+                const cols = 4; const cardW = 100; const cardH = 90;
+                const startX = 70; const startY = 50;
+                gameState.cards.forEach((c, i) => {
+                    const col = i % cols; const row = Math.floor(i / cols);
+                    const x = startX + col * (cardW + 20); const y = startY + row * (cardH + 15);
+                    if (mx >= x && mx <= x + cardW && my >= y && my <= y + cardH) handleMemoryClick(i);
+                });
+            }
+        });
+
+        /* ================= GAME DISPATCHER ================= */
+        function initGameEngine(id) {
+            if (id === 'snake') initSnake();
+            if (id === 'breaker') initBreaker();
+            if (id === 'flappy') initFlappy();
+            if (id === 'memory') initMemory();
+            if (id === 'pong') initPong();
+            if (id === 'tictactoe') initTicTacToe();
+            if (id === 'shooter') initShooter();
+        }
+
+        /* ================= FULLSCREEN & PWA LOGIC ================= */
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('pwa-install-btn').classList.remove('hidden');
+            document.getElementById('pwa-install-btn').classList.add('flex');
+        });
+
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then(() => {
+                    deferredPrompt = null;
+                    document.getElementById('pwa-install-btn').classList.add('hidden');
+                });
+            }
+        }
+
+        function registerServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                const swCode = `
+                    self.addEventListener('install', e => e.waitUntil(caches.open('neon-pwa').then(c => c.addAll(['./']))));
+                    self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
+                `;
+                const swBlob = new Blob([swCode], { type: 'text/javascript' });
+                navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+            }
+        }
+    </script>
+</body>
+</html>

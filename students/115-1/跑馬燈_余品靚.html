@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>質感米色跑馬燈 - Elegant Marquee PWA</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#F5EFE6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="米色跑馬燈">
+    <meta name="description" content="高品質米色系跑馬燈與 LED 跑馬燈工具，支援多種字體、特效與 PWA 離線使用">
+
+    <!-- Dynamic PWA Manifest Injection -->
+    <script>
+        const manifestData = {
+            "name": "質感米色跑馬燈",
+            "short_name": "跑馬燈",
+            "start_url": "./",
+            "display": "standalone",
+            "background_color": "#FDFBF7",
+            "theme_color": "#F5EFE6",
+            "icons": [
+                {
+                    "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='%234A3E3D'><rect width='512' height='512' rx='100' fill='%23F5EFE6'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-size='220' font-family='sans-serif' font-weight='bold' fill='%234A3E3D'>字</text></svg>",
+                    "sizes": "512x512",
+                    "type": "image/svg+xml",
+                    "purpose": "any maskable"
+                }
+            ]
+        };
+        const stringManifest = JSON.stringify(manifestData);
+        const blob = new Blob([stringManifest], {type: 'application/json'});
+        const manifestUrl = URL.createObjectURL(blob);
+        const link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = manifestUrl;
+        document.head.appendChild(link);
+    </script>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Noto+Sans+TC:wght@400;700;900&family=Noto+Serif+TC:wght@600;900&family=Pacifico&family=Press+Start+2P&family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
+
+    <style>
+        /* CSS Variables for Beige Theme Dynamic Styling */
+        :root {
+            --bg-color: #FDFBF7;
+            --text-color: #4A3E3D;
+            --text-stroke-color: #000000;
+            --text-stroke-width: 0px;
+            --text-size: 120px;
+            --scroll-speed: 15s;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--bg-color);
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Canvas Particle Layer */
+        #particleCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* LED Grid Overlay Effect */
+        .led-grid-overlay {
+            background-image: radial-gradient(rgba(0, 0, 0, 0.15) 1px, transparent 0);
+            background-size: 6px 6px;
+            pointer-events: none;
+        }
+
+        /* Font Styles Mapping */
+        .font-sans-tc { font-family: 'Noto Sans TC', sans-serif; }
+        .font-serif-tc { font-family: 'Noto Serif TC', serif; }
+        .font-handwriting { font-family: 'Caveat', 'Pacifico', cursive; }
+        .font-mono-code { font-family: 'Roboto Mono', monospace; }
+        .font-pixel { font-family: 'Press Start 2P', cursive; }
+
+        /* Effects */
+        .effect-none { }
+        .effect-neon {
+            text-shadow: 0 0 10px var(--text-color), 0 0 20px var(--text-color), 0 0 40px var(--text-color);
+        }
+        .effect-3d {
+            text-shadow: 3px 3px 0px #8C7A6B, 6px 6px 0px #6E5D4F, 9px 9px 0px #4A3E3D;
+        }
+        .effect-glitch {
+            animation: glitch 1.5s infinite;
+        }
+        .effect-rainbow {
+            background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% auto;
+            animation: rainbowShift 3s linear infinite;
+        }
+
+        @keyframes rainbowShift {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-3px, 3px); }
+            40% { transform: translate(-3px, -3px); }
+            60% { transform: translate(3px, 3px); }
+            80% { transform: translate(3px, -3px); }
+            100% { transform: translate(0); }
+        }
+
+        /* Direction Animations */
+        .marquee-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            z-index: 2;
+        }
+
+        .marquee-row {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .marquee-content {
+            display: inline-block;
+            font-size: var(--text-size);
+            color: var(--text-color);
+            -webkit-text-stroke: var(--text-stroke-width) var(--text-stroke-color);
+            paint-order: stroke fill;
+            font-weight: 900;
+            line-height: 1.2;
+            padding: 0 20px;
+        }
+
+        /* Direction classes */
+        .dir-r2l { animation: scrollR2L var(--scroll-speed) linear infinite; }
+        .dir-l2r { animation: scrollL2R var(--scroll-speed) linear infinite; }
+        .dir-t2b { writing-mode: vertical-rl; animation: scrollT2B var(--scroll-speed) linear infinite; }
+        .dir-b2t { writing-mode: vertical-rl; animation: scrollB2T var(--scroll-speed) linear infinite; }
+        .dir-static { animation: none !important; text-align: center; }
+
+        @keyframes scrollR2L { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
+        @keyframes scrollL2R { 0% { transform: translateX(-100%); } 100% { transform: translateX(100vw); } }
+        @keyframes scrollT2B { 0% { transform: translateY(-100vh); } 100% { transform: translateY(100vh); } }
+        @keyframes scrollB2T { 0% { transform: translateY(100vh); } 100% { transform: translateY(-100vh); } }
+
+        /* Custom Scrollbar for Controls */
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #E8DFD8; border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #B8A394; border-radius: 10px; }
+
+        /* UI Backdrop Blur */
+        .glass-panel {
+            background: rgba(245, 239, 230, 0.88);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(216, 196, 182, 0.5);
+        }
+    </style>
+</head>
+<body class="relative w-screen h-screen m-0 p-0 overflow-hidden select-none">
+
+    <!-- Particle Layer -->
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- LED Grid Overlay Layer -->
+    <div id="ledGrid" class="absolute inset-0 z-[2] led-grid-overlay hidden"></div>
+
+    <!-- Display Screen (Single Marquee Row) -->
+    <div id="marqueeContainer" class="marquee-container" onclick="toggleControlPanelBar()">
+        <div class="marquee-row">
+            <div id="marqueeText" class="marquee-content dir-r2l font-sans-tc effect-none">
+                歡迎體驗質感米色跑馬燈
+            </div>
+        </div>
+    </div>
+
+    <!-- Tap Screen Hint Toast -->
+    <div id="tapHint" class="fixed top-6 left-1/2 -translate-x-1/2 z-30 glass-panel px-4 py-2 rounded-full text-xs text-[#5C4D42] shadow-md transition-opacity duration-500 opacity-0 pointer-events-none flex items-center gap-2">
+        <i data-lucide="touch-tone" class="w-4 h-4"></i>
+        點擊螢幕任意處喚醒 / 隱藏控制面板
+    </div>
+
+    <!-- Floating Top Bar (Quick Controls) -->
+    <div id="topBar" class="fixed top-4 right-4 z-40 flex items-center gap-2 transition-all duration-300">
+        <button onclick="toggleFullscreen()" class="glass-panel p-3 rounded-full text-[#4A3E3D] hover:bg-[#E8DFD8] shadow-md transition active:scale-95" title="全螢幕模式">
+            <i data-lucide="expand" class="w-5 h-5"></i>
+        </button>
+        <button onclick="toggleControlPanel()" class="glass-panel p-3 rounded-full text-[#4A3E3D] hover:bg-[#E8DFD8] shadow-md transition active:scale-95" title="設定面板">
+            <i data-lucide="sliders" class="w-5 h-5"></i>
+        </button>
+    </div>
+
+    <!-- Main Floating Controls Panel -->
+    <div id="controlPanel" class="fixed inset-x-4 bottom-4 md:left-auto md:right-4 md:w-[460px] max-h-[85vh] z-40 glass-panel rounded-3xl shadow-2xl flex flex-col transition-all duration-300 transform translate-y-0">
+        
+        <!-- Panel Header -->
+        <div class="p-4 border-b border-[#D8C4B6]/40 flex items-center justify-between">
+            <div class="flex items-center gap-2 text-[#4A3E3D]">
+                <i data-lucide="sparkles" class="w-5 h-5 text-[#8C7A6B]"></i>
+                <h2 class="font-bold text-lg tracking-wide">跑馬燈控制台</h2>
+            </div>
+            <button onclick="toggleControlPanel()" class="text-[#8C7A6B] hover:text-[#4A3E3D] p-1 rounded-full hover:bg-[#E8DFD8]">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <!-- Panel Tabs Nav -->
+        <div class="flex border-b border-[#D8C4B6]/30 bg-[#E8DFD8]/30 px-2 text-xs font-semibold text-[#6E5D4F]">
+            <button onclick="switchTab('text')" id="tab-text" class="flex-1 py-2.5 px-2 text-center border-b-2 border-[#4A3E3D] text-[#4A3E3D]">文字與樣式</button>
+            <button onclick="switchTab('effects')" id="tab-effects" class="flex-1 py-2.5 px-2 text-center border-b-2 border-transparent hover:text-[#4A3E3D]">特效與背景</button>
+        </div>
+
+        <!-- Panel Scrollable Content -->
+        <div class="p-5 overflow-y-auto custom-scroll space-y-5 text-sm text-[#4A3E3D] max-h-[60vh]">
+
+            <!-- TAB 1: TEXT & STYLE CONTROLS -->
+            <div id="content-text" class="tab-content space-y-4">
+                <div>
+                    <label class="block font-bold mb-1.5 text-xs text-[#6E5D4F] uppercase tracking-wider">文字內容</label>
+                    <textarea id="textInput" rows="2" class="w-full p-3 bg-[#FDFBF7] border border-[#D8C4B6] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#8C7A6B] text-[#4A3E3D] font-medium resize-none shadow-inner" placeholder="請輸入跑馬燈文字...">歡迎體驗質感米色跑馬燈</textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold mb-1.5 text-xs text-[#6E5D4F] uppercase tracking-wider">字體大小 (<span id="fontSizeVal">120</span>px)</label>
+                        <input type="range" id="fontSizeSlider" min="20" max="250" value="120" class="w-full accent-[#4A3E3D] cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1.5 text-xs text-[#6E5D4F] uppercase tracking-wider">描邊寬度 (<span id="strokeVal">0.00</span>px)</label>
+                        <input type="range" id="strokeSlider" min="0.01" max="10" value="0" step="0.01" class="w-full accent-[#4A3E3D] cursor-pointer">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold mb-1.5 text-xs text-[#6E5D4F] uppercase tracking-wider">字型風格</label>
+                    <div class="grid grid-cols-3 gap-1.5">
+                        <button onclick="setFontFamily('font-sans-tc')" class="p-2 bg-[#FDFBF7] border border-[#D8C4B6] rounded-xl font-sans-tc hover:border-[#4A3E3D] text-xs text-center">黑體</button>
+                        <button onclick="setFontFamily('font-serif-tc')" class="p-2 bg-[#FDFBF7] border border-[#D8C4B6] rounded-xl font-serif-tc hover:border-[#4A3E3D] text-xs text-center">明體</button>
+                        <button onclick="setFontFamily('font-handwriting')" class="p-2 bg-[#FDFBF7] border border-[#D8C4B6] rounded-xl font-handwriting text-base hover:border-[#4A3E3D] text-center">手寫</button>
+                        <button onclick="setFontFamily('font-mono-code')" class="p-2 bg-[#FDFBF7] border border-[#D8C4B6] rounded-xl font-mono-code hover:border-[#4A3E3D] text-xs text-center">等寬</button>
+                        <button onclick="setFontFamily('font-pixel')" class="p-2 bg-[#FDFBF7] border border-[#D8C4B6] rounded-xl font-pixel text-[10px] hover:border-[#4A3E3D] text-center col-span-2">像素</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold mb-1.5 text-xs text-[#6E5D4F] uppercase tracking-wider">滾動方向</label>
+                    <div class="grid grid-cols-3 gap-1.5">
+                        <button onclick="setDirection('dir-r2l')" class="p-2 bg-[#FDFBF7] border border-[#D8C4B6] rounded-xl text-xs hover:border-[#4A3E3D]">← 右至左</button>
+                        <button onclick="setDirection('dir-l2r')" class="p-2 bg-[#FDFBF7] border border-[#D8C4B6] rounded-xl text-xs hover:border-[#4A3E3D]">→ 左至右</button>
+                        <button onclick="setDirection('dir-static')" class="p-2 bg-[#FDFBF7] border border-[#D8C4B6] rounded-xl text-xs hover:border-[#4A3E3D]">⏸ 靜止</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold mb-1.5 text-xs text-[#6E5D4F] uppercase tracking-wider">文字顏色</label>
+                        <input type="color" id="textColorPicker" value="#4A3E3D" class="w-full h-9 rounded-lg cursor-pointer border border-[#D8C4B6] bg-transparent">
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1.5 text-xs text-[#6E5D4F] uppercase tracking-wider">描邊顏色</label>
+                        <input type="color" id="strokeColorPicker" value="#000000" class="w-full h-9 rounded-lg cursor-pointer border border-[#D8C4B6] bg-transparent">
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: VISUAL EFFECTS & BACKGROUND -->
+            <div id="content-effects" class="tab-content hidden space-y-4">
+                <div>
+                    <label class="block font-bold mb-1.5 text-xs text-[#6E5D4F] uppercase tracking-wider">滾動速度 (<span id="speedVal">15</span>秒)</label>
+                    <input type="range" id="speedSlider" min="2" max="40" value="15" step="1" class="w-full accent-[#4A3E3D] cursor-pointer" dir="rtl">
+                </div>
+
+                <div>
+                    <label class="block font-bold mb-1.5 text-xs text-[#6E5D4F] uppercase tracking-wider">視覺特效</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="setEffect('effect-none')" class="p-2.5 bg-[#FDFBF7] border border-[#D8C4B6] rounded-xl hover:border-[#4A3E3D]">無特效</button>
+                        <button onclick="setEffect('effect-neon')" class="p-2.5 bg-[#FDFBF7] border border-[#D8C4B6] rounded-xl hover:border-[#4A3E3D]">霓虹光暈 Neon</button>
+                        <button onclick="setEffect('effect-3d')" class="p-2.5 bg-[#FDFBF7] border border-[#D8C4B6] rounded-xl hover:border-[#4A3E3D]">立體 3D</button>
+                        <button onclick="setEffect('effect-glitch')" class="p-2.5 bg-[#FDFBF7] border border-[#D8C4B6] rounded-xl hover:border-[#4A3E3D]">故障 Glitch</button>
+                        <button onclick="setEffect('effect-rainbow')" class="p-2.5 bg-[#FDFBF7] border border-[#D8C4B6] rounded-xl hover:border-[#4A3E3D] col-span-2">漸變彩虹 Rainbow</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold mb-1.5 text-xs text-[#6E5D4F] uppercase tracking-wider">背景顏色 / 主題</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="setBackground('#FDFBF7')" class="p-2 bg-[#FDFBF7] border border-[#D8C4B6] rounded-xl text-xs text-[#4A3E3D]">經典奶油米</button>
+                        <button onclick="setBackground('#F5EFE6')" class="p-2 bg-[#F5EFE6] border border-[#D8C4B6] rounded-xl text-xs text-[#4A3E3D]">燕麥牛奶</button>
+                        <button onclick="setBackground('#E8DFD8')" class="p-2 bg-[#E8DFD8] border border-[#D8C4B6] rounded-xl text-xs text-[#4A3E3D]">暖灰沙灘</button>
+                        <button onclick="setBackground('#3C322C')" class="p-2 bg-[#3C322C] border border-[#D8C4B6] rounded-xl text-xs text-[#FDFBF7]">深焙濃縮</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Panel Footer -->
+        <div class="p-3 border-t border-[#D8C4B6]/40 bg-[#E8DFD8]/20 rounded-b-3xl flex items-center justify-between text-xs text-[#8C7A6B]">
+            <button onclick="hideControlsFully()" class="flex items-center gap-1 hover:text-[#4A3E3D] px-2 py-1">
+                <i data-lucide="eye-off" class="w-3.5 h-3.5"></i> 隱藏面板展示
+            </button>
+            <span>PWA Ready</span>
+        </div>
+    </div>
+
+    <!-- App Unified Script -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // DOM Elements
+        const marqueeText = document.getElementById('marqueeText');
+        const controlPanel = document.getElementById('controlPanel');
+        const topBar = document.getElementById('topBar');
+        const tapHint = document.getElementById('tapHint');
+        const particleCanvas = document.getElementById('particleCanvas');
+
+        // Line Controls
+        const textInput = document.getElementById('textInput');
+        const fontSizeSlider = document.getElementById('fontSizeSlider');
+        const fontSizeVal = document.getElementById('fontSizeVal');
+        const strokeSlider = document.getElementById('strokeSlider');
+        const strokeVal = document.getElementById('strokeVal');
+        const textColorPicker = document.getElementById('textColorPicker');
+        const strokeColorPicker = document.getElementById('strokeColorPicker');
+
+        // Speed Control
+        const speedSlider = document.getElementById('speedSlider');
+        const speedVal = document.getElementById('speedVal');
+
+        let isControlsVisible = true;
+        let particleAnimationId = null;
+
+        // Show tap hint initially
+        setTimeout(() => {
+            tapHint.classList.remove('opacity-0');
+            setTimeout(() => tapHint.classList.add('opacity-0'), 4000);
+        }, 1000);
+
+        // --- Event Listeners setup ---
+        textInput.addEventListener('input', (e) => {
+            marqueeText.innerText = e.target.value || ' ';
+        });
+        fontSizeSlider.addEventListener('input', (e) => {
+            fontSizeVal.innerText = e.target.value;
+            document.documentElement.style.setProperty('--text-size', `${e.target.value}px`);
+        });
+        strokeSlider.addEventListener('input', (e) => {
+            const width = parseFloat(e.target.value);
+            strokeVal.innerText = width.toFixed(2);
+            document.documentElement.style.setProperty('--text-stroke-width', `${width}px`);
+        });
+        textColorPicker.addEventListener('input', (e) => {
+            document.documentElement.style.setProperty('--text-color', e.target.value);
+        });
+        strokeColorPicker.addEventListener('input', (e) => {
+            document.documentElement.style.setProperty('--text-stroke-color', e.target.value);
+        });
+
+        speedSlider.addEventListener('input', (e) => {
+            speedVal.innerText = e.target.value;
+            document.documentElement.style.setProperty('--scroll-speed', `${e.target.value}s`);
+        });
+
+        // --- Helper Functions ---
+        function setFontFamily(fontClass) {
+            marqueeText.classList.remove('font-sans-tc', 'font-serif-tc', 'font-handwriting', 'font-mono-code', 'font-pixel');
+            marqueeText.classList.add(fontClass);
+        }
+
+        function setDirection(dirClass) {
+            marqueeText.classList.remove('dir-r2l', 'dir-l2r', 'dir-t2b', 'dir-b2t', 'dir-static');
+            marqueeText.classList.add(dirClass);
+        }
+
+        function setEffect(effectClass) {
+            marqueeText.classList.remove('effect-none', 'effect-neon', 'effect-3d', 'effect-glitch', 'effect-rainbow');
+            marqueeText.classList.add(effectClass);
+        }
+
+        function setBackground(color) {
+            document.documentElement.style.setProperty('--bg-color', color);
+            document.body.style.background = color;
+        }
+
+        // Tabs Switcher Logic
+        function switchTab(tabName) {
+            const tabs = ['text', 'effects'];
+            tabs.forEach(t => {
+                const tabBtn = document.getElementById(`tab-${t}`);
+                const content = document.getElementById(`content-${t}`);
+                if (tabBtn && content) {
+                    if (t === tabName) {
+                        tabBtn.classList.add('border-[#4A3E3D]', 'text-[#4A3E3D]');
+                        tabBtn.classList.remove('border-transparent');
+                        content.classList.remove('hidden');
+                    } else {
+                        tabBtn.classList.remove('border-[#4A3E3D]', 'text-[#4A3E3D]');
+                        tabBtn.classList.add('border-transparent');
+                        content.classList.add('hidden');
+                    }
+                }
+            });
+        }
+
+        function toggleControlPanel() {
+            if (isControlsVisible) hideControlsFully();
+            else showControls();
+        }
+
+        function toggleControlPanelBar() {
+            if (isControlsVisible) hideControlsFully();
+            else showControls();
+        }
+
+        function hideControlsFully() {
+            controlPanel.classList.add('translate-y-[120%]');
+            topBar.classList.add('opacity-0', 'pointer-events-none');
+            isControlsVisible = false;
+        }
+
+        function showControls() {
+            controlPanel.classList.remove('translate-y-[120%]');
+            topBar.classList.remove('opacity-0', 'pointer-events-none');
+            isControlsVisible = true;
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => console.log(err));
+            } else if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+
+        // Canvas Dust Particle Animation Logic
+        const ctx = particleCanvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            particleCanvas.width = window.innerWidth;
+            particleCanvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * particleCanvas.width;
+                this.y = Math.random() * particleCanvas.height;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = (Math.random() - 0.5) * 0.4;
+                this.speedY = -Math.random() * 0.5 - 0.1;
+                this.opacity = Math.random() * 0.5 + 0.2;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.y < 0 || this.x < 0 || this.x > particleCanvas.width) {
+                    this.reset();
+                    this.y = particleCanvas.height;
+                }
+            }
+            draw() {
+                ctx.fillStyle = `rgba(184, 163, 148, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < 40; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            particleAnimationId = requestAnimationFrame(animateParticles);
+        }
+
+        // On Load Init
+        window.onload = function() {
+            initParticles();
+            animateParticles();
+        };
+    </script>
+</body>
+</html>

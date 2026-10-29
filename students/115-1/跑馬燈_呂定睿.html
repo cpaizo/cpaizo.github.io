@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Minecraft 酷炫像素跑馬燈 PWA</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Pixel Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=ZCOOL+PressStart&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* Custom Pixel Fonts and Styles */
+    body {
+      font-family: 'Press Start 2P', 'Silkscreen', cursive, sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+      overflow: hidden;
+      background-color: #121212;
+    }
+
+    /* Pixel Art Border Utility */
+    .mc-button {
+      position: relative;
+      background-color: #727272;
+      border: 4px solid #000;
+      box-shadow: inset -4px -4px 0px 0px #373737, inset 4px 4px 0px 0px #dbdbdb;
+      text-shadow: 2px 2px #000;
+      color: #fff;
+      transition: all 0.05s ease;
+    }
+    .mc-button:active {
+      box-shadow: inset 4px 4px 0px 0px #373737, inset -4px -4px 0px 0px #dbdbdb;
+      transform: translateY(2px);
+    }
+    .mc-button-green {
+      background-color: #5c8e32;
+      box-shadow: inset -4px -4px 0px 0px #2d4c12, inset 4px 4px 0px 0px #9ee059;
+    }
+    .mc-button-red {
+      background-color: #b82b2b;
+      box-shadow: inset -4px -4px 0px 0px #5e1111, inset 4px 4px 0px 0px #ff6b6b;
+    }
+    .mc-panel {
+      background-color: #c6c6c6;
+      border: 4px solid #000;
+      box-shadow: inset -4px -4px 0px 0px #555555, inset 4px 4px 0px 0px #ffffff;
+      color: #3f3f3f;
+    }
+    .mc-input {
+      background-color: #000;
+      color: #fff;
+      border: 3px solid #a0a0a0;
+      box-shadow: inset 2px 2px 0px #555;
+    }
+
+    /* Glow Styles */
+    .glow-redstone {
+      color: #ff2200;
+      text-shadow: 0 0 10px #ff0000, 0 0 20px #ff3300, 0 0 40px #990000, 4px 4px 0px #000;
+    }
+    .glow-ender {
+      color: #cc00ff;
+      text-shadow: 0 0 10px #bf00ff, 0 0 20px #8000ff, 0 0 40px #400080, 4px 4px 0px #000;
+    }
+    .glow-diamond {
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff, 0 0 20px #00bfff, 0 0 40px #005f80, 4px 4px 0px #000;
+    }
+    .glow-lava {
+      color: #ffaa00;
+      text-shadow: 0 0 10px #ff6600, 0 0 20px #ff3300, 0 0 40px #cc0000, 4px 4px 0px #000;
+    }
+    .glow-squid {
+      color: #00ffcc;
+      text-shadow: 0 0 10px #00ffaa, 0 0 20px #00cc99, 0 0 40px #006644, 4px 4px 0px #000;
+    }
+    .glow-rainbow {
+      animation: rainbowGlow 3s infinite linear;
+    }
+
+    @keyframes rainbowGlow {
+      0% { color: #ff0000; text-shadow: 0 0 15px #ff0000, 4px 4px 0px #000; }
+      20% { color: #ffff00; text-shadow: 0 0 15px #ffff00, 4px 4px 0px #000; }
+      40% { color: #00ff00; text-shadow: 0 0 15px #00ff00, 4px 4px 0px #000; }
+      60% { color: #00ffff; text-shadow: 0 0 15px #00ffff, 4px 4px 0px #000; }
+      80% { color: #ff00ff; text-shadow: 0 0 15px #ff00ff, 4px 4px 0px #000; }
+      100% { color: #ff0000; text-shadow: 0 0 15px #ff0000, 4px 4px 0px #000; }
+    }
+
+    /* Scroll animations */
+    @keyframes scrollLeft {
+      0% { transform: translateX(100vw); }
+      100% { transform: translateX(-100%); }
+    }
+    @keyframes scrollRight {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100vw); }
+    }
+    @keyframes blinkGlow {
+      0%, 100% { opacity: 1; filter: drop-shadow(0 0 15px currentColor); }
+      50% { opacity: 0.1; filter: drop-shadow(0 0 0px currentColor); }
+    }
+
+    .animate-scroll-left {
+      animation: scrollLeft var(--scroll-duration, 8s) linear infinite;
+    }
+    .animate-scroll-right {
+      animation: scrollRight var(--scroll-duration, 8s) linear infinite;
+    }
+    .animate-blink {
+      animation: blinkGlow 1s infinite steps(2, start);
+    }
+
+    /* Scanline effect overlay */
+    .scanlines {
+      background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.35) 50%
+      );
+      background-size: 100% 4px;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #222;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #555;
+      border: 1px solid #000;
+    }
+  </style>
+</head>
+<body class="bg-black text-white h-screen w-screen relative overflow-hidden select-none">
+
+  <!-- Dynamic Particle Canvas Background -->
+  <canvas id="particleCanvas" class="absolute inset-0 w-full h-full z-0 pointer-events-none"></canvas>
+
+  <!-- CRT Scanline Grid Overlay -->
+  <div class="scanlines absolute inset-0 w-full h-full z-10 pointer-events-none opacity-40"></div>
+
+  <!-- Main Marquee View Container -->
+  <div id="marqueeContainer" class="relative z-20 w-full h-full flex items-center justify-center overflow-hidden cursor-pointer">
+    <div id="marqueeText" class="whitespace-nowrap font-bold transition-all transform glow-redstone animate-scroll-left" style="font-size: 12rem; --scroll-duration: 8s;">
+      MINECRAFT LED
+    </div>
+  </div>
+
+  <!-- Quick Display Switch Button (Always accessible overlay) -->
+  <button id="togglePanelBtn" class="fixed top-4 right-4 z-40 mc-button p-3 text-sm flex items-center gap-2 opacity-80 hover:opacity-100 transition-opacity">
+    <i class="fa-solid fa-sliders"></i>
+    <span class="hidden sm:inline">控制選單</span>
+  </button>
+
+  <!-- Control Panel Modal / Sidebar Drawer -->
+  <div id="controlPanel" class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-2 sm:p-4 transition-all duration-300">
+    <div class="mc-panel w-full max-w-2xl max-h-[92vh] overflow-y-auto p-4 sm:p-6 rounded-none flex flex-col gap-5 text-black">
+      
+      <!-- Panel Header -->
+      <div class="flex justify-between items-center border-b-4 border-gray-600 pb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-cube text-xl text-green-700"></i>
+          <h2 class="text-base sm:text-lg font-bold tracking-wider text-gray-900">MC 跑馬燈控制台</h2>
+        </div>
+        <button id="closePanelBtn" class="mc-button mc-button-red px-3 py-1 text-xs">
+          ✕ 關閉
+        </button>
+      </div>
+
+      <!-- Text Content Input -->
+      <div class="flex flex-col gap-2">
+        <label class="text-xs font-bold text-gray-800 flex items-center gap-1">
+          <i class="fa-solid fa-font"></i> 跑馬燈文字:
+        </label>
+        <input type="text" id="textInput" value="MINECRAFT 酷炫跑馬燈" 
+          class="mc-input w-full p-3 text-sm sm:text-base focus:outline-none focus:border-yellow-400">
+      </div>
+
+      <!-- Text Customization Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <!-- Size -->
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-bold text-gray-800">文字大小:</label>
+          <select id="sizeSelect" class="mc-input p-2 text-xs">
+            <option value="6rem">小 (6rem)</option>
+            <option value="10rem" selected>中 (10rem)</option>
+            <option value="16rem">大 (16rem)</option>
+            <option value="22rem">特大 (22rem)</option>
+          </select>
+        </div>
+
+        <!-- Speed -->
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-bold text-gray-800">滾動速度:</label>
+          <select id="speedSelect" class="mc-input p-2 text-xs">
+            <option value="16s">極慢</option>
+            <option value="10s">慢速</option>
+            <option value="6s" selected>標準</option>
+            <option value="3s">快速</option>
+            <option value="1.5s">極速</option>
+          </select>
+        </div>
+
+        <!-- Direction -->
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-bold text-gray-800">滾動模式:</label>
+          <select id="directionSelect" class="mc-input p-2 text-xs">
+            <option value="left" selected>← 向左滾動</option>
+            <option value="right">→ 向右滾動</option>
+            <option value="blink">⚡ 靜止閃爍</option>
+            <option value="static">⏸️ 靜止置中</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Glowing Neon Themes Switcher -->
+      <div class="flex flex-col gap-2">
+        <label class="text-xs font-bold text-gray-800 flex items-center gap-1">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> 麥塊螢光主題:
+        </label>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <button data-glow="glow-redstone" class="glow-btn mc-button px-2 py-2 text-xs border-red-600 bg-red-950 text-red-400">
+            🔴 紅石螢光
+          </button>
+          <button data-glow="glow-ender" class="glow-btn mc-button px-2 py-2 text-xs border-purple-600 bg-purple-950 text-purple-300">
+            🟣 終界霓虹
+          </button>
+          <button data-glow="glow-diamond" class="glow-btn mc-button px-2 py-2 text-xs border-cyan-600 bg-cyan-950 text-cyan-300">
+            💎 鑽石藍光
+          </button>
+          <button data-glow="glow-lava" class="glow-btn mc-button px-2 py-2 text-xs border-orange-600 bg-orange-950 text-amber-400">
+            🔥 地獄岩漿
+          </button>
+          <button data-glow="glow-squid" class="glow-btn mc-button px-2 py-2 text-xs border-emerald-600 bg-emerald-950 text-teal-300">
+            🦑 螢光烏賊
+          </button>
+          <button data-glow="glow-rainbow" class="glow-btn mc-button px-2 py-2 text-xs border-yellow-500 bg-gray-900 text-yellow-300">
+            🌈 彩虹 RGB
+          </button>
+        </div>
+      </div>
+
+      <!-- Dynamic Background & Effect Selector -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-bold text-gray-800">背景主題:</label>
+          <select id="bgThemeSelect" class="mc-input p-2 text-xs">
+            <option value="#000000">純黑 (OLED 省電)</option>
+            <option value="#1a2512">經典草方塊深綠</option>
+            <option value="#281d18">泥土棕深色</option>
+            <option value="#1c0d18">終界黑曜石</option>
+            <option value="#260b0b">地獄岩石深紅</option>
+          </select>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-bold text-gray-800">動態方塊/粒子特效:</label>
+          <select id="particleEffectSelect" class="mc-input p-2 text-xs">
+            <option value="blocks">📦 方塊雨 (Dirt/Diamond/Redstone)</option>
+            <option value="ender">✨ 終界紫色粒子</option>
+            <option value="sparks">⚡ 紅石電路火花</option>
+            <option value="none">🚫 關閉動畫特效</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Font Family Selector -->
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-bold text-gray-800">字型風格:</label>
+        <select id="fontFamilySelect" class="mc-input p-2 text-xs">
+          <option value="'Press Start 2P', cursive">Press Start 2P (經典像素)</option>
+          <option value="'Silkscreen', monospace">Silkscreen (清晰像素)</option>
+          <option value="'ZCOOL PressStart', sans-serif">ZCOOL 像素中文</option>
+        </select>
+      </div>
+
+      <!-- Sound FX Toggle & Test Buttons -->
+      <div class="flex items-center justify-between bg-gray-300 p-3 border-2 border-gray-500">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-volume-high text-gray-800"></i>
+          <span class="text-xs font-bold">Web Audio 麥塊音效</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="testSoundBtn" class="mc-button px-2 py-1 text-xs">測試 EXP 聲</button>
+          <button id="toggleSoundBtn" class="mc-button mc-button-green px-3 py-1 text-xs">音效: 開</button>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex gap-2 pt-2">
+        <button id="fullscreenBtn" class="mc-button mc-button-green flex-1 py-3 text-xs sm:text-sm flex items-center justify-center gap-2">
+          <i class="fa-solid fa-expand"></i> 進入全螢幕滿版模式
+        </button>
+      </div>
+
+      <!-- Instructions Hint -->
+      <p class="text-[10px] text-gray-600 text-center">
+        💡 提示：全螢幕狀態下，點擊螢幕任意處或點擊右上角按鈕即可再次喚出選單。
+      </p>
+    </div>
+  </div>
+
+  <script>
+    /* ==========================================================================
+       1. WEB AUDIO API - Minecraft Synthesized Sound Effects (No External Files)
+       ========================================================================== */
+    class MCSoundSynth {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      // Play UI Click Sound
+      playClick() {
+        if (!this.enabled) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(120, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.05);
+
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.05);
+      }
+
+      // Play Minecraft Experience Orb Pick Up Sound
+      playExp() {
+        if (!this.enabled) return;
+        this.init();
+
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        const note = notes[Math.floor(Math.random() * notes.length)];
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(note, this.ctx.currentTime);
+
+        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.25);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.25);
+      }
+
+      // Play Redstone Piston / Switch Sound
+      playPiston() {
+        if (!this.enabled) return;
+        this.init();
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(80, this.ctx.currentTime + 0.08);
+
+        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.08);
+      }
+    }
+
+    const mcAudio = new MCSoundSynth();
+
+    /* ==========================================================================
+       2. DYNAMIC CANVAS PARTICLE & BLOCK RAIN ENGINE
+       ========================================================================== */
+    const canvas = document.getElementById('particleCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let currentEffect = 'blocks';
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Block Texture Definitions (Pixel 8x8 representation rendered procedurally)
+    const BLOCK_TYPES = [
+      { name: 'dirt', main: '#866043', detail: '#573d26' },
+      { name: 'grass', main: '#5c8e32', detail: '#3a591f' },
+      { name: 'diamond', main: '#4bede6', detail: '#12a4a0' },
+      { name: 'redstone', main: '#ff2200', detail: '#990000' }
+    ];
+
+    class Particle {
+      constructor(type) {
+        this.reset(type);
+      }
+
+      reset(type) {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height - canvas.height;
+        this.size = Math.random() * 16 + 12; // 12px to 28px
+        this.speedY = Math.random() * 2 + 1;
+        this.speedX = (Math.random() - 0.5) * 1;
+        this.opacity = Math.random() * 0.8 + 0.2;
+        this.rotation = Math.random() * Math.PI * 2;
+        this.rotSpeed = (Math.random() - 0.5) * 0.02;
+
+        if (type === 'blocks') {
+          this.block = BLOCK_TYPES[Math.floor(Math.random() * BLOCK_TYPES.length)];
+        } else if (type === 'ender') {
+          this.color = Math.random() > 0.5 ? '#cc00ff' : '#8000ff';
+          this.size = Math.random() * 8 + 4;
+          this.speedY = -(Math.random() * 1.5 + 0.5); // float upwards
+          this.y = canvas.height + Math.random() * 100;
+        } else if (type === 'sparks') {
+          this.color = Math.random() > 0.3 ? '#ff2200' : '#ffaa00';
+          this.size = Math.random() * 6 + 2;
+          this.speedY = (Math.random() - 0.5) * 3;
+          this.speedX = (Math.random() - 0.5) * 3;
+          this.y = Math.random() * canvas.height;
+          this.life = 100;
+        }
+      }
+
+      update(type) {
+        if (type === 'blocks') {
+          this.y += this.speedY;
+          this.x += this.speedX;
+          this.rotation += this.rotSpeed;
+          if (this.y > canvas.height + 40) this.reset(type);
+        } else if (type === 'ender') {
+          this.y += this.speedY;
+          this.x += Math.sin(this.y * 0.02) * 0.8;
+          if (this.y < -20) this.reset(type);
+        } else if (type === 'sparks') {
+          this.x += this.speedX;
+          this.y += this.speedY;
+          this.life -= 2;
+          if (this.life <= 0 || this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+            this.reset(type);
+          }
+        }
+      }
+
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+
+        if (currentEffect === 'blocks') {
+          ctx.translate(this.x + this.size / 2, this.y + this.size / 2);
+          ctx.rotate(this.rotation);
+          
+          // Draw Pixel Block
+          ctx.fillStyle = this.block.main;
+          ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+          
+          // Outer Pixel Outline
+          ctx.strokeStyle = '#000000';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(-this.size / 2, -this.size / 2, this.size, this.size);
+
+          // Inner pixel details
+          ctx.fillStyle = this.block.detail;
+          const s = this.size / 4;
+          ctx.fillRect(-this.size / 4, -this.size / 4, s, s);
+          ctx.fillRect(0, 0, s, s);
+
+        } else if (currentEffect === 'ender') {
+          ctx.fillStyle = this.color;
+          ctx.shadowColor = this.color;
+          ctx.shadowBlur = 8;
+          ctx.fillRect(this.x, this.y, this.size, this.size);
+
+        } else if (currentEffect === 'sparks') {
+          ctx.fillStyle = this.color;
+          ctx.shadowColor = this.color;
+          ctx.shadowBlur = 6;
+          ctx.fillRect(this.x, this.y, this.size, this.size);
+        }
+
+        ctx.restore();
+      }
+    }
+
+    function initParticles(count = 35) {
+      particles = [];
+      if (currentEffect === 'none') return;
+      for (let i = 0; i < count; i++) {
+        particles.push(new Particle(currentEffect));
+      }
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (currentEffect !== 'none') {
+        particles.forEach(p => {
+          p.update(currentEffect);
+          p.draw();
+        });
+      }
+
+      requestAnimationFrame(animateParticles);
+    }
+
+    initParticles();
+    animateParticles();
+
+    /* ==========================================================================
+       3. DOM CONTROLS & MARQUEE STATE MANAGEMENT
+       ========================================================================== */
+    const marqueeContainer = document.getElementById('marqueeContainer');
+    const marqueeText = document.getElementById('marqueeText');
+    const controlPanel = document.getElementById('controlPanel');
+    const togglePanelBtn = document.getElementById('togglePanelBtn');
+    const closePanelBtn = document.getElementById('closePanelBtn');
+    
+    // Inputs
+    const textInput = document.getElementById('textInput');
+    const sizeSelect = document.getElementById('sizeSelect');
+    const speedSelect = document.getElementById('speedSelect');
+    const directionSelect = document.getElementById('directionSelect');
+    const bgThemeSelect = document.getElementById('bgThemeSelect');
+    const particleEffectSelect = document.getElementById('particleEffectSelect');
+    const fontFamilySelect = document.getElementById('fontFamilySelect');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const toggleSoundBtn = document.getElementById('toggleSoundBtn');
+    const testSoundBtn = document.getElementById('testSoundBtn');
+    const glowBtns = document.querySelectorAll('.glow-btn');
+
+    // Update Text Content
+    textInput.addEventListener('input', (e) => {
+      marqueeText.textContent = e.target.value || 'MINECRAFT';
+    });
+
+    // Update Text Size
+    sizeSelect.addEventListener('change', (e) => {
+      marqueeText.style.fontSize = e.target.value;
+      mcAudio.playClick();
+    });
+
+    // Update Speed
+    speedSelect.addEventListener('change', (e) => {
+      marqueeText.style.setProperty('--scroll-duration', e.target.value);
+      mcAudio.playClick();
+    });
+
+    // Update Direction Mode
+    directionSelect.addEventListener('change', (e) => {
+      const mode = e.target.value;
+      marqueeText.classList.remove('animate-scroll-left', 'animate-scroll-right', 'animate-blink');
+
+      if (mode === 'left') {
+        marqueeText.classList.add('animate-scroll-left');
+      } else if (mode === 'right') {
+        marqueeText.classList.add('animate-scroll-right');
+      } else if (mode === 'blink') {
+        marqueeText.classList.add('animate-blink');
+      }
+      mcAudio.playClick();
+    });
+
+    // Glow Accent Theme Buttons
+    glowBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        glowBtns.forEach(b => b.classList.remove('ring-4', 'ring-yellow-400'));
+        btn.classList.add('ring-4', 'ring-yellow-400');
+
+        const glowClass = btn.getAttribute('data-glow');
+        marqueeText.className = marqueeText.className.replace(/glow-\w+/g, '');
+        marqueeText.classList.add(glowClass);
+
+        mcAudio.playExp();
+      });
+    });
+
+    // Background Color Theme Selector
+    bgThemeSelect.addEventListener('change', (e) => {
+      document.body.style.backgroundColor = e.target.value;
+      mcAudio.playClick();
+    });
+
+    // Dynamic Effect Selector
+    particleEffectSelect.addEventListener('change', (e) => {
+      currentEffect = e.target.value;
+      initParticles();
+      mcAudio.playPiston();
+    });
+
+    // Font Family Selector
+    fontFamilySelect.addEventListener('change', (e) => {
+      marqueeText.style.fontFamily = e.target.value;
+      mcAudio.playClick();
+    });
+
+    // Sound Toggle
+    toggleSoundBtn.addEventListener('click', () => {
+      mcAudio.enabled = !mcAudio.enabled;
+      if (mcAudio.enabled) {
+        toggleSoundBtn.textContent = '音效: 開';
+        toggleSoundBtn.className = 'mc-button mc-button-green px-3 py-1 text-xs';
+        mcAudio.playExp();
+      } else {
+        toggleSoundBtn.textContent = '音效: 關';
+        toggleSoundBtn.className = 'mc-button mc-button-red px-3 py-1 text-xs';
+      }
+    });
+
+    testSoundBtn.addEventListener('click', () => {
+      mcAudio.playExp();
+    });
+
+    // Panel Toggle Visibility
+    function openPanel() {
+      controlPanel.classList.remove('hidden');
+      controlPanel.classList.add('flex');
+      mcAudio.playClick();
+    }
+
+    function closePanel() {
+      controlPanel.classList.add('hidden');
+      controlPanel.classList.remove('flex');
+      mcAudio.playClick();
+    }
+
+    togglePanelBtn.addEventListener('click', openPanel);
+    closePanelBtn.addEventListener('click', closePanel);
+
+    // Clicking marquee background triggers menu opening in full-screen mode
+    marqueeContainer.addEventListener('click', () => {
+      if (controlPanel.classList.contains('hidden')) {
+        openPanel();
+      }
+    });
+
+    // Fullscreen Toggle
+    fullscreenBtn.addEventListener('click', () => {
+      closePanel();
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.log(`Error attempting to enable full-screen mode: ${err.message}`);
+        });
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+      mcAudio.playPiston();
+    });
+
+    /* ==========================================================================
+       4. PWA SERVICE WORKER & MANIFEST GENERATION (BLOB BASED)
+       ========================================================================== */
+    const manifestJson = {
+      name: "Minecraft LED Marquee",
+      short_name: "MC Marquee",
+      start_url: "./",
+      display: "standalone",
+      background_color: "#121212",
+      theme_color: "#5c8e32",
+      icons: [
+        {
+          src: "https://placehold.co/192x192/5c8e32/ffffff?text=MC+LED",
+          sizes: "192x192",
+          type: "image/png"
+        },
+        {
+          src: "https://placehold.co/512x512/5c8e32/ffffff?text=MC+LED",
+          sizes: "512x512",
+          type: "image/png"
+        }
+      ]
+    };
+
+    // Inject Manifest dynamically
+    const manifestBlob = new Blob([JSON.stringify(manifestJson)], { type: 'application/json' });
+    const manifestURL = URL.createObjectURL(manifestBlob);
+    const manifestLink = document.createElement('link');
+    manifestLink.rel = 'manifest';
+    manifestLink.href = manifestURL;
+    document.head.appendChild(manifestLink);
+
+    // Register Inline Service Worker for Offline PWA Capabilities
+    if ('serviceWorker' in navigator) {
+      const swCode = `
+        const CACHE_NAME = 'mc-marquee-v1';
+        self.addEventListener('install', (e) => {
+          e.waitUntil(
+            caches.open(CACHE_NAME).then((cache) => {
+              return cache.addAll(['./']);
+            })
+          );
+        });
+        self.addEventListener('fetch', (e) => {
+          e.respondWith(
+            caches.match(e.request).then((res) => res || fetch(e.request))
+          );
+        });
+      `;
+      const swBlob = new Blob([swCode], { type: 'text/javascript' });
+      const swUrl = URL.createObjectURL(swBlob);
+      navigator.serviceWorker.register(swUrl).catch(err => console.log('SW registration skipped or error:', err));
+    }
+
+    // Initial default setting sync
+    marqueeText.textContent = textInput.value;
+  </script>
+</body>
+</html>

@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>聖誕馬卡龍三軌炫彩跑馬燈 PWA</title>
+  
+  <!-- PWA Web App Manifest -->
+  <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIlog6IGW6aGs6aassOaZrOaUr+S4gSDogJnnqIkiLAogICJzaG9ydF9uYW1lIjogIlog6IGW6aGs6aassCIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjZmZlN2Y5IiwKICAidGhlbWVfY29sb3IiOiAiI2ZmYjdkNiIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbDt1dGY4LDxzdmcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJyB2aWV3Qm94PScwIDAgMTAwIDEwMCc+PHRleHQgeT0nLjhlbScgZm9udC1zaXplPSc5MCc+I2ZmYjdkNjwvdGV4dD48L3N2Zz4iLAogICAgICAic2l6ZXMiOiAiMTkyeDE5MiIsCiAgICAgICJ0eXBlIjogImltYWdlL3N2Zyt4bWwiCiAgICB9CiAgXQp9">
+  <meta name="theme-color" content="#ffb7d6">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <style>
+    :root {
+      --bg-color: #fdf0f5;
+      --panel-bg: rgba(255, 255, 255, 0.75);
+      --card-bg: rgba(255, 255, 255, 0.6);
+      --text-main: #5c4b51;
+      --pink: #ffb7d6;
+      --green: #b2e2d8;
+      --yellow: #ffecb3;
+      --purple: #d7c4f0;
+      --blue: #bae1ff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      user-select: none;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      transition: background 0.5s ease;
+    }
+
+    /* Canvas 雪花與背景特效 */
+    #snow-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* 上方動態掛飾 (襪子、禮物、薑餅人) */
+    .decorations {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 70px;
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-start;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .decor-item {
+      font-size: 2rem;
+      animation: swing 3s infinite ease-in-out alternate;
+      transform-origin: top center;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+    }
+
+    .decor-item:nth-child(even) {
+      animation-duration: 2.5s;
+      animation-delay: 0.5s;
+    }
+
+    @keyframes swing {
+      0% { transform: rotate(-15deg); }
+      100% { transform: rotate(15deg); }
+    }
+
+    /* 主內容區域 (三軌跑馬燈) */
+    .marquee-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      padding: 20px;
+      z-index: 1;
+      transition: all 0.5s ease;
+    }
+
+    .track-card {
+      width: 100%;
+      max-width: 1200px;
+      height: 25vh;
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 24px;
+      border: 2px solid rgba(255, 255, 255, 0.8);
+      box-shadow: 0 8px 32px rgba(220, 180, 200, 0.25);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .track-wrapper {
+      display: flex;
+      white-space: nowrap;
+      width: 100%;
+      position: absolute;
+      will-change: transform;
+    }
+
+    .marquee-text {
+      font-weight: 900;
+      padding: 0 30px;
+      letter-spacing: 2px;
+      display: inline-block;
+      text-shadow: 0 0 12px rgba(255,255,255,0.8);
+    }
+
+    /* 馬卡龍螢光主題色 */
+    .theme-pink { color: #ff6b9d; text-shadow: 0 0 15px #ffb7d6, 0 0 25px #ffb7d6; }
+    .theme-green { color: #2ec4b6; text-shadow: 0 0 15px #b2e2d8, 0 0 25px #b2e2d8; }
+    .theme-purple { color: #9b51e0; text-shadow: 0 0 15px #d7c4f0, 0 0 25px #d7c4f0; }
+    .theme-yellow { color: #ff9f1c; text-shadow: 0 0 15px #ffecb3, 0 0 25px #ffecb3; }
+    .theme-blue { color: #118ab2; text-shadow: 0 0 15px #bae1ff, 0 0 25px #bae1ff; }
+
+    /* 控制面板 */
+    .control-panel {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 92%;
+      max-width: 900px;
+      max-height: 40vh;
+      overflow-y: auto;
+      background: var(--panel-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      z-index: 10;
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
+    }
+
+    .control-panel.hidden {
+      transform: translate(-50%, 150%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px dashed rgba(0,0,0,0.08);
+    }
+
+    .panel-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #ff6b9d;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    .btn:active { transform: scale(0.95); }
+    .btn-primary { background: #ffb7d6; color: #5c4b51; }
+    .btn-party { background: linear-gradient(135deg, #ffb7d6, #b2e2d8, #d7c4f0); color: #4a3e3d; }
+    .btn-secondary { background: #e0e0e0; color: #333; }
+
+    .track-control-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 15px;
+    }
+
+    .track-box {
+      background: rgba(255, 255, 255, 0.7);
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+
+    .track-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #7d6b7d;
+    }
+
+    .input-text {
+      width: 100%;
+      padding: 8px 12px;
+      border: 2px solid #ffd1dc;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .input-text:focus { border-color: #ff6b9d; }
+
+    .control-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .control-row label { font-size: 0.8rem; font-weight: 600; width: 50px; }
+    .control-row select, .control-row input[type="range"] { flex: 1; }
+
+    /* 控制面板顯示/隱藏觸發按鈕 */
+    #toggle-panel-btn {
+      position: absolute;
+      bottom: 15px;
+      right: 15px;
+      z-index: 11;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 2px solid #ffb7d6;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+    }
+
+    /* 派對模式動畫 */
+    body.party-mode {
+      animation: partyBg 1.5s infinite alternate ease-in-out;
+    }
+
+    @keyframes partyBg {
+      0% { background-color: #ffe4e1; }
+      33% { background-color: #e0f8f5; }
+      66% { background-color: #f3e5f5; }
+      100% { background-color: #fffde7; }
+    }
+
+    body.party-mode .track-card {
+      animation: pulseCard 0.8s infinite alternate ease-in-out;
+    }
+
+    @keyframes pulseCard {
+      0% { transform: scale(1); box-shadow: 0 0 20px rgba(255,183,214,0.4); }
+      100% { transform: scale(1.02); box-shadow: 0 0 35px rgba(178,226,216,0.8); }
+    }
+
+    /* 隱藏滾動條 */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-thumb { background: #ffb7d6; border-radius: 10px; }
+  </style>
+</head>
+<body>
+
+  <!-- 下雪 Canvas -->
+  <canvas id="snow-canvas"></canvas>
+
+  <!-- 頂部可愛節慶掛飾 (無聖誕老公公) -->
+  <div class="decorations">
+    <div class="decor-item">🧦</div>
+    <div class="decor-item">🎁</div>
+    <div class="decor-item">🎄</div>
+    <div class="decor-item">⭐</div>
+    <div class="decor-item">🍪</div>
+    <div class="decor-item">❄️</div>
+    <div class="decor-item">🧦</div>
+  </div>
+
+  <!-- 主跑馬燈區域 (三軌) -->
+  <div class="marquee-container" id="marquee-container">
+    <!-- 軌道 1 (上) -->
+    <div class="track-card">
+      <div class="track-wrapper" id="wrapper-0">
+        <span class="marquee-text theme-pink" id="text-0-a"></span>
+        <span class="marquee-text theme-pink" id="text-0-b"></span>
+      </div>
+    </div>
+
+    <!-- 軌道 2 (中) -->
+    <div class="track-card">
+      <div class="track-wrapper" id="wrapper-1">
+        <span class="marquee-text theme-green" id="text-1-a"></span>
+        <span class="marquee-text theme-green" id="text-1-b"></span>
+      </div>
+    </div>
+
+    <!-- 軌道 3 (下) -->
+    <div class="track-card">
+      <div class="track-wrapper" id="wrapper-2">
+        <span class="marquee-text theme-purple" id="text-2-a"></span>
+        <span class="marquee-text theme-purple" id="text-2-b"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 面板開關按鈕 -->
+  <button id="toggle-panel-btn" title="切換控制面板">⚙️</button>
+
+  <!-- 控制面板 -->
+  <div class="control-panel" id="control-panel">
+    <div class="panel-header">
+      <div class="panel-title">🧁 馬卡龍聖誕跑馬燈設定</div>
+      <div class="btn-group">
+        <button class="btn btn-party" id="btn-party">🎉 馬卡龍派對</button>
+        <button class="btn btn-primary" id="btn-music">🎵 聖誕音樂: 關</button>
+      </div>
+    </div>
+
+    <div class="track-control-grid">
+      <!-- 軌道 1 設定 -->
+      <div class="track-box">
+        <div class="track-title">📌 上軌道 (Track 1)</div>
+        <input type="text" class="input-text" id="input-0" value="✨ 點亮冬夜的浪漫星光 ‧ 許個聖誕願望吧 🌟">
+        <div class="control-row">
+          <label>方向</label>
+          <select id="dir-0">
+            <option value="left" selected>向左滾動</option>
+            <option value="right">向右滾動</option>
+            <option value="static">靜止跳動</option>
+          </select>
+        </div>
+        <div class="control-row">
+          <label>色彩</label>
+          <select id="color-0">
+            <option value="theme-pink" selected>草莓粉</option>
+            <option value="theme-green">薄荷綠</option>
+            <option value="theme-purple">薰衣草紫</option>
+            <option value="theme-yellow">檸檬黃</option>
+            <option value="theme-blue">天空藍</option>
+          </select>
+        </div>
+        <div class="control-row">
+          <label>速度</label>
+          <input type="range" id="speed-0" min="1" max="10" value="3">
+        </div>
+        <div class="control-row">
+          <label>大小</label>
+          <input type="range" id="size-0" min="2" max="6" step="0.5" value="3.5">
+        </div>
+      </div>
+
+      <!-- 軌道 2 設定 -->
+      <div class="track-box">
+        <div class="track-title">📌 中軌道 (Track 2)</div>
+        <input type="text" class="input-text" id="input-1" value="🍰 甜蜜馬卡龍派對 ‧ Merry & Bright 🥂">
+        <div class="control-row">
+          <label>方向</label>
+          <select id="dir-1">
+            <option value="left">向左滾動</option>
+            <option value="right" selected>向右滾動</option>
+            <option value="static">靜止跳動</option>
+          </select>
+        </div>
+        <div class="control-row">
+          <label>色彩</label>
+          <select id="color-1">
+            <option value="theme-pink">草莓粉</option>
+            <option value="theme-green" selected>薄荷綠</option>
+            <option value="theme-purple">薰衣草紫</option>
+            <option value="theme-yellow">檸檬黃</option>
+            <option value="theme-blue">天空藍</option>
+          </select>
+        </div>
+        <div class="control-row">
+          <label>速度</label>
+          <input type="range" id="speed-1" min="1" max="10" value="4">
+        </div>
+        <div class="control-row">
+          <label>大小</label>
+          <input type="range" id="size-1" min="2" max="6" step="0.5" value="4">
+        </div>
+      </div>
+
+      <!-- 軌道 3 設定 -->
+      <div class="track-box">
+        <div class="track-title">📌 下軌道 (Track 3)</div>
+        <input type="text" class="input-text" id="input-2" value="🎁 裝滿平安與喜樂 ‧ 把最好的祝福都給你 🧸">
+        <div class="control-row">
+          <label>方向</label>
+          <select id="dir-2">
+            <option value="left" selected>向左滾動</option>
+            <option value="right">向右滾動</option>
+            <option value="static">靜止跳動</option>
+          </select>
+        </div>
+        <div class="control-row">
+          <label>色彩</label>
+          <select id="color-2">
+            <option value="theme-pink">草莓粉</option>
+            <option value="theme-green">薄荷綠</option>
+            <option value="theme-purple" selected>薰衣草紫</option>
+            <option value="theme-yellow">檸檬黃</option>
+            <option value="theme-blue">天空藍</option>
+          </select>
+        </div>
+        <div class="control-row">
+          <label>速度</label>
+          <input type="range" id="speed-2" min="1" max="10" value="3">
+        </div>
+        <div class="control-row">
+          <label>大小</label>
+          <input type="range" id="size-2" min="2" max="6" step="0.5" value="3.5">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ----------------------------------------------------
+    // 1. 三軌跑馬燈邏輯與狀態管理
+    // ----------------------------------------------------
+    const tracks = [
+      { pos: 0, speed: 3, dir: 'left', color: 'theme-pink', size: 3.5 },
+      { pos: 0, speed: 4, dir: 'right', color: 'theme-green', size: 4 },
+      { pos: 0, speed: 3, dir: 'left', color: 'theme-purple', size: 3.5 }
+    ];
+
+    function updateTrackText(index) {
+      const val = document.getElementById(`input-${index}`).value || ' ';
+      const textA = document.getElementById(`text-${index}-a`);
+      const textB = document.getElementById(`text-${index}-b`);
+      textA.textContent = val;
+      textB.textContent = val;
+    }
+
+    function updateTrackStyle(index) {
+      const color = document.getElementById(`color-${index}`).value;
+      const size = document.getElementById(`size-${index}`).value;
+      const textA = document.getElementById(`text-${index}-a`);
+      const textB = document.getElementById(`text-${index}-b`);
+
+      textA.className = `marquee-text ${color}`;
+      textB.className = `marquee-text ${color}`;
+      textA.style.fontSize = `${size}rem`;
+      textB.style.fontSize = `${size}rem`;
+
+      tracks[index].speed = parseInt(document.getElementById(`speed-${index}`).value);
+      tracks[index].dir = document.getElementById(`dir-${index}`).value;
+    }
+
+    // 初始化三軌設定與事件監聽
+    [0, 1, 2].forEach(i => {
+      updateTrackText(i);
+      updateTrackStyle(i);
+
+      document.getElementById(`input-${i}`).addEventListener('input', () => updateTrackText(i));
+      document.getElementById(`color-${i}`).addEventListener('change', () => updateTrackStyle(i));
+      document.getElementById(`dir-${i}`).addEventListener('change', () => updateTrackStyle(i));
+      document.getElementById(`speed-${i}`).addEventListener('input', () => updateTrackStyle(i));
+      document.getElementById(`size-${i}`).addEventListener('input', () => updateTrackStyle(i));
+    });
+
+    // 動畫循環 (Animation Loop)
+    function animateMarquee() {
+      [0, 1, 2].forEach(i => {
+        const wrapper = document.getElementById(`wrapper-${i}`);
+        const textA = document.getElementById(`text-${i}-a`);
+        const textWidth = textA.offsetWidth;
+
+        if (textWidth > 0) {
+          if (tracks[i].dir === 'left') {
+            tracks[i].pos -= tracks[i].speed;
+            if (Math.abs(tracks[i].pos) >= textWidth) {
+              tracks[i].pos = 0;
+            }
+          } else if (tracks[i].dir === 'right') {
+            tracks[i].pos += tracks[i].speed;
+            if (tracks[i].pos >= 0) {
+              tracks[i].pos = -textWidth;
+            }
+          } else {
+            // 靜止跳動模式
+            tracks[i].pos = (window.innerWidth - textWidth) / 2;
+          }
+          wrapper.style.transform = `translateX(${tracks[i].pos}px)`;
+        }
+      });
+      requestAnimationFrame(animateMarquee);
+    }
+    requestAnimationFrame(animateMarquee);
+
+    // ----------------------------------------------------
+    // 2. 控制面板與 UI 互動
+    // ----------------------------------------------------
+    const panel = document.getElementById('control-panel');
+    const toggleBtn = document.getElementById('toggle-panel-btn');
+    const partyBtn = document.getElementById('btn-party');
+
+    toggleBtn.addEventListener('click', () => {
+      panel.classList.toggle('hidden');
+    });
+
+    // 點擊背景空白處隱藏面板
+    document.getElementById('marquee-container').addEventListener('click', () => {
+      panel.classList.add('hidden');
+    });
+
+    // 派對模式切換
+    partyBtn.addEventListener('click', () => {
+      document.body.classList.toggle('party-mode');
+      const isParty = document.body.classList.contains('party-mode');
+      partyBtn.textContent = isParty ? '✨ 溫柔馬卡龍' : '🎉 馬卡龍派對';
+    });
+
+    // ----------------------------------------------------
+    // 3. Snow Canvas 特效
+    // ----------------------------------------------------
+    const canvas = document.getElementById('snow-canvas');
+    const ctx = canvas.getContext('2d');
+    let flakes = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function createFlakes() {
+      flakes = [];
+      const count = Math.floor(window.innerWidth / 15);
+      for (let i = 0; i < count; i++) {
+        flakes.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          r: Math.random() * 3 + 1,
+          d: Math.random() * 1 + 0.5,
+          opacity: Math.random() * 0.7 + 0.3
+        });
+      }
+    }
+    createFlakes();
+
+    function drawSnow() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.beginPath();
+      flakes.forEach(f => {
+        ctx.moveTo(f.x, f.y);
+        ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2, true);
+        f.y += f.d;
+        f.x += Math.sin(f.y * 0.01) * 0.5;
+        if (f.y > canvas.height) {
+          f.y = -10;
+          f.x = Math.random() * canvas.width;
+        }
+      });
+      ctx.fill();
+      requestAnimationFrame(drawSnow);
+    }
+    drawSnow();
+
+    // ----------------------------------------------------
+    // 4. Web Audio API 音樂 (八音盒 Jingle Bells)
+    // ----------------------------------------------------
+    let audioCtx = null;
+    let isPlaying = false;
+    let musicTimer = null;
+    const musicBtn = document.getElementById('btn-music');
+
+    const notes = [
+      { note: 659.25, duration: 200 }, { note: 659.25, duration: 200 }, { note: 659.25, duration: 400 },
+      { note: 659.25, duration: 200 }, { note: 659.25, duration: 200 }, { note: 659.25, duration: 400 },
+      { note: 659.25, duration: 200 }, { note: 783.99, duration: 200 }, { note: 523.25, duration: 200 }, { note: 587.33, duration: 200 },
+      { note: 659.25, duration: 800 }
+    ];
+
+    function playNote(freq, duration) {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine'; // 八音盒柔和音色
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration / 1000);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration / 1000);
+    }
+
+    function startMusic() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      let step = 0;
+      function loop() {
+        if (!isPlaying) return;
+        const current = notes[step];
+        playNote(current.note, current.duration);
+        step = (step + 1) % notes.length;
+        musicTimer = setTimeout(loop, current.duration + 50);
+      }
+      loop();
+    }
+
+    musicBtn.addEventListener('click', () => {
+      isPlaying = !isPlaying;
+      if (isPlaying) {
+        musicBtn.textContent = '🎵 聖誕音樂: 開';
+        startMusic();
+      } else {
+        musicBtn.textContent = '🎵 聖誕音樂: 關';
+        clearTimeout(musicTimer);
+      }
+    });
+
+    // Service Worker 註冊
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        const swCode = `
+          self.addEventListener('install', e => e.waitUntil(self.skipWaiting()));
+          self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+          self.addEventListener('fetch', e => e.respondWith(fetch(e.request)));
+        `;
+        const blob = new Blob([swCode], { type: 'application/javascript' });
+        navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
