@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>忠山田徑加油跑馬燈</title>
+  <!-- PWA Theme Color -->
+  <meta name="theme-color" content="#1e3a8a">
+  <meta name="description" content="忠山田徑比賽專用加油跑馬燈，包含滿版大字、炫彩主題、動態彩帶特效與歡呼音效！">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Google Sans / Noto Sans TC -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@700;900&family=Permanent+Marker&family=Ma+Shan+Zheng&family=Orbitron:wght@900&family=Zen+Maru+Gothic:wght@900&display=swap" rel="stylesheet">
+
+  <!-- Inline Web App Manifest (Data URI) -->
+  <link rel="manifest" id="manifest-placeholder">
+
+  <style>
+    /* 全局字體設定 */
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      touch-action: manipulation;
+      overflow-x: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* 隱藏 Scrollbar */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* 主題背景定義 */
+    /* 1. 金牌榮耀 */
+    .theme-gold {
+      background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+      background-size: 400% 400%;
+      animation: gradientBG 8s ease infinite;
+      color: #1a1a1a;
+      text-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 2px 2px 4px rgba(0,0,0,0.4);
+    }
+    
+    /* 2. 熱血賽道 */
+    .theme-track {
+      background: linear-gradient(180deg, #18181b 0%, #b91c1c 50%, #18181b 100%);
+      color: #facc15;
+      text-shadow: 0 0 15px rgba(239, 68, 68, 0.9), 3px 3px 0px #000;
+    }
+
+    /* 3. 霓虹炫彩 */
+    .theme-neon {
+      background: linear-gradient(270deg, #ff007f, #7f00ff, #00d4ff, #00ff66);
+      background-size: 800% 800%;
+      animation: gradientBG 6s ease infinite;
+      color: #ffffff;
+      text-shadow: 0 0 10px #fff, 0 0 20px #ff007f, 0 0 40px #ff007f, 0 0 80px #ff007f;
+    }
+
+    /* 4. 忠山必勝 (校隊風格：經典深藍與金耀白) */
+    .theme-zhongshan {
+      background: radial-gradient(circle at center, #1e40af, #1e3a8a, #0f172a);
+      color: #ffffff;
+      text-shadow: 0 0 15px #60a5fa, 0 0 30px #3b82f6, 3px 3px 6px rgba(0,0,0,0.8);
+    }
+
+    /* 5. 夜光閃爍 */
+    .theme-cyber {
+      background-color: #050505;
+      color: #22c55e;
+      text-shadow: 0 0 10px #22c55e, 0 0 25px #22c55e, 0 0 50px #16a34a;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* 閃爍效果 */
+    .animate-flash {
+      animation: flashText 0.6s infinite alternate;
+    }
+    @keyframes flashText {
+      0% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0.15; transform: scale(0.98); }
+    }
+
+    /* 滿版閃光燈 background flash */
+    .bg-strobe {
+      animation: bgStrobeAnim 0.3s infinite;
+    }
+    @keyframes bgStrobeAnim {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.7) contrast(1.2); }
+    }
+
+    /* Canvas 特效塗層 */
+    #effectsCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    /* Marquee 容器與文字 */
+    .marquee-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      white-space: nowrap;
+      position: relative;
+    }
+
+    .marquee-content {
+      display: inline-block;
+      white-space: nowrap;
+      will-change: transform;
+      padding-left: 100vw; /* 初始從右側進入 */
+    }
+
+    /* 靜止/滿版閃爍文字居中樣式 */
+    .static-content {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      word-break: break-word;
+      padding: 1rem;
+    }
+
+    /* 4 種特色字體選擇器 */
+    .font-style-1 {
+      font-family: 'Noto Sans TC', sans-serif;
+      font-weight: 900;
+      font-style: normal;
+    }
+    .font-style-2 {
+      font-family: 'Orbitron', 'Noto Sans TC', sans-serif;
+      font-weight: 900;
+      font-style: italic;
+      letter-spacing: 0.05em;
+    }
+    .font-style-3 {
+      font-family: 'Ma Shan Zheng', cursive, 'Noto Sans TC';
+      font-weight: 400;
+      font-style: normal;
+    }
+    .font-style-4 {
+      font-family: 'Zen Maru Gothic', 'Noto Sans TC', sans-serif;
+      font-weight: 900;
+      font-style: normal;
+    }
+  </style>
+</head>
+<body class="bg-black text-white h-screen w-screen overflow-hidden flex flex-col theme-zhongshan" id="appBody">
+
+  <!-- 特效 Canvas (彩帶/火花) -->
+  <canvas id="effectsCanvas"></canvas>
+
+  <!-- 頂部跑馬燈 / 顯示區域 -->
+  <main id="displayArea" class="relative flex-1 w-full h-full flex items-center justify-center overflow-hidden cursor-pointer">
+    
+    <!-- 跑馬燈模式容器 -->
+    <div id="marqueeContainer" class="marquee-container">
+      <div id="marqueeText" class="marquee-content font-style-1 tracking-wider transition-all duration-75">
+        忠山加油！田徑強者！勇奪第一！
+      </div>
+    </div>
+
+    <!-- 滿版靜止/閃爍模式容器 (預設隱藏) -->
+    <div id="staticContainer" class="static-content font-style-1 tracking-wider hidden">
+      <span id="staticText">忠山加油！田徑強者！勇奪第一！</span>
+    </div>
+
+    <!-- 提示字樣（全螢幕模式點擊退出提示） -->
+    <div id="exitHint" class="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1.5 rounded-full border border-white/20 backdrop-blur-md opacity-0 transition-opacity duration-300 pointer-events-none z-30">
+      <i class="fa-solid fa-hand-pointer mr-1"></i> 點擊螢幕任意處顯示控制選單
+    </div>
+  </main>
+
+  <!-- 快捷控制面板切換鈕 (當控制選單展開時可手動隱藏) -->
+  <button id="togglePanelBtn" class="fixed bottom-4 right-4 z-40 bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-bold p-3.5 rounded-full shadow-lg hover:scale-110 active:scale-95 transition-all duration-200 border border-yellow-200/50 flex items-center justify-center">
+    <i class="fa-solid fa-sliders text-xl"></i>
+  </button>
+
+  <!-- 全螢幕/滿版模式觸發按鈕 (頂部右側) -->
+  <button id="fullscreenBtn" class="fixed top-4 right-4 z-40 bg-slate-900/80 hover:bg-slate-800 text-white p-3 rounded-full shadow-md border border-white/20 backdrop-blur-md transition">
+    <i class="fa-solid fa-expand text-lg"></i>
+  </button>
+
+  <!-- 底部控制選單 ( Drawer / Panel ) -->
+  <footer id="controlPanel" class="fixed bottom-0 left-0 right-0 z-30 bg-slate-950/90 border-t border-slate-800/80 backdrop-blur-lg p-4 transition-transform duration-300 max-h-[85vh] overflow-y-auto no-scrollbar rounded-t-2xl shadow-2xl">
+    <div class="max-w-4xl mx-auto space-y-4">
+      
+      <!-- 頂部對齊欄：標題與快捷預設詞 -->
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-800 pb-3">
+        <div class="flex items-center space-x-2">
+          <span class="bg-gradient-to-r from-yellow-400 to-amber-500 text-black text-xs font-black px-2.5 py-1 rounded-md uppercase tracking-wider">ZHONGSHAN</span>
+          <h1 class="text-base font-bold text-slate-200 flex items-center gap-2">
+            <i class="fa-solid fa-trophy text-amber-400"></i> 田徑比賽加油燈
+          </h1>
+        </div>
+
+        <!-- 常用加油詞快選 -->
+        <div class="flex items-center space-x-1.5 overflow-x-auto w-full sm:w-auto no-scrollbar py-1">
+          <span class="text-xs text-slate-400 shrink-0">速選：</span>
+          <button class="preset-btn text-xs bg-slate-800 hover:bg-amber-500/20 hover:text-amber-300 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700 transition shrink-0">
+            忠山必勝！勇奪第一！
+          </button>
+          <button class="preset-btn text-xs bg-slate-800 hover:bg-amber-500/20 hover:text-amber-300 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700 transition shrink-0">
+            ⚡ 忠山勁旅 飆破紀錄 ⚡
+          </button>
+          <button class="preset-btn text-xs bg-slate-800 hover:bg-amber-500/20 hover:text-amber-300 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700 transition shrink-0">
+            🔥 全力以赴 無所畏懼 🔥
+          </button>
+        </div>
+      </div>
+
+      <!-- 文字輸入區 -->
+      <div>
+        <div class="relative">
+          <input type="text" id="textInput" value="忠山加油！田徑強者！勇奪第一！" placeholder="請輸入加油文字..." class="w-full bg-slate-900 border border-slate-700 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 text-white rounded-xl px-4 py-2.5 pr-10 font-bold text-base outline-none transition placeholder-slate-500">
+          <button id="clearTextBtn" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1">
+            <i class="fa-solid fa-circle-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- 第一排控制項：模式、字體大小、滾動速度 -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        
+        <!-- 顯示模式與滾動方向 -->
+        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800/80 space-y-2">
+          <label class="text-xs text-amber-400 font-semibold flex items-center justify-between">
+            <span><i class="fa-solid fa-display mr-1"></i> 顯示模式</span>
+          </label>
+          <div class="grid grid-cols-2 gap-2">
+            <button id="modeMarqueeBtn" class="py-1.5 px-3 rounded-lg text-xs font-bold border transition bg-amber-500 text-slate-950 border-amber-400">
+              <i class="fa-solid fa-arrow-right-long mr-1"></i> 滾動跑馬燈
+            </button>
+            <button id="modeStaticBtn" class="py-1.5 px-3 rounded-lg text-xs font-bold border border-slate-700 text-slate-300 hover:bg-slate-800 transition">
+              <i class="fa-solid fa-expand mr-1"></i> 滿版/閃爍
+            </button>
+          </div>
+          <!-- 滾動方向切換 (僅跑馬燈模式有效) -->
+          <div id="directionControl" class="flex items-center justify-between pt-1">
+            <span class="text-xs text-slate-400">方向:</span>
+            <div class="flex space-x-1">
+              <button id="dirLeftBtn" class="px-2.5 py-0.5 text-xs rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-semibold">向左</button>
+              <button id="dirRightBtn" class="px-2.5 py-0.5 text-xs rounded bg-slate-800 text-slate-400 border border-slate-700 hover:text-slate-200">向右</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 字體大小與字體選擇器 -->
+        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800/80 space-y-2">
+          <div class="flex justify-between items-center text-xs text-amber-400 font-semibold">
+            <span><i class="fa-solid fa-text-height mr-1"></i> 字體大小</span>
+            <span id="fontSizeVal" class="text-slate-300 font-mono">120 px</span>
+          </div>
+          <input type="range" id="fontSizeSlider" min="40" max="300" value="120" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-400">
+          
+          <!-- 4 種字體切換按鈕 -->
+          <div class="pt-1">
+            <label class="text-[11px] text-slate-400 block mb-1"><i class="fa-solid fa-font mr-1"></i> 字體風格選擇</label>
+            <div class="grid grid-cols-4 gap-1">
+              <button data-font="font-style-1" class="font-btn active border border-amber-400 bg-amber-500/20 text-amber-300 py-1 rounded text-xs font-bold transition">字體 1</button>
+              <button data-font="font-style-2" class="font-btn border border-slate-700 bg-slate-800 text-slate-400 hover:text-slate-200 py-1 rounded text-xs italic font-bold transition">字體 2</button>
+              <button data-font="font-style-3" class="font-btn border border-slate-700 bg-slate-800 text-slate-400 hover:text-slate-200 py-1 rounded text-xs font-bold transition">字體 3</button>
+              <button data-font="font-style-4" class="font-btn border border-slate-700 bg-slate-800 text-slate-400 hover:text-slate-200 py-1 rounded text-xs font-bold transition">字體 4</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 滾動速度 Slider -->
+        <div id="speedControlBox" class="bg-slate-900/60 p-3 rounded-xl border border-slate-800/80 space-y-2">
+          <div class="flex justify-between items-center text-xs text-amber-400 font-semibold">
+            <span><i class="fa-solid fa-gauge-high mr-1"></i> 滾動速度</span>
+            <span id="speedVal" class="text-slate-300 font-mono">中速 (5)</span>
+          </div>
+          <input type="range" id="speedSlider" min="1" max="10" value="5" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-400">
+          <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+            <span>極慢</span>
+            <span>正常</span>
+            <span>飛快</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 第二排控制項：炫彩主題選擇 & 動態特效開關 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <!-- 主題切換 -->
+        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800/80 space-y-2">
+          <label class="text-xs text-amber-400 font-semibold block">
+            <i class="fa-solid fa-palette mr-1"></i> 炫彩賽事主題
+          </label>
+          <div class="grid grid-cols-5 gap-1.5">
+            <button data-theme="theme-zhongshan" class="theme-select-btn p-2 rounded-lg text-xs font-bold bg-blue-900 text-white border-2 border-amber-400 shadow flex flex-col items-center gap-1">
+              <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+              <span class="text-[10px]">忠山必勝</span>
+            </button>
+            <button data-theme="theme-gold" class="theme-select-btn p-2 rounded-lg text-xs font-bold bg-amber-200 text-slate-900 border border-slate-700 hover:border-amber-400 flex flex-col items-center gap-1">
+              <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+              <span class="text-[10px]">金牌榮耀</span>
+            </button>
+            <button data-theme="theme-track" class="theme-select-btn p-2 rounded-lg text-xs font-bold bg-red-950 text-yellow-400 border border-slate-700 hover:border-amber-400 flex flex-col items-center gap-1">
+              <span class="w-3 h-3 rounded-full bg-red-600"></span>
+              <span class="text-[10px]">熱血賽道</span>
+            </button>
+            <button data-theme="theme-neon" class="theme-select-btn p-2 rounded-lg text-xs font-bold bg-purple-900 text-pink-300 border border-slate-700 hover:border-amber-400 flex flex-col items-center gap-1">
+              <span class="w-3 h-3 rounded-full bg-pink-500"></span>
+              <span class="text-[10px]">霓虹炫彩</span>
+            </button>
+            <button data-theme="theme-cyber" class="theme-select-btn p-2 rounded-lg text-xs font-bold bg-zinc-950 text-green-400 border border-slate-700 hover:border-amber-400 flex flex-col items-center gap-1">
+              <span class="w-3 h-3 rounded-full bg-green-500"></span>
+              <span class="text-[10px]">夜光閃爍</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 特效開關 -->
+        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800/80 space-y-2">
+          <label class="text-xs text-amber-400 font-semibold block">
+            <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> 視覺特效開關
+          </label>
+          <div class="grid grid-cols-3 gap-2">
+            <button id="effectConfettiBtn" class="effect-toggle px-2 py-1.5 rounded-lg text-xs font-bold border bg-amber-500/20 text-amber-300 border-amber-500/50 flex items-center justify-center gap-1">
+              <i class="fa-solid fa-ribbon"></i> 金牌彩帶
+            </button>
+            <button id="effectSparklesBtn" class="effect-toggle px-2 py-1.5 rounded-lg text-xs font-bold border bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200 flex items-center justify-center gap-1">
+              <i class="fa-solid fa-fire-flame-curved"></i> 勝利火花
+            </button>
+            <button id="effectFlashBtn" class="effect-toggle px-2 py-1.5 rounded-lg text-xs font-bold border bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200 flex items-center justify-center gap-1">
+              <i class="fa-solid fa-bolt"></i> 爆發閃爍
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 第三排控制項：音效與氣氛控制 (Web Audio API) -->
+      <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800/80 space-y-2">
+        <div class="flex items-center justify-between">
+          <label class="text-xs text-amber-400 font-semibold flex items-center gap-1">
+            <i class="fa-solid fa-volume-high"></i> 加油現場音效 (Web Audio 實時合成)
+          </label>
+          <div class="flex items-center space-x-2">
+            <span class="text-xs text-slate-400">音量</span>
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.7" class="w-20 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-400">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <button id="soundAirhornBtn" class="sound-btn bg-slate-800 hover:bg-slate-700 active:bg-amber-500 active:text-slate-950 text-slate-200 py-2 px-3 rounded-lg text-xs font-bold border border-slate-700 transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-bullhorn text-amber-400"></i> 勝利鳴笛 (Horn)
+          </button>
+          <button id="soundCheerBtn" class="sound-btn bg-slate-800 hover:bg-slate-700 active:bg-amber-500 active:text-slate-950 text-slate-200 py-2 px-3 rounded-lg text-xs font-bold border border-slate-700 transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-people-group text-amber-400"></i> 熱烈歡呼 (Cheer)
+          </button>
+          <button id="soundDrumBtn" class="sound-btn bg-slate-800 hover:bg-slate-700 active:bg-amber-500 active:text-slate-950 text-slate-200 py-2 px-3 rounded-lg text-xs font-bold border border-slate-700 transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-drum text-amber-400"></i> 戰鼓衝鋒 (Drum)
+          </button>
+          <button id="soundWhistleBtn" class="sound-btn bg-slate-800 hover:bg-slate-700 active:bg-amber-500 active:text-slate-950 text-slate-200 py-2 px-3 rounded-lg text-xs font-bold border border-slate-700 transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-drumstick-bite text-amber-400"></i> 裁判開跑哨聲
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- JavaScript 邏輯程式碼 -->
+  <script>
+    // ==========================================
+    // 1. PWA Dynamic Manifest & Service Worker
+    // ==========================================
+    (function setupPWA() {
+      const manifestData = {
+        name: "忠山田徑加油跑馬燈",
+        short_name: "忠山加油燈",
+        description: "忠山田徑比賽專屬加油神器跑馬燈",
+        start_url: "./",
+        display: "standalone",
+        background_color: "#0f172a",
+        theme_color: "#1e3a8a",
+        icons: [
+          {
+            src: "https://placehold.co/192x192/1e3a8a/ffffff.png?text=忠山加油",
+            sizes: "192x192",
+            type: "image/png"
+          },
+          {
+            src: "https://placehold.co/512x512/1e3a8a/ffffff.png?text=忠山加油",
+            sizes: "512x512",
+            type: "image/png"
+          }
+        ]
+      };
+      const stringManifest = JSON.stringify(manifestData);
+      const blob = new Blob([stringManifest], {type: 'application/json'});
+      const manifestURL = URL.createObjectURL(blob);
+      document.getElementById('manifest-placeholder').setAttribute('href', manifestURL);
+
+      // 註冊 Service Worker
+      if ('serviceWorker' in navigator) {
+        const swCode = `
+          const CACHE_NAME = 'zs-cheer-v1';
+          self.addEventListener('install', (e) => {
+            e.waitUntil(
+              caches.open(CACHE_NAME).then((cache) => {
+                return cache.addAll(['./']);
+              })
+            );
+          });
+          self.addEventListener('fetch', (e) => {
+            e.respondWith(
+              caches.match(e.request).then((res) => res || fetch(e.request))
+            );
+          });
+        `;
+        const swBlob = new Blob([swCode], { type: 'text/javascript' });
+        const swUrl = URL.createObjectURL(swBlob);
+        navigator.serviceWorker.register(swUrl).catch(err => console.log('SW reg error:', err));
+      }
+    })();
+
+    // ==========================================
+    // 2. 狀態管理 (State)
+    // ==========================================
+    const state = {
+      text: "忠山加油！田徑強者！勇奪第一！",
+      mode: "marquee", // 'marquee' | 'static'
+      direction: "left", // 'left' | 'right'
+      fontSize: 120,
+      fontStyle: "font-style-1", // 字體選項目標 ('font-style-1', 'font-style-2', 'font-style-3', 'font-style-4')
+      speed: 5,
+      theme: "theme-zhongshan",
+      effects: {
+        confetti: true,
+        sparkles: false,
+        flash: false
+      },
+      volume: 0.7,
+      panelVisible: true,
+      positionX: 0,
+      lastTimestamp: 0
+    };
+
+    // DOM 元素引用
+    const appBody = document.getElementById('appBody');
+    const displayArea = document.getElementById('displayArea');
+    const marqueeContainer = document.getElementById('marqueeContainer');
+    const marqueeText = document.getElementById('marqueeText');
+    const staticContainer = document.getElementById('staticContainer');
+    const staticText = document.getElementById('staticText');
+    const textInput = document.getElementById('textInput');
+    const clearTextBtn = document.getElementById('clearTextBtn');
+    
+    const controlPanel = document.getElementById('controlPanel');
+    const togglePanelBtn = document.getElementById('togglePanelBtn');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const exitHint = document.getElementById('exitHint');
+
+    const modeMarqueeBtn = document.getElementById('modeMarqueeBtn');
+    const modeStaticBtn = document.getElementById('modeStaticBtn');
+    const speedControlBox = document.getElementById('speedControlBox');
+    const directionControl = document.getElementById('directionControl');
+    const dirLeftBtn = document.getElementById('dirLeftBtn');
+    const dirRightBtn = document.getElementById('dirRightBtn');
+
+    const fontSizeSlider = document.getElementById('fontSizeSlider');
+    const fontSizeVal = document.getElementById('fontSizeVal');
+    const speedSlider = document.getElementById('speedSlider');
+    const speedVal = document.getElementById('speedVal');
+    const volumeSlider = document.getElementById('volumeSlider');
+
+    // ==========================================
+    // 3. UI 與跑馬燈動畫控制
+    // ==========================================
+    
+    function updateTextDisplay() {
+      state.text = textInput.value.trim() || "忠山必勝！";
+      marqueeText.textContent = state.text;
+      staticText.textContent = state.text;
+    }
+
+    function updateFontSize() {
+      state.fontSize = parseInt(fontSizeSlider.value);
+      fontSizeVal.textContent = `${state.fontSize} px`;
+      marqueeText.style.fontSize = `${state.fontSize}px`;
+      staticText.style.fontSize = `${state.fontSize}px`;
+    }
+
+    // 跑馬燈平滑動畫 Loop
+    function animateMarquee(timestamp) {
+      if (!state.lastTimestamp) state.lastTimestamp = timestamp;
+      const delta = timestamp - state.lastTimestamp;
+      state.lastTimestamp = timestamp;
+
+      if (state.mode === 'marquee') {
+        const textWidth = marqueeText.offsetWidth;
+        const containerWidth = marqueeContainer.offsetWidth;
+        // 根據 speed 計算每秒位移像素
+        const pixelsPerSecond = state.speed * 80;
+        const moveAmount = (pixelsPerSecond * delta) / 1000;
+
+        if (state.direction === 'left') {
+          state.positionX -= moveAmount;
+          // 超出左界後重新從右側出來
+          if (state.positionX < -textWidth) {
+            state.positionX = containerWidth;
+          }
+        } else {
+          state.positionX += moveAmount;
+          // 超出右界後重新從左側出來
+          if (state.positionX > containerWidth) {
+            state.positionX = -textWidth;
+          }
+        }
+
+        marqueeText.style.transform = `translateX(${state.positionX}px)`;
+      }
+
+      requestAnimationFrame(animateMarquee);
+    }
+
+    // 初始化跑馬燈位置
+    function resetMarqueePosition() {
+      const containerWidth = marqueeContainer.offsetWidth;
+      state.positionX = state.direction === 'left' ? containerWidth : -marqueeText.offsetWidth;
+    }
+
+    // 切換顯示模式 (跑馬燈 vs 滿版閃爍)
+    function setMode(newMode) {
+      state.mode = newMode;
+      if (newMode === 'marquee') {
+        marqueeContainer.classList.remove('hidden');
+        staticContainer.classList.add('hidden');
+        speedControlBox.classList.remove('opacity-40', 'pointer-events-none');
+        directionControl.classList.remove('opacity-40', 'pointer-events-none');
+
+        modeMarqueeBtn.className = "py-1.5 px-3 rounded-lg text-xs font-bold border transition bg-amber-500 text-slate-950 border-amber-400";
+        modeStaticBtn.className = "py-1.5 px-3 rounded-lg text-xs font-bold border border-slate-700 text-slate-300 hover:bg-slate-800 transition";
+        resetMarqueePosition();
+      } else {
+        marqueeContainer.classList.add('hidden');
+        staticContainer.classList.remove('hidden');
+        speedControlBox.classList.add('opacity-40', 'pointer-events-none');
+        directionControl.classList.add('opacity-40', 'pointer-events-none');
+
+        modeStaticBtn.className = "py-1.5 px-3 rounded-lg text-xs font-bold border transition bg-amber-500 text-slate-950 border-amber-400";
+        modeMarqueeBtn.className = "py-1.5 px-3 rounded-lg text-xs font-bold border border-slate-700 text-slate-300 hover:bg-slate-800 transition";
+        
+        // 滿版模式預設閃爍效果
+        staticText.classList.add('animate-flash');
+      }
+    }
+
+    // 切換控制面板顯示/隱藏
+    function togglePanel(show) {
+      if (show === undefined) state.panelVisible = !state.panelVisible;
+      else state.panelVisible = show;
+
+      if (state.panelVisible) {
+        controlPanel.classList.remove('translate-y-full');
+        togglePanelBtn.innerHTML = '<i class="fa-solid fa-chevron-down text-xl"></i>';
+        togglePanelBtn.classList.replace('from-amber-500', 'from-slate-700');
+        togglePanelBtn.classList.replace('to-yellow-400', 'to-slate-600');
+        togglePanelBtn.classList.replace('text-slate-950', 'text-white');
+      } else {
+        controlPanel.classList.add('translate-y-full');
+        togglePanelBtn.innerHTML = '<i class="fa-solid fa-sliders text-xl"></i>';
+        togglePanelBtn.classList.replace('from-slate-700', 'from-amber-500');
+        togglePanelBtn.classList.replace('to-slate-600', 'to-yellow-400');
+        togglePanelBtn.classList.replace('text-white', 'text-slate-950');
+
+        // 顯示隱藏提示
+        exitHint.classList.remove('opacity-0');
+        setTimeout(() => exitHint.classList.add('opacity-0'), 2500);
+      }
+    }
+
+    // 切換全螢幕
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => console.log(err));
+        togglePanel(false); // 進入全螢幕自動隱藏面板
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    // ==========================================
+    // 4. Web Audio API 音效生成器 (無須外部音源檔)
+    // ==========================================
+    let audioCtx = null;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    // 音效 1: Airhorn (勝利鳴笛)
+    function playAirhorn() {
+      const ctx = getAudioContext();
+      const now = ctx.currentTime;
+      const masterGain = ctx.createGain();
+      masterGain.gain.setValueAtTime(state.volume, now);
+      masterGain.connect(ctx.destination);
+
+      // 三個強烈和弦振盪器
+      const freqs = [370, 466.16, 554.37];
+      freqs.forEach(f => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(f, now);
+        
+        // 鳴笛抖音/音高些微波動
+        osc.frequency.linearRampToValueAtTime(f * 1.05, now + 0.1);
+        osc.frequency.linearRampToValueAtTime(f, now + 0.5);
+
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+
+        osc.start(now);
+        osc.stop(now + 0.6);
+      });
+    }
+
+    // 音效 2: Cheer (熱烈歡呼/噪音合成)
+    function playCheer() {
+      const ctx = getAudioContext();
+      const bufferSize = ctx.sampleRate * 2; // 2 秒歡呼
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+
+      // 帶通濾波器模擬人群呼喊
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(1000, ctx.currentTime);
+      filter.Q.setValueAtTime(3, ctx.currentTime);
+
+      const gain = ctx.createGain();
+      const now = ctx.currentTime;
+      gain.gain.setValueAtTime(0.01, now);
+      gain.gain.linearRampToValueAtTime(state.volume * 0.8, now + 0.4);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 2.0);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      noise.start(now);
+      noise.stop(now + 2.0);
+    }
+
+    // 音效 3: Drum (戰鼓衝鋒)
+    function playDrum() {
+      const ctx = getAudioContext();
+      const now = ctx.currentTime;
+      
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.frequency.setValueAtTime(150, now);
+      osc.frequency.exponentialRampToValueAtTime(30, now + 0.25);
+
+      gain.gain.setValueAtTime(state.volume * 1.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.25);
+    }
+
+    // 音效 4: Whistle (裁判哨聲)
+    function playWhistle() {
+      const ctx = getAudioContext();
+      const now = ctx.currentTime;
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(2800, now);
+      // 顫音效果
+      osc.frequency.setValueAtTime(2900, now + 0.05);
+      osc.frequency.setValueAtTime(2750, now + 0.1);
+      osc.frequency.setValueAtTime(2850, now + 0.15);
+
+      gain.gain.setValueAtTime(0.01, now);
+      gain.gain.linearRampToValueAtTime(state.volume * 0.7, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.4);
+    }
+
+    // ==========================================
+    // 5. Canvas 動態視覺特效 (金牌彩帶/火花)
+    // ==========================================
+    const canvas = document.getElementById('effectsCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // 粒子類別 (彩帶與火花)
+    class Particle {
+      constructor(type) {
+        this.type = type; // 'confetti' | 'sparkle'
+        this.reset();
+      }
+
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = this.type === 'confetti' ? -20 : canvas.height + 10;
+        this.size = this.type === 'confetti' ? Math.random() * 8 + 6 : Math.random() * 4 + 2;
+        
+        if (this.type === 'confetti') {
+          this.speedY = Math.random() * 3 + 2;
+          this.speedX = Math.random() * 2 - 1;
+          this.rotation = Math.random() * 360;
+          this.rotationSpeed = Math.random() * 10 - 5;
+          // 亮金/紅/藍/白繽紛賽事色彩
+          const colors = ['#f59e0b', '#ef4444', '#3b82f6', '#10b981', '#f3f4f6', '#ffd700'];
+          this.color = colors[Math.floor(Math.random() * colors.length)];
+        } else { // sparkle 火花
+          this.speedY = -(Math.random() * 5 + 3);
+          this.speedX = Math.random() * 4 - 2;
+          this.life = 1.0;
+          this.decay = Math.random() * 0.03 + 0.015;
+          this.color = '#fef08a'; // 金黃耀眼火花
+        }
+      }
+
+      update() {
+        if (this.type === 'confetti') {
+          this.y += this.speedY;
+          this.x += this.speedX;
+          this.rotation += this.rotationSpeed;
+          if (this.y > canvas.height + 20) this.reset();
+        } else {
+          this.y += this.speedY;
+          this.x += this.speedX;
+          this.life -= this.decay;
+          if (this.life <= 0) this.reset();
+        }
+      }
+
+      draw() {
+        ctx.save();
+        if (this.type === 'confetti') {
+          ctx.translate(this.x, this.y);
+          ctx.rotate((this.rotation * Math.PI) / 180);
+          ctx.fillStyle = this.color;
+          ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size * 0.6);
+        } else {
+          ctx.globalAlpha = Math.max(0, this.life);
+          ctx.fillStyle = this.color;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+    }
+
+    // 初始化粒子群
+    function initParticles() {
+      particles = [];
+      if (state.effects.confetti) {
+        for (let i = 0; i < 50; i++) particles.push(new Particle('confetti'));
+      }
+      if (state.effects.sparkles) {
+        for (let i = 0; i < 40; i++) particles.push(new Particle('sparkle'));
+      }
+    }
+
+    // 動態繪製 Canvas 特效
+    function renderEffects() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      requestAnimationFrame(renderEffects);
+    }
+
+    // ==========================================
+    // 6. 事件綁定 (Event Listeners)
+    // ==========================================
+
+    // 文字即時輸入
+    textInput.addEventListener('input', updateTextDisplay);
+    clearTextBtn.addEventListener('click', () => {
+      textInput.value = '';
+      updateTextDisplay();
+      textInput.focus();
+    });
+
+    // 常用加油語快捷鍵
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        textInput.value = btn.textContent.trim();
+        updateTextDisplay();
+      });
+    });
+
+    // 模式切換
+    modeMarqueeBtn.addEventListener('click', () => setMode('marquee'));
+    modeStaticBtn.addEventListener('click', () => setMode('static'));
+
+    // 方向切換
+    dirLeftBtn.addEventListener('click', () => {
+      state.direction = 'left';
+      dirLeftBtn.className = "px-2.5 py-0.5 text-xs rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-semibold";
+      dirRightBtn.className = "px-2.5 py-0.5 text-xs rounded bg-slate-800 text-slate-400 border border-slate-700 hover:text-slate-200";
+      resetMarqueePosition();
+    });
+    dirRightBtn.addEventListener('click', () => {
+      state.direction = 'right';
+      dirRightBtn.className = "px-2.5 py-0.5 text-xs rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-semibold";
+      dirLeftBtn.className = "px-2.5 py-0.5 text-xs rounded bg-slate-800 text-slate-400 border border-slate-700 hover:text-slate-200";
+      resetMarqueePosition();
+    });
+
+    // 字體大小 Slider
+    fontSizeSlider.addEventListener('input', updateFontSize);
+
+    // 字體風格切換 (4種字體)
+    document.querySelectorAll('.font-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const selectedFont = btn.dataset.font;
+        
+        // 移除舊字體 Class
+        marqueeText.classList.remove(state.fontStyle);
+        staticText.classList.remove(state.fontStyle);
+        
+        // 套用新字體 Class
+        state.fontStyle = selectedFont;
+        marqueeText.classList.add(selectedFont);
+        staticText.classList.add(selectedFont);
+
+        // 更新按鈕樣式
+        document.querySelectorAll('.font-btn').forEach(b => {
+          b.className = "font-btn border border-slate-700 bg-slate-800 text-slate-400 hover:text-slate-200 py-1 rounded text-xs font-bold transition";
+        });
+        btn.className = "font-btn active border border-amber-400 bg-amber-500/20 text-amber-300 py-1 rounded text-xs font-bold transition";
+        resetMarqueePosition();
+      });
+    });
+
+    // 速度 Slider
+    speedSlider.addEventListener('input', () => {
+      state.speed = parseInt(speedSlider.value);
+      const labels = ['極慢', '慢速', '較慢', '中慢', '正常', '中快', '較快', '快速', '飛快', '極速'];
+      speedVal.textContent = `${labels[state.speed - 1]} (${state.speed})`;
+    });
+
+    // 音量 Slider
+    volumeSlider.addEventListener('input', () => {
+      state.volume = parseFloat(volumeSlider.value);
+    });
+
+    // 主題選擇
+    document.querySelectorAll('.theme-select-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const selectedTheme = btn.dataset.theme;
+        // 移除舊主題 class
+        appBody.classList.remove('theme-gold', 'theme-track', 'theme-neon', 'theme-zhongshan', 'theme-cyber');
+        appBody.classList.add(selectedTheme);
+        state.theme = selectedTheme;
+
+        // 更新按鈕樣式
+        document.querySelectorAll('.theme-select-btn').forEach(b => {
+          b.classList.remove('border-2', 'border-amber-400', 'shadow');
+          b.classList.add('border-slate-700');
+        });
+        btn.classList.remove('border-slate-700');
+        btn.classList.add('border-2', 'border-amber-400', 'shadow');
+      });
+    });
+
+    // 特效開關切換
+    const confettiBtn = document.getElementById('effectConfettiBtn');
+    const sparklesBtn = document.getElementById('effectSparklesBtn');
+    const flashBtn = document.getElementById('effectFlashBtn');
+
+    function updateEffectBtnStyle(btn, isActive) {
+      if (isActive) {
+        btn.className = "effect-toggle px-2 py-1.5 rounded-lg text-xs font-bold border bg-amber-500/20 text-amber-300 border-amber-500/50 flex items-center justify-center gap-1";
+      } else {
+        btn.className = "effect-toggle px-2 py-1.5 rounded-lg text-xs font-bold border bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200 flex items-center justify-center gap-1";
+      }
+    }
+
+    confettiBtn.addEventListener('click', () => {
+      state.effects.confetti = !state.effects.confetti;
+      updateEffectBtnStyle(confettiBtn, state.effects.confetti);
+      initParticles();
+    });
+
+    sparklesBtn.addEventListener('click', () => {
+      state.effects.sparkles = !state.effects.sparkles;
+      updateEffectBtnStyle(sparklesBtn, state.effects.sparkles);
+      initParticles();
+    });
+
+    flashBtn.addEventListener('click', () => {
+      state.effects.flash = !state.effects.flash;
+      updateEffectBtnStyle(flashBtn, state.effects.flash);
+      if (state.effects.flash) {
+        appBody.classList.add('bg-strobe');
+      } else {
+        appBody.classList.remove('bg-strobe');
+      }
+    });
+
+    // 音效按鈕綁定
+    document.getElementById('soundAirhornBtn').addEventListener('click', playAirhorn);
+    document.getElementById('soundCheerBtn').addEventListener('click', playCheer);
+    document.getElementById('soundDrumBtn').addEventListener('click', playDrum);
+    document.getElementById('soundWhistleBtn').addEventListener('click', playWhistle);
+
+    // 面板與全螢幕控制
+    togglePanelBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePanel();
+    });
+
+    fullscreenBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleFullScreen();
+    });
+
+    // 點擊跑馬燈/畫面區域可切換隱藏選單（滿版加油模式）
+    displayArea.addEventListener('click', () => {
+      togglePanel();
+    });
+
+    // 防止控制面板內點擊觸發背景隱藏
+    controlPanel.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+
+    // ==========================================
+    // 7. 初始化啟動 (Init)
+    // ==========================================
+    window.onload = function() {
+      updateTextDisplay();
+      updateFontSize();
+      resetMarqueePosition();
+      initParticles();
+      
+      // 啟動繪製 loop
+      requestAnimationFrame(animateMarquee);
+      requestAnimationFrame(renderEffects);
+    };
+  </script>
+</body>
+</html>
