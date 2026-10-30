@@ -1,0 +1,20 @@
+{
+  "name": "學校班級點名與課表系統",
+  "short_name": "點名課表",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f7f9f6",
+  "theme_color": "#a8c3b0",
+  "icons": [
+    {
+      "src": "https://cpaizo.github.io/Roll_Call_System/校園點名簿圖示.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3429/3429149.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
