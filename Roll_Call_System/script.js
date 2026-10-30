@@ -1,5 +1,5 @@
 // ⚠️ 請填入您的 GAS Web App URL
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyjW8zBAkcVBGfDrKBjZ7qSWzHz6lQSQ0m_bxuEUZSsoElyRd6w0kds_7k-4ycQCKwT/exec";
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzxvnrCvYLXFyVAG94DMkMbdrS_2YlnBULgH79X_RNVqS0KnEuPz2c6q7lHeo7WcR8K/exec";
 
 let currentUser = null;
 let appData = null;
