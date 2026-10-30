@@ -806,47 +806,57 @@
       }
     }
 
-    function printStudentReport() {
-      const selectedClass = document.getElementById("reportClassFilter").value;
-      const selectedStudent = document.getElementById("reportStudentFilter").value;
-      const tableHtml = document.querySelector("#absentTabContent .report-table").outerHTML;
+// 一鍵列印 / 轉存 PDF 報表 (自動設定 PDF 預設檔名)
+function printStudentReport() {
+  const selectedClass = document.getElementById("reportClassFilter").value;
+  const selectedStudent = document.getElementById("reportStudentFilter").value;
+  const tableHtml = document.querySelector("#absentTabContent .report-table").outerHTML;
+  const todayStr = new Date().toISOString().split('T')[0];
 
-      const printWindow = window.open('', '', 'width=800,height=600');
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>缺席紀錄通知單 - ${selectedStudent !== 'ALL' ? selectedStudent : '班級彙整'}</title>
-            <style>
-              body { font-family: sans-serif; padding: 20px; color: #333; }
-              h2 { text-align: center; margin-bottom: 5px; }
-              .subtitle { text-align: center; font-size: 14px; color: #666; margin-bottom: 20px; }
-              table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-              th, td { border: 1px solid #333; padding: 8px; text-align: center; font-size: 14px; }
-              th { background-color: #f2f2f2; }
-              mark { background-color: transparent !important; color: #000 !important; font-weight: bold; }
-              .footer { margin-top: 30px; display: flex; justify-content: space-between; font-size: 14px; }
-            </style>
-          </head>
-          <body>
-            <h2>學生缺席紀錄通知單</h2>
-            <div class="subtitle">
-              班級：${selectedClass} &nbsp;|&nbsp; 查詢學生：${selectedStudent !== 'ALL' ? selectedStudent : '全體學生'} &nbsp;|&nbsp; 列印日期：${new Date().toISOString().split('T')[0]}
-            </div>
-            ${tableHtml}
-            <div class="footer">
-              <div>導師簽章：__________________</div>
-              <div>家長簽章：__________________</div>
-            </div>
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
-      printWindow.focus();
-      setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-      }, 250);
-    }
+  // 💡 動態組合預設檔名：例「704_2林明佇_缺席紀錄通知單_2026-10-30」
+  let cleanStudentName = selectedStudent !== 'ALL' ? selectedStudent.replace(/[()]/g, '') : '全體學生';
+  let pdfFileName = `${selectedClass !== 'ALL' ? selectedClass : '全校'}_${cleanStudentName}_缺席紀錄通知單_${todayStr}`;
+
+  const printWindow = window.open('', '', 'width=850,height=650');
+  printWindow.document.write(`
+    <html>
+      <head>
+        <!-- 💡 這裡的 <title> 就會是另存 PDF 時的預設檔案名稱 -->
+        <title>${pdfFileName}</title>
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif; padding: 25px; color: #333; }
+          h2 { text-align: center; margin-bottom: 5px; letter-spacing: 0.05em; }
+          .subtitle { text-align: center; font-size: 14px; color: #555; margin-bottom: 20px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+          th, td { border: 1.5px solid #333; padding: 8px 10px; text-align: center; font-size: 14px; }
+          th { background-color: #f2f4f2; font-weight: bold; }
+          mark { background-color: transparent !important; color: #000 !important; font-weight: bold; }
+          .footer { margin-top: 40px; display: flex; justify-content: space-between; font-size: 14px; padding: 0 10px; }
+          @page { size: auto; margin: 15mm; }
+        </style>
+      </head>
+      <body>
+        <h2>學生缺席紀錄通知單</h2>
+        <div class="subtitle">
+          班級：${selectedClass} &nbsp;|&nbsp; 查詢學生：${selectedStudent !== 'ALL' ? selectedStudent : '全體學生'} &nbsp;|&nbsp; 列印日期：${todayStr}
+        </div>
+        ${tableHtml}
+        <div class="footer">
+          <div>導師簽章：__________________</div>
+          <div>家長簽章：__________________</div>
+        </div>
+      </body>
+    </html>
+  `);
+  
+  printWindow.document.close();
+  printWindow.focus();
+  
+  setTimeout(() => {
+    printWindow.print();
+    printWindow.close();
+  }, 250);
+}
 
     function renderReports() {
       renderAbsentReportTable();
