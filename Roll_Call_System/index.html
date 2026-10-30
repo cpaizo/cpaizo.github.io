@@ -8,7 +8,7 @@
   <!-- PWA 宣告檔 -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#a8c3b0">
-  <link rel="apple-touch-icon" https://cpaizo.github.io/Roll_Call_System/校園點名簿圖示.png">
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3429/3429149.png">
 
   <style>
     :root {
@@ -440,12 +440,23 @@
     function renderTimetable() {
       const selectedSchool = document.getElementById("schoolSelect").value;
       const selectedSemester = document.getElementById("semesterSelect").value;
-      const selectedTeacher = document.getElementById("teacherSelect")?.value || currentUser.account;
+      
+      let selectedTeacher = currentUser.account;
+      if (currentUser.role === "admin") {
+        const tSelect = document.getElementById("teacherSelect");
+        if (tSelect && tSelect.value) {
+          selectedTeacher = tSelect.value;
+        }
+      }
 
       const periods = appData.times.filter(t => t.學校 === selectedSchool);
+      
       const filteredSchedules = appData.schedules.filter(s => {
-        return s.學校 === selectedSchool && s.學期 === selectedSemester &&
-          (selectedTeacher === "ALL" || currentUser.role !== "admin" || s.教師帳號 === selectedTeacher);
+        const matchSchool = s.學校 === selectedSchool;
+        const matchSemester = s.學期 === selectedSemester;
+        const matchTeacher = (selectedTeacher === "ALL") ? true : (s.教師帳號 === currentUser.account || s.填寫教師帳號 === currentUser.account || s.教師帳號 === selectedTeacher);
+        
+        return matchSchool && matchSemester && matchTeacher;
       });
 
       const days = ["星期一", "星期二", "星期三", "星期四", "星期五"];
@@ -677,7 +688,7 @@
       }
     }
 
-    // ----------------- Step 5 期末報表與精準篩選、列印邏輯 -----------------
+    // ----------------- Step 5 期末報表與自然數排序、PDF 列印邏輯 -----------------
 
     async function showReportView() {
       document.getElementById("mainView").classList.add("hidden");
@@ -724,9 +735,12 @@
       document.getElementById("summaryTabContent").classList.toggle("hidden", tab !== 'summary');
     }
 
+    // 💡 自然數排序 (例: 701, 702, 703)
     function initReportClassFilter() {
       const classSelect = document.getElementById("reportClassFilter");
-      const classes = [...new Set(reportData.attendances.map(a => a.班級))].filter(Boolean);
+      const classes = [...new Set(reportData.attendances.map(a => a.班級))]
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
       
       classSelect.innerHTML = `<option value="ALL">全選 (所有班級)</option>` + 
         classes.map(c => `<option value="${c}">班級：${c}</option>`).join('');
@@ -734,6 +748,7 @@
       onReportClassChange();
     }
 
+    // 💡 座號自然數排序 (例: 01, 02, 03... 25)
     function onReportClassChange() {
       const selectedClass = document.getElementById("reportClassFilter").value;
       const studentSelect = document.getElementById("reportStudentFilter");
@@ -751,7 +766,15 @@
         }
       });
 
-      const students = Array.from(studentSet);
+      const students = Array.from(studentSet).sort((a, b) => {
+        const numA = parseInt(a.match(/^\d+/)?.[0] || '0', 10);
+        const numB = parseInt(b.match(/^\d+/)?.[0] || '0', 10);
+        if (numA !== numB) {
+          return numA - numB;
+        }
+        return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+      });
+
       studentSelect.innerHTML = `<option value="ALL">全選 (所有學生)</option>` + 
         students.map(st => `<option value="${st}">${st}</option>`).join('');
 
@@ -784,7 +807,6 @@
         absentBody.innerHTML = list.map(a => {
           let studentDisplay = a.缺席學生 || '全勤';
 
-          // 💡 精準過濾：若選擇特定學生，欄位只顯示該學生的缺席紀錄，排除同堂其他學生
           if (selectedStudent !== "ALL") {
             const items = (a.缺席學生 || '').split(', ');
             const matchedItem = items.find(st => st.includes(selectedStudent));
@@ -806,57 +828,54 @@
       }
     }
 
-// 一鍵列印 / 轉存 PDF 報表 (自動設定 PDF 預設檔名)
-function printStudentReport() {
-  const selectedClass = document.getElementById("reportClassFilter").value;
-  const selectedStudent = document.getElementById("reportStudentFilter").value;
-  const tableHtml = document.querySelector("#absentTabContent .report-table").outerHTML;
-  const todayStr = new Date().toISOString().split('T')[0];
+    function printStudentReport() {
+      const selectedClass = document.getElementById("reportClassFilter").value;
+      const selectedStudent = document.getElementById("reportStudentFilter").value;
+      const tableHtml = document.querySelector("#absentTabContent .report-table").outerHTML;
+      const todayStr = new Date().toISOString().split('T')[0];
 
-  // 💡 動態組合預設檔名：例「704_2林明佇_缺席紀錄通知單_2026-10-30」
-  let cleanStudentName = selectedStudent !== 'ALL' ? selectedStudent.replace(/[()]/g, '') : '全體學生';
-  let pdfFileName = `${selectedClass !== 'ALL' ? selectedClass : '全校'}_${cleanStudentName}_缺席紀錄通知單_${todayStr}`;
+      let cleanStudentName = selectedStudent !== 'ALL' ? selectedStudent.replace(/[()]/g, '') : '全體學生';
+      let pdfFileName = `${selectedClass !== 'ALL' ? selectedClass : '全校'}_${cleanStudentName}_缺席紀錄通知單_${todayStr}`;
 
-  const printWindow = window.open('', '', 'width=850,height=650');
-  printWindow.document.write(`
-    <html>
-      <head>
-        <!-- 💡 這裡的 <title> 就會是另存 PDF 時的預設檔案名稱 -->
-        <title>${pdfFileName}</title>
-        <style>
-          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif; padding: 25px; color: #333; }
-          h2 { text-align: center; margin-bottom: 5px; letter-spacing: 0.05em; }
-          .subtitle { text-align: center; font-size: 14px; color: #555; margin-bottom: 20px; }
-          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-          th, td { border: 1.5px solid #333; padding: 8px 10px; text-align: center; font-size: 14px; }
-          th { background-color: #f2f4f2; font-weight: bold; }
-          mark { background-color: transparent !important; color: #000 !important; font-weight: bold; }
-          .footer { margin-top: 40px; display: flex; justify-content: space-between; font-size: 14px; padding: 0 10px; }
-          @page { size: auto; margin: 15mm; }
-        </style>
-      </head>
-      <body>
-        <h2>學生缺席紀錄通知單</h2>
-        <div class="subtitle">
-          班級：${selectedClass} &nbsp;|&nbsp; 查詢學生：${selectedStudent !== 'ALL' ? selectedStudent : '全體學生'} &nbsp;|&nbsp; 列印日期：${todayStr}
-        </div>
-        ${tableHtml}
-        <div class="footer">
-          <div>導師簽章：__________________</div>
-          <div>家長簽章：__________________</div>
-        </div>
-      </body>
-    </html>
-  `);
-  
-  printWindow.document.close();
-  printWindow.focus();
-  
-  setTimeout(() => {
-    printWindow.print();
-    printWindow.close();
-  }, 250);
-}
+      const printWindow = window.open('', '', 'width=850,height=650');
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>${pdfFileName}</title>
+            <style>
+              body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif; padding: 25px; color: #333; }
+              h2 { text-align: center; margin-bottom: 5px; letter-spacing: 0.05em; }
+              .subtitle { text-align: center; font-size: 14px; color: #555; margin-bottom: 20px; }
+              table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+              th, td { border: 1.5px solid #333; padding: 8px 10px; text-align: center; font-size: 14px; }
+              th { background-color: #f2f4f2; font-weight: bold; }
+              mark { background-color: transparent !important; color: #000 !important; font-weight: bold; }
+              .footer { margin-top: 40px; display: flex; justify-content: space-between; font-size: 14px; padding: 0 10px; }
+              @page { size: auto; margin: 15mm; }
+            </style>
+          </head>
+          <body>
+            <h2>學生缺席紀錄通知單</h2>
+            <div class="subtitle">
+              班級：${selectedClass} &nbsp;|&nbsp; 查詢學生：${selectedStudent !== 'ALL' ? selectedStudent : '全體學生'} &nbsp;|&nbsp; 列印日期：${todayStr}
+            </div>
+            ${tableHtml}
+            <div class="footer">
+              <div>導師簽章：__________________</div>
+              <div>家長簽章：__________________</div>
+            </div>
+          </body>
+        </html>
+      `);
+      
+      printWindow.document.close();
+      printWindow.focus();
+      
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 250);
+    }
 
     function renderReports() {
       renderAbsentReportTable();
