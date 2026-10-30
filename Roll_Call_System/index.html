@@ -8,56 +8,67 @@
   <!-- PWA 宣告檔 -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#a8c3b0">
-  <link rel="apple-touch-icon" href="https://cpaizo.github.io/Roll_Call_System/校園點名簿圖示.png">
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3429/3429149.png">
 
   <style>
     :root {
-      --bg-color: #f7f9f6;
-      --card-bg: #ffffff;
-      --text-color: #38423b;
-      --primary-color: #6e8b74;
+      --bg-color: #f7f9f6;             /* 淺米綠底色 */
+      --card-bg: #ffffff;             /* 純白卡片 */
+      --text-color: #38423b;           /* 沉穩灰綠文字 */
+      --primary-color: #6e8b74;        /* 抹茶綠主色 */
       --primary-hover: #5d7763;
-      --border-color: #d1dad3;
-      --table-border-color: #a8b8ac;
+      --border-color: #d1dad3;         /* 卡片邊框 */
+      --table-border-color: #a8b8ac;   /* 加深加濃的 1.5px 網格線 */
       --empty-cell: #f2f4f1;
-      --header-bg: #a8c3b0;
-      --header-text: #2f4033;
-      --table-header-bg: #c5d8cb;
-      --table-header-text: #2f4033;
-      --class-cell-bg: #e4efe7;
-      --class-cell-hover: #d3e4d7;
+      
+      /* 朦朧淺綠與頂部標題列設定 */
+      --header-bg: #a8c3b0;            /* 頂部標題列：柔和朦朧霧綠 */
+      --header-text: #2f4033;          /* 頂部標題文字：深綠灰 */
+      --table-header-bg: #c5d8cb;      /* 表頭：極淡朦朧綠 */
+      --table-header-text: #2f4033;    /* 表頭文字：深綠灰 */
+      --class-cell-bg: #e4efe7;        /* 有課格子：柔和霧面淺綠 */
+      --class-cell-hover: #d3e4d7;     /* 滑過：稍微加深淺綠 */
+      
+      /* 座位狀態顏色 */
       --seat-present: #e4efe7;
       --seat-disabled: #e9ecef;
     }
 
     [data-theme="dark"] {
-      --bg-color: #1a201c;
-      --card-bg: #242c26;
-      --text-color: #dce3dd;
-      --primary-color: #5d7a64;
+      --bg-color: #1a201c;             
+      --card-bg: #242c26;             
+      --text-color: #dce3dd;           
+      --primary-color: #5d7a64;        
       --primary-hover: #4e6854;
       --border-color: #323d35;
-      --table-border-color: #4a5c4e;
+      --table-border-color: #4a5c4e;   
       --empty-cell: #1f2621;
+
       --header-bg: #2d3b31;
       --header-text: #dce3dd;
-      --table-header-bg: #354539;
-      --table-header-text: #dce3dd;
-      --class-cell-bg: #2b3b2f;
-      --class-cell-hover: #36493a;
+      --table-header-bg: #354539;      
+      --table-header-text: #dce3dd;    
+      --class-cell-bg: #2b3b2f;        
+      --class-cell-hover: #36493a;     
+
       --seat-present: #2b3b2f;
       --seat-disabled: #2d3238;
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Hiragino Sans GB", "Microsoft JhengHei", sans-serif;
       background-color: var(--bg-color);
       color: var(--text-color);
       margin: 0; padding: 0;
+      letter-spacing: 0.03em;
       line-height: 1.6;
     }
 
-    .container { max-width: 950px; margin: 0 auto; padding: 20px; }
+    .container {
+      max-width: 950px;
+      margin: 0 auto;
+      padding: 20px;
+    }
 
     header {
       background-color: var(--header-bg);
@@ -65,9 +76,10 @@
       padding: 18px 24px;
       display: flex; justify-content: space-between; align-items: center;
       border-bottom: 1.5px solid var(--table-border-color);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
     }
 
-    header h2 { font-weight: 600; font-size: 1.25rem; margin: 0; }
+    header h2 { font-weight: 600; font-size: 1.25rem; margin: 0; color: var(--header-text); }
 
     .card {
       background-color: var(--card-bg);
@@ -89,13 +101,16 @@
     button {
       padding: 10px 16px; background-color: var(--primary-color); color: white;
       border: none; border-radius: 8px; font-weight: 500; font-size: 15px; cursor: pointer;
+      transition: background-color 0.2s;
     }
 
     button:hover { background-color: var(--primary-hover); }
     .btn-secondary { background-color: #6c757d; }
+    .btn-secondary:hover { background-color: #5a6268; }
     .btn-outline { background-color: transparent; color: var(--text-color); border: 1.5px solid var(--table-border-color); }
     .hidden { display: none !important; }
 
+    /* 課表與表格樣式 */
     .timetable, .report-table {
       width: 100%; border-collapse: collapse; margin-top: 10px; text-align: center;
       border-radius: 8px; overflow: hidden; border: 1.5px solid var(--table-border-color);
@@ -103,9 +118,12 @@
     .timetable th, .timetable td, .report-table th, .report-table td {
       border: 1.5px solid var(--table-border-color); padding: 12px 8px; font-size: 14px;
     }
-    .timetable th, .report-table th { background-color: var(--table-header-bg); color: var(--table-header-text); }
+    .timetable th, .report-table th { background-color: var(--table-header-bg); color: var(--table-header-text); font-weight: 600; }
     .timetable td.has-class { background-color: var(--class-cell-bg); cursor: pointer; font-weight: 600; }
+    .timetable td.has-class:hover { background-color: var(--class-cell-hover); }
+    .timetable td.empty { background-color: var(--empty-cell); color: #a0aab0; }
 
+    /* 座位表與假別樣式 */
     .podium {
       background-color: var(--table-header-bg); color: var(--table-header-text);
       text-align: center; padding: 8px; border-radius: 6px; font-weight: 600; margin-bottom: 20px;
@@ -129,8 +147,9 @@
     .seat-card.reason-曠課, .seat-card.reason-缺席 { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; font-weight: bold; }
     .seat-card.disabled { background-color: var(--seat-disabled); border-style: dashed; opacity: 0.6; }
 
+    /* 頁籤切換 */
     .tab-bar { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 2px solid var(--table-border-color); }
-    .tab-btn { background: none; color: var(--text-color); border: none; padding: 10px 18px; font-size: 15px; cursor: pointer; }
+    .tab-btn { background: none; color: var(--text-color); border: none; padding: 10px 18px; font-size: 15px; cursor: pointer; border-radius: 8px 8px 0 0; }
     .tab-btn.active { background-color: var(--table-header-bg); font-weight: bold; border-bottom: 3px solid var(--primary-color); }
   </style>
 </head>
@@ -168,7 +187,7 @@
         <button onclick="showReportView()" class="btn-outline">📊 期末紀錄與彙整查詢</button>
       </div>
 
-      <!-- 學期鎖定與切換列 -->
+      <!-- 學期鎖定與選擇列 -->
       <div style="display:flex; gap:10px; margin-bottom:15px; align-items:center; background:var(--empty-cell); padding:10px; border-radius:8px;">
         <div style="flex:1;">
           <label style="font-size:12px; margin:0;">🔒 學期鎖定：</label>
@@ -201,7 +220,7 @@
       </div>
     </div>
 
-    <!-- 3. 點名區塊 -->
+    <!-- 3. 點名與座位表區塊 -->
     <div id="attendanceView" class="card hidden">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
         <button onclick="backToMain()" class="btn-secondary">← 返回課表</button>
@@ -228,7 +247,7 @@
       <button onclick="submitAttendance()" style="width:100%; padding:14px; font-size:16px;">🚀 送出點名與教學摘要</button>
     </div>
 
-    <!-- 4. 期末報表區塊 -->
+    <!-- 4. Step 5 期末查詢與匯出區塊 -->
     <div id="reportView" class="card hidden">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
         <button onclick="backToMainFromReport()" class="btn-secondary">← 返回課表</button>
@@ -241,6 +260,7 @@
         <button class="tab-btn" onclick="switchReportTab('summary')">📝 全學期教學摘要</button>
       </div>
 
+      <!-- 缺席統計分頁 (含班級、學生單獨精準查詢、排序與一鍵列印) -->
       <div id="absentTabContent">
         <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap; align-items:center; background:var(--empty-cell); padding:12px; border-radius:8px;">
           <div style="flex:1; min-width:140px;">
@@ -262,6 +282,9 @@
               <option value="ASC">最舊 ➔ 最新</option>
             </select>
           </div>
+          <div style="flex:0.6; min-width:110px; display:flex; align-items:flex-end;">
+            <button onclick="printStudentReport()" style="background-color:#17a2b8; width:100%; padding:8px; font-size:14px;">🖨️ 列印報表</button>
+          </div>
         </div>
 
         <div style="overflow-x:auto;">
@@ -280,6 +303,7 @@
         </div>
       </div>
 
+      <!-- 教學摘要分頁 -->
       <div id="summaryTabContent" class="hidden">
         <button onclick="copySummaries()" class="btn-outline" style="margin-bottom:10px;">📋 一鍵複製全學期摘要文字</button>
         <div style="overflow-x:auto;">
@@ -302,18 +326,18 @@
   </div>
 
   <script>
+    // ⚠️ 請填入您的 GAS Web App URL
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxPVAyDHP8XnL9loE9Qh_BTK3BrOi5xGY9S8U2yw5sXrM_CNrz1KFoeWMDlQmN_r-LZ/exec";
 
     let currentUser = null;
     let appData = null;
     let currentSession = {}; 
     let currentGrid = { cols: 6, rows: 5, seats: {}, disabled: [] };
-    let currentAbsenteesMap = new Map(); // 學號 -> 假別 (病假/事假/公假/遲到/曠課)
+    let currentAbsenteesMap = new Map(); // 學號 -> 假別
     const REASONS = ["出席", "病假", "事假", "公假", "遲到", "曠課"];
     let reportData = { attendances: [], summaries: [] };
 
     window.onload = function() {
-      // 註冊 PWA ServiceWorker
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').catch(()=>{});
       }
@@ -401,8 +425,6 @@
       
       const semSelect = document.getElementById("semesterSelect");
       semSelect.innerHTML = semesters.map(s => `<option value="${s}">${s}</option>`).join('');
-      
-      // 自動鎖定最新學期
       if (semesters.length > 0) semSelect.value = semesters[semesters.length - 1];
 
       if (currentUser.role === "admin") {
@@ -503,7 +525,6 @@
               s.學校 === currentSession.school && s.學期 === currentSession.semester && s.班級 === currentSession.className
             );
             
-            // 解析缺席字串與假別 (例: "25 潘羽柔(病假)")
             classStudents.forEach(st => {
               if (matchAtt.缺席學生.includes(st.學號) || matchAtt.缺席學生.includes(st.姓名)) {
                 let reason = "缺席";
@@ -607,7 +628,6 @@
       }
     }
 
-    // 點擊循環切換假別
     function cycleAttendanceReason(studentId) {
       const currentReason = currentAbsenteesMap.get(studentId) || "出席";
       const currentIndex = REASONS.indexOf(currentReason);
@@ -657,7 +677,7 @@
       }
     }
 
-    // ----------------- Step 5 期末報表與篩選 -----------------
+    // ----------------- Step 5 期末報表與精準篩選、列印邏輯 -----------------
 
     async function showReportView() {
       document.getElementById("mainView").classList.add("hidden");
@@ -762,9 +782,13 @@
 
       if (list.length > 0) {
         absentBody.innerHTML = list.map(a => {
-          let studentText = a.缺席學生 || '全勤';
-          if (selectedStudent !== "ALL" && studentText.includes(selectedStudent)) {
-            studentText = studentText.replace(selectedStudent, `<mark style="background:#f8d7da; color:#721c24; padding:2px 4px; border-radius:4px;">${selectedStudent}</mark>`);
+          let studentDisplay = a.缺席學生 || '全勤';
+
+          // 💡 精準過濾：若選擇特定學生，欄位只顯示該學生的缺席紀錄，排除同堂其他學生
+          if (selectedStudent !== "ALL") {
+            const items = (a.缺席學生 || '').split(', ');
+            const matchedItem = items.find(st => st.includes(selectedStudent));
+            studentDisplay = matchedItem ? `<mark style="background:#f8d7da; color:#721c24; padding:2px 6px; border-radius:4px; font-weight:bold;">${matchedItem}</mark>` : selectedStudent;
           }
 
           return `
@@ -773,13 +797,55 @@
               <td>${a.學校 || ''} - ${a.班級 || ''}</td>
               <td>${a.節次 || ''}</td>
               <td>${a.教師帳號 || a.點名教師帳號 || ''}</td>
-              <td style="color:#d9534f; font-weight:bold;">${studentText}</td>
+              <td style="color:#d9534f;">${studentDisplay}</td>
             </tr>
           `;
         }).join('');
       } else {
         absentBody.innerHTML = `<tr><td colspan="5" style="color:#999;">查無符合條件的缺席紀錄</td></tr>`;
       }
+    }
+
+    function printStudentReport() {
+      const selectedClass = document.getElementById("reportClassFilter").value;
+      const selectedStudent = document.getElementById("reportStudentFilter").value;
+      const tableHtml = document.querySelector("#absentTabContent .report-table").outerHTML;
+
+      const printWindow = window.open('', '', 'width=800,height=600');
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>缺席紀錄通知單 - ${selectedStudent !== 'ALL' ? selectedStudent : '班級彙整'}</title>
+            <style>
+              body { font-family: sans-serif; padding: 20px; color: #333; }
+              h2 { text-align: center; margin-bottom: 5px; }
+              .subtitle { text-align: center; font-size: 14px; color: #666; margin-bottom: 20px; }
+              table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+              th, td { border: 1px solid #333; padding: 8px; text-align: center; font-size: 14px; }
+              th { background-color: #f2f2f2; }
+              mark { background-color: transparent !important; color: #000 !important; font-weight: bold; }
+              .footer { margin-top: 30px; display: flex; justify-content: space-between; font-size: 14px; }
+            </style>
+          </head>
+          <body>
+            <h2>學生缺席紀錄通知單</h2>
+            <div class="subtitle">
+              班級：${selectedClass} &nbsp;|&nbsp; 查詢學生：${selectedStudent !== 'ALL' ? selectedStudent : '全體學生'} &nbsp;|&nbsp; 列印日期：${new Date().toISOString().split('T')[0]}
+            </div>
+            ${tableHtml}
+            <div class="footer">
+              <div>導師簽章：__________________</div>
+              <div>家長簽章：__________________</div>
+            </div>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 250);
     }
 
     function renderReports() {
