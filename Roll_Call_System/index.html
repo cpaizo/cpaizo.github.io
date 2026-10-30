@@ -4,91 +4,74 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>學校點名與課表系統</title>
+  
+  <!-- PWA 宣告檔 -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#a8c3b0">
+  <link rel="apple-touch-icon" href="https://cpaizo.github.io/Roll_Call_System/校園點名簿圖示.png">
+
   <style>
     :root {
-      --bg-color: #f7f9f6;             /* 淺米綠底色 */
-      --card-bg: #ffffff;             /* 純白卡片 */
-      --text-color: #38423b;           /* 沉穩灰綠文字 */
-      --primary-color: #6e8b74;        /* 抹茶綠主色 */
+      --bg-color: #f7f9f6;
+      --card-bg: #ffffff;
+      --text-color: #38423b;
+      --primary-color: #6e8b74;
       --primary-hover: #5d7763;
-      --border-color: #d1dad3;         /* 卡片邊框 */
-      --table-border-color: #a8b8ac;   /* 加深加濃的 1.5px 網格線 */
+      --border-color: #d1dad3;
+      --table-border-color: #a8b8ac;
       --empty-cell: #f2f4f1;
-      
-      /* 朦朧淺綠與頂部標題列設定 */
-      --header-bg: #a8c3b0;            /* 頂部標題列：柔和朦朧霧綠 */
-      --header-text: #2f4033;          /* 頂部標題文字：深綠灰 */
-      --table-header-bg: #c5d8cb;      /* 表頭：極淡朦朧綠 */
-      --table-header-text: #2f4033;    /* 表頭文字：深綠灰 */
-      --class-cell-bg: #e4efe7;        /* 有課格子：柔和霧面淺綠 */
-      --class-cell-hover: #d3e4d7;     /* 滑過：稍微加深淺綠 */
-      
-      /* 座位狀態顏色 */
+      --header-bg: #a8c3b0;
+      --header-text: #2f4033;
+      --table-header-bg: #c5d8cb;
+      --table-header-text: #2f4033;
+      --class-cell-bg: #e4efe7;
+      --class-cell-hover: #d3e4d7;
       --seat-present: #e4efe7;
-      --seat-absent: #f8d7da;
-      --seat-absent-border: #f5c6cb;
-      --seat-absent-text: #721c24;
       --seat-disabled: #e9ecef;
     }
 
     [data-theme="dark"] {
-      --bg-color: #1a201c;             
-      --card-bg: #242c26;             
-      --text-color: #dce3dd;           
-      --primary-color: #5d7a64;        
+      --bg-color: #1a201c;
+      --card-bg: #242c26;
+      --text-color: #dce3dd;
+      --primary-color: #5d7a64;
       --primary-hover: #4e6854;
       --border-color: #323d35;
-      --table-border-color: #4a5c4e;   
+      --table-border-color: #4a5c4e;
       --empty-cell: #1f2621;
-
       --header-bg: #2d3b31;
       --header-text: #dce3dd;
-      --table-header-bg: #354539;      
-      --table-header-text: #dce3dd;    
-      --class-cell-bg: #2b3b2f;        
-      --class-cell-hover: #36493a;     
-
+      --table-header-bg: #354539;
+      --table-header-text: #dce3dd;
+      --class-cell-bg: #2b3b2f;
+      --class-cell-hover: #36493a;
       --seat-present: #2b3b2f;
-      --seat-absent: #4c1d24;
-      --seat-absent-border: #842029;
-      --seat-absent-text: #ea868f;
       --seat-disabled: #2d3238;
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Hiragino Sans GB", "Microsoft JhengHei", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
       background-color: var(--bg-color);
       color: var(--text-color);
-      margin: 0;
-      padding: 0;
-      letter-spacing: 0.03em;
+      margin: 0; padding: 0;
       line-height: 1.6;
     }
 
-    .container {
-      max-width: 950px;
-      margin: 0 auto;
-      padding: 20px;
-    }
+    .container { max-width: 950px; margin: 0 auto; padding: 20px; }
 
     header {
       background-color: var(--header-bg);
       color: var(--header-text);
       padding: 18px 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      display: flex; justify-content: space-between; align-items: center;
       border-bottom: 1.5px solid var(--table-border-color);
-      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
     }
 
-    header h2 { font-weight: 600; font-size: 1.25rem; margin: 0; color: var(--header-text); }
+    header h2 { font-weight: 600; font-size: 1.25rem; margin: 0; }
 
     .card {
       background-color: var(--card-bg);
-      border-radius: 12px;
-      padding: 24px;
-      margin-top: 20px;
+      border-radius: 12px; padding: 24px; margin-top: 20px;
       border: 1px solid var(--border-color);
       box-shadow: 0 4px 15px rgba(0,0,0,0.02);
     }
@@ -97,129 +80,57 @@
     label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.9rem; opacity: 0.85; }
 
     input, select, textarea {
-      width: 100%;
-      padding: 10px 14px;
+      width: 100%; padding: 10px 14px;
       border: 1.5px solid var(--table-border-color);
-      border-radius: 8px;
-      box-sizing: border-box;
-      font-size: 15px;
-      background-color: var(--card-bg);
-      color: var(--text-color);
+      border-radius: 8px; box-sizing: border-box; font-size: 15px;
+      background-color: var(--card-bg); color: var(--text-color);
     }
 
     button {
-      padding: 10px 16px;
-      background-color: var(--primary-color);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-weight: 500;
-      font-size: 15px;
-      cursor: pointer;
-      transition: background-color 0.2s;
+      padding: 10px 16px; background-color: var(--primary-color); color: white;
+      border: none; border-radius: 8px; font-weight: 500; font-size: 15px; cursor: pointer;
     }
 
     button:hover { background-color: var(--primary-hover); }
     .btn-secondary { background-color: #6c757d; }
-    .btn-secondary:hover { background-color: #5a6268; }
     .btn-outline { background-color: transparent; color: var(--text-color); border: 1.5px solid var(--table-border-color); }
     .hidden { display: none !important; }
 
-    /* 課表樣式 */
-    .controls-bar { display: flex; gap: 12px; margin-bottom: 20px; }
     .timetable, .report-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      text-align: center;
-      border-radius: 8px;
-      overflow: hidden;
-      border: 1.5px solid var(--table-border-color);
+      width: 100%; border-collapse: collapse; margin-top: 10px; text-align: center;
+      border-radius: 8px; overflow: hidden; border: 1.5px solid var(--table-border-color);
     }
     .timetable th, .timetable td, .report-table th, .report-table td {
-      border: 1.5px solid var(--table-border-color);
-      padding: 12px 8px;
-      font-size: 14px;
+      border: 1.5px solid var(--table-border-color); padding: 12px 8px; font-size: 14px;
     }
-    .timetable th, .report-table th { background-color: var(--table-header-bg); color: var(--table-header-text); font-weight: 600; }
+    .timetable th, .report-table th { background-color: var(--table-header-bg); color: var(--table-header-text); }
     .timetable td.has-class { background-color: var(--class-cell-bg); cursor: pointer; font-weight: 600; }
-    .timetable td.has-class:hover { background-color: var(--class-cell-hover); }
-    .timetable td.empty { background-color: var(--empty-cell); color: #a0aab0; }
 
-    /* 座位表與點名介面 */
     .podium {
-      background-color: var(--table-header-bg);
-      color: var(--table-header-text);
-      text-align: center;
-      padding: 8px;
-      border-radius: 6px;
-      font-weight: 600;
-      margin-bottom: 20px;
+      background-color: var(--table-header-bg); color: var(--table-header-text);
+      text-align: center; padding: 8px; border-radius: 6px; font-weight: 600; margin-bottom: 20px;
       border: 1.5px solid var(--table-border-color);
     }
 
-    .seating-grid {
-      display: grid;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
+    .seating-grid { display: grid; gap: 12px; margin-bottom: 20px; }
 
     .seat-card {
-      border: 1.5px solid var(--table-border-color);
-      border-radius: 8px;
-      padding: 10px;
-      text-align: center;
-      min-height: 60px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      background-color: var(--seat-present);
-      cursor: pointer;
-      user-select: none;
-      transition: all 0.2s ease;
+      border: 1.5px solid var(--table-border-color); border-radius: 8px; padding: 8px;
+      text-align: center; min-height: 65px; display: flex; flex-direction: column;
+      justify-content: center; align-items: center; background-color: var(--seat-present);
+      cursor: pointer; user-select: none; transition: all 0.2s ease;
     }
 
-    .seat-card.absent {
-      background-color: var(--seat-absent);
-      border-color: var(--seat-absent-border);
-      color: var(--seat-absent-text);
-      font-weight: bold;
-    }
+    /* 假別色彩標記 */
+    .seat-card.reason-病假 { background-color: #fff3cd; border-color: #ffeeba; color: #856404; }
+    .seat-card.reason-事假 { background-color: #cce5ff; border-color: #b8daff; color: #004085; }
+    .seat-card.reason-公假 { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
+    .seat-card.reason-遲到 { background-color: #e2e3e5; border-color: #d6d8db; color: #383d41; }
+    .seat-card.reason-曠課, .seat-card.reason-缺席 { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; font-weight: bold; }
+    .seat-card.disabled { background-color: var(--seat-disabled); border-style: dashed; opacity: 0.6; }
 
-    .seat-card.disabled {
-      background-color: var(--seat-disabled);
-      border-style: dashed;
-      cursor: pointer;
-      opacity: 0.6;
-    }
-
-    .seat-card.edit-mode { border-style: dashed; }
-    .seat-card.drag-over { border-color: var(--primary-color) !important; background-color: var(--class-cell-hover) !important; }
-
-    .student-pool {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      padding: 12px;
-      background: var(--empty-cell);
-      border: 1.5px dashed var(--table-border-color);
-      border-radius: 8px;
-      min-height: 50px;
-    }
-
-    .pool-item {
-      padding: 6px 12px;
-      background: var(--card-bg);
-      border: 1px solid var(--table-border-color);
-      border-radius: 20px;
-      cursor: grab;
-      font-size: 13px;
-    }
-
-    /* 頁籤切換 */
     .tab-bar { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 2px solid var(--table-border-color); }
-    .tab-btn { background: none; color: var(--text-color); border: none; padding: 10px 18px; font-size: 15px; cursor: pointer; border-radius: 8px 8px 0 0; }
+    .tab-btn { background: none; color: var(--text-color); border: none; padding: 10px 18px; font-size: 15px; cursor: pointer; }
     .tab-btn.active { background-color: var(--table-header-bg); font-weight: bold; border-bottom: 3px solid var(--primary-color); }
   </style>
 </head>
@@ -257,10 +168,20 @@
         <button onclick="showReportView()" class="btn-outline">📊 期末紀錄與彙整查詢</button>
       </div>
 
-      <div class="controls-bar">
-        <select id="schoolSelect" onchange="renderTimetable()"></select>
-        <select id="semesterSelect" onchange="renderTimetable()"></select>
-        <select id="teacherSelect" class="hidden" onchange="renderTimetable()"></select>
+      <!-- 學期鎖定與切換列 -->
+      <div style="display:flex; gap:10px; margin-bottom:15px; align-items:center; background:var(--empty-cell); padding:10px; border-radius:8px;">
+        <div style="flex:1;">
+          <label style="font-size:12px; margin:0;">🔒 學期鎖定：</label>
+          <select id="semesterSelect" onchange="renderTimetable()"></select>
+        </div>
+        <div style="flex:1;">
+          <label style="font-size:12px; margin:0;">🏫 學校選擇：</label>
+          <select id="schoolSelect" onchange="renderTimetable()"></select>
+        </div>
+        <div style="flex:1;" id="teacherSelectBox" class="hidden">
+          <label style="font-size:12px; margin:0;">👤 教師篩選：</label>
+          <select id="teacherSelect" onchange="renderTimetable()"></select>
+        </div>
       </div>
 
       <div style="overflow-x:auto;">
@@ -280,7 +201,7 @@
       </div>
     </div>
 
-    <!-- 3. 點名與座位表區塊 -->
+    <!-- 3. 點名區塊 -->
     <div id="attendanceView" class="card hidden">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
         <button onclick="backToMain()" class="btn-secondary">← 返回課表</button>
@@ -293,29 +214,13 @@
 
       <div class="podium">講 台 方 向</div>
 
-      <div id="seatConfigBar" class="card hidden" style="background:var(--empty-cell); padding:15px; margin-bottom:15px;">
-        <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px; flex-wrap:wrap;">
-          <label style="margin:0;">欄數 X:</label>
-          <input type="number" id="colsInput" value="6" min="1" max="10" style="width:70px;">
-          <label style="margin:0;">列數 Y:</label>
-          <input type="number" id="rowsInput" value="5" min="1" max="10" style="width:70px;">
-          <button onclick="applyGridSize()">重設網格</button>
-          <button onclick="saveSeatingLayout()" style="background-color:#28a745;">💾 儲存座位表</button>
-        </div>
-        <div style="font-size:13px; color:#666; margin-bottom:8px;">
-          💡 <b>排座位小技巧：</b><br>
-          1. 拖曳學生卡片可互相交換座位。<br>
-          2. 點擊座位格子可切換「走道 / 有效座位」。
-        </div>
-        <div>
-          <label>未分配學生名冊：</label>
-          <div id="unassignedPool" class="student-pool" ondragover="allowDrop(event)" ondrop="dropToPool(event)"></div>
-        </div>
-      </div>
-
       <div id="seatingGrid" class="seating-grid"></div>
 
-      <div class="form-group" style="margin-top:20px;">
+      <div style="font-size:13px; color:#666; margin-bottom:15px; background:var(--empty-cell); padding:8px 12px; border-radius:6px;">
+        💡 <b>點擊座位說明：</b> 預設全勤 ➔ 病假 ➔ 事假 ➔ 公假 ➔ 遲到 ➔ 曠課 ➔ 恢復出席
+      </div>
+
+      <div class="form-group">
         <label>📝 當堂教學摘要：</label>
         <textarea id="summaryInput" rows="3" placeholder="請輸入本次課程教學進度或備註..."></textarea>
       </div>
@@ -323,7 +228,7 @@
       <button onclick="submitAttendance()" style="width:100%; padding:14px; font-size:16px;">🚀 送出點名與教學摘要</button>
     </div>
 
-    <!-- 4. Step 5 期末查詢與匯出區塊 -->
+    <!-- 4. 期末報表區塊 -->
     <div id="reportView" class="card hidden">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
         <button onclick="backToMainFromReport()" class="btn-secondary">← 返回課表</button>
@@ -336,8 +241,29 @@
         <button class="tab-btn" onclick="switchReportTab('summary')">📝 全學期教學摘要</button>
       </div>
 
-      <!-- 缺席統計分頁 -->
       <div id="absentTabContent">
+        <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap; align-items:center; background:var(--empty-cell); padding:12px; border-radius:8px;">
+          <div style="flex:1; min-width:140px;">
+            <label style="font-size:12px; margin-bottom:2px;">🏫 選擇班級：</label>
+            <select id="reportClassFilter" onchange="onReportClassChange()" style="padding:6px 10px; font-size:14px;">
+              <option value="ALL">全選 (所有班級)</option>
+            </select>
+          </div>
+          <div style="flex:1; min-width:160px;">
+            <label style="font-size:12px; margin-bottom:2px;">👤 選擇學生：</label>
+            <select id="reportStudentFilter" onchange="renderAbsentReportTable()" style="padding:6px 10px; font-size:14px;">
+              <option value="ALL">全選 (所有學生)</option>
+            </select>
+          </div>
+          <div style="flex:0.8; min-width:130px;">
+            <label style="font-size:12px; margin-bottom:2px;">📅 日期排序：</label>
+            <select id="reportSortOrder" onchange="renderAbsentReportTable()" style="padding:6px 10px; font-size:14px;">
+              <option value="DESC">最新 ➔ 最舊</option>
+              <option value="ASC">最舊 ➔ 最新</option>
+            </select>
+          </div>
+        </div>
+
         <div style="overflow-x:auto;">
           <table class="report-table">
             <thead>
@@ -346,7 +272,7 @@
                 <th>學校 / 班級</th>
                 <th>節次</th>
                 <th>填報教師</th>
-                <th>缺席學生名單</th>
+                <th>缺席學生與假別</th>
               </tr>
             </thead>
             <tbody id="absentReportBody"></tbody>
@@ -354,7 +280,6 @@
         </div>
       </div>
 
-      <!-- 教學摘要分頁 -->
       <div id="summaryTabContent" class="hidden">
         <button onclick="copySummaries()" class="btn-outline" style="margin-bottom:10px;">📋 一鍵複製全學期摘要文字</button>
         <div style="overflow-x:auto;">
@@ -377,19 +302,22 @@
   </div>
 
   <script>
-    // ⚠️ 請填入您的 GAS Web App URL
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwxKfah1aWM4vlJuTYdkzZKn6KINExI88O6lAvVbT-yEOmEtDmV0KDylnJKZzkUvtg/exec";
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxPVAyDHP8XnL9loE9Qh_BTK3BrOi5xGY9S8U2yw5sXrM_CNrz1KFoeWMDlQmN_r-LZ/exec";
 
     let currentUser = null;
     let appData = null;
     let currentSession = {}; 
-    let isEditMode = false;
     let currentGrid = { cols: 6, rows: 5, seats: {}, disabled: [] };
-    let currentAbsentees = new Set(); 
-    let draggedSourceKey = null; 
+    let currentAbsenteesMap = new Map(); // 學號 -> 假別 (病假/事假/公假/遲到/曠課)
+    const REASONS = ["出席", "病假", "事假", "公假", "遲到", "曠課"];
     let reportData = { attendances: [], summaries: [] };
 
     window.onload = function() {
+      // 註冊 PWA ServiceWorker
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(()=>{});
+      }
+
       const savedUser = localStorage.getItem("attendance_user");
       if (savedUser) {
         currentUser = JSON.parse(savedUser);
@@ -444,7 +372,9 @@
       document.getElementById("attendanceView").classList.add("hidden");
       document.getElementById("reportView").classList.add("hidden");
       document.getElementById("logoutBtn").classList.remove("hidden");
-      document.getElementById("welcomeMsg").innerText = `歡迎，${currentUser.name} (${currentUser.role === 'admin' ? '管理者' : '教師'})`;
+
+      let roleText = currentUser.role === 'admin' ? '管理者' : (currentUser.role === 'homeroom' ? `導師 (${currentUser.classHandled}班)` : '科任教師');
+      document.getElementById("welcomeMsg").innerText = `歡迎，${currentUser.name} [${roleText}]`;
 
       try {
         const res = await fetch(GAS_API_URL, {
@@ -468,14 +398,20 @@
       const semesters = [...new Set(appData.schedules.map(s => s.學期))];
 
       document.getElementById("schoolSelect").innerHTML = schools.map(s => `<option value="${s}">${s}</option>`).join('');
-      document.getElementById("semesterSelect").innerHTML = semesters.map(s => `<option value="${s}">${s}</option>`).join('');
+      
+      const semSelect = document.getElementById("semesterSelect");
+      semSelect.innerHTML = semesters.map(s => `<option value="${s}">${s}</option>`).join('');
+      
+      // 自動鎖定最新學期
+      if (semesters.length > 0) semSelect.value = semesters[semesters.length - 1];
 
       if (currentUser.role === "admin") {
+        const box = document.getElementById("teacherSelectBox");
+        box.classList.remove("hidden");
         const teacherSelect = document.getElementById("teacherSelect");
-        teacherSelect.classList.remove("hidden");
         const teachers = [...new Set(appData.schedules.map(s => s.教師帳號))];
-        teacherSelect.innerHTML = `<option value="ALL">全體教師課表</option>` + 
-          teachers.map(t => `<option value="${t}">教師：${t}</option>`).join('');
+        teacherSelect.innerHTML = `<option value="ALL">全體課表</option>` + 
+          teachers.map(t => `<option value="${t}">${t}</option>`).join('');
       }
     }
 
@@ -513,32 +449,108 @@
       });
     }
 
-    // ----------------- 點名與座位表核心邏輯 -----------------
+    // ----------------- 點名與座位假別切換 -----------------
 
-    function enterAttendance(school, semester, className, subject, period) {
+    async function enterAttendance(school, semester, className, subject, period) {
       const today = new Date().toISOString().split('T')[0];
       currentSession = { school, semester, className, subject, period, date: today };
 
       document.getElementById("mainView").classList.add("hidden");
       document.getElementById("attendanceView").classList.remove("hidden");
       document.getElementById("attendanceTitle").innerText = `${className} - ${subject} (${period})`;
-
       document.getElementById("attendanceDate").value = today;
-      currentAbsentees.clear();
-      document.getElementById("summaryInput").value = "";
 
       loadSeatingData();
-      renderSeatingGrid();
+      await fetchExistingAttendance();
     }
 
-    function onDateChange() {
+    async function onDateChange() {
       const selectedDate = document.getElementById("attendanceDate").value;
-      if (selectedDate) currentSession.date = selectedDate;
+      if (selectedDate) {
+        currentSession.date = selectedDate;
+        await fetchExistingAttendance();
+      }
+    }
+
+    async function fetchExistingAttendance() {
+      currentAbsenteesMap.clear();
+      document.getElementById("summaryInput").value = "";
+      renderSeatingGrid();
+
+      try {
+        const res = await fetch(GAS_API_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "getSummaryReports",
+            account: currentUser.account,
+            role: currentUser.role,
+            school: currentSession.school,
+            semester: currentSession.semester,
+            classHandled: currentUser.classHandled
+          })
+        });
+        const result = await res.json();
+
+        if (result.status === "success") {
+          const matchAtt = result.attendances.find(a => 
+            a.日期 === currentSession.date && 
+            a.班級 === currentSession.className && 
+            a.節次 === currentSession.period
+          );
+
+          if (matchAtt && matchAtt.缺席學生) {
+            const classStudents = appData.students.filter(s => 
+              s.學校 === currentSession.school && s.學期 === currentSession.semester && s.班級 === currentSession.className
+            );
+            
+            // 解析缺席字串與假別 (例: "25 潘羽柔(病假)")
+            classStudents.forEach(st => {
+              if (matchAtt.缺席學生.includes(st.學號) || matchAtt.缺席學生.includes(st.姓名)) {
+                let reason = "缺席";
+                REASONS.forEach(r => {
+                  if (matchAtt.缺席學生.includes(`${st.姓名}(${r})`)) reason = r;
+                });
+                currentAbsenteesMap.set(st.學號, reason);
+              }
+            });
+          }
+
+          const matchSum = result.summaries.find(s => 
+            s.日期 === currentSession.date && 
+            s.班級 === currentSession.className && 
+            s.節次 === currentSession.period
+          );
+
+          if (matchSum) {
+            document.getElementById("summaryInput").value = matchSum.教學摘要 || "";
+          }
+
+          renderSeatingGrid();
+        }
+      } catch (err) {
+        console.error("讀取歷史點名紀錄失敗：", err);
+      }
     }
 
     function backToMain() {
       document.getElementById("attendanceView").classList.add("hidden");
       document.getElementById("mainView").classList.remove("hidden");
+    }
+
+    function loadSeatingData() {
+      const saved = appData.seatings.find(s => 
+        s.學校 === currentSession.school && s.學期 === currentSession.semester && s.班級 === currentSession.className
+      );
+
+      if (saved) {
+        currentGrid.cols = parseInt(saved.欄數X) || 6;
+        currentGrid.rows = parseInt(saved.列數Y) || 5;
+        currentGrid.disabled = saved.無效座位 ? JSON.parse(saved.無效座位) : [];
+        currentGrid.seats = saved.座位資料 ? JSON.parse(saved.座位資料) : {};
+      } else {
+        currentGrid.cols = 6; currentGrid.rows = 5; currentGrid.disabled = [];
+        autoAssignSeatsVertical();
+      }
     }
 
     function autoAssignSeatsVertical() {
@@ -558,26 +570,6 @@
       }
     }
 
-    function loadSeatingData() {
-      const saved = appData.seatings.find(s => 
-        s.學校 === currentSession.school && s.學期 === currentSession.semester && s.班級 === currentSession.className
-      );
-
-      if (saved) {
-        currentGrid.cols = parseInt(saved.欄數X) || 6;
-        currentGrid.rows = parseInt(saved.列數Y) || 5;
-        currentGrid.disabled = saved.無效座位 ? JSON.parse(saved.無效座位) : [];
-        currentGrid.seats = saved.座位資料 ? JSON.parse(saved.座位資料) : {};
-      } else {
-        currentGrid.cols = 6;
-        currentGrid.rows = 5;
-        currentGrid.disabled = [];
-        autoAssignSeatsVertical();
-      }
-      document.getElementById("colsInput").value = currentGrid.cols;
-      document.getElementById("rowsInput").value = currentGrid.rows;
-    }
-
     function renderSeatingGrid() {
       const gridContainer = document.getElementById("seatingGrid");
       gridContainer.style.gridTemplateColumns = `repeat(${currentGrid.cols}, 1fr)`;
@@ -587,8 +579,6 @@
         s.學校 === currentSession.school && s.學期 === currentSession.semester && s.班級 === currentSession.className
       );
 
-      const assignedStudentIds = new Set(Object.values(currentGrid.seats));
-
       for (let r = 1; r <= currentGrid.rows; r++) {
         for (let c = 1; c <= currentGrid.cols; c++) {
           const posKey = `${r}-${c}`;
@@ -597,27 +587,17 @@
           const studentId = currentGrid.seats[posKey];
           const student = classStudents.find(s => String(s.學號) === String(studentId));
 
-          seatCard.className = `seat-card ${isDisabled ? 'disabled' : ''} ${isEditMode ? 'edit-mode' : ''}`;
-          seatCard.dataset.pos = posKey;
+          seatCard.className = `seat-card ${isDisabled ? 'disabled' : ''}`;
 
-          if (isEditMode) {
-            seatCard.draggable = !isDisabled && !!student;
-            seatCard.ondragstart = (e) => onDragStart(e, posKey);
-            seatCard.ondragover = (e) => allowDrop(e);
-            seatCard.ondragenter = (e) => e.target.classList.add("drag-over");
-            seatCard.ondragleave = (e) => e.target.classList.remove("drag-over");
-            seatCard.ondrop = (e) => onDropToSeat(e, posKey);
-            seatCard.onclick = () => toggleDisabledSeat(posKey);
-          } else {
-            if (student) seatCard.onclick = () => toggleAttendance(student.學號);
-          }
-
-          if (isDisabled) {
-            seatCard.innerHTML = `<small style="color:#aaa">走道/空位</small>`;
-          } else if (student) {
-            const isAbsent = currentAbsentees.has(student.學號);
-            if (isAbsent && !isEditMode) seatCard.classList.add("absent");
-            seatCard.innerHTML = `<div><b>${student.學號}</b></div><div>${student.姓名}</div>`;
+          if (!isDisabled && student) {
+            const reason = currentAbsenteesMap.get(student.學號);
+            if (reason) {
+              seatCard.classList.add(`reason-${reason}`);
+            }
+            seatCard.onclick = () => cycleAttendanceReason(student.學號);
+            seatCard.innerHTML = `<div><b>${student.學號}</b></div><div>${student.姓名}</div>${reason ? `<small><b>[${reason}]</b></small>` : ''}`;
+          } else if (isDisabled) {
+            seatCard.innerHTML = `<small style="color:#aaa">走道</small>`;
           } else {
             seatCard.innerHTML = `<small style="color:#bbb">空位</small>`;
           }
@@ -625,135 +605,21 @@
           gridContainer.appendChild(seatCard);
         }
       }
-
-      if (isEditMode) {
-        const pool = document.getElementById("unassignedPool");
-        pool.innerHTML = "";
-        classStudents.forEach(st => {
-          if (!assignedStudentIds.has(st.學號)) {
-            const item = document.createElement("div");
-            item.className = "pool-item";
-            item.draggable = true;
-            item.innerText = `${st.學號} ${st.姓名}`;
-            item.ondragstart = (e) => onDragStartPool(e, st.學號);
-            pool.appendChild(item);
-          }
-        });
-      }
     }
 
-    function toggleDisabledSeat(posKey) {
-      if (!isEditMode) return;
-      const idx = currentGrid.disabled.indexOf(posKey);
-      if (idx > -1) {
-        currentGrid.disabled.splice(idx, 1);
+    // 點擊循環切換假別
+    function cycleAttendanceReason(studentId) {
+      const currentReason = currentAbsenteesMap.get(studentId) || "出席";
+      const currentIndex = REASONS.indexOf(currentReason);
+      const nextIndex = (currentIndex + 1) % REASONS.length;
+      const nextReason = REASONS[nextIndex];
+
+      if (nextReason === "出席") {
+        currentAbsenteesMap.delete(studentId);
       } else {
-        currentGrid.disabled.push(posKey);
-        delete currentGrid.seats[posKey];
+        currentAbsenteesMap.set(studentId, nextReason);
       }
       renderSeatingGrid();
-    }
-
-    function onDragStart(e, posKey) {
-      draggedSourceKey = { type: 'seat', posKey };
-      e.dataTransfer.setData("text/plain", posKey);
-    }
-
-    function onDragStartPool(e, studentId) {
-      draggedSourceKey = { type: 'pool', studentId };
-      e.dataTransfer.setData("text/plain", studentId);
-    }
-
-    function allowDrop(e) { e.preventDefault(); }
-
-    function onDropToSeat(e, targetPosKey) {
-      e.preventDefault();
-      e.target.classList.remove("drag-over");
-      if (!isEditMode || currentGrid.disabled.includes(targetPosKey)) return;
-
-      if (draggedSourceKey.type === 'seat') {
-        const sourcePosKey = draggedSourceKey.posKey;
-        const targetStudent = currentGrid.seats[targetPosKey];
-        currentGrid.seats[targetPosKey] = currentGrid.seats[sourcePosKey];
-        if (targetStudent) {
-          currentGrid.seats[sourcePosKey] = targetStudent;
-        } else {
-          delete currentGrid.seats[sourcePosKey];
-        }
-      } else if (draggedSourceKey.type === 'pool') {
-        currentGrid.seats[targetPosKey] = draggedSourceKey.studentId;
-      }
-      renderSeatingGrid();
-    }
-
-    function dropToPool(e) {
-      e.preventDefault();
-      if (!isEditMode || !draggedSourceKey || draggedSourceKey.type !== 'seat') return;
-      delete currentGrid.seats[draggedSourceKey.posKey];
-      renderSeatingGrid();
-    }
-
-    function toggleAttendance(studentId) {
-      if (isEditMode) return;
-      if (currentAbsentees.has(studentId)) {
-        currentAbsentees.delete(studentId);
-      } else {
-        currentAbsentees.add(studentId);
-      }
-      renderSeatingGrid();
-    }
-
-    function toggleEditMode() {
-      isEditMode = !isEditMode;
-      const btn = document.getElementById("editSeatBtn");
-      const bar = document.getElementById("seatConfigBar");
-
-      if (isEditMode) {
-        btn.innerText = "❌ 完成排座";
-        bar.classList.remove("hidden");
-      } else {
-        btn.innerText = "⚙️ 排座位";
-        bar.classList.add("hidden");
-      }
-      renderSeatingGrid();
-    }
-
-    function applyGridSize() {
-      const newCols = parseInt(document.getElementById("colsInput").value);
-      const newRows = parseInt(document.getElementById("rowsInput").value);
-
-      if (isNaN(newCols) || isNaN(newRows) || newCols < 1 || newRows < 1) {
-        alert("請輸入有效的欄列數字！");
-        return;
-      }
-      currentGrid.cols = newCols;
-      currentGrid.rows = newRows;
-      autoAssignSeatsVertical();
-      renderSeatingGrid();
-    }
-
-    async function saveSeatingLayout() {
-      const payload = {
-        action: "saveSeating",
-        semester: currentSession.semester,
-        school: currentSession.school,
-        className: currentSession.className,
-        cols: currentGrid.cols,
-        rows: currentGrid.rows,
-        disabledSeats: currentGrid.disabled,
-        seatData: currentGrid.seats
-      };
-
-      try {
-        const res = await fetch(GAS_API_URL, { method: "POST", body: JSON.stringify(payload) });
-        const result = await res.json();
-        if (result.status === "success") {
-          alert("座位佈局已成功儲存！");
-          toggleEditMode();
-        }
-      } catch (err) {
-        alert("儲存失敗，請檢查連線");
-      }
     }
 
     async function submitAttendance() {
@@ -761,9 +627,10 @@
         s.學校 === currentSession.school && s.學期 === currentSession.semester && s.班級 === currentSession.className
       );
 
-      const absenteesList = Array.from(currentAbsentees).map(id => {
+      const absenteesList = [];
+      currentAbsenteesMap.forEach((reason, id) => {
         const st = classStudents.find(s => String(s.學號) === String(id));
-        return { id: st.學號, name: st.姓名 };
+        if (st) absenteesList.push({ id: st.學號, name: st.姓名, reason: reason });
       });
 
       const payload = {
@@ -782,7 +649,7 @@
         const res = await fetch(GAS_API_URL, { method: "POST", body: JSON.stringify(payload) });
         const result = await res.json();
         if (result.status === "success") {
-          alert(`✅ 【${currentSession.className}】點名紀錄與教學摘要已成功送出！`);
+          alert(`✅ 【${currentSession.className}】點名與摘要已成功儲存！`);
           backToMain();
         }
       } catch (err) {
@@ -790,7 +657,7 @@
       }
     }
 
-    // ----------------- Step 5 期末報表與匯出核心邏輯 -----------------
+    // ----------------- Step 5 期末報表與篩選 -----------------
 
     async function showReportView() {
       document.getElementById("mainView").classList.add("hidden");
@@ -807,13 +674,15 @@
             account: currentUser.account,
             role: currentUser.role,
             school: selectedSchool,
-            semester: selectedSemester
+            semester: selectedSemester,
+            classHandled: currentUser.classHandled
           })
         });
         const result = await res.json();
 
         if (result.status === "success") {
           reportData = result;
+          initReportClassFilter();
           renderReports();
         }
       } catch (err) {
@@ -835,30 +704,101 @@
       document.getElementById("summaryTabContent").classList.toggle("hidden", tab !== 'summary');
     }
 
-    function renderReports() {
-      // 缺席表格
-      const absentBody = document.getElementById("absentReportBody");
-      absentBody.innerHTML = reportData.attendances.map(a => `
-        <tr>
-          <td>${a.日期}</td>
-          <td>${a.學校} - ${a.班級}</td>
-          <td>${a.節次}</td>
-          <td>${a.教師帳號}</td>
-          <td style="color:#d9534f; font-weight:bold;">${a.缺席學生 || '全勤'}</td>
-        </tr>
-      `).join('');
+    function initReportClassFilter() {
+      const classSelect = document.getElementById("reportClassFilter");
+      const classes = [...new Set(reportData.attendances.map(a => a.班級))].filter(Boolean);
+      
+      classSelect.innerHTML = `<option value="ALL">全選 (所有班級)</option>` + 
+        classes.map(c => `<option value="${c}">班級：${c}</option>`).join('');
 
-      // 教學摘要表格
+      onReportClassChange();
+    }
+
+    function onReportClassChange() {
+      const selectedClass = document.getElementById("reportClassFilter").value;
+      const studentSelect = document.getElementById("reportStudentFilter");
+
+      let filteredAtts = reportData.attendances;
+      if (selectedClass !== "ALL") {
+        filteredAtts = filteredAtts.filter(a => a.班級 === selectedClass);
+      }
+
+      const studentSet = new Set();
+      filteredAtts.forEach(a => {
+        if (a.缺席學生 && a.缺席學生 !== '全勤') {
+          const items = a.缺席學生.split(', ');
+          items.forEach(st => studentSet.add(st.trim()));
+        }
+      });
+
+      const students = Array.from(studentSet);
+      studentSelect.innerHTML = `<option value="ALL">全選 (所有學生)</option>` + 
+        students.map(st => `<option value="${st}">${st}</option>`).join('');
+
+      renderAbsentReportTable();
+    }
+
+    function renderAbsentReportTable() {
+      const selectedClass = document.getElementById("reportClassFilter").value;
+      const selectedStudent = document.getElementById("reportStudentFilter").value;
+      const sortOrder = document.getElementById("reportSortOrder").value;
+      const absentBody = document.getElementById("absentReportBody");
+
+      let list = [...reportData.attendances];
+
+      if (selectedClass !== "ALL") {
+        list = list.filter(a => a.班級 === selectedClass);
+      }
+
+      if (selectedStudent !== "ALL") {
+        list = list.filter(a => a.缺席學生 && a.缺席學生.includes(selectedStudent));
+      }
+
+      list.sort((a, b) => {
+        const dateA = new Date(a.日期 || '1970-01-01');
+        const dateB = new Date(b.日期 || '1970-01-01');
+        return sortOrder === 'DESC' ? dateB - dateA : dateA - dateB;
+      });
+
+      if (list.length > 0) {
+        absentBody.innerHTML = list.map(a => {
+          let studentText = a.缺席學生 || '全勤';
+          if (selectedStudent !== "ALL" && studentText.includes(selectedStudent)) {
+            studentText = studentText.replace(selectedStudent, `<mark style="background:#f8d7da; color:#721c24; padding:2px 4px; border-radius:4px;">${selectedStudent}</mark>`);
+          }
+
+          return `
+            <tr>
+              <td>${a.日期 || ''}</td>
+              <td>${a.學校 || ''} - ${a.班級 || ''}</td>
+              <td>${a.節次 || ''}</td>
+              <td>${a.教師帳號 || a.點名教師帳號 || ''}</td>
+              <td style="color:#d9534f; font-weight:bold;">${studentText}</td>
+            </tr>
+          `;
+        }).join('');
+      } else {
+        absentBody.innerHTML = `<tr><td colspan="5" style="color:#999;">查無符合條件的缺席紀錄</td></tr>`;
+      }
+    }
+
+    function renderReports() {
+      renderAbsentReportTable();
+
       const summaryBody = document.getElementById("summaryReportBody");
-      summaryBody.innerHTML = reportData.summaries.map(s => `
-        <tr>
-          <td>${s.日期}</td>
-          <td>${s.學校} - ${s.班級}</td>
-          <td>${s.節次}</td>
-          <td>${s.教師帳號}</td>
-          <td style="text-align:left;">${s.教學摘要}</td>
-        </tr>
-      `).join('');
+      if (reportData.summaries && reportData.summaries.length > 0) {
+        summaryBody.innerHTML = reportData.summaries.map(s => `
+          <tr>
+            <td>${s.日期 || ''}</td>
+            <td>${s.學校 || ''} - ${s.班級 || ''}</td>
+            <td>${s.節次 || ''}</td>
+            <td>${s.教師帳號 || s.填寫教師帳號 || ''}</td>
+            <td style="text-align:left;">${s.教學摘要 || ''}</td>
+          </tr>
+        `).join('');
+      } else {
+        summaryBody.innerHTML = `<tr><td colspan="5" style="color:#999;">查無教學摘要紀錄</td></tr>`;
+      }
     }
 
     function copySummaries() {
@@ -872,7 +812,7 @@
     }
 
     function exportToExcel() {
-      let csvContent = "\uFEFF"; // UTF-8 BOM 防 Excel 亂碼
+      let csvContent = "\uFEFF"; 
       csvContent += "=== 缺席紀錄統計 ===\n日期,學期,學校,班級,節次,填報教師,缺席學生\n";
       reportData.attendances.forEach(a => {
         csvContent += `"${a.日期}","${a.學期}","${a.學校}","${a.班級}","${a.節次}","${a.教師帳號}","${a.缺席學生}"\n`;
