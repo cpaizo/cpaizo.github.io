@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>學校點名與課表系統</title>
+  
+  <!-- PWA 宣告檔 -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#a8c3b0">
+  <link rel="apple-touch-icon" href="https://cpaizo.github.io/Roll_Call_System/校園點名簿圖示.png">
+
+  <!-- 引入外部 CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <h2>學校點名與課表系統</h2>
+    <div>
+      <button onclick="toggleTheme()" style="padding:6px 12px;">☀️/🌙</button>
+      <button id="logoutBtn" class="hidden btn-secondary" onclick="logout()" style="padding:6px 12px;">登出</button>
+    </div>
+  </header>
+
+  <div class="container">
+    
+    <!-- 1. 登入區塊 -->
+    <div id="loginView" class="card" style="max-width:400px; margin: 40px auto;">
+      <h3 style="margin-top:0;">🔐 帳號登入</h3>
+      <div class="form-group">
+        <label>帳號</label>
+        <input type="text" id="accInput" placeholder="請輸入帳號 (例：A001)">
+      </div>
+      <div class="form-group">
+        <label>密碼</label>
+        <input type="password" id="pwdInput" placeholder="請輸入密碼">
+      </div>
+      <button onclick="handleLogin()" style="width:100%;">登入系統</button>
+      <p id="loginMsg" style="color:#d9534f; text-align:center; margin-top:10px;"></p>
+    </div>
+
+    <!-- 2. 首頁課表區塊 -->
+    <div id="mainView" class="card hidden">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+        <h3 id="welcomeMsg" style="margin:0;">歡迎使用</h3>
+        <button onclick="showReportView()" class="btn-outline">📊 期末紀錄與彙整查詢</button>
+      </div>
+
+      <!-- 學期鎖定與選擇列 -->
+      <div style="display:flex; gap:10px; margin-bottom:15px; align-items:center; background:var(--empty-cell); padding:10px; border-radius:8px;">
+        <div style="flex:1;">
+          <label style="font-size:12px; margin:0;">🔒 學期鎖定：</label>
+          <select id="semesterSelect" onchange="renderTimetable()"></select>
+        </div>
+        <div style="flex:1;">
+          <label style="font-size:12px; margin:0;">🏫 學校選擇：</label>
+          <select id="schoolSelect" onchange="renderTimetable()"></select>
+        </div>
+        <div style="flex:1;" id="teacherSelectBox" class="hidden">
+          <label style="font-size:12px; margin:0;">👤 教師篩選：</label>
+          <select id="teacherSelect" onchange="renderTimetable()"></select>
+        </div>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table class="timetable">
+          <thead>
+            <tr>
+              <th>節次 / 時間</th>
+              <th>星期一</th>
+              <th>星期二</th>
+              <th>星期三</th>
+              <th>星期四</th>
+              <th>星期五</th>
+            </tr>
+          </thead>
+          <tbody id="timetableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 3. 點名與座位表區塊 -->
+    <div id="attendanceView" class="card hidden">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+        <button onclick="backToMain()" class="btn-secondary">← 返回課表</button>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <h3 id="attendanceTitle" style="margin:0;">班級點名</h3>
+          <input type="date" id="attendanceDate" onchange="onDateChange()" style="padding:6px 10px; width:auto; font-size:14px;">
+        </div>
+        <button id="editSeatBtn" onclick="toggleEditMode()" class="btn-secondary">⚙️ 排座位</button>
+      </div>
+
+      <div class="podium">講 台 方 向</div>
+
+      <div id="seatingGrid" class="seating-grid"></div>
+
+      <div style="font-size:13px; color:#666; margin-bottom:15px; background:var(--empty-cell); padding:8px 12px; border-radius:6px;">
+        💡 <b>點擊座位說明：</b> 預設全勤 ➔ 病假 ➔ 事假 ➔ 公假 ➔ 遲到 ➔ 曠課 ➔ 恢復出席
+      </div>
+
+      <div class="form-group">
+        <label>📝 當堂教學摘要：</label>
+        <textarea id="summaryInput" rows="3" placeholder="請輸入本次課程教學進度或備註..."></textarea>
+      </div>
+
+      <button onclick="submitAttendance()" style="width:100%; padding:14px; font-size:16px;">🚀 送出點名與教學摘要</button>
+    </div>
+
+    <!-- 4. Step 5 期末查詢與匯出區塊 -->
+    <div id="reportView" class="card hidden">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <button onclick="backToMainFromReport()" class="btn-secondary">← 返回課表</button>
+        <h3 style="margin:0;">📊 期末紀錄與匯出</h3>
+        <button onclick="exportToExcel()" style="background-color:#28a745;">📥 匯出 Excel (CSV)</button>
+      </div>
+
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchReportTab('absent')">🚨 缺席紀錄統計</button>
+        <button class="tab-btn" onclick="switchReportTab('summary')">📝 全學期教學摘要</button>
+      </div>
+
+      <!-- 缺席統計分頁 -->
+      <div id="absentTabContent">
+        <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap; align-items:center; background:var(--empty-cell); padding:12px; border-radius:8px;">
+          <div style="flex:1; min-width:140px;">
+            <label style="font-size:12px; margin-bottom:2px;">🏫 選擇班級：</label>
+            <select id="reportClassFilter" onchange="onReportClassChange()" style="padding:6px 10px; font-size:14px;">
+              <option value="ALL">全選 (所有班級)</option>
+            </select>
+          </div>
+          <div style="flex:1; min-width:160px;">
+            <label style="font-size:12px; margin-bottom:2px;">👤 選擇學生：</label>
+            <select id="reportStudentFilter" onchange="renderAbsentReportTable()" style="padding:6px 10px; font-size:14px;">
+              <option value="ALL">全選 (所有學生)</option>
+            </select>
+          </div>
+          <div style="flex:0.8; min-width:130px;">
+            <label style="font-size:12px; margin-bottom:2px;">📅 日期排序：</label>
+            <select id="reportSortOrder" onchange="renderAbsentReportTable()" style="padding:6px 10px; font-size:14px;">
+              <option value="DESC">最新 ➔ 最舊</option>
+              <option value="ASC">最舊 ➔ 最新</option>
+            </select>
+          </div>
+          <div style="flex:0.6; min-width:110px; display:flex; align-items:flex-end;">
+            <button onclick="printStudentReport()" style="background-color:#17a2b8; width:100%; padding:8px; font-size:14px;">🖨️ 列印報表</button>
+          </div>
+        </div>
+
+        <div style="overflow-x:auto;">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>日期</th>
+                <th>學校 / 班級</th>
+                <th>節次</th>
+                <th>填報教師</th>
+                <th>缺席學生與假別</th>
+              </tr>
+            </thead>
+            <tbody id="absentReportBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 教學摘要分頁 -->
+      <div id="summaryTabContent" class="hidden">
+        <button onclick="copySummaries()" class="btn-outline" style="margin-bottom:10px;">📋 一鍵複製全學期摘要文字</button>
+        <div style="overflow-x:auto;">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>日期</th>
+                <th>學校 / 班級</th>
+                <th>節次</th>
+                <th>填報教師</th>
+                <th>教學摘要內容</th>
+              </tr>
+            </thead>
+            <tbody id="summaryReportBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 引入外部 JavaScript -->
+  <script src="script.js"></script>
+</body>
+</html>
