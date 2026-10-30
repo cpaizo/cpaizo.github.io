@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>學校點名與課表系統</title>
+  <style>
+    :root {
+      --bg-color: #f7f9f6;             /* 淺米綠底色 */
+      --card-bg: #ffffff;             /* 純白卡片 */
+      --text-color: #38423b;           /* 沉穩灰綠文字 */
+      --primary-color: #6e8b74;        /* 抹茶綠主色 */
+      --primary-hover: #5d7763;
+      --border-color: #d1dad3;         /* 卡片邊框 */
+      --table-border-color: #a8b8ac;   /* 加深加濃的 1.5px 網格線 */
+      --empty-cell: #f2f4f1;
+      
+      /* 朦朧淺綠與頂部標題列設定 */
+      --header-bg: #a8c3b0;            /* 頂部標題列：柔和朦朧霧綠 */
+      --header-text: #2f4033;          /* 頂部標題文字：深綠灰 */
+      --table-header-bg: #c5d8cb;      /* 表頭：極淡朦朧綠 */
+      --table-header-text: #2f4033;    /* 表頭文字：深綠灰 */
+      --class-cell-bg: #e4efe7;        /* 有課格子：柔和霧面淺綠 */
+      --class-cell-hover: #d3e4d7;     /* 滑過：稍微加深淺綠 */
+      
+      /* 座位狀態顏色 */
+      --seat-present: #e4efe7;
+      --seat-absent: #f8d7da;
+      --seat-absent-border: #f5c6cb;
+      --seat-absent-text: #721c24;
+      --seat-disabled: #e9ecef;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #1a201c;             
+      --card-bg: #242c26;             
+      --text-color: #dce3dd;           
+      --primary-color: #5d7a64;        
+      --primary-hover: #4e6854;
+      --border-color: #323d35;
+      --table-border-color: #4a5c4e;   
+      --empty-cell: #1f2621;
+
+      --header-bg: #2d3b31;
+      --header-text: #dce3dd;
+      --table-header-bg: #354539;      
+      --table-header-text: #dce3dd;    
+      --class-cell-bg: #2b3b2f;        
+      --class-cell-hover: #36493a;     
+
+      --seat-present: #2b3b2f;
+      --seat-absent: #4c1d24;
+      --seat-absent-border: #842029;
+      --seat-absent-text: #ea868f;
+      --seat-disabled: #2d3238;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Hiragino Sans GB", "Microsoft JhengHei", sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 0;
+      letter-spacing: 0.03em;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 950px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      background-color: var(--header-bg);
+      color: var(--header-text);
+      padding: 18px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1.5px solid var(--table-border-color);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    }
+
+    header h2 { font-weight: 600; font-size: 1.25rem; margin: 0; color: var(--header-text); }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 24px;
+      margin-top: 20px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    }
+
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.9rem; opacity: 0.85; }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--table-border-color);
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 15px;
+      background-color: var(--card-bg);
+      color: var(--text-color);
+    }
+
+    button {
+      padding: 10px 16px;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    button:hover { background-color: var(--primary-hover); }
+    .btn-secondary { background-color: #6c757d; }
+    .btn-secondary:hover { background-color: #5a6268; }
+    .btn-outline { background-color: transparent; color: var(--text-color); border: 1.5px solid var(--table-border-color); }
+    .hidden { display: none !important; }
+
+    /* 課表樣式 */
+    .controls-bar { display: flex; gap: 12px; margin-bottom: 20px; }
+    .timetable, .report-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      text-align: center;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1.5px solid var(--table-border-color);
+    }
+    .timetable th, .timetable td, .report-table th, .report-table td {
+      border: 1.5px solid var(--table-border-color);
+      padding: 12px 8px;
+      font-size: 14px;
+    }
+    .timetable th, .report-table th { background-color: var(--table-header-bg); color: var(--table-header-text); font-weight: 600; }
+    .timetable td.has-class { background-color: var(--class-cell-bg); cursor: pointer; font-weight: 600; }
+    .timetable td.has-class:hover { background-color: var(--class-cell-hover); }
+    .timetable td.empty { background-color: var(--empty-cell); color: #a0aab0; }
+
+    /* 座位表與點名介面 */
+    .podium {
+      background-color: var(--table-header-bg);
+      color: var(--table-header-text);
+      text-align: center;
+      padding: 8px;
+      border-radius: 6px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      border: 1.5px solid var(--table-border-color);
+    }
+
+    .seating-grid {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .seat-card {
+      border: 1.5px solid var(--table-border-color);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      min-height: 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background-color: var(--seat-present);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s ease;
+    }
+
+    .seat-card.absent {
+      background-color: var(--seat-absent);
+      border-color: var(--seat-absent-border);
+      color: var(--seat-absent-text);
+      font-weight: bold;
+    }
+
+    .seat-card.disabled {
+      background-color: var(--seat-disabled);
+      border-style: dashed;
+      cursor: pointer;
+      opacity: 0.6;
+    }
+
+    .seat-card.edit-mode { border-style: dashed; }
+    .seat-card.drag-over { border-color: var(--primary-color) !important; background-color: var(--class-cell-hover) !important; }
+
+    .student-pool {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 12px;
+      background: var(--empty-cell);
+      border: 1.5px dashed var(--table-border-color);
+      border-radius: 8px;
+      min-height: 50px;
+    }
+
+    .pool-item {
+      padding: 6px 12px;
+      background: var(--card-bg);
+      border: 1px solid var(--table-border-color);
+      border-radius: 20px;
+      cursor: grab;
+      font-size: 13px;
+    }
+
+    /* 頁籤切換 */
+    .tab-bar { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 2px solid var(--table-border-color); }
+    .tab-btn { background: none; color: var(--text-color); border: none; padding: 10px 18px; font-size: 15px; cursor: pointer; border-radius: 8px 8px 0 0; }
+    .tab-btn.active { background-color: var(--table-header-bg); font-weight: bold; border-bottom: 3px solid var(--primary-color); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h2>學校點名與課表系統</h2>
+    <div>
+      <button onclick="toggleTheme()" style="padding:6px 12px;">☀️/🌙</button>
+      <button id="logoutBtn" class="hidden btn-secondary" onclick="logout()" style="padding:6px 12px;">登出</button>
+    </div>
+  </header>
+
+  <div class="container">
+    
+    <!-- 1. 登入區塊 -->
+    <div id="loginView" class="card" style="max-width:400px; margin: 40px auto;">
+      <h3 style="margin-top:0;">🔐 帳號登入</h3>
+      <div class="form-group">
+        <label>帳號</label>
+        <input type="text" id="accInput" placeholder="請輸入帳號 (例：A001)">
+      </div>
+      <div class="form-group">
+        <label>密碼</label>
+        <input type="password" id="pwdInput" placeholder="請輸入密碼">
+      </div>
+      <button onclick="handleLogin()" style="width:100%;">登入系統</button>
+      <p id="loginMsg" style="color:#d9534f; text-align:center; margin-top:10px;"></p>
+    </div>
+
+    <!-- 2. 首頁課表區塊 -->
+    <div id="mainView" class="card hidden">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+        <h3 id="welcomeMsg" style="margin:0;">歡迎使用</h3>
+        <button onclick="showReportView()" class="btn-outline">📊 期末紀錄與彙整查詢</button>
+      </div>
+
+      <div class="controls-bar">
+        <select id="schoolSelect" onchange="renderTimetable()"></select>
+        <select id="semesterSelect" onchange="renderTimetable()"></select>
+        <select id="teacherSelect" class="hidden" onchange="renderTimetable()"></select>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table class="timetable">
+          <thead>
+            <tr>
+              <th>節次 / 時間</th>
+              <th>星期一</th>
+              <th>星期二</th>
+              <th>星期三</th>
+              <th>星期四</th>
+              <th>星期五</th>
+            </tr>
+          </thead>
+          <tbody id="timetableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 3. 點名與座位表區塊 -->
+    <div id="attendanceView" class="card hidden">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+        <button onclick="backToMain()" class="btn-secondary">← 返回課表</button>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <h3 id="attendanceTitle" style="margin:0;">班級點名</h3>
+          <input type="date" id="attendanceDate" onchange="onDateChange()" style="padding:6px 10px; width:auto; font-size:14px;">
+        </div>
+        <button id="editSeatBtn" onclick="toggleEditMode()" class="btn-secondary">⚙️ 排座位</button>
+      </div>
+
+      <div class="podium">講 台 方 向</div>
+
+      <div id="seatConfigBar" class="card hidden" style="background:var(--empty-cell); padding:15px; margin-bottom:15px;">
+        <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px; flex-wrap:wrap;">
+          <label style="margin:0;">欄數 X:</label>
+          <input type="number" id="colsInput" value="6" min="1" max="10" style="width:70px;">
+          <label style="margin:0;">列數 Y:</label>
+          <input type="number" id="rowsInput" value="5" min="1" max="10" style="width:70px;">
+          <button onclick="applyGridSize()">重設網格</button>
+          <button onclick="saveSeatingLayout()" style="background-color:#28a745;">💾 儲存座位表</button>
+        </div>
+        <div style="font-size:13px; color:#666; margin-bottom:8px;">
+          💡 <b>排座位小技巧：</b><br>
+          1. 拖曳學生卡片可互相交換座位。<br>
+          2. 點擊座位格子可切換「走道 / 有效座位」。
+        </div>
+        <div>
+          <label>未分配學生名冊：</label>
+          <div id="unassignedPool" class="student-pool" ondragover="allowDrop(event)" ondrop="dropToPool(event)"></div>
+        </div>
+      </div>
+
+      <div id="seatingGrid" class="seating-grid"></div>
+
+      <div class="form-group" style="margin-top:20px;">
+        <label>📝 當堂教學摘要：</label>
+        <textarea id="summaryInput" rows="3" placeholder="請輸入本次課程教學進度或備註..."></textarea>
+      </div>
+
+      <button onclick="submitAttendance()" style="width:100%; padding:14px; font-size:16px;">🚀 送出點名與教學摘要</button>
+    </div>
+
+    <!-- 4. Step 5 期末查詢與匯出區塊 -->
+    <div id="reportView" class="card hidden">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <button onclick="backToMainFromReport()" class="btn-secondary">← 返回課表</button>
+        <h3 style="margin:0;">📊 期末紀錄與匯出</h3>
+        <button onclick="exportToExcel()" style="background-color:#28a745;">📥 匯出 Excel (CSV)</button>
+      </div>
+
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchReportTab('absent')">🚨 缺席紀錄統計</button>
+        <button class="tab-btn" onclick="switchReportTab('summary')">📝 全學期教學摘要</button>
+      </div>
+
+      <!-- 缺席統計分頁 -->
+      <div id="absentTabContent">
+        <div style="overflow-x:auto;">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>日期</th>
+                <th>學校 / 班級</th>
+                <th>節次</th>
+                <th>填報教師</th>
+                <th>缺席學生名單</th>
+              </tr>
+            </thead>
+            <tbody id="absentReportBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 教學摘要分頁 -->
+      <div id="summaryTabContent" class="hidden">
+        <button onclick="copySummaries()" class="btn-outline" style="margin-bottom:10px;">📋 一鍵複製全學期摘要文字</button>
+        <div style="overflow-x:auto;">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>日期</th>
+                <th>學校 / 班級</th>
+                <th>節次</th>
+                <th>填報教師</th>
+                <th>教學摘要內容</th>
+              </tr>
+            </thead>
+            <tbody id="summaryReportBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ⚠️ 請填入您的 GAS Web App URL
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxwcy9YIPxj709CWaQlE3Y6Wpk8DQIhl0j4FUgaxp4H8lHRXxnD5IDYOV6rUY5VvcSH/exec";
+
+    let currentUser = null;
+    let appData = null;
+    let currentSession = {}; 
+    let isEditMode = false;
+    let currentGrid = { cols: 6, rows: 5, seats: {}, disabled: [] };
+    let currentAbsentees = new Set(); 
+    let draggedSourceKey = null; 
+    let reportData = { attendances: [], summaries: [] };
+
+    window.onload = function() {
+      const savedUser = localStorage.getItem("attendance_user");
+      if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        showMainView();
+      }
+    };
+
+    function toggleTheme() {
+      const body = document.body;
+      body.setAttribute("data-theme", body.getAttribute("data-theme") === "dark" ? "light" : "dark");
+    }
+
+    async function handleLogin() {
+      const acc = document.getElementById("accInput").value.trim();
+      const pwd = document.getElementById("pwdInput").value.trim();
+      const msg = document.getElementById("loginMsg");
+      msg.innerText = "驗證中...";
+
+      try {
+        const res = await fetch(GAS_API_URL, {
+          method: "POST",
+          body: JSON.stringify({ action: "login", account: acc, password: pwd })
+        });
+        const data = await res.json();
+
+        if (data.status === "success") {
+          currentUser = data.user;
+          localStorage.setItem("attendance_user", JSON.stringify(currentUser));
+          msg.innerText = "";
+          showMainView();
+        } else {
+          msg.innerText = data.message;
+        }
+      } catch (err) {
+        msg.innerText = "連線失敗，請檢查網路或 API 網址";
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("attendance_user");
+      currentUser = null;
+      document.getElementById("loginView").classList.remove("hidden");
+      document.getElementById("mainView").classList.add("hidden");
+      document.getElementById("attendanceView").classList.add("hidden");
+      document.getElementById("reportView").classList.add("hidden");
+      document.getElementById("logoutBtn").classList.add("hidden");
+    }
+
+    async function showMainView() {
+      document.getElementById("loginView").classList.add("hidden");
+      document.getElementById("mainView").classList.remove("hidden");
+      document.getElementById("attendanceView").classList.add("hidden");
+      document.getElementById("reportView").classList.add("hidden");
+      document.getElementById("logoutBtn").classList.remove("hidden");
+      document.getElementById("welcomeMsg").innerText = `歡迎，${currentUser.name} (${currentUser.role === 'admin' ? '管理者' : '教師'})`;
+
+      try {
+        const res = await fetch(GAS_API_URL, {
+          method: "POST",
+          body: JSON.stringify({ action: "getInitialData", account: currentUser.account, role: currentUser.role })
+        });
+        const result = await res.json();
+
+        if (result.status === "success") {
+          appData = result.data;
+          initControls();
+          renderTimetable();
+        }
+      } catch (err) {
+        alert("資料載入失敗！");
+      }
+    }
+
+    function initControls() {
+      const schools = [...new Set(appData.times.map(t => t.學校))];
+      const semesters = [...new Set(appData.schedules.map(s => s.學期))];
+
+      document.getElementById("schoolSelect").innerHTML = schools.map(s => `<option value="${s}">${s}</option>`).join('');
+      document.getElementById("semesterSelect").innerHTML = semesters.map(s => `<option value="${s}">${s}</option>`).join('');
+
+      if (currentUser.role === "admin") {
+        const teacherSelect = document.getElementById("teacherSelect");
+        teacherSelect.classList.remove("hidden");
+        const teachers = [...new Set(appData.schedules.map(s => s.教師帳號))];
+        teacherSelect.innerHTML = `<option value="ALL">全體教師課表</option>` + 
+          teachers.map(t => `<option value="${t}">教師：${t}</option>`).join('');
+      }
+    }
+
+    function renderTimetable() {
+      const selectedSchool = document.getElementById("schoolSelect").value;
+      const selectedSemester = document.getElementById("semesterSelect").value;
+      const selectedTeacher = document.getElementById("teacherSelect")?.value || currentUser.account;
+
+      const periods = appData.times.filter(t => t.學校 === selectedSchool);
+      const filteredSchedules = appData.schedules.filter(s => {
+        return s.學校 === selectedSchool && s.學期 === selectedSemester &&
+          (selectedTeacher === "ALL" || currentUser.role !== "admin" || s.教師帳號 === selectedTeacher);
+      });
+
+      const days = ["星期一", "星期二", "星期三", "星期四", "星期五"];
+      const tbody = document.getElementById("timetableBody");
+      tbody.innerHTML = "";
+
+      periods.forEach(p => {
+        let tr = document.createElement("tr");
+        tr.innerHTML = `<td><b>${p.節次}</b><br><small style="color:#777">${p.開始時間}-${p.結束時間}</small></td>`;
+
+        days.forEach(day => {
+          const matchClass = filteredSchedules.find(s => s.星期 === day && s.節次 === p.節次);
+          if (matchClass) {
+            tr.innerHTML += `
+              <td class="has-class" onclick="enterAttendance('${selectedSchool}', '${selectedSemester}', '${matchClass.班級}', '${matchClass.科目}', '${p.節次}')">
+                ${matchClass.班級}<br><small>${matchClass.科目}</small>
+              </td>`;
+          } else {
+            tr.innerHTML += `<td class="empty">-</td>`;
+          }
+        });
+        tbody.appendChild(tr);
+      });
+    }
+
+    // ----------------- 點名與座位表核心邏輯 -----------------
+
+    function enterAttendance(school, semester, className, subject, period) {
+      const today = new Date().toISOString().split('T')[0];
+      currentSession = { school, semester, className, subject, period, date: today };
+
+      document.getElementById("mainView").classList.add("hidden");
+      document.getElementById("attendanceView").classList.remove("hidden");
+      document.getElementById("attendanceTitle").innerText = `${className} - ${subject} (${period})`;
+
+      document.getElementById("attendanceDate").value = today;
+      currentAbsentees.clear();
+      document.getElementById("summaryInput").value = "";
+
+      loadSeatingData();
+      renderSeatingGrid();
+    }
+
+    function onDateChange() {
+      const selectedDate = document.getElementById("attendanceDate").value;
+      if (selectedDate) currentSession.date = selectedDate;
+    }
+
+    function backToMain() {
+      document.getElementById("attendanceView").classList.add("hidden");
+      document.getElementById("mainView").classList.remove("hidden");
+    }
+
+    function autoAssignSeatsVertical() {
+      currentGrid.seats = {};
+      const classStudents = appData.students.filter(s => 
+        s.學校 === currentSession.school && s.學期 === currentSession.semester && s.班級 === currentSession.className
+      );
+
+      let idx = 0;
+      for (let c = 1; c <= currentGrid.cols; c++) {
+        for (let r = 1; r <= currentGrid.rows; r++) {
+          if (idx < classStudents.length) {
+            currentGrid.seats[`${r}-${c}`] = classStudents[idx].學號;
+            idx++;
+          }
+        }
+      }
+    }
+
+    function loadSeatingData() {
+      const saved = appData.seatings.find(s => 
+        s.學校 === currentSession.school && s.學期 === currentSession.semester && s.班級 === currentSession.className
+      );
+
+      if (saved) {
+        currentGrid.cols = parseInt(saved.欄數X) || 6;
+        currentGrid.rows = parseInt(saved.列數Y) || 5;
+        currentGrid.disabled = saved.無效座位 ? JSON.parse(saved.無效座位) : [];
+        currentGrid.seats = saved.座位資料 ? JSON.parse(saved.座位資料) : {};
+      } else {
+        currentGrid.cols = 6;
+        currentGrid.rows = 5;
+        currentGrid.disabled = [];
+        autoAssignSeatsVertical();
+      }
+      document.getElementById("colsInput").value = currentGrid.cols;
+      document.getElementById("rowsInput").value = currentGrid.rows;
+    }
+
+    function renderSeatingGrid() {
+      const gridContainer = document.getElementById("seatingGrid");
+      gridContainer.style.gridTemplateColumns = `repeat(${currentGrid.cols}, 1fr)`;
+      gridContainer.innerHTML = "";
+
+      const classStudents = appData.students.filter(s => 
+        s.學校 === currentSession.school && s.學期 === currentSession.semester && s.班級 === currentSession.className
+      );
+
+      const assignedStudentIds = new Set(Object.values(currentGrid.seats));
+
+      for (let r = 1; r <= currentGrid.rows; r++) {
+        for (let c = 1; c <= currentGrid.cols; c++) {
+          const posKey = `${r}-${c}`;
+          const seatCard = document.createElement("div");
+          const isDisabled = currentGrid.disabled.includes(posKey);
+          const studentId = currentGrid.seats[posKey];
+          const student = classStudents.find(s => String(s.學號) === String(studentId));
+
+          seatCard.className = `seat-card ${isDisabled ? 'disabled' : ''} ${isEditMode ? 'edit-mode' : ''}`;
+          seatCard.dataset.pos = posKey;
+
+          if (isEditMode) {
+            seatCard.draggable = !isDisabled && !!student;
+            seatCard.ondragstart = (e) => onDragStart(e, posKey);
+            seatCard.ondragover = (e) => allowDrop(e);
+            seatCard.ondragenter = (e) => e.target.classList.add("drag-over");
+            seatCard.ondragleave = (e) => e.target.classList.remove("drag-over");
+            seatCard.ondrop = (e) => onDropToSeat(e, posKey);
+            seatCard.onclick = () => toggleDisabledSeat(posKey);
+          } else {
+            if (student) seatCard.onclick = () => toggleAttendance(student.學號);
+          }
+
+          if (isDisabled) {
+            seatCard.innerHTML = `<small style="color:#aaa">走道/空位</small>`;
+          } else if (student) {
+            const isAbsent = currentAbsentees.has(student.學號);
+            if (isAbsent && !isEditMode) seatCard.classList.add("absent");
+            seatCard.innerHTML = `<div><b>${student.學號}</b></div><div>${student.姓名}</div>`;
+          } else {
+            seatCard.innerHTML = `<small style="color:#bbb">空位</small>`;
+          }
+
+          gridContainer.appendChild(seatCard);
+        }
+      }
+
+      if (isEditMode) {
+        const pool = document.getElementById("unassignedPool");
+        pool.innerHTML = "";
+        classStudents.forEach(st => {
+          if (!assignedStudentIds.has(st.學號)) {
+            const item = document.createElement("div");
+            item.className = "pool-item";
+            item.draggable = true;
+            item.innerText = `${st.學號} ${st.姓名}`;
+            item.ondragstart = (e) => onDragStartPool(e, st.學號);
+            pool.appendChild(item);
+          }
+        });
+      }
+    }
+
+    function toggleDisabledSeat(posKey) {
+      if (!isEditMode) return;
+      const idx = currentGrid.disabled.indexOf(posKey);
+      if (idx > -1) {
+        currentGrid.disabled.splice(idx, 1);
+      } else {
+        currentGrid.disabled.push(posKey);
+        delete currentGrid.seats[posKey];
+      }
+      renderSeatingGrid();
+    }
+
+    function onDragStart(e, posKey) {
+      draggedSourceKey = { type: 'seat', posKey };
+      e.dataTransfer.setData("text/plain", posKey);
+    }
+
+    function onDragStartPool(e, studentId) {
+      draggedSourceKey = { type: 'pool', studentId };
+      e.dataTransfer.setData("text/plain", studentId);
+    }
+
+    function allowDrop(e) { e.preventDefault(); }
+
+    function onDropToSeat(e, targetPosKey) {
+      e.preventDefault();
+      e.target.classList.remove("drag-over");
+      if (!isEditMode || currentGrid.disabled.includes(targetPosKey)) return;
+
+      if (draggedSourceKey.type === 'seat') {
+        const sourcePosKey = draggedSourceKey.posKey;
+        const targetStudent = currentGrid.seats[targetPosKey];
+        currentGrid.seats[targetPosKey] = currentGrid.seats[sourcePosKey];
+        if (targetStudent) {
+          currentGrid.seats[sourcePosKey] = targetStudent;
+        } else {
+          delete currentGrid.seats[sourcePosKey];
+        }
+      } else if (draggedSourceKey.type === 'pool') {
+        currentGrid.seats[targetPosKey] = draggedSourceKey.studentId;
+      }
+      renderSeatingGrid();
+    }
+
+    function dropToPool(e) {
+      e.preventDefault();
+      if (!isEditMode || !draggedSourceKey || draggedSourceKey.type !== 'seat') return;
+      delete currentGrid.seats[draggedSourceKey.posKey];
+      renderSeatingGrid();
+    }
+
+    function toggleAttendance(studentId) {
+      if (isEditMode) return;
+      if (currentAbsentees.has(studentId)) {
+        currentAbsentees.delete(studentId);
+      } else {
+        currentAbsentees.add(studentId);
+      }
+      renderSeatingGrid();
+    }
+
+    function toggleEditMode() {
+      isEditMode = !isEditMode;
+      const btn = document.getElementById("editSeatBtn");
+      const bar = document.getElementById("seatConfigBar");
+
+      if (isEditMode) {
+        btn.innerText = "❌ 完成排座";
+        bar.classList.remove("hidden");
+      } else {
+        btn.innerText = "⚙️ 排座位";
+        bar.classList.add("hidden");
+      }
+      renderSeatingGrid();
+    }
+
+    function applyGridSize() {
+      const newCols = parseInt(document.getElementById("colsInput").value);
+      const newRows = parseInt(document.getElementById("rowsInput").value);
+
+      if (isNaN(newCols) || isNaN(newRows) || newCols < 1 || newRows < 1) {
+        alert("請輸入有效的欄列數字！");
+        return;
+      }
+      currentGrid.cols = newCols;
+      currentGrid.rows = newRows;
+      autoAssignSeatsVertical();
+      renderSeatingGrid();
+    }
+
+    async function saveSeatingLayout() {
+      const payload = {
+        action: "saveSeating",
+        semester: currentSession.semester,
+        school: currentSession.school,
+        className: currentSession.className,
+        cols: currentGrid.cols,
+        rows: currentGrid.rows,
+        disabledSeats: currentGrid.disabled,
+        seatData: currentGrid.seats
+      };
+
+      try {
+        const res = await fetch(GAS_API_URL, { method: "POST", body: JSON.stringify(payload) });
+        const result = await res.json();
+        if (result.status === "success") {
+          alert("座位佈局已成功儲存！");
+          toggleEditMode();
+        }
+      } catch (err) {
+        alert("儲存失敗，請檢查連線");
+      }
+    }
+
+    async function submitAttendance() {
+      const classStudents = appData.students.filter(s => 
+        s.學校 === currentSession.school && s.學期 === currentSession.semester && s.班級 === currentSession.className
+      );
+
+      const absenteesList = Array.from(currentAbsentees).map(id => {
+        const st = classStudents.find(s => String(s.學號) === String(id));
+        return { id: st.學號, name: st.姓名 };
+      });
+
+      const payload = {
+        action: "saveAttendance",
+        account: currentUser.account,
+        semester: currentSession.semester,
+        school: currentSession.school,
+        date: currentSession.date,
+        period: currentSession.period,
+        className: currentSession.className,
+        absentees: absenteesList,
+        summary: document.getElementById("summaryInput").value.trim()
+      };
+
+      try {
+        const res = await fetch(GAS_API_URL, { method: "POST", body: JSON.stringify(payload) });
+        const result = await res.json();
+        if (result.status === "success") {
+          alert(`✅ 【${currentSession.className}】點名紀錄與教學摘要已成功送出！`);
+          backToMain();
+        }
+      } catch (err) {
+        alert("送出失敗，請檢查連線");
+      }
+    }
+
+    // ----------------- Step 5 期末報表與匯出核心邏輯 -----------------
+
+    async function showReportView() {
+      document.getElementById("mainView").classList.add("hidden");
+      document.getElementById("reportView").classList.remove("hidden");
+
+      const selectedSchool = document.getElementById("schoolSelect").value;
+      const selectedSemester = document.getElementById("semesterSelect").value;
+
+      try {
+        const res = await fetch(GAS_API_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "getSummaryReports",
+            account: currentUser.account,
+            role: currentUser.role,
+            school: selectedSchool,
+            semester: selectedSemester
+          })
+        });
+        const result = await res.json();
+
+        if (result.status === "success") {
+          reportData = result;
+          renderReports();
+        }
+      } catch (err) {
+        alert("載入期末紀錄失敗！");
+      }
+    }
+
+    function backToMainFromReport() {
+      document.getElementById("reportView").classList.add("hidden");
+      document.getElementById("mainView").classList.remove("hidden");
+    }
+
+    function switchReportTab(tab) {
+      const btns = document.querySelectorAll(".tab-btn");
+      btns[0].classList.toggle("active", tab === 'absent');
+      btns[1].classList.toggle("active", tab === 'summary');
+
+      document.getElementById("absentTabContent").classList.toggle("hidden", tab !== 'absent');
+      document.getElementById("summaryTabContent").classList.toggle("hidden", tab !== 'summary');
+    }
+
+    function renderReports() {
+      // 缺席表格
+      const absentBody = document.getElementById("absentReportBody");
+      absentBody.innerHTML = reportData.attendances.map(a => `
+        <tr>
+          <td>${a.日期}</td>
+          <td>${a.學校} - ${a.班級}</td>
+          <td>${a.節次}</td>
+          <td>${a.教師帳號}</td>
+          <td style="color:#d9534f; font-weight:bold;">${a.缺席學生 || '全勤'}</td>
+        </tr>
+      `).join('');
+
+      // 教學摘要表格
+      const summaryBody = document.getElementById("summaryReportBody");
+      summaryBody.innerHTML = reportData.summaries.map(s => `
+        <tr>
+          <td>${s.日期}</td>
+          <td>${s.學校} - ${s.班級}</td>
+          <td>${s.節次}</td>
+          <td>${s.教師帳號}</td>
+          <td style="text-align:left;">${s.教學摘要}</td>
+        </tr>
+      `).join('');
+    }
+
+    function copySummaries() {
+      const text = reportData.summaries.map(s => 
+        `【${s.日期} ${s.班級} ${s.節次}】${s.教學摘要}`
+      ).join('\n');
+
+      navigator.clipboard.writeText(text).then(() => {
+        alert("📋 已將全學期教學摘要複製至剪貼簿！");
+      });
+    }
+
+    function exportToExcel() {
+      let csvContent = "\uFEFF"; // UTF-8 BOM 防 Excel 亂碼
+      csvContent += "=== 缺席紀錄統計 ===\n日期,學期,學校,班級,節次,填報教師,缺席學生\n";
+      reportData.attendances.forEach(a => {
+        csvContent += `"${a.日期}","${a.學期}","${a.學校}","${a.班級}","${a.節次}","${a.教師帳號}","${a.缺席學生}"\n`;
+      });
+
+      csvContent += "\n=== 教學摘要紀錄 ===\n日期,學期,學校,班級,節次,填報教師,教學摘要\n";
+      reportData.summaries.forEach(s => {
+        csvContent += `"${s.日期}","${s.學期}","${s.學校}","${s.班級}","${s.節次}","${s.教師帳號}","${s.教學摘要}"\n`;
+      });
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `點名與教學摘要彙整報表_${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+    }
+  </script>
+</body>
+</html>
