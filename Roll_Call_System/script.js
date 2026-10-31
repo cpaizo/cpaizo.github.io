@@ -16,7 +16,7 @@ let reportData = { attendances: [], summaries: [] };
 // 記錄 Modal 中準備換座位的第一個選取位置 (例如 "1-2")
 let selectedSeatKey = null;
 
-// 取得台灣本地日期 (YYYY-MM-DD)，避免跨午夜時區偏移問題
+// 取得台灣本地日期 (YYYY-MM-DD)，避免 UTC 跨午夜時區偏移問題
 function getTodayLocalDate() {
   const d = new Date();
   const year = d.getFullYear();
@@ -112,30 +112,46 @@ async function showMainView() {
   }
 }
 
-// 下拉選單初始化
+// 下拉選單初始化 (主畫面)
 function initControls() {
   const schools = [...new Set(appData.times.map(t => t.學校))].filter(Boolean);
   const semesters = [...new Set(appData.schedules.map(s => s.學期))].filter(Boolean);
 
-  document.getElementById("schoolSelect").innerHTML = schools.map(s => `<option value="${s}">${s}</option>`).join('');
-  
-  const semSelect = document.getElementById("semesterSelect");
-  semSelect.innerHTML = semesters.map(s => `<option value="${s}">${s}</option>`).join('');
-  if (semesters.length > 0) semSelect.value = semesters[semesters.length - 1];
+  const schoolSelect = document.getElementById("schoolSelect");
+  const semesterSelect = document.getElementById("semesterSelect");
+
+  schoolSelect.innerHTML = schools.map(s => `<option value="${s}">${s}</option>`).join('');
+  semesterSelect.innerHTML = semesters.map(s => `<option value="${s}">${s}</option>`).join('');
+  if (semesters.length > 0) semesterSelect.value = semesters[semesters.length - 1];
+
+  schoolSelect.onchange = renderTimetable;
+  semesterSelect.onchange = renderTimetable;
 
   const box = document.getElementById("teacherSelectBox");
   if (currentUser.role === "admin") {
     box.classList.remove("hidden");
     const teacherSelect = document.getElementById("teacherSelect");
-    const teachers = [...new Set(appData.schedules.map(s => s.教師帳號))].filter(Boolean);
-    teacherSelect.innerHTML = `<option value="ALL">全體課表</option>` + 
+
+    // 💡 抓取所有不重複的教師帳號 (自動過濾與拆分文字)
+    const rawTeacherList = appData.schedules.map(s => {
+      let acc = s.教師帳號 || s.教師 || s.點名教師帳號 || "";
+      // 若欄位包含多餘字串 (例如 "806 A001")，自動取出後方的代碼 A001
+      const parts = String(acc).trim().split(/\s+/);
+      return parts[parts.length - 1]; // 取最後一項即為 A001, A002
+    }).filter(Boolean);
+
+    const teachers = [...new Set(rawTeacherList)];
+
+    teacherSelect.innerHTML = `<option value="ALL">全體課表 (所有教師)</option>` + 
       teachers.map(t => `<option value="${t}">${t}</option>`).join('');
+
+    teacherSelect.onchange = renderTimetable;
   } else {
     box.classList.add("hidden");
   }
 }
 
-// 渲染課表
+// 渲染課表 (支援管理者檢視多位教師同個時段課表)
 function renderTimetable() {
   const selectedSchool = document.getElementById("schoolSelect").value;
   const selectedSemester = document.getElementById("semesterSelect").value;
@@ -150,10 +166,22 @@ function renderTimetable() {
 
   const periods = appData.times.filter(t => t.學校 === selectedSchool);
   
+  // 篩選出符合學校、學期與教師條件的所有課表
   const filteredSchedules = appData.schedules.filter(s => {
-    const matchSchool = s.學校 === selectedSchool;
-    const matchSemester = s.學期 === selectedSemester;
-    const matchTeacher = (selectedTeacher === "ALL" || currentUser.role === "admin") ? true : (s.教師帳號 === currentUser.account || s.填寫教師帳號 === currentUser.account || s.教師帳號 === selectedTeacher);
+    const matchSchool = String(s.學校).trim() === String(selectedSchool).trim();
+    const matchSemester = String(s.學期).trim() === String(selectedSemester).trim();
+    
+    let rawAcc = s.教師帳號 || s.教師 || s.點名教師帳號 || "";
+    const parts = String(rawAcc).trim().split(/\s+/);
+    const rowTeacher = parts[parts.length - 1];
+
+    let matchTeacher = false;
+    if (currentUser.role === "admin") {
+      matchTeacher = (selectedTeacher === "ALL") || (rowTeacher === String(selectedTeacher).trim());
+    } else {
+      matchTeacher = (rowTeacher === String(currentUser.account).trim());
+    }
+
     return matchSchool && matchSemester && matchTeacher;
   });
 
@@ -166,12 +194,29 @@ function renderTimetable() {
     tr.innerHTML = `<td><b>${p.節次}</b><br><small style="color:#777">${p.開始時間}-${p.結束時間}</small></td>`;
 
     days.forEach(day => {
-      const matchClass = filteredSchedules.find(s => s.星期 === day && s.節次 === p.節次);
-      if (matchClass) {
-        tr.innerHTML += `
-          <td class="has-class" onclick="enterAttendance('${selectedSchool}', '${selectedSemester}', '${matchClass.班級}', '${matchClass.科目}', '${p.節次}')">
-            ${matchClass.班級}<br><small>${matchClass.科目}</small>
-          </td>`;
+      // 💡 關鍵修復：改用 filter 抓出該時段「所有」課程
+      const matchClasses = filteredSchedules.filter(s => s.星期 === day && s.節次 === p.節次);
+
+      if (matchClasses.length > 0) {
+        // 將該時段的每一門課轉為 HTML 區塊
+        const classItemsHtml = matchClasses.map(matchClass => {
+          let rawAcc = matchClass.教師帳號 || matchClass.教師 || matchClass.點名教師帳號 || "";
+          const parts = String(rawAcc).trim().split(/\s+/);
+          const teacherCode = parts[parts.length - 1];
+          
+          // 如果是全體模式，呈現格式為：[老師代碼] 班級 (科目)
+          const teacherTag = (selectedTeacher === "ALL" && teacherCode) ? `<span style="font-size:0.75rem; color:#2d6a4f; font-weight:bold;">[${teacherCode}]</span> ` : '';
+
+          return `
+            <div class="timetable-item" 
+                 style="padding: 4px 0; border-bottom: 1px dashed #c8e6c9; cursor: pointer;"
+                 onclick="enterAttendance('${selectedSchool}', '${selectedSemester}', '${matchClass.班級}', '${matchClass.科目}', '${p.節次}')">
+              ${teacherTag}<b>${matchClass.班級}</b> <small style="color:#555">(${matchClass.科目})</small>
+            </div>
+          `;
+        }).join('');
+
+        tr.innerHTML += `<td class="has-class" style="vertical-align: top; padding: 4px;">${classItemsHtml}</td>`;
       } else {
         tr.innerHTML += `<td class="empty">-</td>`;
       }
@@ -571,12 +616,39 @@ async function submitAttendance() {
 
 // ----------------- 4. 期末報表邏輯 -----------------
 
+// 開啟期末報表畫面並初始化「學校」與「學期」下拉選單
 async function showReportView() {
   document.getElementById("mainView").classList.add("hidden");
   document.getElementById("reportView").classList.remove("hidden");
 
-  const selectedSchool = document.getElementById("schoolSelect").value;
-  const selectedSemester = document.getElementById("semesterSelect").value;
+  // 1. 從全域資料 (appData) 抓取所有不重複的學校與學期清單
+  const schools = [...new Set(appData.times.map(t => t.學校))].filter(Boolean);
+  const semesters = [...new Set(appData.schedules.map(s => s.學期))].filter(Boolean);
+
+  const schoolSelect = document.getElementById("reportSchoolFilter");
+  const semesterSelect = document.getElementById("reportSemesterFilter");
+
+  if (schoolSelect && semesterSelect) {
+    schoolSelect.innerHTML = schools.map(s => `<option value="${s}">${s}</option>`).join('');
+    semesterSelect.innerHTML = semesters.map(s => `<option value="${s}">${s}</option>`).join('');
+
+    // 自動帶入主畫面當前選取的學校與最新學期
+    if (document.getElementById("schoolSelect")?.value) {
+      schoolSelect.value = document.getElementById("schoolSelect").value;
+    }
+    if (semesters.length > 0) {
+      semesterSelect.value = semesters[semesters.length - 1];
+    }
+  }
+
+  // 2. 根據所選的學校與學期，向雲端抓取對應報表資料
+  await fetchReportData();
+}
+
+// 根據當前選擇的「學校」與「學期」向 Apps Script 請求報表
+async function fetchReportData() {
+  const selectedSchool = document.getElementById("reportSchoolFilter")?.value || "";
+  const selectedSemester = document.getElementById("reportSemesterFilter")?.value || "";
 
   try {
     const res = await fetch(GAS_API_URL, {
@@ -598,8 +670,13 @@ async function showReportView() {
       renderReports();
     }
   } catch (err) {
-    alert("載入期末紀錄失敗！");
+    alert("載入期末紀錄失敗，請檢查網路連線！");
   }
+}
+
+// 當使用者切換報表頁面的「學校」或「學期」選單時觸發連動
+async function onReportSchoolOrSemesterChange() {
+  await fetchReportData();
 }
 
 function backToMainFromReport() {
@@ -608,7 +685,7 @@ function backToMainFromReport() {
 }
 
 function switchReportTab(tab) {
-  const btns = document.querySelectorAll(".tab-btn");
+  const btns = document.querySelectorAll("#reportView .tab-btn");
   btns[0].classList.toggle("active", tab === 'absent');
   btns[1].classList.toggle("active", tab === 'summary');
 
@@ -648,9 +725,7 @@ function onReportClassChange() {
   const students = Array.from(studentSet).sort((a, b) => {
     const numA = parseInt(a.match(/^\d+/)?.[0] || '0', 10);
     const numB = parseInt(b.match(/^\d+/)?.[0] || '0', 10);
-    if (numA !== numB) {
-      return numA - numB;
-    }
+    if (numA !== numB) return numA - numB;
     return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
   });
 
@@ -707,19 +782,37 @@ function renderAbsentReportTable() {
   }
 }
 
+// 🖨️ 列印缺席通知單 (支援彈出視窗與安全防封鎖檢查)
 function printStudentReport() {
   const selectedClass = document.getElementById("reportClassFilter").value;
   const selectedStudent = document.getElementById("reportStudentFilter").value;
-  const tableHtml = document.querySelector("#absentTabContent .report-table").outerHTML;
+  const selectedSchool = document.getElementById("reportSchoolFilter")?.value || "";
+  const selectedSemester = document.getElementById("reportSemesterFilter")?.value || "";
+  const tableObj = document.querySelector("#absentTabContent .report-table");
+
+  if (!tableObj) {
+    alert("目前沒有可供列印的缺席表格資料！");
+    return;
+  }
+
+  const tableHtml = tableObj.outerHTML;
   const todayStr = getTodayLocalDate();
 
-  let cleanStudentName = selectedStudent !== 'ALL' ? selectedStudent.replace(/[()]/g, '') : '全體學生';
+  let cleanStudentName = (selectedStudent !== 'ALL') ? selectedStudent.replace(/[()]/g, '') : '全體學生';
   let pdfFileName = `${selectedClass !== 'ALL' ? selectedClass : '全校'}_${cleanStudentName}_缺席紀錄通知單_${todayStr}`;
 
-  const printWindow = window.open('', '', 'width=850,height=650');
+  const printWindow = window.open('', '_blank', 'width=850,height=650');
+  
+  if (!printWindow || printWindow.closed || typeof printWindow.closed === 'undefined') {
+    alert("⚠️ 列印視窗被瀏覽器阻擋！\n請允許此網站開啓「彈出式視窗 (Pop-ups)」後再試一次。");
+    return;
+  }
+
   printWindow.document.write(`
+    <!DOCTYPE html>
     <html>
       <head>
+        <meta charset="UTF-8">
         <title>${pdfFileName}</title>
         <style>
           body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif; padding: 25px; color: #333; }
@@ -736,7 +829,7 @@ function printStudentReport() {
       <body>
         <h2>學生缺席紀錄通知單</h2>
         <div class="subtitle">
-          班級：${selectedClass} &nbsp;|&nbsp; 查詢學生：${selectedStudent !== 'ALL' ? selectedStudent : '全體學生'} &nbsp;|&nbsp; 列印日期：${todayStr}
+          學校/學期：${selectedSchool} (${selectedSemester}) &nbsp;|&nbsp; 班級：${selectedClass} &nbsp;|&nbsp; 查詢學生：${selectedStudent !== 'ALL' ? selectedStudent : '全體學生'} &nbsp;|&nbsp; 列印日期：${todayStr}
         </div>
         ${tableHtml}
         <div class="footer">
@@ -752,8 +845,7 @@ function printStudentReport() {
   
   setTimeout(() => {
     printWindow.print();
-    printWindow.close();
-  }, 250);
+  }, 300);
 }
 
 function renderReports() {

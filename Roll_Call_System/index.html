@@ -4,143 +4,163 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>學校點名與課表系統</title>
-  
-  <!-- 📱 PWA 設定與標籤 -->
+  <!-- PWA 設定 -->
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#007bff">
-  
-  <!-- iOS / Apple PWA 支援 -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="點名系統">
-  <link rel="apple-touch-icon" href="https://cpaizo.github.io/Roll_Call_System/校園點名簿圖示.png">
-
+  <!-- 日系淺綠主題與全畫面樣式 -->
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <div class="top-bar">
-    <span class="logo">🏫 點名與教學摘要系統</span>
-    <div>
-      <!-- 📲 PWA 安裝應用程式按鈕 (瀏覽器支援時自動觸發) 
-      <button id="pwaInstallBtn" class="btn btn-success hidden" onclick="installPWA()">📲 安裝 App</button> -->
-      <button class="btn btn-secondary" onclick="toggleTheme()">🌓 切換主題</button>
-      <button id="logoutBtn" class="btn btn-danger hidden" onclick="logout()">登出</button>
-    </div>
-  </div>
-
+<body data-theme="light">
   <div class="container">
-    <!-- 1. 登入視窗 -->
+    
+    <!-- ------------------------------------------------------------------ -->
+    <!-- 頂部標題列 (包含 PWA 安裝、切換主題與登出按鈕)                          -->
+    <!-- ------------------------------------------------------------------ -->
+    <header class="app-header">
+      <div class="logo-group">
+        <h2>🏫 學校點名與課表系統</h2>
+      </div>
+      <div class="header-actions">
+        <button id="pwaInstallBtn" class="btn btn-outline hidden" onclick="installPWA()">📱 安裝 App</button>
+        <button class="btn btn-outline" onclick="toggleTheme()">🌓 主題</button>
+        <button id="logoutBtn" class="btn btn-danger hidden" onclick="logout()">登出</button>
+      </div>
+    </header>
+
+    <!-- ------------------------------------------------------------------ -->
+    <!-- 1. 教師 / 管理者登入視圖                                              -->
+    <!-- ------------------------------------------------------------------ -->
     <div id="loginView" class="card">
-      <h2>教師登入</h2>
+      <h3>🔐 教師登入</h3>
       <div class="form-group">
-        <label>帳號：</label>
+        <label for="accInput">帳號：</label>
         <input type="text" id="accInput" placeholder="請輸入帳號" value="admin">
       </div>
       <div class="form-group">
-        <label>密碼：</label>
-        <input type="password" id="pwdInput" placeholder="請輸入密碼" value="iamcpaizo">
+        <label for="pwdInput">密碼：</label>
+        <input type="password" id="pwdInput" placeholder="請輸入密碼" value="1234">
       </div>
-      <button class="btn btn-primary btn-block" onclick="handleLogin()">登入系統</button>
+      <button class="btn btn-primary btn-block mt-10" onclick="handleLogin()">登入系統</button>
       <div id="loginMsg" class="error-msg"></div>
     </div>
 
-    <!-- 2. 主畫面 (課表檢視) -->
+    <!-- ------------------------------------------------------------------ -->
+    <!-- 2. 主畫面 (課表視圖)                                                 -->
+    <!-- ------------------------------------------------------------------ -->
     <div id="mainView" class="card hidden">
       <div class="header-row">
         <h3 id="welcomeMsg">歡迎登入</h3>
         <button class="btn btn-info" onclick="showReportView()">📊 查看期末總報表</button>
       </div>
-      <hr>
-      <div class="filter-row">
+
+      <!-- 控制選單區塊：學校、學期與管理者切換教師 -->
+      <div class="filter-row mt-15">
         <div class="form-group">
-          <label>學校：</label>
+          <label for="schoolSelect">選擇學校：</label>
           <select id="schoolSelect" onchange="renderTimetable()"></select>
         </div>
         <div class="form-group">
-          <label>學期：</label>
+          <label for="semesterSelect">選擇學期：</label>
           <select id="semesterSelect" onchange="renderTimetable()"></select>
         </div>
-        <div class="form-group hidden" id="teacherSelectBox">
-          <label>切換教師 (管理者用)：</label>
+        <!-- 管理者專用：切換教師下拉選單 -->
+        <div id="teacherSelectBox" class="form-group hidden">
+          <label for="teacherSelect">切換教師 (管理者用)：</label>
           <select id="teacherSelect" onchange="renderTimetable()"></select>
         </div>
       </div>
 
-      <h4>📅 授課課表</h4>
-      <table class="timetable">
-        <thead>
-          <tr>
-            <th>節次 / 時間</th>
-            <th>星期一</th>
-            <th>星期二</th>
-            <th>星期三</th>
-            <th>星期四</th>
-            <th>星期五</th>
-          </tr>
-        </thead>
-        <tbody id="timetableBody"></tbody>
-      </table>
+      <!-- 週課表展示區域 -->
+      <div class="table-responsive mt-15">
+        <table class="timetable">
+          <thead>
+            <tr>
+              <th>節次 / 時間</th>
+              <th>星期一</th>
+              <th>星期二</th>
+              <th>星期三</th>
+              <th>星期四</th>
+              <th>星期五</th>
+            </tr>
+          </thead>
+          <tbody id="timetableBody">
+            <!-- 由 script.js 動態渲染課表內容 -->
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <!-- 3. 點名與教學摘要畫面 -->
+    <!-- ------------------------------------------------------------------ -->
+    <!-- 3. 點名與座位管理畫面                                                -->
+    <!-- ------------------------------------------------------------------ -->
     <div id="attendanceView" class="card hidden">
       <div class="header-row">
-        <h3 id="attendanceTitle">班級點名</h3>
         <div>
-          <button class="btn btn-secondary" onclick="openSeatingModal()">⚙️ 排座位 / 設定走道</button>
+          <h3 id="attendanceTitle">班級點名</h3>
+          <div class="date-picker-group">
+            <label for="attendanceDate">點名日期：</label>
+            <input type="date" id="attendanceDate" onchange="onDateChange()">
+          </div>
+        </div>
+        <div class="action-buttons">
+          <button class="btn btn-outline" onclick="openSeatingModal()">⚙️ 排座位 / 設定走道</button>
           <button class="btn btn-secondary" onclick="backToMain()">返回課表</button>
         </div>
       </div>
-      
-      <div class="form-group row mt-10">
-        <label>點名日期：</label>
-        <input type="date" id="attendanceDate" onchange="onDateChange()">
+
+      <!-- 點名座位網格卡片區 -->
+      <div id="seatingGrid" class="seating-grid-container mt-15">
+        <!-- 由 script.js 動態渲染座位 -->
       </div>
 
-      <div class="legend-box mt-10">
-        <b>假別點擊切換標記：</b>
-        <span class="tag tag-present">出席</span> ➔
-        <span class="tag tag-sick">病假</span> ➔
-        <span class="tag tag-personal">事假</span> ➔
-        <span class="tag tag-official">公假</span> ➔
-        <span class="tag tag-late">遲到</span> ➔
-        <span class="tag tag-absent">曠課</span>
-      </div>
-
-      <div id="seatingGrid" class="seating-grid-container mt-15"></div>
-
-      <div class="form-group mt-20">
-        <label><b>📝 本節教學摘要紀錄：</b></label>
-        <textarea id="summaryInput" rows="3" placeholder="請輸入本節課教學進度、作業指派或特殊狀況摘要..."></textarea>
+      <!-- 本節課教學摘要紀錄區 -->
+      <div class="form-group mt-15">
+        <label for="summaryInput"><b>📝 教學摘要紀錄：</b></label>
+        <textarea id="summaryInput" rows="3" placeholder="請輸入本節課教學內容、交代事項或備註..."></textarea>
       </div>
 
       <button class="btn btn-success btn-block mt-15" onclick="submitAttendance()">💾 儲存點名與摘要紀錄</button>
     </div>
 
-    <!-- 4. 期末總報表畫面 -->
+    <!-- ------------------------------------------------------------------ -->
+    <!-- 4. 期末總報表視圖                                                    -->
+    <!-- ------------------------------------------------------------------ -->
     <div id="reportView" class="card hidden">
       <div class="header-row">
         <h3>📊 期末統計與報表</h3>
         <button class="btn btn-secondary" onclick="backToMainFromReport()">返回課表</button>
       </div>
 
+      <!-- 報表專用：學校與學期二級篩選選單 -->
+      <div class="filter-row mt-15">
+        <div class="form-group">
+          <label for="reportSchoolFilter">篩選學校：</label>
+          <select id="reportSchoolFilter" onchange="onReportSchoolOrSemesterChange()"></select>
+        </div>
+        <div class="form-group">
+          <label for="reportSemesterFilter">篩選學期：</label>
+          <select id="reportSemesterFilter" onchange="onReportSchoolOrSemesterChange()"></select>
+        </div>
+      </div>
+
+      <!-- 頁籤切換按鈕 -->
       <div class="tab-buttons mt-10">
         <button class="tab-btn active" onclick="switchReportTab('absent')">缺席紀錄統計</button>
         <button class="tab-btn" onclick="switchReportTab('summary')">全學期教學摘要彙整</button>
       </div>
 
+      <!-- 頁籤 1：缺席紀錄統計區塊 -->
       <div id="absentTabContent" class="tab-content">
         <div class="filter-row mt-10">
           <div class="form-group">
-            <label>篩選班級：</label>
+            <label for="reportClassFilter">篩選班級：</label>
             <select id="reportClassFilter" onchange="onReportClassChange()"></select>
           </div>
           <div class="form-group">
-            <label>篩選學生：</label>
+            <label for="reportStudentFilter">篩選學生：</label>
             <select id="reportStudentFilter" onchange="renderAbsentReportTable()"></select>
           </div>
           <div class="form-group">
-            <label>日期排序：</label>
+            <label for="reportSortOrder">日期排序：</label>
             <select id="reportSortOrder" onchange="renderAbsentReportTable()">
               <option value="DESC">日期最新在最前 (預設)</option>
               <option value="ASC">日期最舊在最前</option>
@@ -163,10 +183,13 @@
               <th>缺席學生 (假別)</th>
             </tr>
           </thead>
-          <tbody id="absentReportBody"></tbody>
+          <tbody id="absentReportBody">
+            <!-- 動態渲染缺席表格 -->
+          </tbody>
         </table>
       </div>
 
+      <!-- 頁籤 2：教學摘要紀錄區塊 -->
       <div id="summaryTabContent" class="tab-content hidden">
         <div class="action-row mt-10">
           <button class="btn btn-primary" onclick="copySummaries()">📋 一鍵複製全學期摘要</button>
@@ -182,20 +205,28 @@
               <th>教學摘要內容</th>
             </tr>
           </thead>
-          <tbody id="summaryReportBody"></tbody>
+          <tbody id="summaryReportBody">
+            <!-- 動態渲染摘要表格 -->
+          </tbody>
         </table>
       </div>
     </div>
+
   </div>
 
-<!-- ⚙️ 座位設定彈出視窗 Modal (按鈕已移至上方控制列) -->
+  <!-- ------------------------------------------------------------------ -->
+  <!-- ⚙️ 班級座位與走道佈局設定彈出視窗 (Modal)                              -->
+  <!-- ------------------------------------------------------------------ -->
   <div id="seatingModal" class="modal hidden">
     <div class="modal-content">
+      <!-- 頂部整合控制列：包含標題、尺寸調整輸入框與功能按鈕 -->
       <div class="modal-header-row">
         <h3>⚙️ 班級座位佈局設定</h3>
         <div class="modal-controls">
-          <label>欄數 (X)：<input type="number" id="gridColsInput" value="6" min="1" max="10"></label>
-          <label>列數 (Y)：<input type="number" id="gridRowsInput" value="5" min="1" max="10"></label>
+          <label for="gridColsInput">欄數 (X)：</label>
+          <input type="number" id="gridColsInput" value="6" min="1" max="10">
+          <label for="gridRowsInput">列數 (Y)：</label>
+          <input type="number" id="gridRowsInput" value="5" min="1" max="10">
           <button class="btn btn-primary" onclick="applyGridDimensions()">套用尺寸</button>
           <button class="btn btn-success" onclick="saveSeatingLayout()">💾 儲存座位表</button>
           <button class="btn btn-secondary" onclick="closeSeatingModal()">取消</button>
@@ -206,10 +237,12 @@
         💡 點擊座位卡片可設定走道，點擊兩位學生可快速對調位置。
       </p>
       
+      <!-- 滿版座位編輯區域 -->
       <div id="modalSeatingGrid" class="seating-grid-container"></div>
     </div>
   </div>
 
+  <!-- 主邏輯 JS 載入 -->
   <script src="script.js"></script>
 </body>
 </html>
