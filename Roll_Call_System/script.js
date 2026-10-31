@@ -1,15 +1,22 @@
-// ⚠️ 請填入您的 GAS Web App URL
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzxvnrCvYLXFyVAG94DMkMbdrS_2YlnBULgH79X_RNVqS0KnEuPz2c6q7lHeo7WcR8K/exec";
+// ------------------------------------------------------------------
+// 學校點名與課表系統 - 前端主邏輯 (script.js)
+// ------------------------------------------------------------------
+
+// ⚠️ 請確認為您發布的 Apps Script Web App URL
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzN9gOOJVndaZ4-OeLaCXrSe0ael1w-oAmOdHgF5Ua67w3kyEdYw_NKCee0YB0NEIe1/exec";
 
 let currentUser = null;
 let appData = null;
 let currentSession = {}; 
 let currentGrid = { cols: 6, rows: 5, seats: {}, disabled: [] };
-let currentAbsenteesMap = new Map(); // 學號 -> 假別
+let currentAbsenteesMap = new Map();
 const REASONS = ["出席", "病假", "事假", "公假", "遲到", "曠課"];
 let reportData = { attendances: [], summaries: [] };
 
-// 💡 取得本地 (台灣時間) YYYY-MM-DD 格式日期 (防止跨午夜時區偏移問題)
+// 記錄 Modal 中準備換座位的第一個選取位置 (例如 "1-2")
+let selectedSeatKey = null;
+
+// 取得台灣本地日期 (YYYY-MM-DD)，避免跨午夜時區偏移問題
 function getTodayLocalDate() {
   const d = new Date();
   const year = d.getFullYear();
@@ -18,9 +25,10 @@ function getTodayLocalDate() {
   return `${year}-${month}-${day}`;
 }
 
+// 頁面初始載入與 LocalStorage 自動登入檢查
 window.onload = function() {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
   }
 
   const savedUser = localStorage.getItem("attendance_user");
@@ -30,11 +38,13 @@ window.onload = function() {
   }
 };
 
+// 切換明亮 / 暗黑主題模式
 function toggleTheme() {
   const body = document.body;
   body.setAttribute("data-theme", body.getAttribute("data-theme") === "dark" ? "light" : "dark");
 }
 
+// 1. 登入邏輯
 async function handleLogin() {
   const acc = document.getElementById("accInput").value.trim();
   const pwd = document.getElementById("pwdInput").value.trim();
@@ -50,6 +60,7 @@ async function handleLogin() {
 
     if (data.status === "success") {
       currentUser = data.user;
+      currentUser.role = String(currentUser.role || 'teacher').toLowerCase().trim();
       localStorage.setItem("attendance_user", JSON.stringify(currentUser));
       msg.innerText = "";
       showMainView();
@@ -57,10 +68,11 @@ async function handleLogin() {
       msg.innerText = data.message;
     }
   } catch (err) {
-    msg.innerText = "連線失敗，請檢查網路或 API 網址";
+    msg.innerText = "連線失敗，請檢查網路連線或 API 網址！";
   }
 }
 
+// 登出系統
 function logout() {
   localStorage.removeItem("attendance_user");
   currentUser = null;
@@ -71,6 +83,7 @@ function logout() {
   document.getElementById("logoutBtn").classList.add("hidden");
 }
 
+// 2. 顯示主畫面 (課表)
 async function showMainView() {
   document.getElementById("loginView").classList.add("hidden");
   document.getElementById("mainView").classList.remove("hidden");
@@ -78,7 +91,8 @@ async function showMainView() {
   document.getElementById("reportView").classList.add("hidden");
   document.getElementById("logoutBtn").classList.remove("hidden");
 
-  let roleText = currentUser.role === 'admin' ? '管理者' : (currentUser.role === 'homeroom' ? `導師 (${currentUser.classHandled}班)` : '科任教師');
+  const isAdmin = (currentUser.role === 'admin');
+  let roleText = isAdmin ? '管理者' : (currentUser.role === 'homeroom' ? `導師 (${currentUser.classHandled}班)` : '科任教師');
   document.getElementById("welcomeMsg").innerText = `歡迎，${currentUser.name} [${roleText}]`;
 
   try {
@@ -94,13 +108,14 @@ async function showMainView() {
       renderTimetable();
     }
   } catch (err) {
-    alert("資料載入失敗！");
+    alert("初始化資料載入失敗！");
   }
 }
 
+// 下拉選單初始化
 function initControls() {
-  const schools = [...new Set(appData.times.map(t => t.學校))];
-  const semesters = [...new Set(appData.schedules.map(s => s.學期))];
+  const schools = [...new Set(appData.times.map(t => t.學校))].filter(Boolean);
+  const semesters = [...new Set(appData.schedules.map(s => s.學期))].filter(Boolean);
 
   document.getElementById("schoolSelect").innerHTML = schools.map(s => `<option value="${s}">${s}</option>`).join('');
   
@@ -108,16 +123,19 @@ function initControls() {
   semSelect.innerHTML = semesters.map(s => `<option value="${s}">${s}</option>`).join('');
   if (semesters.length > 0) semSelect.value = semesters[semesters.length - 1];
 
+  const box = document.getElementById("teacherSelectBox");
   if (currentUser.role === "admin") {
-    const box = document.getElementById("teacherSelectBox");
     box.classList.remove("hidden");
     const teacherSelect = document.getElementById("teacherSelect");
-    const teachers = [...new Set(appData.schedules.map(s => s.教師帳號))];
+    const teachers = [...new Set(appData.schedules.map(s => s.教師帳號))].filter(Boolean);
     teacherSelect.innerHTML = `<option value="ALL">全體課表</option>` + 
       teachers.map(t => `<option value="${t}">${t}</option>`).join('');
+  } else {
+    box.classList.add("hidden");
   }
 }
 
+// 渲染課表
 function renderTimetable() {
   const selectedSchool = document.getElementById("schoolSelect").value;
   const selectedSemester = document.getElementById("semesterSelect").value;
@@ -135,8 +153,7 @@ function renderTimetable() {
   const filteredSchedules = appData.schedules.filter(s => {
     const matchSchool = s.學校 === selectedSchool;
     const matchSemester = s.學期 === selectedSemester;
-    const matchTeacher = (selectedTeacher === "ALL") ? true : (s.教師帳號 === currentUser.account || s.填寫教師帳號 === currentUser.account || s.教師帳號 === selectedTeacher);
-    
+    const matchTeacher = (selectedTeacher === "ALL" || currentUser.role === "admin") ? true : (s.教師帳號 === currentUser.account || s.填寫教師帳號 === currentUser.account || s.教師帳號 === selectedTeacher);
     return matchSchool && matchSemester && matchTeacher;
   });
 
@@ -163,10 +180,9 @@ function renderTimetable() {
   });
 }
 
-// ----------------- 點名與座位假別切換 -----------------
+// ----------------- 3. 點名與座位管理 -----------------
 
 async function enterAttendance(school, semester, className, subject, period) {
-  // 💡 使用本地日期
   const today = getTodayLocalDate();
   currentSession = { school, semester, className, subject, period, date: today };
 
@@ -242,7 +258,7 @@ async function fetchExistingAttendance() {
       renderSeatingGrid();
     }
   } catch (err) {
-    console.error("讀取歷史點名紀錄失敗：", err);
+    console.error("讀取點名紀錄失敗：", err);
   }
 }
 
@@ -251,18 +267,23 @@ function backToMain() {
   document.getElementById("mainView").classList.remove("hidden");
 }
 
+// 載入與比對雲端座位表 (強效數值化 X/Y 尺寸)
 function loadSeatingData() {
   const saved = appData.seatings.find(s => 
-    s.學校 === currentSession.school && s.學期 === currentSession.semester && s.班級 === currentSession.className
+    String(s.學校) === String(currentSession.school) && 
+    String(s.學期) === String(currentSession.semester) && 
+    String(s.班級) === String(currentSession.className)
   );
 
   if (saved) {
-    currentGrid.cols = parseInt(saved.欄數X) || 6;
-    currentGrid.rows = parseInt(saved.列數Y) || 5;
-    currentGrid.disabled = saved.無效座位 ? JSON.parse(saved.無效座位) : [];
-    currentGrid.seats = saved.座位資料 ? JSON.parse(saved.座位資料) : {};
+    currentGrid.cols = parseInt(saved.欄數X || saved.cols) || 6;
+    currentGrid.rows = parseInt(saved.列數Y || saved.rows) || 5;
+    currentGrid.disabled = typeof saved.無效座位 === "string" ? JSON.parse(saved.無效座位 || "[]") : (saved.無效座位 || []);
+    currentGrid.seats = typeof saved.座位資料 === "string" ? JSON.parse(saved.座位資料 || "{}") : (saved.座位資料 || {});
   } else {
-    currentGrid.cols = 6; currentGrid.rows = 5; currentGrid.disabled = [];
+    currentGrid.cols = 6; 
+    currentGrid.rows = 5; 
+    currentGrid.disabled = [];
     autoAssignSeatsVertical();
   }
 }
@@ -270,7 +291,9 @@ function loadSeatingData() {
 function autoAssignSeatsVertical() {
   currentGrid.seats = {};
   const classStudents = appData.students.filter(s => 
-    s.學校 === currentSession.school && s.學期 === currentSession.semester && s.班級 === currentSession.className
+    String(s.學校) === String(currentSession.school) && 
+    String(s.學期) === String(currentSession.semester) && 
+    String(s.班級) === String(currentSession.className)
   );
 
   let idx = 0;
@@ -286,11 +309,15 @@ function autoAssignSeatsVertical() {
 
 function renderSeatingGrid() {
   const gridContainer = document.getElementById("seatingGrid");
+  if (!gridContainer) return;
+
   gridContainer.style.gridTemplateColumns = `repeat(${currentGrid.cols}, 1fr)`;
   gridContainer.innerHTML = "";
 
   const classStudents = appData.students.filter(s => 
-    s.學校 === currentSession.school && s.學期 === currentSession.semester && s.班級 === currentSession.className
+    String(s.學校) === String(currentSession.school) && 
+    String(s.學期) === String(currentSession.semester) && 
+    String(s.班級) === String(currentSession.className)
   );
 
   for (let r = 1; r <= currentGrid.rows; r++) {
@@ -335,9 +362,181 @@ function cycleAttendanceReason(studentId) {
   renderSeatingGrid();
 }
 
+// ----------------- ⚙️ 排座位 Modal 視窗與對調邏輯 -----------------
+
+function openSeatingModal() {
+  selectedSeatKey = null;
+  document.getElementById("seatingModal").classList.remove("hidden");
+  document.getElementById("gridColsInput").value = currentGrid.cols;
+  document.getElementById("gridRowsInput").value = currentGrid.rows;
+  renderModalSeatingGrid();
+}
+
+function closeSeatingModal() {
+  document.getElementById("seatingModal").classList.add("hidden");
+}
+
+// 套用尺寸時按學生順序直排填充
+function applyGridDimensions() {
+  currentGrid.cols = parseInt(document.getElementById("gridColsInput").value) || 6;
+  currentGrid.rows = parseInt(document.getElementById("gridRowsInput").value) || 5;
+  currentGrid.disabled = [];
+  
+  autoAssignSeatsVertical();
+  selectedSeatKey = null;
+  renderModalSeatingGrid();
+}
+
+function renderModalSeatingGrid() {
+  const container = document.getElementById("modalSeatingGrid");
+  if (!container) return;
+
+  container.style.gridTemplateColumns = `repeat(${currentGrid.cols}, 1fr)`;
+  container.innerHTML = "";
+
+  const classStudents = appData.students.filter(s => 
+    String(s.學校) === String(currentSession.school) && 
+    String(s.學期) === String(currentSession.semester) && 
+    String(s.班級) === String(currentSession.className)
+  );
+
+  for (let r = 1; r <= currentGrid.rows; r++) {
+    for (let c = 1; c <= currentGrid.cols; c++) {
+      const posKey = `${r}-${c}`;
+      const seatCard = document.createElement("div");
+      const isDisabled = currentGrid.disabled.includes(posKey);
+      const studentId = currentGrid.seats[posKey];
+      const student = classStudents.find(s => String(s.學號) === String(studentId));
+
+      seatCard.className = `seat-card ${isDisabled ? 'disabled' : ''}`;
+      
+      if (posKey === selectedSeatKey) {
+        seatCard.style.border = "2.5px solid #e07a5f";
+        seatCard.style.backgroundColor = "#fefae0";
+      }
+
+      seatCard.onclick = () => handleSeatClickInModal(posKey);
+
+      if (isDisabled) {
+        seatCard.innerHTML = `<small style="color:#aaa">走道 (點擊切換)</small>`;
+      } else if (student) {
+        seatCard.innerHTML = `<div><b>${student.學號}</b></div><div>${student.姓名}</div>`;
+      } else {
+        seatCard.innerHTML = `<small style="color:#bbb">空位</small>`;
+      }
+
+      container.appendChild(seatCard);
+    }
+  }
+}
+
+function handleSeatClickInModal(posKey) {
+  const isDisabled = currentGrid.disabled.includes(posKey);
+
+  if (!selectedSeatKey) {
+    if (isDisabled) {
+      const idx = currentGrid.disabled.indexOf(posKey);
+      currentGrid.disabled.splice(idx, 1);
+    } else {
+      selectedSeatKey = posKey;
+    }
+  } 
+  else if (selectedSeatKey === posKey) {
+    toggleDisabledSeat(posKey);
+    selectedSeatKey = null;
+  } 
+  else {
+    const targetIsDisabled = currentGrid.disabled.includes(posKey);
+    
+    if (!targetIsDisabled) {
+      const studentA = currentGrid.seats[selectedSeatKey];
+      const studentB = currentGrid.seats[posKey];
+
+      if (studentB) {
+        currentGrid.seats[selectedSeatKey] = studentB;
+      } else {
+        delete currentGrid.seats[selectedSeatKey];
+      }
+
+      if (studentA) {
+        currentGrid.seats[posKey] = studentA;
+      } else {
+        delete currentGrid.seats[posKey];
+      }
+    }
+    selectedSeatKey = null;
+  }
+
+  renderModalSeatingGrid();
+}
+
+function toggleDisabledSeat(posKey) {
+  const idx = currentGrid.disabled.indexOf(posKey);
+  if (idx > -1) {
+    currentGrid.disabled.splice(idx, 1);
+  } else {
+    currentGrid.disabled.push(posKey);
+    delete currentGrid.seats[posKey];
+  }
+  renderModalSeatingGrid();
+}
+
+// 儲存座位表與尺寸佈局 (同步寫回本地記憶體 appData)
+async function saveSeatingLayout() {
+  const payload = {
+    action: "saveSeating",
+    account: currentUser.account,
+    school: currentSession.school,
+    semester: currentSession.semester,
+    className: currentSession.className,
+    cols: currentGrid.cols,
+    rows: currentGrid.rows,
+    disabledSeats: currentGrid.disabled,
+    seatData: currentGrid.seats
+  };
+
+  try {
+    const res = await fetch(GAS_API_URL, { method: "POST", body: JSON.stringify(payload) });
+    const result = await res.json();
+    
+    if (result.status === "success") {
+      alert("✅ 座位佈局與 X/Y 尺寸已成功儲存至雲端！");
+      
+      let savedIndex = appData.seatings.findIndex(s => 
+        String(s.學校) === String(currentSession.school) && 
+        String(s.學期) === String(currentSession.semester) && 
+        String(s.班級) === String(currentSession.className)
+      );
+
+      const newSeatingObj = {
+        學期: currentSession.semester,
+        學校: currentSession.school,
+        班級: currentSession.className,
+        欄數X: currentGrid.cols,
+        列數Y: currentGrid.rows,
+        無效座位: JSON.stringify(currentGrid.disabled),
+        座位資料: JSON.stringify(currentGrid.seats)
+      };
+
+      if (savedIndex > -1) {
+        appData.seatings[savedIndex] = newSeatingObj;
+      } else {
+        appData.seatings.push(newSeatingObj);
+      }
+
+      closeSeatingModal();
+      renderSeatingGrid();
+    }
+  } catch (err) {
+    alert("儲存座位設定失敗，請檢查網路連線。");
+  }
+}
+
 async function submitAttendance() {
   const classStudents = appData.students.filter(s => 
-    s.學校 === currentSession.school && s.學期 === currentSession.semester && s.班級 === currentSession.className
+    String(s.學校) === String(currentSession.school) && 
+    String(s.學期) === String(currentSession.semester) && 
+    String(s.班級) === String(currentSession.className)
   );
 
   const absenteesList = [];
@@ -370,7 +569,7 @@ async function submitAttendance() {
   }
 }
 
-// ----------------- Step 5 期末報表與自然數排序、PDF 列印邏輯 -----------------
+// ----------------- 4. 期末報表邏輯 -----------------
 
 async function showReportView() {
   document.getElementById("mainView").classList.add("hidden");
@@ -512,8 +711,6 @@ function printStudentReport() {
   const selectedClass = document.getElementById("reportClassFilter").value;
   const selectedStudent = document.getElementById("reportStudentFilter").value;
   const tableHtml = document.querySelector("#absentTabContent .report-table").outerHTML;
-  
-  // 💡 使用本地日期作為檔名與內容日期
   const todayStr = getTodayLocalDate();
 
   let cleanStudentName = selectedStudent !== 'ALL' ? selectedStudent.replace(/[()]/g, '') : '全體學生';
@@ -603,8 +800,27 @@ function exportToExcel() {
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
-  
-  // 💡 使用本地日期做為匯出檔名
   link.download = `點名與教學摘要彙整報表_${getTodayLocalDate()}.csv`;
   link.click();
+}
+
+// PWA 安裝提示按鈕邏輯
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const btn = document.getElementById('pwaInstallBtn');
+  if (btn) btn.classList.remove('hidden');
+});
+
+async function installPWA() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === 'accepted') {
+    const btn = document.getElementById('pwaInstallBtn');
+    if (btn) btn.classList.add('hidden');
+  }
+  deferredPrompt = null;
 }
