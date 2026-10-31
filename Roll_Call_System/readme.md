@@ -1,63 +1,178 @@
-# 🏫 學校點名與課表系統建置與使用教學手冊 (System Manual)
+# 🏫 學校點名與課表系統 (PWA) - 系統操作與維護手冊
 
-本手冊提供從零開始建置、部署至日常操作的完整 Step-by-Step 指引，並附上專案所有前端與後端的**完整原碼**。
-
----
-
-## 📋 目錄
-
-1. [系統架構與特色](#1-系統架構與特色)
-2. [第一階段：後端 Google 試算表與 GAS 部署](#第一階段後端-google-試算表與-gas-部署)
-   * [Step 1. 建立 Google 試算表工作表](#step-1-建立-google-試算表工作表)
-   * [Step 2. 貼入 Code.gs 完整程式碼](#step-2-貼入-codegs-完整程式碼)
-   * [Step 3. 部署 Web App](#step-3-部署-web-app)
-3. [第二階段：前端專案檔案配置與完整程式碼](#第二階段前端專案檔案配置與完整程式碼)
-   * [📄 index.html (主結構)](#-indexhtml-主結構)
-   * [🎨 style.css (樣式檔)](#-stylecss-樣式檔)
-   * [⚙️ script.js (邏輯檔)](#️-scriptjs-邏輯檔)
-   * [📱 manifest.json (PWA 宣告)](#-manifestjson-pwa-宣告)
-   * [⚡ sw.js (離線快取)](#-swjs-離線快取)
-4. [第三階段：發布與上線測試 (GitHub Pages / Live Server)](#第三階段發布與上線測試-github-pages--live-server)
-5. [第四階段：使用者權限與日常操作指南](#第四階段使用者權限與日常操作指南)
-6. [常見問題與維護注意事項](#常見問題與維護注意事項)
+本手冊提供「學校點名與課表系統」的完整架構說明、系統部署方式、功能操作指南與維護規格，方便管理員與教師快速上手與管理。
 
 ---
 
-## 1. 系統架構與特色
+## 📌 目錄
 
-* **前端 (Frontend)**：原生 HTML5 / CSS3 / ES6 JavaScript（模組化切分，具備 PWA 支援與響應式切換）。
-* **後端 (Backend)**：Google Apps Script (GAS) Web App API。
-* **資料庫 (Database)**：Google 試算表 (Google Sheets)。
-* **關鍵技術**：
-  * **角色權限管理**：最高管理者 (`admin`) 放行、導師 (`homeroom`) 帶班與個人檢視、科任 (`teacher`) 個人存取。
-  * **本地時區修正**：使用 `getTodayLocalDate()` 解決 `toISOString()` 跨午夜（UTC+8）日期落後一天問題。
-  * **自然數排序**：班級（701, 702...）與學生（01, 02...）全數經過自然排序處理。
-  * **假別循環點名**：預設出席 ➔ 病假 ➔ 事假 ➔ 公假 ➔ 遲到 ➔ 曠課。
-  * **一鍵 PDF 簽名報表**：自動格式化報表標題與檔名，帶有導師/家長簽章欄。
+1. [系統簡介與特色](https://www.google.com/search?q=%231-%E7%B3%BB%E7%B5%B1%E7%B0%A1%E4%BB%8B%E8%88%87%E7%89%B9%E8%89%B2)
+2. [系統架構與部署指南](https://www.google.com/search?q=%232-%E7%B3%BB%E7%B5%B1%E6%9E%B6%E6%A7%8B%E8%88%87%E9%83%A8%E7%BD%B2%E6%8C%87%E5%8D%97)
+3. [資料庫 (Google 試算表) 結構說明](https://www.google.com/search?q=%233-%E8%B3%87%E6%96%99%E5%BA%AB-google-%E8%A9%A6%E7%AE%97%E8%A1%A8-%E7%B5%90%E6%A7%8B%E8%AA%AA%E6%98%8E)
+4. [使用者功能操作指南](https://www.google.com/search?q=%234-%E4%BD%BF%E7%94%A8%E8%80%85%E5%8A%9F%E8%83%BD%E6%93%8D%E4%BD%9C%E6%8C%87%E5%8D%97)
+* [4.1 登入與身份切換](https://www.google.com/search?q=%2341-%E7%99%BB%E5%85%A5%E8%88%87%E8%BA%AB%E4%BB%BD%E5%88%87%E6%8F%9B)
+* [4.2 課表檢視與管理者功能](https://www.google.com/search?q=%2342-%E8%AA%B2%E8%A1%A8%E6%AA%A2%E8%A6%96%E8%88%87%E7%AE%A1%E7%90%86%E8%80%85%E5%8A%9F%E8%83%BD)
+* [4.3 點名與教學摘要紀錄](https://www.google.com/search?q=%2343-%E9%BB%9E%E5%90%8D%E8%88%87%E6%95%99%E5%AD%B8%E6%91%98%E8%A6%81%E7%B4%80%E9%8C%84)
+* [4.4 班級座位與走道佈局設定 (Modal)](https://www.google.com/search?q=%2344-%E7%8F%AD%E7%B4%9A%E5%BA%A7%E4%BD%8D%E8%88%87%E8%B5%B0%E9%81%93%E4%BD%88%E5%B1%80%E8%A8%AD%E5%AE%9A-modal)
+* [4.5 期末統計與報表 (缺席通知單列印)](https://www.google.com/search?q=%2345-%E6%9C%9F%E6%9C%AB%E7%B5%B1%E8%A8%88%E8%88%87%E5%A0%B1%E8%A1%A8-%E7%BC%BA%E5%B8%AD%E9%80%9A%E7%9F%A5%E5%96%AE%E5%88%97%E5%8D%B0)
 
----
 
-## 第一階段：後端 Google 試算表與 GAS 部署
+5. [前端與後端完整程式碼範例](https://www.google.com/search?q=%235-%E5%89%8D%E7%AB%AF%E8%88%87%E5%BE%8C%E7%AB%AF%E5%AE%8C%E6%95%B4%E7%A8%8B%E5%BC%8F%E7%A2%BC%E7%AF%84%E4%BE%8B)
+* [5.1 Code.gs (Apps Script 後端 API)](https://www.google.com/search?q=%2351-codegs-apps-script-%E5%BE%8C%E7%AB%AF-api)
+* [5.2 index.html (前端 PWA 架構)](https://www.google.com/search?q=%2352-indexhtml-%E5%89%8D%E7%AB%AF-pwa-%E6%9E%B6%E6%A7%8B)
+* [5.3 style.css (日系淺綠 UI 與滿版自適應)](https://www.google.com/search?q=%2353-stylecss-%E6%97%A5%E7%B3%BB%E6%B7%BA%E7%B6%A0-ui-%E8%88%87%E6%BB%BF%E7%89%88%E8%87%AA%E9%81%A9%E6%87%89)
+* [5.4 script.js (前端全功能主邏輯)](https://www.google.com/search?q=%2354-scriptjs-%E5%89%8D%E7%AB%AF%E5%85%A8%E5%8A%9F%E8%83%BD%E4%B8%BB%E9%82%8F%E8%BC%AF)
 
-### Step 1. 建立 Google 試算表工作表
 
-在 Google 雲端硬碟建立全新的「Google 試算表」，並建立以下 7 個工作表（頁籤）。第 1 列為標題列，文字必須完全精準一致：
-
-1. **`帳號管理`**：`帳號` | `密碼` | `姓名` | `權限` | `帶班班級`
-   * *權限值範例：`admin` (管理者)、`homeroom` (導師)、`teacher` (科任教師)。*
-2. **`作息時間表`**：`學校` | `節次` | `開始時間` | `結束時間`
-3. **`課表`**：`學期` | `學校` | `班級` | `星期` | `節次` | `科目` | `教師帳號`
-4. **`學生名單`**：`學期` | `學校` | `班級` | `座號` | `學號` | `姓名` | `狀態`
-   * *狀態欄位：填寫 `在學` 或空白；若非在學請填 `轉學` 或 `休學`（系統將自動排除）。*
-5. **`座位設定`**：`學期` | `學校` | `班級` | `欄數X` | `列數Y` | `無效座位` | `座位資料`
-6. **`點名紀錄`**：`學期` | `學校` | `日期` | `節次` | `班級` | `學號` | `姓名` | `狀態` | `點名教師帳號`
-7. **`教學摘要紀錄`**：`學期` | `學校` | `日期` | `節次` | `班級` | `教學摘要內容` | `填寫教師帳號`
 
 ---
 
-### Step 2. 貼入 `Code.gs` 完整程式碼
+## 1. 系統簡介與特色
 
-點擊試算表選單 **「擴充功能」➔「Apps Script」**，清空後貼入以下完整原碼：
+* **PWA 跨平台支援**：支援手機、平板與桌機使用，可新增至主畫面作為 App 離線啟動。
+* **日系淺綠色彩設計**：採用柔和的高對比色彩與卡片式視圖，提供舒適無壓力的教學操作介面。
+* **Google 試算表極速後端**：以 Google Apps Script (GAS) Web App 搭配 Google Sheet 作為免費且穩定的雲端資料庫。
+* **滿版自適應座位佈局 Modal**：針對高密度座位需求（Y 軸 8～10 列）進行優化，頂部整合控制列，支援單手操作與直排動態重排。
+* **兩兩快速對調座位**：點擊選擇兩個座位卡片即可瞬時對調位置或切換走道設定。
+* **資料庫覆寫 (Upsert) 機制**：依「學期 + 學校 + 班級」進行比對，自動修正既有資料而不重複新增列。
+* **期末通知單列印與匯出**：支援按學校、學期、班級與學生篩選缺席紀錄，可一鍵產生帶有簽章欄位的 PDF 通知單或匯出 CSV。
+
+---
+
+## 2. 系統架構與部署指南
+
+### 步驟 A：建立 Google 試算表資料庫
+
+1. 開啟 [Google 雲端硬碟](https://drive.google.com/)，建立一份新的 Google 試算表。
+2. 依照 [3. 資料庫結構說明](https://www.google.com/search?q=%233-%E8%B3%87%E6%96%99%E5%BA%AB-google-%E8%A9%A6%E7%AE%97%E8%A1%A8-%E7%B5%90%E6%A7%8B%E8%AA%AA%E6%98%8E) 建立以下 6 個工作表：
+* `帳號管理`
+* `作息時間表`
+* `課表`
+* `學生名單`
+* `座位設定`
+* `點名紀錄`
+* `教學摘要紀錄`
+
+
+
+### 步驟 B：部署 Apps Script 後端 API
+
+1. 在試算表上方選單點選 **「擴充功能」 $\rightarrow$ 「Apps Script」**。
+2. 將預設程式碼清空，貼入本手冊 [5.1 Code.gs](https://www.google.com/search?q=%2351-codegs-apps-script-%E5%BE%8C%E7%AB%AF-api) 的完整程式碼。
+3. 點選右上方 **「部署」 $\rightarrow$ 「新增部署」**。
+4. 部署設定：
+* 種類選擇：**Web 應用程式 (Web App)**
+* 執行身份：**我的帳戶 (Me)**
+* 誰有存取權：**所有人 (Anyone)**
+
+
+5. 點擊 **「部署」** 並授權權限，複製產生的 **Web App URL**。
+
+### 步驟 C：設定前端檔案
+
+1. 將本手冊提供的 `index.html`、`style.css`、`script.js` 與 `manifest.json` 放至您的 Web 伺服器（或 GitHub Pages）。
+2. 開開啟 `script.js`，將第一行的 `GAS_API_URL` 變數替換為您在 **步驟 B** 所複製的 Web App URL：
+```javascript
+const GAS_API_URL = "您的_APPS_SCRIPT_WEB_APP_URL";
+
+```
+
+
+
+---
+
+## 3. 資料庫 (Google 試算表) 結構說明
+
+請確保試算表的工作表名稱與第一列欄位名稱完全一致：
+
+### 1. `帳號管理`
+
+| A: 帳號 | B: 密碼 | C: 姓名 | D: 權限 | E: 帶班班級 |
+| --- | --- | --- | --- | --- |
+| admin | 1234 | 系統管理員 | admin |  |
+| A001 | 1234 | 王大明老師 | homeroom | 801 |
+| A002 | 1234 | 李小華老師 | teacher |  |
+
+### 2. `作息時間表`
+
+| A: 學校 | B: 節次 | C: 開始時間 | D: 結束時間 |
+| --- | --- | --- | --- |
+| 八里國中 | 第1節 | 08:15 | 09:00 |
+| 八里國中 | 第2節 | 09:10 | 09:55 |
+
+### 3. `課表`
+
+| A: 學期 | B: 學校 | C: 星期 | D: 節次 | E: 科目 | F: 班級 | G: 教師帳號 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 115-1 | 八里國中 | 星期一 | 第1節 | 資訊科技 | 806 | A001 |
+| 115-1 | 八里國中 | 星期一 | 第1節 | 資訊科技 | 701 | A002 |
+
+### 4. `學生名單`
+
+| A: 學期 | B: 學校 | C: 班級 | D: 座號 | E: 學號 | F: 姓名 | G: 狀態 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 115-1 | 八里國中 | 801 | 01 | 80101 | 陳小明 | 在學 |
+| 115-1 | 八里國中 | 801 | 02 | 80102 | 林大同 | 在學 |
+
+### 5. `座位設定` (由系統自動寫入/覆寫)
+
+| A: 學期 | B: 學校 | C: 班級 | D: 欄數X | E: 列數Y | F: 無效座位 | G: 座位資料 |
+| --- | --- | --- | --- | --- | --- | --- |
+
+
+---
+
+## 4. 使用者功能操作指南
+
+### 4.1 登入與身份切換
+
+* **系統預設管理員**：帳號 `admin` / 密碼 `1234`。
+* 登入後系統會自動判斷權限：
+* **admin (管理員)**：可切換檢視全校所有教師的課表與全校報表。
+* **homeroom (導師)**：預設載入自身課表與帶班班級資料。
+* **teacher (科任教師)**：僅能檢視個人授課課表與點名權限。
+
+
+
+### 4.2 課表檢視與管理者功能
+
+* **課表檢視**：選擇學校與學期後，表格會自動渲染當週課表。
+* **管理者切換教師**：若以 `admin` 登入，頂部篩選列會顯示「切換教師 (管理者用)」。
+* 選擇特定教師：呈現該教師個人課表。
+* 選擇「全體課表 (所有教師)」：同一個時段若有 2 位以上教師授課，儲存格內會以區塊標籤並列呈現所有課程。
+
+
+
+### 4.3 點名與教學摘要紀錄
+
+* 點擊課表上的班級即可進入點名視圖。
+* **座位點名**：點擊學生座位卡片可循環切換狀態（`出席` $\rightarrow$ `病假` $\rightarrow$ `事假` $\rightarrow$ `公假` $\rightarrow$ `遲到` $\rightarrow$ `曠課`）。
+* **教學摘要**：下方提供文字框，輸入完畢後點擊「💾 儲存點名與摘要紀錄」寫入雲端。
+
+### 4.4 班級座位與走道佈局設定 (Modal)
+
+* 點擊「⚙️ 排座位 / 設定走道」開啟全螢幕自適應 Modal 視窗。
+* **調整尺寸**：輸入欄數 (X) 與列數 (Y) 後點擊「套用尺寸」，系統會自動將學生依 **直排（由上到下、由左至右）** 重新填充座位。
+* **兩兩對調座位**：
+1. 點擊第一個學生卡片（卡片呈現黃底珊瑚紅框高亮）。
+2. 點擊第二個學生卡片，兩位學生位置即刻互換。
+
+
+* **設定走道**：點擊無人卡片或已高亮的卡片可切換為灰底走道。
+* **頂部控制列**：調整完成後點擊頂部「💾 儲存座位表」，系統將以覆寫機制同步更新至雲端與本地快取。
+
+### 4.5 期末統計與報表 (缺席通知單列印)
+
+* 點擊主畫面右上角「📊 查看期末總報表」。
+* 頂部提供「學校」與「學期」二級篩選選單。
+* **列印缺席通知單**：按班級或學生篩選後，點擊「🖨️ 列印缺席通知單」，系統會跳出適合 A4 格式的列印預覽，包含家長與導師簽章欄位。
+* **匯出功能**：支援一鍵複製全學期摘要或將數據匯出為 CSV 報表。
+
+---
+
+## 5. 前端與後端完整程式碼範例
+
+### 5.1 `Code.gs` (Apps Script 後端 API)
 
 ```javascript
 // ------------------------------------------------------------------
@@ -101,7 +216,7 @@ function doPost(e) {
   }
 }
 
-// 1. 帳號登入 (同時相容「權限」與「權限角色」欄位，並清除多餘空白與大小寫)
+// 1. 帳號登入
 function handleLogin(account, password) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName("帳號管理");
@@ -121,7 +236,7 @@ function handleLogin(account, password) {
       user: {
         account: user.帳號,
         name: user.姓名,
-        role: cleanRole, // "admin", "homeroom", "teacher"
+        role: cleanRole,
         classHandled: user.帶班班級 || user.班級 || ""
       }
     };
@@ -130,7 +245,7 @@ function handleLogin(account, password) {
   }
 }
 
-// 2. 抓取初始化資料 (作息、課表、學生名單、座位設定)
+// 2. 抓取初始化資料
 function handleGetInitialData(account, role) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
 
@@ -139,7 +254,6 @@ function handleGetInitialData(account, role) {
   var allStudents = getSheetDataAsObjects(ss.getSheetByName("學生名單"));
   var seatings = getSheetDataAsObjects(ss.getSheetByName("座位設定"));
 
-  // 自動排除非「在學」學生
   var activeStudents = allStudents.filter(function(st) {
     var status = String(st.狀態 || "").trim();
     return status === "" || status === "在學";
@@ -156,43 +270,64 @@ function handleGetInitialData(account, role) {
   };
 }
 
-// 3. 儲存座位表設定
+// 3. 儲存座位表設定 (比對「學期 + 學校 + 班級」，覆寫修改舊資料)
 function handleSaveSeating(req) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName("座位設定");
-  var data = sheet.getDataRange().getDisplayValues();
+  
+  if (!sheet) {
+    sheet = ss.insertSheet("座位設定");
+    sheet.appendRow(["學期", "學校", "班級", "欄數X", "列數Y", "無效座位", "座位資料"]);
+  }
 
+  var data = sheet.getDataRange().getDisplayValues();
   var rowIndex = -1;
+
+  var targetSemester = String(req.semester || req.學期 || "").trim();
+  var targetSchool = String(req.school || req.學校 || "").trim();
+  var targetClass = String(req.className || req.班級 || "").trim();
+
   for (var i = 1; i < data.length; i++) {
-    if (String(data[i][0]) === String(req.學期) &&
-        String(data[i][1]) === String(req.學校) &&
-        String(data[i][2]) === String(req.className)) {
+    var rowSemester = String(data[i][0]).trim();
+    var rowSchool = String(data[i][1]).trim();
+    var rowClass = String(data[i][2]).trim();
+
+    if (rowSemester === targetSemester && 
+        rowSchool === targetSchool && 
+        rowClass === targetClass) {
       rowIndex = i + 1;
       break;
     }
   }
 
+  var disabledStr = typeof req.disabledSeats === "string" ? req.disabledSeats : JSON.stringify(req.disabledSeats || []);
+  var seatDataStr = typeof req.seatData === "string" ? req.seatData : JSON.stringify(req.seatData || {});
+
   var rowData = [
-    req.學期, req.學校, req.className, req.cols, req.rows,
-    JSON.stringify(req.disabledSeats || []), JSON.stringify(req.seatData || {})
+    targetSemester,
+    targetSchool,
+    targetClass,
+    req.cols || 6,
+    req.rows || 5,
+    disabledStr,
+    seatDataStr
   ];
 
   if (rowIndex > -1) {
     sheet.getRange(rowIndex, 1, 1, rowData.length).setValues([rowData]);
+    return { status: "success", message: "座位設定已成功更新 (覆寫修改)！" };
   } else {
     sheet.appendRow(rowData);
+    return { status: "success", message: "新座位設定已成功新增！" };
   }
-
-  return { status: "success", message: "座位設定已成功更新！" };
 }
 
-// 4. 儲存 / 歷史覆寫點名紀錄 (含缺席原因與摘要)
+// 4. 儲存 / 歷史覆寫點名紀錄
 function handleSaveAttendance(req) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var attSheet = ss.getSheetByName("點名紀錄");
   var sumSheet = ss.getSheetByName("教學摘要紀錄");
 
-  // A. 刪除同日、同班、同節次之舊紀錄 (Upsert 歷史覆寫)
   var attData = attSheet.getDataRange().getDisplayValues();
   for (var i = attData.length - 1; i >= 1; i--) {
     if (String(attData[i][2]) === String(req.date) &&
@@ -203,7 +338,6 @@ function handleSaveAttendance(req) {
     }
   }
 
-  // B. 寫入缺席學生與假別狀態
   if (req.absentees && req.absentees.length > 0) {
     req.absentees.forEach(function(st) {
       attSheet.appendRow([
@@ -220,7 +354,6 @@ function handleSaveAttendance(req) {
     });
   }
 
-  // C. 寫入或更新教學摘要紀錄
   if (req.summary) {
     var sumData = sumSheet.getDataRange().getDisplayValues();
     var sumRowIndex = -1;
@@ -249,13 +382,12 @@ function handleSaveAttendance(req) {
   return { status: "success", message: "點名紀錄與教學摘要已成功更新！" };
 }
 
-// 5. 抓取期末統計 (admin 角色最高權限無條件 100% 優先放行)
+// 5. 抓取期末統計 (admin 權限無條件放行)
 function handleGetSummaryReports(req) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var rawAttendances = getSheetDataAsObjects(ss.getSheetByName("點名紀錄"));
   var rawSummaries = getSheetDataAsObjects(ss.getSheetByName("教學摘要紀錄"));
 
-  // A. 將同日同班同節次的缺席學生進行群組合併
   var groupedMap = {};
   rawAttendances.forEach(function(row) {
     var key = row.日期 + "_" + row.學校 + "_" + row.班級 + "_" + row.節次;
@@ -299,7 +431,6 @@ function handleGetSummaryReports(req) {
     };
   });
 
-  // 💡 B. admin 角色直接全數放行
   var reqRole = String(req.role || "").toLowerCase().trim();
   
   if (reqRole === "admin") {
@@ -310,7 +441,6 @@ function handleGetSummaryReports(req) {
     };
   }
 
-  // C. 一般教師 (homeroom / teacher) 的權限過濾邏輯
   var filteredAttendances = groupedAttendances.filter(function(a) {
     var matchSchool = !req.school || a.學校 === req.school;
     var matchSemester = !req.semester || a.學期 === req.semester;
@@ -338,7 +468,6 @@ function handleGetSummaryReports(req) {
   };
 }
 
-// 輔助函式：將工作表內容轉為 JavaScript 物件陣列
 function getSheetDataAsObjects(sheet) {
   if (!sheet) return [];
   var data = sheet.getDataRange().getDisplayValues();
@@ -362,27 +491,12 @@ function getSheetDataAsObjects(sheet) {
   }
   return result;
 }
+
 ```
 
 ---
 
-### Step 3. 部署 Web App
-
-1. 點擊右上角 **「部署」 ➔ 「新增部署」**（若更新程式則選擇「管理部署」➔ 點擊鉛筆修改）。
-2. 點擊齒輪圖示選取 **「Web 應用程式 (Web App)」**。
-3. 關鍵參數設定：
-   * **執行身份**：`我 (Me)`
-   * **誰有存取權**：`所有人 (Anyone)`
-   * **版本**：`新版本 (New Version)` *(每次修改程式碼必須選新版本)*
-4. 點擊 **「部署」**，完成 GCP 授權，並複製出生成的 **Web App URL**。
-
----
-
-## 第二階段：前端專案檔案配置與完整程式碼
-
-請在前端專案資料夾根目錄建立以下 5 個獨立檔案：
-
-### 📄 `index.html` (主結構)
+### 5.2 `index.html` (前端 HTML 架構)
 
 ```html
 <!DOCTYPE html>
@@ -391,66 +505,60 @@ function getSheetDataAsObjects(sheet) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>學校點名與課表系統</title>
-  
-  <!-- PWA 宣告檔 -->
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#a8c3b0">
-  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3429/3429149.png">
-
-  <!-- 引入外部 CSS -->
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-
-  <header>
-    <h2>學校點名與課表系統</h2>
-    <div>
-      <button onclick="toggleTheme()" style="padding:6px 12px;">☀️/🌙</button>
-      <button id="logoutBtn" class="hidden btn-secondary" onclick="logout()" style="padding:6px 12px;">登出</button>
-    </div>
-  </header>
-
+<body data-theme="light">
   <div class="container">
-    
-    <!-- 1. 登入區塊 -->
-    <div id="loginView" class="card" style="max-width:400px; margin: 40px auto;">
-      <h3 style="margin-top:0;">🔐 帳號登入</h3>
+    <header class="app-header">
+      <div class="logo-group">
+        <h2>🏫 學校點名與課表系統</h2>
+      </div>
+      <div class="header-actions">
+        <button id="pwaInstallBtn" class="btn btn-outline hidden" onclick="installPWA()">📱 安裝 App</button>
+        <button class="btn btn-outline" onclick="toggleTheme()">🌓 主題</button>
+        <button id="logoutBtn" class="btn btn-danger hidden" onclick="logout()">登出</button>
+      </div>
+    </header>
+
+    <!-- 1. 登入畫面 -->
+    <div id="loginView" class="card">
+      <h3>🔐 教師登入</h3>
       <div class="form-group">
-        <label>帳號</label>
-        <input type="text" id="accInput" placeholder="請輸入帳號 (例：admin 或 A001)">
+        <label for="accInput">帳號：</label>
+        <input type="text" id="accInput" placeholder="請輸入帳號" value="admin">
       </div>
       <div class="form-group">
-        <label>密碼</label>
-        <input type="password" id="pwdInput" placeholder="請輸入密碼">
+        <label for="pwdInput">密碼：</label>
+        <input type="password" id="pwdInput" placeholder="請輸入密碼" value="1234">
       </div>
-      <button onclick="handleLogin()" style="width:100%;">登入系統</button>
-      <p id="loginMsg" style="color:#d9534f; text-align:center; margin-top:10px;"></p>
+      <button class="btn btn-primary btn-block mt-10" onclick="handleLogin()">登入系統</button>
+      <div id="loginMsg" class="error-msg"></div>
     </div>
 
-    <!-- 2. 首頁課表區塊 -->
+    <!-- 2. 主畫面 (課表視圖) -->
     <div id="mainView" class="card hidden">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
-        <h3 id="welcomeMsg" style="margin:0;">歡迎使用</h3>
-        <button onclick="showReportView()" class="btn-outline">📊 期末紀錄與彙整查詢</button>
+      <div class="header-row">
+        <h3 id="welcomeMsg">歡迎登入</h3>
+        <button class="btn btn-info" onclick="showReportView()">📊 查看期末總報表</button>
       </div>
 
-      <!-- 學期鎖定與選擇列 -->
-      <div style="display:flex; gap:10px; margin-bottom:15px; align-items:center; background:var(--empty-cell); padding:10px; border-radius:8px;">
-        <div style="flex:1;">
-          <label style="font-size:12px; margin:0;">🔒 學期鎖定：</label>
-          <select id="semesterSelect" onchange="renderTimetable()"></select>
-        </div>
-        <div style="flex:1;">
-          <label style="font-size:12px; margin:0;">🏫 學校選擇：</label>
+      <div class="filter-row mt-15">
+        <div class="form-group">
+          <label for="schoolSelect">選擇學校：</label>
           <select id="schoolSelect" onchange="renderTimetable()"></select>
         </div>
-        <div style="flex:1;" id="teacherSelectBox" class="hidden">
-          <label style="font-size:12px; margin:0;">👤 教師篩選：</label>
+        <div class="form-group">
+          <label for="semesterSelect">選擇學期：</label>
+          <select id="semesterSelect" onchange="renderTimetable()"></select>
+        </div>
+        <div id="teacherSelectBox" class="form-group hidden">
+          <label for="teacherSelect">切換教師 (管理者用)：</label>
           <select id="teacherSelect" onchange="renderTimetable()"></select>
         </div>
       </div>
 
-      <div style="overflow-x:auto;">
+      <div class="table-responsive mt-15">
         <table class="timetable">
           <thead>
             <tr>
@@ -467,268 +575,319 @@ function getSheetDataAsObjects(sheet) {
       </div>
     </div>
 
-    <!-- 3. 點名與座位表區塊 -->
+    <!-- 3. 點名與座位管理畫面 -->
     <div id="attendanceView" class="card hidden">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
-        <button onclick="backToMain()" class="btn-secondary">← 返回課表</button>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <h3 id="attendanceTitle" style="margin:0;">班級點名</h3>
-          <input type="date" id="attendanceDate" onchange="onDateChange()" style="padding:6px 10px; width:auto; font-size:14px;">
+      <div class="header-row">
+        <div>
+          <h3 id="attendanceTitle">班級點名</h3>
+          <div class="date-picker-group">
+            <label for="attendanceDate">點名日期：</label>
+            <input type="date" id="attendanceDate" onchange="onDateChange()">
+          </div>
         </div>
-        <button id="editSeatBtn" onclick="toggleEditMode()" class="btn-secondary">⚙️ 排座位</button>
+        <div class="action-buttons">
+          <button class="btn btn-outline" onclick="openSeatingModal()">⚙️ 排座位 / 設定走道</button>
+          <button class="btn btn-secondary" onclick="backToMain()">返回課表</button>
+        </div>
       </div>
 
-      <div class="podium">講 台 方 向</div>
+      <div id="seatingGrid" class="seating-grid-container mt-15"></div>
 
-      <div id="seatingGrid" class="seating-grid"></div>
-
-      <div style="font-size:13px; color:#666; margin-bottom:15px; background:var(--empty-cell); padding:8px 12px; border-radius:6px;">
-        💡 <b>點擊座位說明：</b> 預設全勤 ➔ 病假 ➔ 事假 ➔ 公假 ➔ 遲到 ➔ 曠課 ➔ 恢復出席
+      <div class="form-group mt-15">
+        <label for="summaryInput"><b>📝 教學摘要紀錄：</b></label>
+        <textarea id="summaryInput" rows="3" placeholder="請輸入本節課教學內容、交代事項或備註..."></textarea>
       </div>
 
-      <div class="form-group">
-        <label>📝 當堂教學摘要：</label>
-        <textarea id="summaryInput" rows="3" placeholder="請輸入本次課程教學進度或備註..."></textarea>
-      </div>
-
-      <button onclick="submitAttendance()" style="width:100%; padding:14px; font-size:16px;">🚀 送出點名與教學摘要</button>
+      <button class="btn btn-success btn-block mt-15" onclick="submitAttendance()">💾 儲存點名與摘要紀錄</button>
     </div>
 
-    <!-- 4. 期末查詢與匯出區塊 -->
+    <!-- 4. 期末總報表畫面 -->
     <div id="reportView" class="card hidden">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-        <button onclick="backToMainFromReport()" class="btn-secondary">← 返回課表</button>
-        <h3 style="margin:0;">📊 期末紀錄與匯出</h3>
-        <button onclick="exportToExcel()" style="background-color:#28a745;">📥 匯出 Excel (CSV)</button>
+      <div class="header-row">
+        <h3>📊 期末統計與報表</h3>
+        <button class="btn btn-secondary" onclick="backToMainFromReport()">返回課表</button>
       </div>
 
-      <div class="tab-bar">
-        <button class="tab-btn active" onclick="switchReportTab('absent')">🚨 缺席紀錄統計</button>
-        <button class="tab-btn" onclick="switchReportTab('summary')">📝 全學期教學摘要</button>
-      </div>
-
-      <!-- 缺席統計分頁 -->
-      <div id="absentTabContent">
-        <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap; align-items:center; background:var(--empty-cell); padding:12px; border-radius:8px;">
-          <div style="flex:1; min-width:140px;">
-            <label style="font-size:12px; margin-bottom:2px;">🏫 選擇班級：</label>
-            <select id="reportClassFilter" onchange="onReportClassChange()" style="padding:6px 10px; font-size:14px;">
-              <option value="ALL">全選 (所有班級)</option>
-            </select>
-          </div>
-          <div style="flex:1; min-width:160px;">
-            <label style="font-size:12px; margin-bottom:2px;">👤 選擇學生：</label>
-            <select id="reportStudentFilter" onchange="renderAbsentReportTable()" style="padding:6px 10px; font-size:14px;">
-              <option value="ALL">全選 (所有學生)</option>
-            </select>
-          </div>
-          <div style="flex:0.8; min-width:130px;">
-            <label style="font-size:12px; margin-bottom:2px;">📅 日期排序：</label>
-            <select id="reportSortOrder" onchange="renderAbsentReportTable()" style="padding:6px 10px; font-size:14px;">
-              <option value="DESC">最新 ➔ 最舊</option>
-              <option value="ASC">最舊 ➔ 最新</option>
-            </select>
-          </div>
-          <div style="flex:0.6; min-width:110px; display:flex; align-items:flex-end;">
-            <button onclick="printStudentReport()" style="background-color:#17a2b8; width:100%; padding:8px; font-size:14px;">🖨️ 列印報表</button>
-          </div>
+      <div class="filter-row mt-15">
+        <div class="form-group">
+          <label for="reportSchoolFilter">篩選學校：</label>
+          <select id="reportSchoolFilter" onchange="onReportSchoolOrSemesterChange()"></select>
         </div>
-
-        <div style="overflow-x:auto;">
-          <table class="report-table">
-            <thead>
-              <tr>
-                <th>日期</th>
-                <th>學校 / 班級</th>
-                <th>節次</th>
-                <th>填報教師</th>
-                <th>缺席學生與假別</th>
-              </tr>
-            </thead>
-            <tbody id="absentReportBody"></tbody>
-          </table>
+        <div class="form-group">
+          <label for="reportSemesterFilter">篩選學期：</label>
+          <select id="reportSemesterFilter" onchange="onReportSchoolOrSemesterChange()"></select>
         </div>
       </div>
 
-      <!-- 教學摘要分頁 -->
-      <div id="summaryTabContent" class="hidden">
-        <button onclick="copySummaries()" class="btn-outline" style="margin-bottom:10px;">📋 一鍵複製全學期摘要文字</button>
-        <div style="overflow-x:auto;">
-          <table class="report-table">
-            <thead>
-              <tr>
-                <th>日期</th>
-                <th>學校 / 班級</th>
-                <th>節次</th>
-                <th>填報教師</th>
-                <th>教學摘要內容</th>
-              </tr>
-            </thead>
-            <tbody id="summaryReportBody"></tbody>
-          </table>
+      <div class="tab-buttons mt-10">
+        <button class="tab-btn active" onclick="switchReportTab('absent')">缺席紀錄統計</button>
+        <button class="tab-btn" onclick="switchReportTab('summary')">全學期教學摘要彙整</button>
+      </div>
+
+      <div id="absentTabContent" class="tab-content">
+        <div class="filter-row mt-10">
+          <div class="form-group">
+            <label for="reportClassFilter">篩選班級：</label>
+            <select id="reportClassFilter" onchange="onReportClassChange()"></select>
+          </div>
+          <div class="form-group">
+            <label for="reportStudentFilter">篩選學生：</label>
+            <select id="reportStudentFilter" onchange="renderAbsentReportTable()"></select>
+          </div>
+          <div class="form-group">
+            <label for="reportSortOrder">日期排序：</label>
+            <select id="reportSortOrder" onchange="renderAbsentReportTable()">
+              <option value="DESC">日期最新在最前 (預設)</option>
+              <option value="ASC">日期最舊在最前</option>
+            </select>
+          </div>
         </div>
+
+        <div class="action-row mt-10">
+          <button class="btn btn-info" onclick="printStudentReport()">🖨️ 列印缺席通知單 (含簽章欄)</button>
+          <button class="btn btn-success" onclick="exportToExcel()">📥 匯出 CSV 報表</button>
+        </div>
+
+        <table class="report-table mt-15">
+          <thead>
+            <tr>
+              <th>日期</th>
+              <th>學校 / 班級</th>
+              <th>節次</th>
+              <th>填報教師</th>
+              <th>缺席學生 (假別)</th>
+            </tr>
+          </thead>
+          <tbody id="absentReportBody"></tbody>
+        </table>
+      </div>
+
+      <div id="summaryTabContent" class="tab-content hidden">
+        <div class="action-row mt-10">
+          <button class="btn btn-primary" onclick="copySummaries()">📋 一鍵複製全學期摘要</button>
+        </div>
+
+        <table class="report-table mt-15">
+          <thead>
+            <tr>
+              <th>日期</th>
+              <th>學校 / 班級</th>
+              <th>節次</th>
+              <th>填報教師</th>
+              <th>教學摘要內容</th>
+            </tr>
+          </thead>
+          <tbody id="summaryReportBody"></tbody>
+        </table>
       </div>
     </div>
-
   </div>
 
-  <!-- 引入外部 JavaScript -->
+  <!-- ⚙️ 座位設定 Modal -->
+  <div id="seatingModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header-row">
+        <h3>⚙️ 班級座位佈局設定</h3>
+        <div class="modal-controls">
+          <label for="gridColsInput">欄數 (X)：</label>
+          <input type="number" id="gridColsInput" value="6" min="1" max="10">
+          <label for="gridRowsInput">列數 (Y)：</label>
+          <input type="number" id="gridRowsInput" value="5" min="1" max="10">
+          <button class="btn btn-primary" onclick="applyGridDimensions()">套用尺寸</button>
+          <button class="btn btn-success" onclick="saveSeatingLayout()">💾 儲存座位表</button>
+          <button class="btn btn-secondary" onclick="closeSeatingModal()">取消</button>
+        </div>
+      </div>
+      
+      <p style="margin: 6px 0; font-size: 0.85rem; color:#666">
+        💡 點擊座位卡片可設定走道，點擊兩位學生可快速對調位置。
+      </p>
+      
+      <div id="modalSeatingGrid" class="seating-grid-container"></div>
+    </div>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>
+
 ```
 
 ---
 
-### 🎨 `style.css` (樣式檔)
+### 5.3 `style.css` (日系淺綠 UI 與滿版自適應)
 
 ```css
 :root {
-  --bg-color: #f7f9f6;             /* 米綠淺色背景 */
-  --card-bg: #ffffff;             
-  --text-color: #38423b;           
-  --primary-color: #6e8b74;        /* 抹茶綠主色 */
-  --primary-hover: #5d7763;
-  --border-color: #d1dad3;         
-  --table-border-color: #a8b8ac;   /* 加深 1.5px 表格網格線 */
-  --empty-cell: #f2f4f1;
-  
-  --header-bg: #a8c3b0;            /* 頂部霧綠列 */
-  --header-text: #2f4033;          
-  --table-header-bg: #c5d8cb;      
-  --table-header-text: #2f4033;    
-  --class-cell-bg: #e4efe7;        
-  --class-cell-hover: #d3e4d7;     
-  
-  --seat-present: #e4efe7;
-  --seat-disabled: #e9ecef;
+  --bg-color: #f4f7f4;
+  --card-bg: #ffffff;
+  --text-color: #2d3748;
+  --primary-color: #52b788;
+  --primary-hover: #40916c;
+  --secondary-color: #748cab;
+  --info-color: #52a2d7;
+  --success-color: #2a9d8f;
+  --danger-color: #e76f51;
+  --border-color: #d8f3dc;
+  --disabled-color: #e9ecef;
 }
 
 [data-theme="dark"] {
-  --bg-color: #1a201c;             
-  --card-bg: #242c26;             
-  --text-color: #dce3dd;           
-  --primary-color: #5d7a64;        
-  --primary-hover: #4e6854;
-  --border-color: #323d35;
-  --table-border-color: #4a5c4e;   
-  --empty-cell: #1f2621;
-
-  --header-bg: #2d3b31;
-  --header-text: #dce3dd;
-  --table-header-bg: #354539;      
-  --table-header-text: #dce3dd;    
-  --class-cell-bg: #2b3b2f;        
-  --class-cell-hover: #36493a;     
-
-  --seat-present: #2b3b2f;
-  --seat-disabled: #2d3238;
+  --bg-color: #1a2421;
+  --card-bg: #24322d;
+  --text-color: #e8f5e9;
+  --border-color: #2d4a3e;
+  --disabled-color: #37474f;
 }
 
 body {
+  margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
   background-color: var(--bg-color);
   color: var(--text-color);
-  margin: 0; padding: 0;
-  letter-spacing: 0.03em;
-  line-height: 1.6;
 }
 
 .container {
-  max-width: 950px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 15px;
 }
 
-header {
-  background-color: var(--header-bg);
-  color: var(--header-text);
-  padding: 18px 24px;
-  display: flex; justify-content: space-between; align-items: center;
-  border-bottom: 1.5px solid var(--table-border-color);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
 }
-
-header h2 { font-weight: 600; font-size: 1.25rem; margin: 0; color: var(--header-text); }
 
 .card {
   background-color: var(--card-bg);
-  border-radius: 12px; padding: 24px; margin-top: 20px;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   border: 1px solid var(--border-color);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.02);
 }
 
-.form-group { margin-bottom: 15px; }
-label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.9rem; opacity: 0.85; }
+.hidden { display: none !important; }
+.mt-10 { margin-top: 10px; }
+.mt-15 { margin-top: 15px; }
 
-input, select, textarea {
-  width: 100%; padding: 10px 14px;
-  border: 1.5px solid var(--table-border-color);
-  border-radius: 8px; box-sizing: border-box; font-size: 15px;
-  background-color: var(--card-bg); color: var(--text-color);
-}
-
-button {
-  padding: 10px 16px; background-color: var(--primary-color); color: white;
-  border: none; border-radius: 8px; font-weight: 500; font-size: 15px; cursor: pointer;
+/* 按鈕樣式 */
+.btn {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
   transition: background-color 0.2s;
 }
+.btn-primary { background-color: var(--primary-color); color: #fff; }
+.btn-primary:hover { background-color: var(--primary-hover); }
+.btn-secondary { background-color: var(--secondary-color); color: #fff; }
+.btn-success { background-color: var(--success-color); color: #fff; }
+.btn-info { background-color: var(--info-color); color: #fff; }
+.btn-danger { background-color: var(--danger-color); color: #fff; }
+.btn-outline { background-color: transparent; border: 1px solid var(--primary-color); color: var(--primary-color); }
 
-button:hover { background-color: var(--primary-hover); }
-.btn-secondary { background-color: #6c757d; }
-.btn-secondary:hover { background-color: #5a6268; }
-.btn-outline { background-color: transparent; color: var(--text-color); border: 1.5px solid var(--table-border-color); }
-.hidden { display: none !important; }
-
-/* 課表與表格網格樣式 */
-.timetable, .report-table {
-  width: 100%; border-collapse: collapse; margin-top: 10px; text-align: center;
-  border-radius: 8px; overflow: hidden; border: 1.5px solid var(--table-border-color);
-}
-.timetable th, .timetable td, .report-table th, .report-table td {
-  border: 1.5px solid var(--table-border-color); padding: 12px 8px; font-size: 14px;
-}
-.timetable th, .report-table th { background-color: var(--table-header-bg); color: var(--table-header-text); font-weight: 600; }
-.timetable td.has-class { background-color: var(--class-cell-bg); cursor: pointer; font-weight: 600; }
-.timetable td.has-class:hover { background-color: var(--class-cell-hover); }
-.timetable td.empty { background-color: var(--empty-cell); color: #a0aab0; }
-
-/* 座位表與假別色彩標記 */
-.podium {
-  background-color: var(--table-header-bg); color: var(--table-header-text);
-  text-align: center; padding: 8px; border-radius: 6px; font-weight: 600; margin-bottom: 20px;
-  border: 1.5px solid var(--table-border-color);
+.form-group { margin-bottom: 12px; }
+.form-group label { display: block; margin-bottom: 4px; font-weight: bold; }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
 }
 
-.seating-grid { display: grid; gap: 12px; margin-bottom: 20px; }
+.filter-row { display: flex; gap: 15px; flex-wrap: wrap; }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+
+/* 課表樣式 */
+.table-responsive { overflow-x: auto; }
+.timetable { width: 100%; border-collapse: collapse; text-align: center; }
+.timetable th, .timetable td { border: 1px solid var(--border-color); padding: 8px; }
+.timetable th { background-color: #d8f3dc; color: #1b4332; }
+.timetable td.has-class { background-color: #e8f5e9; cursor: pointer; }
+.timetable td.has-class:hover { background-color: #b7e4c7; }
+
+/* 座位卡片與 Modal */
+.seating-grid-container {
+  display: grid;
+  gap: 8px;
+}
 
 .seat-card {
-  border: 1.5px solid var(--table-border-color); border-radius: 8px; padding: 8px;
-  text-align: center; min-height: 65px; display: flex; flex-direction: column;
-  justify-content: center; align-items: center; background-color: var(--seat-present);
-  cursor: pointer; user-select: none; transition: all 0.2s ease;
+  border: 1.5px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--card-bg);
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.1s, border-color 0.2s;
+}
+.seat-card.disabled { background-color: var(--disabled-color); cursor: default; }
+.seat-card.reason-缺席, .seat-card.reason-病假, .seat-card.reason-事假, .seat-card.reason-曠課 { background-color: #ffccd5; border-color: #ff4d6d; }
+.seat-card.reason-遲到 { background-color: #fff3bf; border-color: #ffd43b; }
+.seat-card.reason-公假 { background-color: #d0ebff; border-color: #74c0fc; }
+
+.modal {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background-color: rgba(0,0,0,0.5);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 9999;
+}
+.modal-content {
+  background-color: var(--card-bg);
+  padding: 16px 20px;
+  border-radius: 12px;
+  width: 96vw;
+  height: 95vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+.modal-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+.modal-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.modal-controls input[type="number"] { width: 55px; padding: 4px; text-align: center; }
+
+#modalSeatingGrid {
+  flex: 1;
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+  overflow: auto !important;
+  padding: 4px;
+}
+#modalSeatingGrid .seat-card {
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  min-width: 75px; height: 100%; min-height: 45px; padding: 2px; font-size: 0.9rem;
 }
 
-/* 假別專屬色彩 */
-.seat-card.reason-病假 { background-color: #fff3cd; border-color: #ffeeba; color: #856404; }
-.seat-card.reason-事假 { background-color: #cce5ff; border-color: #b8daff; color: #004085; }
-.seat-card.reason-公假 { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
-.seat-card.reason-遲到 { background-color: #e2e3e5; border-color: #d6d8db; color: #383d41; }
-.seat-card.reason-曠課, .seat-card.reason-缺席 { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; font-weight: bold; }
-.seat-card.disabled { background-color: var(--seat-disabled); border-style: dashed; opacity: 0.6; }
+.report-table { width: 100%; border-collapse: collapse; text-align: center; }
+.report-table th, .report-table td { border: 1px solid var(--border-color); padding: 8px; }
 
-/* 頁籤切換 */
-.tab-bar { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 2px solid var(--table-border-color); }
-.tab-btn { background: none; color: var(--text-color); border: none; padding: 10px 18px; font-size: 15px; cursor: pointer; border-radius: 8px 8px 0 0; }
-.tab-btn.active { background-color: var(--table-header-bg); font-weight: bold; border-bottom: 3px solid var(--primary-color); }
 ```
 
 ---
 
-### ⚙️ `script.js` (邏輯檔)
+### 5.4 `script.js` (前端全功能主邏輯)
 
 ```javascript
-// ⚠️ 請填入您的 GAS Web App URL
+// ------------------------------------------------------------------
+// 學校點名與課表系統 - 前端主邏輯 (script.js)
+// ------------------------------------------------------------------
+
+// ⚠️ 請替換為您發布的 Apps Script Web App URL
 const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwprY_PF7P3JRSo84NAG_8scWiCp2UrCP5rGafu_jc8eVk1Hvmdc1-USQ7NEoue4hBp/exec";
 
 let currentUser = null;
@@ -738,8 +897,8 @@ let currentGrid = { cols: 6, rows: 5, seats: {}, disabled: [] };
 let currentAbsenteesMap = new Map();
 const REASONS = ["出席", "病假", "事假", "公假", "遲到", "曠課"];
 let reportData = { attendances: [], summaries: [] };
+let selectedSeatKey = null;
 
-// 💡 取得本地 (台灣時間 UTC+8) YYYY-MM-DD 格式，解決跨午夜日期落後一天問題
 function getTodayLocalDate() {
   const d = new Date();
   const year = d.getFullYear();
@@ -750,7 +909,7 @@ function getTodayLocalDate() {
 
 window.onload = function() {
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('sw.js').catch(()=>{});
+    navigator.serviceWorker.register('sw.js').catch(() => {});
   }
 
   const savedUser = localStorage.getItem("attendance_user");
@@ -788,7 +947,7 @@ async function handleLogin() {
       msg.innerText = data.message;
     }
   } catch (err) {
-    msg.innerText = "連線失敗，請檢查網路或 API 網址";
+    msg.innerText = "連線失敗，請檢查網路連線或 API 網址！";
   }
 }
 
@@ -826,7 +985,7 @@ async function showMainView() {
       renderTimetable();
     }
   } catch (err) {
-    alert("資料載入失敗！");
+    alert("初始化資料載入失敗！");
   }
 }
 
@@ -834,19 +993,33 @@ function initControls() {
   const schools = [...new Set(appData.times.map(t => t.學校))].filter(Boolean);
   const semesters = [...new Set(appData.schedules.map(s => s.學期))].filter(Boolean);
 
-  document.getElementById("schoolSelect").innerHTML = schools.map(s => `<option value="${s}">${s}</option>`).join('');
-  
-  const semSelect = document.getElementById("semesterSelect");
-  semSelect.innerHTML = semesters.map(s => `<option value="${s}">${s}</option>`).join('');
-  if (semesters.length > 0) semSelect.value = semesters[semesters.length - 1];
+  const schoolSelect = document.getElementById("schoolSelect");
+  const semesterSelect = document.getElementById("semesterSelect");
+
+  schoolSelect.innerHTML = schools.map(s => `<option value="${s}">${s}</option>`).join('');
+  semesterSelect.innerHTML = semesters.map(s => `<option value="${s}">${s}</option>`).join('');
+  if (semesters.length > 0) semesterSelect.value = semesters[semesters.length - 1];
+
+  schoolSelect.onchange = renderTimetable;
+  semesterSelect.onchange = renderTimetable;
 
   const box = document.getElementById("teacherSelectBox");
   if (currentUser.role === "admin") {
     box.classList.remove("hidden");
     const teacherSelect = document.getElementById("teacherSelect");
-    const teachers = [...new Set(appData.schedules.map(s => s.教師帳號))].filter(Boolean);
-    teacherSelect.innerHTML = `<option value="ALL">全體課表</option>` + 
+
+    const rawTeacherList = appData.schedules.map(s => {
+      let acc = s.教師帳號 || s.教師 || s.點名教師帳號 || "";
+      const parts = String(acc).trim().split(/\s+/);
+      return parts[parts.length - 1];
+    }).filter(Boolean);
+
+    const teachers = [...new Set(rawTeacherList)];
+
+    teacherSelect.innerHTML = `<option value="ALL">全體課表 (所有教師)</option>` + 
       teachers.map(t => `<option value="${t}">${t}</option>`).join('');
+
+    teacherSelect.onchange = renderTimetable;
   } else {
     box.classList.add("hidden");
   }
@@ -867,10 +1040,20 @@ function renderTimetable() {
   const periods = appData.times.filter(t => t.學校 === selectedSchool);
   
   const filteredSchedules = appData.schedules.filter(s => {
-    const matchSchool = s.學校 === selectedSchool;
-    const matchSemester = s.學期 === selectedSemester;
-    const matchTeacher = (selectedTeacher === "ALL" || currentUser.role === "admin") ? true : (s.教師帳號 === currentUser.account || s.填寫教師帳號 === currentUser.account || s.教師帳號 === selectedTeacher);
+    const matchSchool = String(s.學校).trim() === String(selectedSchool).trim();
+    const matchSemester = String(s.學期).trim() === String(selectedSemester).trim();
     
+    let rawAcc = s.教師帳號 || s.教師 || s.點名教師帳號 || "";
+    const parts = String(rawAcc).trim().split(/\s+/);
+    const rowTeacher = parts[parts.length - 1];
+
+    let matchTeacher = false;
+    if (currentUser.role === "admin") {
+      matchTeacher = (selectedTeacher === "ALL") || (rowTeacher === String(selectedTeacher).trim());
+    } else {
+      matchTeacher = (rowTeacher === String(currentUser.account).trim());
+    }
+
     return matchSchool && matchSemester && matchTeacher;
   });
 
@@ -883,12 +1066,26 @@ function renderTimetable() {
     tr.innerHTML = `<td><b>${p.節次}</b><br><small style="color:#777">${p.開始時間}-${p.結束時間}</small></td>`;
 
     days.forEach(day => {
-      const matchClass = filteredSchedules.find(s => s.星期 === day && s.節次 === p.節次);
-      if (matchClass) {
-        tr.innerHTML += `
-          <td class="has-class" onclick="enterAttendance('${selectedSchool}', '${selectedSemester}', '${matchClass.班級}', '${matchClass.科目}', '${p.節次}')">
-            ${matchClass.班級}<br><small>${matchClass.科目}</small>
-          </td>`;
+      const matchClasses = filteredSchedules.filter(s => s.星期 === day && s.節次 === p.節次);
+
+      if (matchClasses.length > 0) {
+        const classItemsHtml = matchClasses.map(matchClass => {
+          let rawAcc = matchClass.教師帳號 || matchClass.教師 || matchClass.點名教師帳號 || "";
+          const parts = String(rawAcc).trim().split(/\s+/);
+          const teacherCode = parts[parts.length - 1];
+          
+          const teacherTag = (selectedTeacher === "ALL" && teacherCode) ? `<span style="font-size:0.75rem; color:#2d6a4f; font-weight:bold;">[${teacherCode}]</span> ` : '';
+
+          return `
+            <div class="timetable-item" 
+                 style="padding: 4px 0; border-bottom: 1px dashed #c8e6c9; cursor: pointer;"
+                 onclick="enterAttendance('${selectedSchool}', '${selectedSemester}', '${matchClass.班級}', '${matchClass.科目}', '${p.節次}')">
+              ${teacherTag}<b>${matchClass.班級}</b> <small style="color:#555">(${matchClass.科目})</small>
+            </div>
+          `;
+        }).join('');
+
+        tr.innerHTML += `<td class="has-class" style="vertical-align: top; padding: 4px;">${classItemsHtml}</td>`;
       } else {
         tr.innerHTML += `<td class="empty">-</td>`;
       }
@@ -896,8 +1093,6 @@ function renderTimetable() {
     tbody.appendChild(tr);
   });
 }
-
-// ----------------- 點名與座位假別切換 -----------------
 
 async function enterAttendance(school, semester, className, subject, period) {
   const today = getTodayLocalDate();
@@ -975,7 +1170,7 @@ async function fetchExistingAttendance() {
       renderSeatingGrid();
     }
   } catch (err) {
-    console.error("讀取歷史點名紀錄失敗：", err);
+    console.error("讀取點名紀錄失敗：", err);
   }
 }
 
@@ -986,16 +1181,20 @@ function backToMain() {
 
 function loadSeatingData() {
   const saved = appData.seatings.find(s => 
-    s.學校 === currentSession.school && s.學期 === currentSession.semester && s.班級 === currentSession.className
+    String(s.學校) === String(currentSession.school) && 
+    String(s.學期) === String(currentSession.semester) && 
+    String(s.班級) === String(currentSession.className)
   );
 
   if (saved) {
-    currentGrid.cols = parseInt(saved.欄數X) || 6;
-    currentGrid.rows = parseInt(saved.列數Y) || 5;
-    currentGrid.disabled = saved.無效座位 ? JSON.parse(saved.無效座位) : [];
-    currentGrid.seats = saved.座位資料 ? JSON.parse(saved.座位資料) : {};
+    currentGrid.cols = parseInt(saved.欄數X || saved.cols) || 6;
+    currentGrid.rows = parseInt(saved.列數Y || saved.rows) || 5;
+    currentGrid.disabled = typeof saved.無效座位 === "string" ? JSON.parse(saved.無效座位 || "[]") : (saved.無效座位 || []);
+    currentGrid.seats = typeof saved.座位資料 === "string" ? JSON.parse(saved.座位資料 || "{}") : (saved.座位資料 || {});
   } else {
-    currentGrid.cols = 6; currentGrid.rows = 5; currentGrid.disabled = [];
+    currentGrid.cols = 6; 
+    currentGrid.rows = 5; 
+    currentGrid.disabled = [];
     autoAssignSeatsVertical();
   }
 }
@@ -1003,7 +1202,9 @@ function loadSeatingData() {
 function autoAssignSeatsVertical() {
   currentGrid.seats = {};
   const classStudents = appData.students.filter(s => 
-    s.學校 === currentSession.school && s.學期 === currentSession.semester && s.班級 === currentSession.className
+    String(s.學校) === String(currentSession.school) && 
+    String(s.學期) === String(currentSession.semester) && 
+    String(s.班級) === String(currentSession.className)
   );
 
   let idx = 0;
@@ -1019,11 +1220,15 @@ function autoAssignSeatsVertical() {
 
 function renderSeatingGrid() {
   const gridContainer = document.getElementById("seatingGrid");
+  if (!gridContainer) return;
+
   gridContainer.style.gridTemplateColumns = `repeat(${currentGrid.cols}, 1fr)`;
   gridContainer.innerHTML = "";
 
   const classStudents = appData.students.filter(s => 
-    s.學校 === currentSession.school && s.學期 === currentSession.semester && s.班級 === currentSession.className
+    String(s.學校) === String(currentSession.school) && 
+    String(s.學期) === String(currentSession.semester) && 
+    String(s.班級) === String(currentSession.className)
   );
 
   for (let r = 1; r <= currentGrid.rows; r++) {
@@ -1068,9 +1273,177 @@ function cycleAttendanceReason(studentId) {
   renderSeatingGrid();
 }
 
+function openSeatingModal() {
+  selectedSeatKey = null;
+  document.getElementById("seatingModal").classList.remove("hidden");
+  document.getElementById("gridColsInput").value = currentGrid.cols;
+  document.getElementById("gridRowsInput").value = currentGrid.rows;
+  renderModalSeatingGrid();
+}
+
+function closeSeatingModal() {
+  document.getElementById("seatingModal").classList.add("hidden");
+}
+
+function applyGridDimensions() {
+  currentGrid.cols = parseInt(document.getElementById("gridColsInput").value) || 6;
+  currentGrid.rows = parseInt(document.getElementById("gridRowsInput").value) || 5;
+  currentGrid.disabled = [];
+  
+  autoAssignSeatsVertical();
+  selectedSeatKey = null;
+  renderModalSeatingGrid();
+}
+
+function renderModalSeatingGrid() {
+  const container = document.getElementById("modalSeatingGrid");
+  if (!container) return;
+
+  container.style.gridTemplateColumns = `repeat(${currentGrid.cols}, 1fr)`;
+  container.innerHTML = "";
+
+  const classStudents = appData.students.filter(s => 
+    String(s.學校) === String(currentSession.school) && 
+    String(s.學期) === String(currentSession.semester) && 
+    String(s.班級) === String(currentSession.className)
+  );
+
+  for (let r = 1; r <= currentGrid.rows; r++) {
+    for (let c = 1; c <= currentGrid.cols; c++) {
+      const posKey = `${r}-${c}`;
+      const seatCard = document.createElement("div");
+      const isDisabled = currentGrid.disabled.includes(posKey);
+      const studentId = currentGrid.seats[posKey];
+      const student = classStudents.find(s => String(s.學號) === String(studentId));
+
+      seatCard.className = `seat-card ${isDisabled ? 'disabled' : ''}`;
+      
+      if (posKey === selectedSeatKey) {
+        seatCard.style.border = "2.5px solid #e07a5f";
+        seatCard.style.backgroundColor = "#fefae0";
+      }
+
+      seatCard.onclick = () => handleSeatClickInModal(posKey);
+
+      if (isDisabled) {
+        seatCard.innerHTML = `<small style="color:#aaa">走道 (點擊切換)</small>`;
+      } else if (student) {
+        seatCard.innerHTML = `<div><b>${student.學號}</b></div><div>${student.姓名}</div>`;
+      } else {
+        seatCard.innerHTML = `<small style="color:#bbb">空位</small>`;
+      }
+
+      container.appendChild(seatCard);
+    }
+  }
+}
+
+function handleSeatClickInModal(posKey) {
+  const isDisabled = currentGrid.disabled.includes(posKey);
+
+  if (!selectedSeatKey) {
+    if (isDisabled) {
+      const idx = currentGrid.disabled.indexOf(posKey);
+      currentGrid.disabled.splice(idx, 1);
+    } else {
+      selectedSeatKey = posKey;
+    }
+  } 
+  else if (selectedSeatKey === posKey) {
+    toggleDisabledSeat(posKey);
+    selectedSeatKey = null;
+  } 
+  else {
+    const targetIsDisabled = currentGrid.disabled.includes(posKey);
+    
+    if (!targetIsDisabled) {
+      const studentA = currentGrid.seats[selectedSeatKey];
+      const studentB = currentGrid.seats[posKey];
+
+      if (studentB) {
+        currentGrid.seats[selectedSeatKey] = studentB;
+      } else {
+        delete currentGrid.seats[selectedSeatKey];
+      }
+
+      if (studentA) {
+        currentGrid.seats[posKey] = studentA;
+      } else {
+        delete currentGrid.seats[posKey];
+      }
+    }
+    selectedSeatKey = null;
+  }
+
+  renderModalSeatingGrid();
+}
+
+function toggleDisabledSeat(posKey) {
+  const idx = currentGrid.disabled.indexOf(posKey);
+  if (idx > -1) {
+    currentGrid.disabled.splice(idx, 1);
+  } else {
+    currentGrid.disabled.push(posKey);
+    delete currentGrid.seats[posKey];
+  }
+  renderModalSeatingGrid();
+}
+
+async function saveSeatingLayout() {
+  const payload = {
+    action: "saveSeating",
+    account: currentUser.account,
+    school: currentSession.school,
+    semester: currentSession.semester,
+    className: currentSession.className,
+    cols: currentGrid.cols,
+    rows: currentGrid.rows,
+    disabledSeats: currentGrid.disabled,
+    seatData: currentGrid.seats
+  };
+
+  try {
+    const res = await fetch(GAS_API_URL, { method: "POST", body: JSON.stringify(payload) });
+    const result = await res.json();
+    
+    if (result.status === "success") {
+      alert("✅ 座位佈局與 X/Y 尺寸已成功儲存至雲端！");
+      
+      let savedIndex = appData.seatings.findIndex(s => 
+        String(s.學校) === String(currentSession.school) && 
+        String(s.學期) === String(currentSession.semester) && 
+        String(s.班級) === String(currentSession.className)
+      );
+
+      const newSeatingObj = {
+        學期: currentSession.semester,
+        學校: currentSession.school,
+        班級: currentSession.className,
+        欄數X: currentGrid.cols,
+        列數Y: currentGrid.rows,
+        無效座位: JSON.stringify(currentGrid.disabled),
+        座位資料: JSON.stringify(currentGrid.seats)
+      };
+
+      if (savedIndex > -1) {
+        appData.seatings[savedIndex] = newSeatingObj;
+      } else {
+        appData.seatings.push(newSeatingObj);
+      }
+
+      closeSeatingModal();
+      renderSeatingGrid();
+    }
+  } catch (err) {
+    alert("儲存座位設定失敗，請檢查網路連線。");
+  }
+}
+
 async function submitAttendance() {
   const classStudents = appData.students.filter(s => 
-    s.學校 === currentSession.school && s.學期 === currentSession.semester && s.班級 === currentSession.className
+    String(s.學校) === String(currentSession.school) && 
+    String(s.學期) === String(currentSession.semester) && 
+    String(s.班級) === String(currentSession.className)
   );
 
   const absenteesList = [];
@@ -1103,14 +1476,34 @@ async function submitAttendance() {
   }
 }
 
-// ----------------- 期末報表與自然數排序、PDF 列印邏輯 -----------------
-
 async function showReportView() {
   document.getElementById("mainView").classList.add("hidden");
   document.getElementById("reportView").classList.remove("hidden");
 
-  const selectedSchool = document.getElementById("schoolSelect").value;
-  const selectedSemester = document.getElementById("semesterSelect").value;
+  const schools = [...new Set(appData.times.map(t => t.學校))].filter(Boolean);
+  const semesters = [...new Set(appData.schedules.map(s => s.學期))].filter(Boolean);
+
+  const schoolSelect = document.getElementById("reportSchoolFilter");
+  const semesterSelect = document.getElementById("reportSemesterFilter");
+
+  if (schoolSelect && semesterSelect) {
+    schoolSelect.innerHTML = schools.map(s => `<option value="${s}">${s}</option>`).join('');
+    semesterSelect.innerHTML = semesters.map(s => `<option value="${s}">${s}</option>`).join('');
+
+    if (document.getElementById("schoolSelect")?.value) {
+      schoolSelect.value = document.getElementById("schoolSelect").value;
+    }
+    if (semesters.length > 0) {
+      semesterSelect.value = semesters[semesters.length - 1];
+    }
+  }
+
+  await fetchReportData();
+}
+
+async function fetchReportData() {
+  const selectedSchool = document.getElementById("reportSchoolFilter")?.value || "";
+  const selectedSemester = document.getElementById("reportSemesterFilter")?.value || "";
 
   try {
     const res = await fetch(GAS_API_URL, {
@@ -1132,8 +1525,12 @@ async function showReportView() {
       renderReports();
     }
   } catch (err) {
-    alert("載入期末紀錄失敗！");
+    alert("載入期末紀錄失敗，請檢查網路連線！");
   }
+}
+
+async function onReportSchoolOrSemesterChange() {
+  await fetchReportData();
 }
 
 function backToMainFromReport() {
@@ -1142,7 +1539,7 @@ function backToMainFromReport() {
 }
 
 function switchReportTab(tab) {
-  const btns = document.querySelectorAll(".tab-btn");
+  const btns = document.querySelectorAll("#reportView .tab-btn");
   btns[0].classList.toggle("active", tab === 'absent');
   btns[1].classList.toggle("active", tab === 'summary');
 
@@ -1182,9 +1579,7 @@ function onReportClassChange() {
   const students = Array.from(studentSet).sort((a, b) => {
     const numA = parseInt(a.match(/^\d+/)?.[0] || '0', 10);
     const numB = parseInt(b.match(/^\d+/)?.[0] || '0', 10);
-    if (numA !== numB) {
-      return numA - numB;
-    }
+    if (numA !== numB) return numA - numB;
     return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
   });
 
@@ -1244,16 +1639,33 @@ function renderAbsentReportTable() {
 function printStudentReport() {
   const selectedClass = document.getElementById("reportClassFilter").value;
   const selectedStudent = document.getElementById("reportStudentFilter").value;
-  const tableHtml = document.querySelector("#absentTabContent .report-table").outerHTML;
+  const selectedSchool = document.getElementById("reportSchoolFilter")?.value || "";
+  const selectedSemester = document.getElementById("reportSemesterFilter")?.value || "";
+  const tableObj = document.querySelector("#absentTabContent .report-table");
+
+  if (!tableObj) {
+    alert("目前沒有可供列印的缺席表格資料！");
+    return;
+  }
+
+  const tableHtml = tableObj.outerHTML;
   const todayStr = getTodayLocalDate();
 
-  let cleanStudentName = selectedStudent !== 'ALL' ? selectedStudent.replace(/[()]/g, '') : '全體學生';
+  let cleanStudentName = (selectedStudent !== 'ALL') ? selectedStudent.replace(/[()]/g, '') : '全體學生';
   let pdfFileName = `${selectedClass !== 'ALL' ? selectedClass : '全校'}_${cleanStudentName}_缺席紀錄通知單_${todayStr}`;
 
-  const printWindow = window.open('', '', 'width=850,height=650');
+  const printWindow = window.open('', '_blank', 'width=850,height=650');
+  
+  if (!printWindow || printWindow.closed || typeof printWindow.closed === 'undefined') {
+    alert("⚠️ 列印視窗被瀏覽器阻擋！\n請允許此網站開啓「彈出式視窗 (Pop-ups)」後再試一次。");
+    return;
+  }
+
   printWindow.document.write(`
+    <!DOCTYPE html>
     <html>
       <head>
+        <meta charset="UTF-8">
         <title>${pdfFileName}</title>
         <style>
           body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif; padding: 25px; color: #333; }
@@ -1270,7 +1682,7 @@ function printStudentReport() {
       <body>
         <h2>學生缺席紀錄通知單</h2>
         <div class="subtitle">
-          班級：${selectedClass} &nbsp;|&nbsp; 查詢學生：${selectedStudent !== 'ALL' ? selectedStudent : '全體學生'} &nbsp;|&nbsp; 列印日期：${todayStr}
+          學校/學期：${selectedSchool} (${selectedSemester}) &nbsp;|&nbsp; 班級：${selectedClass} &nbsp;|&nbsp; 查詢學生：${selectedStudent !== 'ALL' ? selectedStudent : '全體學生'} &nbsp;|&nbsp; 列印日期：${todayStr}
         </div>
         ${tableHtml}
         <div class="footer">
@@ -1286,8 +1698,7 @@ function printStudentReport() {
   
   setTimeout(() => {
     printWindow.print();
-    printWindow.close();
-  }, 250);
+  }, 300);
 }
 
 function renderReports() {
@@ -1337,104 +1748,24 @@ function exportToExcel() {
   link.download = `點名與教學摘要彙整報表_${getTodayLocalDate()}.csv`;
   link.click();
 }
-```
 
----
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const btn = document.getElementById('pwaInstallBtn');
+  if (btn) btn.classList.remove('hidden');
+});
 
-### 📱 `manifest.json` (PWA 宣告)
-
-```json
-{
-  "name": "學校點名與課表系統",
-  "short_name": "點名系統",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#a8c3b0",
-  "icons": [
-    {
-      "src": "https://cdn-icons-png.flaticon.com/512/3429/3429149.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+async function installPWA() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === 'accepted') {
+    const btn = document.getElementById('pwaInstallBtn');
+    if (btn) btn.classList.add('hidden');
+  }
+  deferredPrompt = null;
 }
+
 ```
-
----
-
-### ⚡ `sw.js` (離線快取)
-
-```javascript
-self.addEventListener('install', (e) => {
-  self.skipWaiting();
-});
-
-self.addEventListener('activate', (e) => {
-  return self.clients.claim();
-});
-
-self.addEventListener('fetch', (e) => {
-  // 保持即時連線至 GAS API
-});
-```
-
----
-
-## 第三階段：發布與上線測試 (GitHub Pages / Live Server)
-
-由於現代瀏覽器限制 `file://` 直接開啟檔案載入 Service Worker 及安全 CORS 策略，請選用以下兩種方式測試：
-
-### 🌐 1. 線上發布（GitHub Pages - 最推薦）
-1. 將專案全部 5 個檔案提交（Push）至 GitHub 儲存庫（Repository）。
-2. 進入儲存庫 **Settings ➔ Pages**。
-3. Source 選擇 `Deploy from a branch`，Branch 選擇 `main` (或 `master`) ➔ `/root` 點擊 **Save**。
-4. 約 1~2 分鐘後開啟產生的 `https://<your-username>.github.io/<repo-name>/` 網址即可完整使用！
-
-### 💻 2. 電腦本機測試（VS Code Live Server）
-1. 使用 VS Code 開啟專案資料夾。
-2. 安裝擴充套件 **Live Server**。
-3. 在 `index.html` 按右鍵選 **「Open with Live Server」**（透過 `http://127.0.0.1:5500` 開啟），即可排除 CORS 阻擋。
-
----
-
-## 第四階段：使用者權限與日常操作指南
-
-### 1. 權限分流設定
-* **管理者 (`admin`)**：
-  * 試算表 D1 欄位標題可為 `權限` 或 `權限角色`，值必須填寫小寫 **`admin`**。
-  * 「帶班班級」請**留空**。登入後可切換選擇全校所有教師與班級課表。
-* **班級導師 (`homeroom`)**：
-  * 「帶班班級」填寫如 `704`。可檢視 704 班所有科目的點名與缺席，並可進行個人授課節次點名。
-* **科任教師 (`teacher`)**：
-  * 僅顯示個人授課的課表與班級，確保資訊安全。
-
-### 2. 日常點名與假別切換
-1. 在課表中點擊有課的綠色格子進入點名頁面。
-2. 點擊學生座位區可循環切換假別：
-   * **點 1 下**：`病假`（黃色）
-   * **點 2 下**：`事假`（藍色）
-   * **點 3 下**：`公假`（綠色）
-   * **點 4 下**：`遲到`（灰色）
-   * **點 5 下**：`曠課`（紅色）
-   * **點 6 下**：恢復 `出席`
-3. 在下方文字框輸入當堂「教學摘要」。
-4. 點擊 **「🚀 送出點名與教學摘要」**。
-
-### 3. 一鍵 PDF 報表匯出與簽章
-1. 點擊右上角 **「📊 期末紀錄與彙整查詢」**。
-2. 選擇指定班級與學生（下拉選單具備自然數排序）。
-3. 點擊 **「🖨️ 列印報表」**。
-4. 瀏覽器彈出列印視窗，目的端選擇 **「另存為 PDF」**。
-5. 預設檔名將自動帶入 `班級_學生姓名_缺席紀錄通知單_日期.pdf`，底部帶有導師與家長簽章欄位，可直接存檔列印。
-
----
-
-## 常見問題與維護注意事項
-
-1. **修改後端程式碼後沒反應？**
-   * 修改 `Code.gs` 後，必須點選 **「部署」 ➔ 「管理部署」 ➔ 點鉛筆圖示 ➔ 版本選擇『新版本』** 再點擊部署才會更新生效！
-2. **管理者登入後看不到班級選單？**
-   * 請確認「帳號管理」工作表中的權限字尾是否多按了空白鍵。點擊網頁「登出」後重新登入即可。
-3. **跨午夜日期顯示為前一天？**
-   * 本系統 `script.js` 採用 `getTodayLocalDate()` 本地時區（UTC+8）算式，已徹底修復 `toISOString()` 導致跨午夜日期偏落後一天的現象。
