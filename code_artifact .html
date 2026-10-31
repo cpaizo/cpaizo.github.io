@@ -9,11 +9,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-  <!-- iOS 專屬圖示 -->
-  <link id="appleIcon" rel="apple-touch-icon" href="https://cpaizo.github.io/photos/%E8%B7%91%E9%A6%AC%E7%87%88icon.png">
+  <!-- iOS 專屬圖示 (使用固定圖片) -->
+  <link rel="apple-touch-icon" href="https://cpaizo.github.io/photos/%E8%B7%91%E9%A6%AC%E7%87%88icon.png">
 
-  <!-- PWA Manifest -->
-  <link id="pwaManifest" rel="manifest" href="https://cpaizo.github.io/photos/%E8%B7%91%E9%A6%AC%E7%87%88icon.png">
+  <!-- PWA Manifest (使用固定圖片與設定) -->
+  <link rel="manifest" href='data:application/manifest+json;charset=utf-8,{"name":"學生酷炫跑馬燈","short_name":"跑馬燈","start_url":"./index.html","display":"standalone","background_color":"%230f172a","theme_color":"%234f46e5","icons":[{"src":"https://cpaizo.github.io/photos/%E8%B7%91%E9%A6%AC%E7%87%88icon.png","sizes":"192x192","type":"image/png"}]}'>
 
   <!-- Tailwind CSS 樣式庫 -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -26,9 +26,6 @@
       touch-action: manipulation;
     }
 
-    /* ========================================== */
-    /* 使用 em 單位，讓描邊與發光隨著字體等比例放大縮小 */
-    /* ========================================== */
     .glow-neon {
       text-shadow: 0 0 0.15em currentColor, 0 0 0.35em currentColor, 0 0 0.7em currentColor;
       -webkit-text-stroke: 0px transparent;
@@ -46,7 +43,6 @@
       -webkit-text-stroke: 0px transparent;
     }
 
-    /* 火熱描邊：使用 em 單位，字體越大描邊越粗！ */
     .glow-stroke {
       -webkit-text-stroke: 0.045em #ffffff;
       text-shadow: 0 0 0.25em currentColor;
@@ -57,7 +53,6 @@
       -webkit-text-stroke: 0px transparent;
     }
 
-    /* 手機全螢幕相容模式 (CSS Fallback) */
     .css-fullscreen {
       position: fixed !important;
       top: 0 !important;
@@ -208,42 +203,7 @@
   <!-- 3. JavaScript 邏輯控制 -->
   <!-- ========================================== -->
   <script>
-    // --- 1. 自動生成相容 PNG Icon ---
-    function generateDynamicPngIcon() {
-      const c = document.createElement('canvas');
-      c.width = 192;
-      c.height = 192;
-      const ctx = c.getContext('2d');
-
-      ctx.fillStyle = '#4f46e5';
-      ctx.beginPath();
-      ctx.roundRect(0, 0, 192, 192, 40);
-      ctx.fill();
-
-      ctx.font = '100px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('📢', 96, 102);
-
-      const pngDataUrl = c.toDataURL('image/png');
-      document.getElementById('appleIcon').href = pngDataUrl;
-
-      const manifestObj = {
-        name: "學生酷炫跑馬燈",
-        short_name: "跑馬燈",
-        start_url: "./index.html",
-        display: "standalone",
-        background_color: "#0f172a",
-        theme_color: "#4f46e5",
-        icons: [{ src: pngDataUrl, sizes: "192x192", type: "image/png" }]
-      };
-
-      document.getElementById('pwaManifest').href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifestObj));
-    }
-
-    generateDynamicPngIcon();
-
-    // --- 2. DOM 元素獲取 ---
+    // --- 1. DOM 元素獲取 ---
     const marqueeContainer = document.getElementById('marqueeContainer');
     const marqueeText = document.getElementById('marqueeText');
     const marqueeStage = document.getElementById('marqueeStage');
@@ -319,7 +279,7 @@
       }
     }
 
-    // --- 3. 跑馬燈平滑動畫 ---
+    // --- 2. 跑馬燈平滑動畫 ---
     function animateMarquee() {
       const stageWidth = marqueeStage.clientWidth || window.innerWidth;
       const textWidth = marqueeContainer.clientWidth;
@@ -360,7 +320,7 @@
       resetPosition();
     }
 
-    // --- 4. 全螢幕模式控制 ---
+    // --- 3. 全螢幕模式控制 ---
     function toggleFullScreen() {
       if (!isFullScreenMode) {
         if (marqueeStage.requestFullscreen) {
@@ -419,7 +379,7 @@
       }
     });
 
-    // --- 5. 事件監聽 ---
+    // --- 4. 事件監聽 ---
     textInput.addEventListener('input', () => { updateMarquee(); resetPosition(); });
     fontSizeInput.addEventListener('input', () => { updateMarquee(); resetPosition(); });
     textColorInput.addEventListener('input', updateMarquee);
@@ -429,7 +389,7 @@
     bgPresetSelect.addEventListener('change', updateBackground);
     bgColorInput.addEventListener('input', updateBackground);
 
-    // --- 6. 核心 Canvas 粒子動畫系統 ---
+    // --- 5. 核心 Canvas 粒子動畫系統 ---
     const canvas = document.getElementById('particleCanvas');
     const ctx = canvas.getContext('2d');
     let particles = [];
@@ -543,7 +503,7 @@
     animateMarquee();
     animateParticles();
 
-    // --- 7. PWA Service Worker 註冊 ---
+    // --- 6. PWA Service Worker 註冊 ---
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         const swCode = `
