@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>「營養午餐調配大師」專案與規則教學手冊</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+            font-family: "Microsoft JhengHei", sans-serif;
+            display: flex;
+            justify-content: center;
+        }
+
+        .manual-container {
+            background: white;
+            width: 820px;
+            padding: 40px;
+            border-radius: 25px;
+            box-shadow: 0 10px 35px rgba(0,0,0,0.12);
+            border-top: 8px solid #2e7d32;
+        }
+
+        h1 {
+            color: #2e7d32;
+            text-align: center;
+            margin-top: 0;
+            font-size: 30px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #558b2f;
+            font-size: 16px;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .chapter {
+            background: #f1f8e9;
+            border: 2px dashed #aed581;
+            border-radius: 18px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .chapter h2 {
+            color: #33691e;
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 2px solid #c5e1a5;
+            padding-bottom: 8px;
+        }
+
+        p, li {
+            color: #37474f;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        ul {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        .tag {
+            background: #dcedc8;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+
+        /* 程式碼預覽框 */
+        pre {
+            background: #263238;
+            color: #eceff1;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 13px;
+            overflow-x: auto;
+            font-family: Consolas, monospace;
+            margin-top: 10px;
+        }
+
+        .code-comment {
+            color: #90a4ae;
+        }
+
+        .code-keyword {
+            color: #82aaff;
+        }
+
+        /* Checklist 樣式 */
+        .checklist-box {
+            background: #e8f5e9;
+            border-color: #81c784;
+        }
+
+        .checklist-box h2 {
+            color: #1b5e20;
+            border-bottom-color: #c8e6c9;
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+
+        .check-item input {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            accent-color: #43a047;
+            cursor: pointer;
+        }
+
+        .footer-banner {
+            background: #e3f2fd;
+            border: 2px solid #90caf9;
+            border-radius: 15px;
+            padding: 20px;
+            color: #0d47a1;
+            font-size: 15px;
+            text-align: center;
+            font-weight: bold;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="manual-container">
+        <h1>🥗 營養午餐調配大師 - 專案教學手冊</h1>
+        <div class="subtitle">📘 跨領域學習指南：健康與體育教育 × 網頁程式前端實作</div>
+
+        <!-- 第一章：專案背景與核心規則 -->
+        <div class="chapter">
+            <h2>🎯 第一章：專案主題與核心規則說明</h2>
+            <p>本專案要求學生設計一款具備「雙向數值限制」的條件配對模擬遊戲。以「營養午餐」為例，學生必須遵守以下規格：</p>
+            <ul>
+                <li><b>4 大分類與選項</b>：畫面必須劃分 <span class="tag">全榖雜糧類</span>、<span class="tag">豆魚蛋肉類</span>、<span class="tag">蔬菜類</span>、<span class="tag">水果/乳品類</span>，每類至少 5 個選項。</li>
+                <li><b>雙向熱量區間管制</b>：
+                    <ul>
+                        <li><b>上限管制</b>：總熱量不可超過校長規定的最高極限（避免熱量爆表）。</li>
+                        <li><b>下限管制</b>：總熱量不可低於最低門檻（避免吃不飽或營養不良）。</li>
+                    </ul>
+                </li>
+                <li><b>互動與通關機制</b>：不使用傳統干擾的 `alert()`，改用畫面即時提示訊息框；完成 5 道隨機題目並計算總花費時間。</li>
+            </ul>
+        </div>
+
+        <!-- 第二章：跨領域知識點 -->
+        <div class="chapter">
+            <h2>🧠 第二章：核心知識點（健康教育與數學邏輯）</h2>
+            <ul>
+                <li><b>六大類食物均衡概念</b>：落實日常飲食指南，理解不同食物對身體的營養價值。</li>
+                <li><b>熱量預算控制（數值區間）</b>：培養動態加減運算能力，在限制條件內做出最佳決策。</li>
+                <li><b>演算法與條件判斷 (`if/else`)</b>：學會撰寫同時檢查「大於等於下限」且「小於等於上限」的程式防呆邏輯。</li>
+            </ul>
+        </div>
+
+        <!-- 第三章：HTML / CSS / JS 程式碼核心技巧 -->
+        <div class="chapter">
+            <h2>💻 第三章：網頁程式開發核心技巧解析</h2>
+            <p>本遊戲採用單檔案架構，核心程式碼運用了以下關鍵技術：</p>
+            
+            <p><b>1. CSS Grid 排版與動態進度條：</b>使用格狀系統讓 5 個圖標按鈕完美對齊，並透過 CSS `transition` 讓健康進度條平滑推進。</p>
+            <pre><code><span class="code-comment">/* 網格按鈕排版 */</span>
+.btn-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+}
+<span class="code-comment">/* 進度條動畫 */</span>
+.progress-bar-fill {
+    width: 0%;
+    transition: width 0.4s ease;
+}</code></pre>
+
+            <p style="margin-top: 15px;"><b>2. 即時動態總量計算與區間驗證 (JavaScript)：</b></p>
+            <pre><code><span class="code-comment">// 點擊按鈕時即時累加總熱量並變色提示</span>
+function selectOption(category, value, calories, cardElement) {
+    playerChoice[category + 'Cal'] = calories;
+    let sum = playerChoice.grainCal + playerChoice.proteinCal + ...;
+    
+    if (sum &lt; targetMinCal) {
+        calSpan.style.color = 'orange'; <span class="code-comment">// 太低</span>
+    } else if (sum &gt; targetMaxCal) {
+        calSpan.style.color = 'red';    <span class="code-comment">// 爆表</span>
+    } else {
+        calSpan.style.color = 'green';  <span class="code-comment">// 完美達標</span>
+    }
+}</code></pre>
+        </div>
+
+        <!-- 第四章：學生實作 Checklist -->
+        <div class="chapter checklist-box">
+            <h2>✅ 第四章：學生期末專案驗收規格表 (Checklist)</h2>
+            <p>請各組同學在繳交專案前，逐項勾選確認是否達成目標：</p>
+            <div class="check-item"><input type="checkbox"> 自訂創意主題（如：魔法藥水、宇宙補給站、健康便當）。</div>
+            <div class="check-item"><input type="checkbox"> 建立 4 大分類，每類包含 5 個帶有圖標與數值標籤的圖片按鈕。</div>
+            <div class="check-item"><input type="checkbox"> 實作「雙向上下限管制」，點擊時能即時計算數值並給予回饋。</div>
+            <div class="check-item"><input type="checkbox"> 拿掉 alert 彈跳視窗，改用畫面即時提示與健康進度條。</div>
+            <div class="check-item"><input type="checkbox"> 具備 5 道題目的隨機出題與總花費時間計時器。</div>
+        </div>
+
+        <div class="footer-banner">
+            🚀 祝各位師生在期末專案中玩得開心、學得扎實，打造出全班最棒的網頁遊戲！
+        </div>
+    </div>
+
+</body>
+</html>
