@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>期末專案任務說明書 - 智能搭配大師遊戲設計</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: "Microsoft JhengHei", sans-serif;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            width: 750px;
+            padding: 35px 40px;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border-top: 8px solid #ff758f;
+        }
+
+        h1 {
+            color: #ff5c8a;
+            text-align: center;
+            margin-top: 0;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 15px;
+            margin-bottom: 25px;
+        }
+
+        .section-box {
+            background: #fff0f3;
+            border: 2px dashed #ff8fab;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section-box h2 {
+            color: #d8577a;
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 2px solid #ffb3c6;
+            padding-bottom: 8px;
+        }
+
+        p, li {
+            color: #444;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        ul {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        .highlight {
+            background: #ffe5ec;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #d8577a;
+        }
+
+        /*  Checklist 樣式 */
+        .checklist {
+            background: #e8f5e9;
+            border-color: #81c784;
+        }
+
+        .checklist h2 {
+            color: #2e7d32;
+            border-bottom-color: #c8e6c9;
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            font-weight: bold;
+            color: #33691e;
+        }
+
+        .check-item input {
+            width: 18px;
+            height: 18px;
+            margin-right: 10px;
+            accent-color: #43a047;
+            cursor: pointer;
+        }
+
+        .footer-tip {
+            background: #e3f2fd;
+            border: 2px solid #90caf9;
+            border-radius: 12px;
+            padding: 15px;
+            color: #0d47a1;
+            font-size: 14px;
+            text-align: center;
+            font-weight: bold;
+            margin-top: 25px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>📋 期末專案任務說明書</h1>
+        <div class="subtitle">🚀 打造屬於你的「智能搭配大師」網頁小遊戲！</div>
+
+        <!-- 第一部分 -->
+        <div class="section-box">
+            <h2>🎯 一、 決定你的遊戲主題與 4 大分類</h2>
+            <p>請發揮創意，設計一款類似老師範例的「條件限制類配對模擬遊戲」。你的遊戲必須包含：<span class="highlight">4 個分類，每個分類至少要有 5 個選項</span>。</p>
+            <ul>
+                <li><b>健康餐點系列（參考範例）</b>：全榖雜糧類、豆魚蛋肉類、蔬菜類、水果/乳品類。</li>
+                <li><b>魔法藥水工坊</b>：魔法基底、核心草藥、魔獸素材、咒語符文。</li>
+                <li><b>宇宙飛船補給站</b>：能源燃料、太空食品、修理工具、防護裝備。</li>
+                <li><b>其他你喜歡的創意主題！</b></li>
+            </ul>
+        </div>
+
+        <!-- 第二部分 -->
+        <div class="section-box">
+            <h2>⚖️ 二、 核心規則：設定你的「雙向上下限」機制</h2>
+            <p>為了讓遊戲更有挑戰性，不能讓玩家隨便亂選，你必須在程式裡幫玩家加上數值管制（例如：熱量、魔力、重量、金錢）：</p>
+            <ul>
+                <li><b>上限管制（不能爆表）</b>：玩家選的 4 個項目數值加起來，不能超過最高上限，否則會判定失敗！</li>
+                <li><b>下限管制（不能太少）</b>：玩家選的 4 個項目數值加起來，也不能低於最低門檻，否則會判定吃不飽或不足量失敗！</li>
+                <li><b>區間提示</b>：當玩家點擊時，畫面上的即時總數要能隨之變動，並在安全區間內顯示綠色，違規時顯示紅橘色警告。</li>
+            </ul>
+        </div>
+
+        <!-- 第三部分 -->
+        <div class="section-box checklist">
+            <h2>✅ 三、 網頁功能與規格檢查表 (Checklist)</h2>
+            <p>完成程式碼後，請自我檢查是否達成以下所有目標：</p>
+            <div class="check-item"><input type="checkbox"> 繽紛可愛的介面與大標題、健康的進度條（闖關成功推進 20%）。</div>
+            <div class="check-item"><input type="checkbox"> 4 大分類，每個分類各有 5 個帶有圖標（Icon）與數值標籤的按鈕。</div>
+            <div class="check-item"><input type="checkbox"> 點擊按鈕時，畫面的「目前總數」能即時加減計算。</div>
+            <div class="check-item"><input type="checkbox"> 採用網頁內的提示框（MsgBox）顯示對錯，不使用干擾的 alert() 彈跳視窗。</div>
+            <div class="check-item"><input type="checkbox"> 具有 5 道題目的闖關機制與總花費時間計時器。</div>
+        </div>
+
+        <div class="footer-tip">
+            💡 製作小撇步：建議從老師的範例程式碼開始修改，先改文字與主題，再調整數字與區間邏輯！祝大家期末專案大成功！🚀
+        </div>
+    </div>
+
+</body>
+</html>

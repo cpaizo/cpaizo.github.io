@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>營養午餐調配大師 - 雙向熱量控制版</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+            font-family: "Microsoft JhengHei", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .game-card {
+            background: white;
+            width: 620px;
+            padding: 20px 25px;
+            border-radius: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            text-align: center;
+            border: 5px solid #43a047;
+        }
+
+        h1 {
+            color: #2e7d32;
+            margin-top: 0;
+            font-size: 24px;
+        }
+
+        .mode-selector {
+            margin-bottom: 12px;
+        }
+
+        .mode-btn {
+            padding: 6px 15px;
+            font-size: 14px;
+            border-radius: 20px;
+            border: 2px solid #43a047;
+            background: white;
+            color: #2e7d32;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 0 5px;
+            transition: all 0.2s;
+        }
+
+        .mode-btn.active {
+            background: #43a047;
+            color: white;
+        }
+
+        .info-bar {
+            display: flex;
+            justify-content: space-around;
+            background: #e8f5e9;
+            padding: 8px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+
+        .progress-container {
+            background: #e8f5e9;
+            border-radius: 12px;
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            text-align: left;
+            font-size: 14px;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 15px;
+            background-color: #c8e6c9;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .progress-bar-fill {
+            width: 0%;
+            height: 100%;
+            background-color: #43a047;
+            transition: width 0.4s ease;
+        }
+
+        .order-box {
+            background: #f1f8e9;
+            border: 2px dashed #81c784;
+            padding: 10px 15px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            color: #33691e;
+            margin-bottom: 10px;
+            min-height: 45px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .msg-box {
+            font-size: 14px;
+            font-weight: bold;
+            height: 20px;
+            margin-bottom: 6px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            color: #558b2f;
+            margin: 4px 0 2px 0;
+            text-align: left;
+            padding-left: 5px;
+            font-weight: bold;
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .img-btn {
+            background-color: #f8f9fa;
+            border: 2px solid #c8e6c9;
+            border-radius: 10px;
+            padding: 4px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .img-btn img {
+            width: 30px;
+            height: 30px;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        .img-btn span {
+            font-size: 11px;
+            font-weight: bold;
+            color: #333;
+            margin-top: 2px;
+        }
+
+        .cal-tag {
+            font-size: 10px;
+            color: #d32f2f;
+            background: #ffebee;
+            padding: 1px 4px;
+            border-radius: 4px;
+            margin-top: 1px;
+        }
+
+        .img-btn:hover {
+            background-color: #e8f5e9;
+            border-color: #43a047;
+            transform: translateY(-2px);
+        }
+
+        .img-btn.selected {
+            background-color: #66bb6a !important;
+            border-color: #2e7d32 !important;
+            transform: scale(1.05);
+            box-shadow: 0 3px 6px rgba(102, 187, 106, 0.4);
+        }
+
+        .img-btn.selected span, .img-btn.selected .cal-tag {
+            color: white !important;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .submit-btn {
+            width: 100%;
+            background-color: #ffb300;
+            color: white;
+            font-size: 17px;
+            padding: 10px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background-color 0.2s;
+        }
+
+        .submit-btn:hover {
+            background-color: #ffa000;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-card">
+        <h1>🥗 營養午餐調配大師 🍱</h1>
+        
+        <!-- 模式切換 -->
+        <div class="mode-selector">
+            <button class="mode-btn active" id="modeNormalBtn" onclick="switchMode('normal')">一般模式 (5題闖關)</button>
+            <button class="mode-btn" id="modeAdvancedBtn" onclick="switchMode('advanced')">⚖️ 進階熱量區間版 (上下限管制)</button>
+        </div>
+
+        <div class="info-bar">
+            <div>🎯 關卡: <span id="roundText">1</span> / 5 題</div>
+            <div>⏱️ 總花費時間: <span id="timer">0</span> 秒</div>
+        </div>
+
+        <!-- 進度條 -->
+        <div class="progress-container">
+            <span>💪 營養健康度進度條 (<span id="progressPercent">0</span>%)</span>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progressBar"></div>
+            </div>
+        </div>
+
+        <div class="order-box" id="orderText">
+            準備開始...
+        </div>
+
+        <div class="msg-box" id="msgBox" style="color: #2e7d32;"></div>
+
+        <!-- 1. 全榖雜糧類 -->
+        <div class="section-title">1. 全榖雜糧類</div>
+        <div class="btn-grid">
+            <div class="img-btn" onclick="selectOption('grain', '糙米飯', 150, this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/3174/3174834.png" alt="糙米飯">
+                <span>糙米飯</span><span class="cal-tag">150大卡</span>
+            </div>
+            <div class="img-btn" onclick="selectOption('grain', '紫米飯', 160, this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/2515/2515206.png" alt="紫米飯">
+                <span>紫米飯</span><span class="cal-tag">160大卡</span>
+            </div>
+            <div class="img-btn" onclick="selectOption('grain', '地瓜', 140, this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/1147/1147829.png" alt="地瓜">
+                <span>地瓜</span><span class="cal-tag">140大卡</span>
+            </div>
+            <div class="img-btn" onclick="selectOption('grain', '全麥麵包', 180, this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/2315/2315572.png" alt="全麥麵包">
+                <span>全麥麵包</span><span class="cal-tag">180大卡</span>
+            </div>
+            <div class="img-btn" onclick="selectOption('grain', '馬鈴薯', 120, this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/1147/1147955.png" alt="馬鈴薯">
+                <span>馬鈴薯</span><span class="cal-tag">120大卡</span>
+            </div>
+        </div>
+
+        <!-- 2. 豆魚蛋肉類 -->
+        <div class="section-title">2. 豆魚蛋肉類</div>
+        <div class="btn-grid">
+            <div class="img-btn" onclick="selectOption('protein', '清蒸鮭魚', 190, this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" alt="清蒸鮭魚">
+                <span>清蒸鮭魚</span><span class="cal-tag">190大卡</span>
+            </div>
+            <div class="img-btn" onclick="selectOption('protein', '滷雞腿', 250, this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/1046/1046751.png" alt="滷雞腿">
+                <span>滷雞腿</span><span class="cal-tag">250大卡</span>
+            </div>
+            <div class="img-btn" onclick="selectOption('protein', '板豆腐', 110, this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/3076/3076848.png" alt="板豆腐">
+                <span>板豆腐</span><span class="cal-tag">110大卡</span>
+            </div>
+            <div class="img-btn" onclick="selectOption('protein', '茶葉蛋', 75, this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/839/839841.png" alt="茶葉蛋">
+                <span>茶葉蛋</span><span class="cal-tag">75大卡</span>
+            </div>
+            <div class="img-btn" onclick="selectOption('protein', '瘦肉片', 160, this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/1046/1046751.png" alt="瘦肉片">
+                <span>瘦肉片</span><span class="cal-tag">160大卡</span>
+            </div>
+        </div>
+
+        <!-- 3. 蔬菜類 -->
+        <div class="section-title">3. 蔬菜類</div>
+        <div class="btn-grid">
+            <div class="img-btn" onclick="selectOption('veg', '高麗菜', 45, this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/2276/2276931.png" alt="高麗菜">
+                <span>高麗菜</span><span class="cal-tag">45大卡</span>
+            </div>
+            <div class="img-btn" onclick="selectOption('veg', '花椰菜', 35, this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/2515/2515263.png" alt="花椰菜">
+                <span>花椰菜</span><span class="cal-tag">35大卡</span>
+            </div>
+            <div class="img-btn" onclick="selectOption('veg', '胡蘿蔔', 40, this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/2346/2346783.png" alt="胡蘿蔔">
+                <span>胡蘿蔔</span><span class="cal-tag">40大卡</span>
+            </div>
+            <div class="img-btn" onclick="selectOption('veg', '菠菜', 30, this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/2276/2276931.png" alt="菠菜">
+                <span>菠菜</span><span class="cal-tag">30大卡</span>
+            </div>
+            <div class="img-btn" onclick="selectOption('veg', '洋蔥', 40, this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/2346/2346740.png" alt="洋蔥">
+                <span>洋蔥</span><span class="cal-tag">40大卡</span>
+            </div>
+        </div>
+
+        <!-- 4. 水果或乳品類 -->
+        <div class="section-title">4. 水果或乳品類</div>
+        <div class="btn-grid">
+            <div class="img-btn" onclick="selectOption('fruit', '芭樂', 60, this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/4156/4156744.png" alt="芭樂">
+                <span>芭樂</span><span class="cal-tag">60大卡</span>
+            </div>
+            <div class="img-btn" onclick="selectOption('fruit', '香蕉', 90, this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/815/815679.png" alt="香蕉">
+                <span>香蕉</span><span class="cal-tag">90大卡</span>
+            </div>
+            <div class="img-btn" onclick="selectOption('fruit', '低脂鮮乳', 120, this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/2674/2674036.png" alt="低脂鮮乳">
+                <span>低脂鮮乳</span><span class="cal-tag">120大卡</span>
+            </div>
+            <div class="img-btn" onclick="selectOption('fruit', '奇異果', 50, this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/1539/1539626.png" alt="奇異果">
+                <span>奇異果</span><span class="cal-tag">50大卡</span>
+            </div>
+            <div class="img-btn" onclick="selectOption('fruit', '優格', 100, this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/3076/3076897.png" alt="優格">
+                <span>優格</span><span class="cal-tag">100大卡</span>
+            </div>
+        </div>
+
+        <button class="submit-btn" onclick="submitOrder()">送出營養午餐 🚀</button>
+    </div>
+
+    <script>
+        const grains = ['糙米飯', '紫米飯', '地瓜', '全麥麵包', '馬鈴薯'];
+        const proteins = ['清蒸鮭魚', '滷雞腿', '板豆腐', '茶葉蛋', '瘦肉片'];
+        const vegs = ['高麗菜', '花椰菜', '胡蘿蔔', '菠菜', '洋蔥'];
+        const fruits = ['芭樂', '香蕉', '低脂鮮乳', '奇異果', '優格'];
+
+        let currentOrder = { grain: '', protein: '', veg: '', fruit: '' };
+        let playerChoice = { grain: '', protein: '', veg: '', fruit: '', totalCal: 0 };
+
+        let currentRound = 1;
+        const totalRounds = 5;
+        let secondsElapsed = 0;
+        let timerInterval;
+        let gameMode = 'normal'; // 'normal' 或 'advanced'
+        
+        let targetMinCal = 450;  // 進階版熱量下限
+        let targetMaxCal = 600;  // 進階版熱量上限
+
+        function switchMode(mode) {
+            gameMode = mode;
+            document.getElementById('modeNormalBtn').classList.toggle('active', mode === 'normal');
+            document.getElementById('modeAdvancedBtn').classList.toggle('active', mode === 'advanced');
+            startGame();
+        }
+
+        function startGame() {
+            currentRound = 1;
+            secondsElapsed = 0;
+            updateProgressBar();
+            clearChoices();
+            
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                secondsElapsed++;
+                document.getElementById('timer').innerText = secondsElapsed;
+            }, 1000);
+
+            generateOrder();
+        }
+
+        function generateOrder() {
+            document.getElementById('roundText').innerText = currentRound;
+            
+            currentOrder.grain = grains[Math.floor(Math.random() * grains.length)];
+            currentOrder.protein = proteins[Math.floor(Math.random() * proteins.length)];
+            currentOrder.veg = vegs[Math.floor(Math.random() * vegs.length)];
+            currentOrder.fruit = fruits[Math.floor(Math.random() * fruits.length)];
+
+            if (gameMode === 'normal') {
+                document.getElementById('orderText').innerHTML = 
+                    `校長第 ${currentRound} 題指示：「今天的午餐必須包含：${currentOrder.grain}、${currentOrder.protein}、${currentOrder.veg}、${currentOrder.fruit}！」`;
+            } else {
+                // 進階版：隨機產生一個合理的熱量區間（例如上下限相距 100~120 大卡）
+                targetMinCal = 420 + Math.floor(Math.random() * 40); // 420 ~ 460
+                targetMaxCal = targetMinCal + 120;                  // 區間大小 120 大卡
+                
+                document.getElementById('orderText').innerHTML = 
+                    `⚖️ <b>【熱量區間控制】</b> 校長規定第 ${currentRound} 題總熱量必須落在 <b style="color:#d32f2f;">${targetMinCal} ~ ${targetMaxCal} 大卡</b> 之間！<br>` +
+                    `<span style="font-size:13px; color:#2e7d32;">目前已選熱量：<span id="currentCalDisplay">0</span> 大卡</span>`;
+            }
+        }
+
+        function selectOption(category, value, calories, cardElement) {
+            playerChoice[category] = value;
+            playerChoice[category + 'Cal'] = calories;
+
+            let parentGrid = cardElement.parentElement;
+            let cards = parentGrid.getElementsByClassName('img-btn');
+            for (let c of cards) {
+                c.classList.remove('selected');
+            }
+            cardElement.classList.add('selected');
+
+            // 如果是進階模式，即時計算總熱量並檢查是否在區間內
+            if (gameMode === 'advanced') {
+                let sum = (playerChoice.grainCal || 0) + 
+                          (playerChoice.proteinCal || 0) + 
+                          (playerChoice.vegCal || 0) + 
+                          (playerChoice.fruitCal || 0);
+                playerChoice.totalCal = sum;
+                
+                let calSpan = document.getElementById('currentCalDisplay');
+                if (calSpan) {
+                    calSpan.innerText = sum;
+                    if (sum < targetMinCal) {
+                        calSpan.style.color = '#e65100'; // 太低顯示橘色
+                    } else if (sum > targetMaxCal) {
+                        calSpan.style.color = 'red';     // 太高顯示紅色
+                    } else {
+                        calSpan.style.color = '#2e7d32'; // 剛好在區間顯示綠色
+                    }
+                }
+            }
+        }
+
+        function updateProgressBar() {
+            let percent = ((currentRound - 1) / totalRounds) * 100;
+            if (currentRound > totalRounds) percent = 100;
+            
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('progressPercent').innerText = percent;
+        }
+
+        function showMsg(text, color) {
+            const box = document.getElementById('msgBox');
+            box.innerText = text;
+            box.style.color = color;
+        }
+
+        function submitOrder() {
+            if (!playerChoice.grain || !playerChoice.protein || !playerChoice.veg || !playerChoice.fruit) {
+                showMsg("⚠️ 六大類食物還沒配齊喔！請點選完 4 個項目！", "#d32f2f");
+                return;
+            }
+
+            let isCorrect = false;
+
+            if (gameMode === 'normal') {
+                isCorrect = (
+                    playerChoice.grain === currentOrder.grain &&
+                    playerChoice.protein === currentOrder.protein &&
+                    playerChoice.veg === currentOrder.veg &&
+                    playerChoice.fruit === currentOrder.fruit
+                );
+            } else {
+                // 進階版判定邏輯：總熱量必須同時大於等於下限 且 小於等於上限！
+                if (playerChoice.totalCal >= targetMinCal && playerChoice.totalCal <= targetMaxCal) {
+                    isCorrect = true;
+                } else {
+                    isCorrect = false;
+                }
+            }
+
+            if (isCorrect) {
+                currentRound++;
+                updateProgressBar();
+
+                if (currentRound > totalRounds) {
+                    clearInterval(timerInterval);
+                    document.getElementById('progressBar').style.width = '100%';
+                    document.getElementById('progressPercent').innerText = '100';
+                    showMsg(`🏆 恭喜通關！總共花費時間：${secondsElapsed} 秒！`, "#2e7d32");
+                    setTimeout(() => startGame(), 3000);
+                    return;
+                } else {
+                    if (gameMode === 'normal') {
+                        showMsg("🎉 答對了！營養均衡，進入下一題！", "#2e7d32");
+                    } else {
+                        showMsg(`🎉 完美達標 (${playerChoice.totalCal}大卡)！進入下一題！`, "#2e7d32");
+                    }
+                }
+                clearChoices();
+                generateOrder();
+            } else {
+                if (gameMode === 'normal') {
+                    showMsg("❌ 搭配錯誤！校長搖頭了，請再檢查一次！", "#d32f2f");
+                } else {
+                    if (playerChoice.totalCal < targetMinCal) {
+                        showMsg(`🥣 熱量太低 (${playerChoice.totalCal}大卡 < 下限${targetMinCal}大卡)！這樣吃不飽，請再加點營養！`, "#d32f2f");
+                    } else {
+                        showMsg(`💥 熱量爆表 (${playerChoice.totalCal}大卡 > 上限${targetMaxCal}大卡)！請選擇熱量較低的食物！`, "#d32f2f");
+                    }
+                }
+            }
+        }
+
+        function clearChoices() {
+            playerChoice = { grain: '', protein: '', veg: '', fruit: '', totalCal: 0 };
+            let allCards = document.querySelectorAll('.img-btn');
+            for (let c of allCards) {
+                c.classList.remove('selected');
+            }
+        }
+
+        // 遊戲初始化
+        startGame();
+    </script>
+
+</body>
+</html>
