@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>HTML 程式碼解密手冊 - 營養午餐遊戲怎麼寫？</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            font-family: "Microsoft JhengHei", sans-serif;
+            display: flex;
+            justify-content: center;
+        }
+
+        .manual-box {
+            background: white;
+            width: 850px;
+            padding: 40px;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-top: 8px solid #0284c7;
+        }
+
+        h1 {
+            color: #0369a1;
+            text-align: center;
+            margin-top: 0;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #0284c7;
+            font-size: 15px;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .tech-card {
+            background: #f0fdf4;
+            border: 2px solid #bbf7d0;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .tech-card h2 {
+            color: #166534;
+            margin-top: 0;
+            font-size: 18px;
+            border-bottom: 2px solid #dcfce7;
+            padding-bottom: 8px;
+        }
+
+        p, li {
+            color: #334155;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        /* 程式碼展示區塊 */
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 13px;
+            overflow-x: auto;
+            font-family: Consolas, monospace;
+            margin-top: 10px;
+        }
+
+        .tag { color: #7dd3fc; }
+        .attr { color: #fca5a5; }
+        .string { color: #86efac; }
+        .comment { color: #94a3b8; font-style: italic; }
+
+        .tip-box {
+            background: #fef3c7;
+            border: 2px solid #fde68a;
+            border-radius: 12px;
+            padding: 15px;
+            color: #92400e;
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 25px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="manual-box">
+        <h1>🔍 HTML 程式碼解密手冊</h1>
+        <div class="subtitle">給學生的網頁前端小學堂：帶你拆解「營養午餐遊戲」的祕密！</div>
+
+        <!-- 技巧一：HTML 骨架 -->
+        <div class="tech-card">
+            <h2>🧱 技巧一：HTML 就像蓋房子（結構標籤）</h2>
+            <p>網頁是由一層一層的「標籤 (Tags)」包起來的。就像洋蔥一樣，有開頭就有結尾（例如 <code style="background:#dcfce7; padding:2px 6px; border-radius:4px;">&lt;div&gt;</code> 跟 <code style="background:#dcfce7; padding:2px 6px; border-radius:4px;">&lt;/div&gt;</code>）。</p>
+            <pre><code><span class="comment">&lt;!-- 遊戲的最外層大卡片盒子 --&gt;</span>
+<span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="string">"game-card"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;h1&gt;</span>🥗 營養午餐調配大師 <span class="tag">&lt;/h1&gt;</span>
+    
+    <span class="comment">&lt;!-- 顯示訂單與提示的區域 --&gt;</span>
+    <span class="tag">&lt;div</span> <span class="attr">id</span>=<span class="string">"orderText"</span><span class="tag">&gt;</span>準備開始...<span class="tag">&lt;/div&gt;</span>
+<span class="tag">&lt;/div&gt;</span></code></pre>
+        </div>
+
+        <!-- 技巧二：CSS Grid 排版 -->
+        <div class="tech-card" style="background:#fef2f2; border-color:#fecaca;">
+            <h2 style="color:#991b1b; border-bottom-color:#fee2e2;">🎨 技巧二：用 CSS Grid 讓按鈕排排站</h2>
+            <p>我們希望畫面上有 5 個選項平均排列。不要傻傻自己算位置，只要用 CSS 的格狀排版（Grid），電腦就會自動幫你排得整整齊齊！</p>
+            <pre><code><span class="comment">/* CSS 樣式設定 */</span>
+<span class="tag">.btn-grid</span> {
+    <span class="attr">display</span>: grid;                             <span class="comment">/* 宣告使用網格排版 */</span>
+    <span class="attr">grid-template-columns</span>: repeat(5, 1fr);     <span class="comment">/* 自動分成 5 等份欄位 */</span>
+    <span class="attr">gap</span>: 6px;                                    <span class="comment">/* 按鈕跟按鈕之間的間距 */</span>
+}</code></pre>
+        </div>
+
+        <!-- 技巧三：圖文並茂的按鈕 -->
+        <div class="tech-card" style="background:#fefce8; border-color:#fef08a;">
+            <h2 style="color:#854d0e; border-bottom-color:#fef9c3;">🖼️ 技巧三：做出會發光、有圖標的互動按鈕</h2>
+            <p>我們用一個小格子盒子（<code style="background:#fef9c3; padding:2px 6px; border-radius:4px;">&lt;div&gt;</code>）包住圖片與文字，當滑鼠點下去時，透過 JavaScript 觸發 <code style="background:#fef9c3; padding:2px 6px; border-radius:4px;">onclick</code> 動作！</p>
+            <pre><code><span class="comment">&lt;!-- 一個食物選項按鈕：包含圖片、名稱與卡路里標籤 --&gt;</span>
+<span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="string">"img-btn"</span> <span class="attr">onclick</span>=<span class="string">"selectOption('grain', '糙米飯', 150, this)"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;img</span> <span class="attr">src</span>=<span class="string">"https://cdn-icons-png.flaticon.com/512/3174/3174834.png"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;span&gt;</span>糙米飯<span class="tag">&lt;/span&gt;</span>
+    <span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="string">"cal-tag"</span><span class="tag">&gt;</span>150大卡<span class="tag">&lt;/span&gt;</span>
+<span class="tag">&lt;/div&gt;</span></code></pre>
+        </div>
+
+        <!-- 技巧四：JS 邏輯控制 -->
+        <div class="tech-card" style="background:#fdf4ff; border-color:#f5d0fe;">
+            <h2 style="color:#86198f; border-bottom-color:#fae8ff;">⚡ 技巧四：用 JavaScript 幫你算熱量與防呆</h2>
+            <p>JavaScript 是網頁的大腦。當玩家點擊按鈕時，大腦會立刻把熱量加起來，並檢查有沒有符合校長規定的「上下限區間」：</p>
+            <pre><code><span class="comment">// 檢查總熱量是否在安全區間內</span>
+<span class="keyword">if</span> (playerChoice.totalCal &gt;= targetMinCal &amp;&amp; playerChoice.totalCal &lt;= targetMaxCal) {
+    alert(<span class="string">"🎉 完美達標！進入下一題！"</span>);
+} <span class="keyword">else</span> {
+    alert(<span class="string">"💥 熱量超出範圍！請重新調整！"</span>);
+}</code></pre>
+        </div>
+
+        <div class="tip-box">
+            💡 老師的小叮嚀：同學們在寫自己的專案時，可以把這幾個核心程式碼區塊（HTML 結構、CSS 網格、JS 點擊函數）當作模板，修改裡面的文字和數字，就能輕鬆做出你的專案囉！🚀
+        </div>
+    </div>
+
+</body>
+</html>
