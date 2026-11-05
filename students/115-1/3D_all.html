@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>115-1 學生 3D 作品展覽館</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+    }
+    .card-hover {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .card-hover:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    .glass-effect {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-800 pb-16">
+
+  <!-- 頂部 Header -->
+  <header class="sticky top-0 z-40 glass-effect border-b border-pink-100/60 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-pink-400 to-purple-400 flex items-center justify-center text-white shadow-md shadow-pink-200">
+          <i class="fa-solid font-bold text-2xl fa-cube"></i>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+            115-1 學生 3D 作品展覽館
+          </h1>
+          <p class="text-xs text-slate-500 mt-0.5">展示學生精采的 3D 互動作品與創作成果</p>
+        </div>
+      </div>
+
+      <!-- 統計標籤 -->
+      <div class="flex items-center space-x-2 bg-pink-50/80 px-4 py-2 rounded-full border border-pink-200/50">
+        <i class="fa-solid fa-palette text-pink-500"></i>
+        <span class="text-sm font-medium text-pink-700">作品總數：<strong id="totalCount" class="text-pink-900 font-bold">7</strong> 份</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 控制與篩選區段 -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+    
+    <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 bg-white/70 p-4 rounded-2xl border border-slate-200/60 shadow-sm">
+      <!-- 搜尋框 -->
+      <div class="relative w-full md:w-80">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <input type="text" id="searchInput" placeholder="搜尋學生姓名..." 
+          class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-400 text-sm transition">
+      </div>
+
+      <!-- 檢視模式切換 -->
+      <div class="flex items-center space-x-2 w-full md:w-auto justify-end">
+        <span class="text-xs text-slate-500 font-medium mr-1"><i class="fa-solid fa-display mr-1"></i>預覽模式：</span>
+        <button id="modeIframe" onclick="setPreviewMode('iframe')" 
+          class="px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition bg-pink-500 text-white shadow-sm shadow-pink-200">
+          <i class="fa-solid fa-window-maximize"></i> 直接內嵌 3D 畫面
+        </button>
+        <button id="modeLink" onclick="setPreviewMode('card')" 
+          class="px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition bg-slate-100 text-slate-600 hover:bg-slate-200">
+          <i class="fa-solid fa-border-all"></i> 精簡卡片模式
+        </button>
+      </div>
+    </div>
+
+    <!-- 作品網格區塊 -->
+    <div id="worksGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- 由 JavaScript 動態繪製作品 -->
+    </div>
+
+    <!-- 查無資料提示 -->
+    <div id="noResults" class="hidden text-center py-16 bg-white/50 rounded-3xl border border-dashed border-slate-300">
+      <i class="fa-solid fa-ghost text-5xl text-slate-300 mb-3"></i>
+      <p class="text-slate-500 font-medium">找不到符合條件的學生作品</p>
+    </div>
+  </main>
+
+  <!-- Modal 滿版預覽彈窗 -->
+  <div id="previewModal" class="fixed inset-0 z-50 hidden bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6">
+    <div class="bg-white w-full max-w-6xl h-[90vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-fade-in">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div class="flex items-center space-x-3">
+          <span class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
+          <h3 id="modalTitle" class="text-lg font-bold text-slate-800">學生作品預覽</h3>
+        </div>
+        <div class="flex items-center space-x-2">
+          <a id="modalExternalLink" href="#" target="_blank" 
+            class="px-3 py-1.5 text-xs font-medium text-pink-600 bg-pink-50 hover:bg-pink-100 rounded-lg flex items-center gap-1 transition">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> 新分頁開啟
+          </a>
+          <button onclick="closeModal()" 
+            class="w-8 h-8 rounded-full bg-slate-200/80 hover:bg-slate-300 flex items-center justify-center text-slate-600 transition">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body (Iframe) -->
+      <div class="flex-1 bg-slate-100 relative">
+        <iframe id="modalIframe" src="" class="w-full h-full border-0"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 學生作品資料清單
+    const studentWorks = [
+      { id: 1, name: "余品靚", title: "3D 作品（一）", url: "https://cpaizo.github.io/students/115-1/3D_余品靚.html", tag: "3D 創作" },
+      { id: 2, name: "余品靚", title: "3D 作品（二）", url: "https://cpaizo.github.io/students/115-1/3D_余品靚2.html", tag: "3D 創作" },
+      { id: 3, name: "吳寬", title: "3D 作品", url: "https://cpaizo.github.io/students/115-1/3D_吳寬.html", tag: "3D 創作" },
+      { id: 4, name: "呂定睿", title: "3D 作品", url: "https://cpaizo.github.io/students/115-1/3D_呂定睿.html", tag: "3D 創作" },
+      { id: 5, name: "張芯嫙", title: "3D 作品", url: "https://cpaizo.github.io/students/115-1/3D_張芯嫙.html", tag: "3D 創作" },
+      { id: 6, name: "張倢鈞", title: "3D 作品", url: "https://cpaizo.github.io/students/115-1/3D_張倢鈞.html", tag: "3D 創作" },
+      { id: 7, name: "盧晨希", title: "3D 作品", url: "https://cpaizo.github.io/students/115-1/3D_盧晨希.html", tag: "3D 創作" }
+    ];
+
+    let currentMode = 'iframe'; // 'iframe' 或 'card'
+
+    // 渲染卡片
+    function renderWorks(works) {
+      const grid = document.getElementById('worksGrid');
+      const noResults = document.getElementById('noResults');
+      grid.innerHTML = '';
+
+      if (works.length === 0) {
+        noResults.classList.remove('hidden');
+        return;
+      } else {
+        noResults.classList.add('hidden');
+      }
+
+      works.forEach((work) => {
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden card-hover flex flex-col justify-between";
+
+        if (currentMode === 'iframe') {
+          // 內嵌直接預覽模式
+          card.innerHTML = `
+            <div>
+              <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div class="flex items-center space-x-2.5">
+                  <span class="w-8 h-8 rounded-full bg-pink-100 text-pink-600 font-bold text-xs flex items-center justify-center">
+                    ${work.name.charAt(0)}
+                  </span>
+                  <div>
+                    <h2 class="font-bold text-slate-800 text-sm">${work.name}</h2>
+                    <p class="text-xs text-slate-400">${work.title}</p>
+                  </div>
+                </div>
+                <span class="px-2.5 py-1 text-[11px] font-medium bg-purple-50 text-purple-600 rounded-md border border-purple-100">
+                  ${work.tag}
+                </span>
+              </div>
+              <div class="relative w-full h-64 bg-slate-100">
+                <iframe src="${work.url}" class="w-full h-full border-0" loading="lazy" title="${work.name} 3D作品"></iframe>
+              </div>
+            </div>
+            <div class="p-3 bg-white border-t border-slate-100 flex items-center justify-between gap-2">
+              <button onclick="openModal('${work.name} - ${work.title}', '${work.url}')" 
+                class="flex-1 py-2 px-3 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition flex items-center justify-center gap-1">
+                <i class="fa-solid fa-expand"></i> 全螢幕互動
+              </button>
+              <a href="${work.url}" target="_blank" 
+                class="py-2 px-3 text-xs font-semibold bg-pink-500 hover:bg-pink-600 text-white rounded-xl transition flex items-center justify-center gap-1 shadow-xs">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> 開啟連結
+              </a>
+            </div>
+          `;
+        } else {
+          // 純卡片模式
+          card.innerHTML = `
+            <div class="p-6">
+              <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-100 to-purple-100 text-pink-600 font-bold text-lg flex items-center justify-center border border-pink-200/50">
+                  ${work.name.charAt(0)}
+                </div>
+                <span class="px-2.5 py-1 text-xs font-medium bg-pink-50 text-pink-600 rounded-full border border-pink-100">
+                  ${work.tag}
+                </span>
+              </div>
+              <h2 class="text-lg font-bold text-slate-800 mb-1">${work.name}</h2>
+              <p class="text-xs text-slate-500 mb-4">${work.title}</p>
+              <p class="text-xs text-slate-400 break-all bg-slate-50 p-2.5 rounded-lg border border-slate-100 font-mono">
+                ${work.url}
+              </p>
+            </div>
+            <div class="p-4 bg-slate-50/50 border-t border-slate-100 flex items-center gap-2">
+              <button onclick="openModal('${work.name} - ${work.title}', '${work.url}')" 
+                class="flex-1 py-2.5 px-3 text-xs font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl transition flex items-center justify-center gap-1">
+                <i class="fa-solid fa-eye"></i> 畫面預覽
+              </button>
+              <a href="${work.url}" target="_blank" 
+                class="flex-1 py-2.5 px-3 text-xs font-semibold bg-pink-500 hover:bg-pink-600 text-white rounded-xl transition flex items-center justify-center gap-1 shadow-xs">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> 直接造訪
+              </a>
+            </div>
+          `;
+        }
+
+        grid.appendChild(card);
+      });
+    }
+
+    // 切換預覽模式
+    function setPreviewMode(mode) {
+      currentMode = mode;
+      const btnIframe = document.getElementById('modeIframe');
+      const btnLink = document.getElementById('modeLink');
+
+      if (mode === 'iframe') {
+        btnIframe.className = "px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition bg-pink-500 text-white shadow-sm shadow-pink-200";
+        btnLink.className = "px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition bg-slate-100 text-slate-600 hover:bg-slate-200";
+      } else {
+        btnLink.className = "px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition bg-pink-500 text-white shadow-sm shadow-pink-200";
+        btnIframe.className = "px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition bg-slate-100 text-slate-600 hover:bg-slate-200";
+      }
+
+      filterWorks();
+    }
+
+    // 搜尋功能
+    function filterWorks() {
+      const query = document.getElementById('searchInput').value.trim().toLowerCase();
+      const filtered = studentWorks.filter(w => w.name.toLowerCase().includes(query) || w.title.toLowerCase().includes(query));
+      renderWorks(filtered);
+    }
+
+    document.getElementById('searchInput').addEventListener('input', filterWorks);
+
+    // Modal 控制
+    function openModal(title, url) {
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalIframe').src = url;
+      document.getElementById('modalExternalLink').href = url;
+      document.getElementById('previewModal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('previewModal').classList.add('hidden');
+      document.getElementById('modalIframe').src = '';
+    }
+
+    // 初始化渲染
+    renderWorks(studentWorks);
+  </script>
+</body>
+</html>
