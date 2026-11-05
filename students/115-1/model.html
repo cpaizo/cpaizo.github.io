@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>3D 角色隨機走動與互動</title>
+  <title>多角色 3D 隨機走動與互動</title>
   <style>
     body, html {
       margin: 0;
@@ -32,12 +32,14 @@
       font-weight: bold;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       pointer-events: none;
+      z-index: 10;
+      text-align: center;
     }
   </style>
 </head>
 <body>
 
-  <div class="tip">點擊角色可以看牠跌倒再爬起來喔！</div>
+  <div class="tip">點擊任意角色，牠們會跌倒再爬起來喔！</div>
   <div id="canvas-container"></div>
 
   <!-- 引入 Three.js、OrbitControls、GLTFLoader 與動畫庫 GSAP -->
@@ -47,12 +49,12 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
   <script>
-    // 1. 初始化 3D 場景 (透明背景以透出 CSS 漸層橘)
+    // 1. 初始化 3D 場景
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
 
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 4, 12);
+    camera.position.set(0, 5, 14);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -73,101 +75,126 @@
     dirLight.castShadow = true;
     scene.add(dirLight);
 
-    // 3. 變數宣告
-    let character = null;
-    let isFalling = false; // 是否正在跌倒狀態
+    // 儲存所有角色的陣列以供隨機走動與點擊互動
+    const characters = [];
 
-    // 隨機走動目標點與移動參數
-    let targetPosition = new THREE.Vector3(0, 0, 0);
-    const walkSpeed = 0.03;
+    // 建立角色控制物件的工廠函數
+    function setupCharacter(model, initialX, initialZ, needsColorChange = false) {
+      model.position.set(initialX, 0, initialZ);
+      
+      // 如果需要將藍色轉為指定色 #34E3CB
+      if (needsColorChange) {
+        model.traverse((child) => {
+          if (child.isMesh && child.material) {
+            const matColor = child.material.color;
+            if (matColor && (matColor.b > matColor.r && matColor.b > matColor.g)) {
+              child.material.color.set('#34E3CB');
+            } else if (!matColor) {
+              child.material.color = new THREE.Color('#34E3CB');
+            }
+          }
+        });
+      }
 
-    function getNewRandomTarget() {
-      targetPosition.set(
-        (Math.random() - 0.5) * 8,
-        0,
-        (Math.random() - 0.5) * 6
-      );
+      scene.add(model);
+
+      // 個別角色的走動資料
+      const charData = {
+        mesh: model,
+        targetPosition: new THREE.Vector3(initialX, 0, initialZ),
+        walkSpeed: 0.025 + Math.random() * 0.01,
+        isFalling: false,
+        getNewTarget() {
+          this.targetPosition.set(
+            (Math.random() - 0.5) * 8,
+            0,
+            (Math.random() - 0.5) * 6
+          );
+        }
+      };
+
+      charData.getNewTarget();
+      characters.push(charData);
     }
 
-    // 4. 載入 .glb 模型
+    // 3. 載入第一個模型 (model.glb) 並套用 #34E3CB 藍色轉換
     const loader = new THREE.GLTFLoader();
     loader.load('model.glb', function (gltf) {
-      character = gltf.scene;
-      character.scale.set(1, 1, 1);
-      character.position.set(0, 0, 0);
-
-      // 將原本的藍色材質替換為指定的 #34E3CB
-      character.traverse((child) => {
-        if (child.isMesh && child.material) {
-          const matColor = child.material.color;
-          // 判定如果原本顏色偏藍色系，則進行色碼替換
-          if (matColor && (matColor.b > matColor.r && matColor.b > matColor.g)) {
-            child.material.color.set('#34E3CB');
-          } else if (!matColor) {
-            child.material.color = new THREE.Color('#34E3CB');
-          }
-        }
-      });
-
-      scene.add(character);
-      getNewRandomTarget();
+      gltf.scene.scale.set(1, 1, 1);
+      setupCharacter(gltf.scene, -2, 0, true);
     }, undefined, function (error) {
-      console.error('載入模型時發生錯誤：', error);
+      console.log('model.glb 載入中或檔案不存在');
     });
 
-    // 5. 點擊互動：跌倒再爬起
+    // 4. 載入第二個模型 (卡比獸 Low Poly Snorlax)
+    loader.load('Low Poly Snorlax by Tipatat Chennavasin - 2Rocc4_ltUy.glb', function (gltf) {
+      gltf.scene.scale.set(1, 1, 1);
+      setupCharacter(gltf.scene, 2, 0, false); // 卡比獸保留原本色彩
+    }, undefined, function (error) {
+      console.log('卡比獸 glb 載入中或檔案名稱請確認');
+    });
+
+    // 5. 滑鼠點擊互動：偵測點到哪一個角色，讓牠跌倒再爬起
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
     window.addEventListener('pointerdown', (event) => {
-      if (!character || isFalling) return;
-
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
       raycaster.setFromCamera(mouse, camera);
 
-      const intersects = raycaster.intersectObject(character, true);
+      // 收集所有角色的 mesh 進行相交檢測
+      const meshes = characters.map(c => c.mesh);
+      const intersects = raycaster.intersectObjects(meshes, true);
+
       if (intersects.length > 0) {
-        isFalling = true;
+        // 找出被點擊到的根角色
+        let hitObject = intersects[0].object;
+        while (hitObject.parent && hitObject.parent !== scene) {
+          hitObject = hitObject.parent;
+        }
 
-        // 使用 GSAP 製作跌倒與爬起動畫
-        const tl = gsap.timeline({
-          onComplete: () => { isFalling = false; }
-        });
+        const targetChar = characters.find(c => c.mesh === hitObject);
+        if (targetChar && !targetChar.isFalling) {
+          targetChar.isFalling = true;
 
-        // 步驟 A：向側邊跌倒
-        tl.to(character.rotation, { z: Math.PI / 2, y: character.rotation.y + 0.5, duration: 0.4, ease: "power2.in" })
-          .to(character.position, { y: 0.2, duration: 0.2, yoyo: true, repeat: 1 }, "-=0.4")
-          // 步驟 B：停留一下躺在地上
-          .to({}, { duration: 1.0 })
-          // 步驟 C：站起來恢復原狀
-          .to(character.rotation, { z: 0, duration: 0.6, ease: "back.out(1.7)" });
+          const tl = gsap.timeline({
+            onComplete: () => { targetChar.isFalling = false; }
+          });
+
+          // 跌倒與爬起動畫
+          tl.to(targetChar.mesh.rotation, { z: Math.PI / 2, y: targetChar.mesh.rotation.y + 0.5, duration: 0.4, ease: "power2.in" })
+            .to(targetChar.mesh.position, { y: 0.2, duration: 0.2, yoyo: true, repeat: 1 }, "-=0.4")
+            .to({}, { duration: 1.0 }) // 躺在地上停留
+            .to(targetChar.mesh.rotation, { z: 0, duration: 0.6, ease: "back.out(1.7)" });
+        }
       }
     });
 
-    // 6. 動畫迴圈 (處理走動與轉向)
+    // 6. 動畫迴圈：讓所有角色各自在畫面隨機走動
     function animate() {
       requestAnimationFrame(animate);
 
-      if (character && !isFalling) {
-        // 計算移動方向
-        const dir = new THREE.Vector3().subVectors(targetPosition, character.position);
-        const dist = dir.length();
+      characters.forEach(char => {
+        if (!char.isFalling) {
+          const dir = new THREE.Vector3().subVectors(char.targetPosition, char.mesh.position);
+          const dist = dir.length();
 
-        if (dist < 0.2) {
-          getNewRandomTarget(); // 接近目標後換下一個隨機點
-        } else {
-          dir.normalize();
-          character.position.addScaledVector(dir, walkSpeed);
+          if (dist < 0.2) {
+            char.getNewTarget();
+          } else {
+            dir.normalize();
+            char.mesh.position.addScaledVector(dir, char.walkSpeed);
 
-          // 讓角色面向移動方向
-          const angle = Math.atan2(dir.x, dir.z);
-          character.rotation.y = angle;
+            // 面向移動方向
+            const angle = Math.atan2(dir.x, dir.z);
+            char.mesh.rotation.y = angle;
 
-          // 走路時加入微幅上下晃動感
-          character.position.y = Math.sin(Date.now() * 0.015) * 0.08;
+            // 走路時的微幅上下晃動
+            char.mesh.position.y = Math.sin(Date.now() * 0.015 + char.mesh.position.x) * 0.08;
+          }
         }
-      }
+      });
 
       controls.update();
       renderer.render(scene, camera);
