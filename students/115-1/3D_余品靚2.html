@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>太空主題 3D 互動賀卡</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- OrbitControls CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #030308;
+            color: #ffffff;
+            user-select: none;
+        }
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+        /* 玻璃擬物風格 UI */
+        .glass-panel {
+            background: rgba(13, 17, 38, 0.55);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(255, 255, 255, 0.05);
+        }
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .glass-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 15px rgba(100, 200, 255, 0.4);
+            transform: translateY(-2px);
+        }
+        /* 自訂捲軸 */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="relative w-full h-screen overflow-hidden">
+
+    <!-- WebGL 渲染畫布 Container -->
+    <div id="canvas-container" class="absolute inset-0 w-full h-full z-0 cursor-crosshair"></div>
+
+    <!-- UI 層 (賀卡與控制項) -->
+    <div class="relative z-10 pointer-events-none w-full h-full flex flex-col justify-between p-4 sm:p-6 md:p-8">
+        
+        <!-- 頂部標題與音樂控制 -->
+        <div class="flex justify-between items-center w-full max-w-7xl mx-auto">
+            <div class="pointer-events-auto">
+                <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-300 to-pink-400 font-orbitron drop-shadow-md">
+                    COSMIC BLESSINGS
+                </h1>
+                <p class="text-xs sm:text-sm text-cyan-200/70 tracking-widest font-light">探索浩瀚星辰 ‧ 許下專屬心願</p>
+            </div>
+            
+            <div class="pointer-events-auto flex items-center space-x-3">
+                <button id="audio-toggle" class="glass-btn p-3 rounded-full text-white hover:text-cyan-300 transition duration-300 focus:outline-none" title="開啟/關閉背景音效">
+                    <i id="audio-icon" class="fas fa-volume-mute text-lg"></i>
+                </button>
+                <button id="toggle-card-btn" class="glass-btn px-4 py-2 rounded-xl text-xs sm:text-sm text-white font-medium flex items-center gap-2">
+                    <i class="fas fa-eye-slash"></i> <span id="toggle-card-text">隱藏賀卡</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 畫面中央提示語 -->
+        <div id="click-hint" class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-white/60 text-xs sm:text-sm pointer-events-none transition-opacity duration-700 animate-pulse">
+            <p><i class="fas fa-mouse-pointer mr-1"></i> 點擊星空任意處發射火箭太空船</p>
+            <p><i class="fas fa-arrows-spin mr-1"></i> 拖拽畫面可 360 度旋轉視角</p>
+        </div>
+
+        <!-- 主要賀卡卡片 Panel -->
+        <div id="greeting-card" class="pointer-events-auto glass-panel w-full max-w-md mx-auto sm:mx-0 sm:ml-auto p-6 sm:p-8 rounded-3xl transition-all duration-500 transform translate-y-0 opacity-100 my-auto sm:my-0">
+            <div class="flex justify-between items-start mb-3">
+                <div>
+                    <span class="inline-block px-2.5 py-1 text-[10px] font-semibold tracking-wider text-cyan-300 bg-cyan-950/60 border border-cyan-500/30 rounded-full font-orbitron mb-2">STARGAZER 2026</span>
+                    <p class="text-xs text-purple-300 font-medium">To: <span id="card-to-display">親愛的朋友</span></p>
+                    <h2 id="card-title-display" class="text-xl sm:text-2xl font-bold text-white tracking-wide mt-1">願你的征途為星辰大海</h2>
+                </div>
+                <div class="text-pink-400 text-2xl">
+                    <i class="fas fa-meteor animate-bounce"></i>
+                </div>
+            </div>
+
+            <!-- 賀卡內文內建呈現 -->
+            <div class="mb-4">
+                <p id="card-message-display" class="text-sm sm:text-base text-gray-200 leading-relaxed font-light whitespace-pre-line border-l-2 border-purple-500/50 pl-4 py-1">
+                    穿梭於行星軌道之間，讓光芒照亮每一個夢想。<br>在這片廣袤無垠的宇宙中，祝福你擁有無盡勇氣，探索屬於自己的無限可能！
+                </p>
+                <p class="text-right text-xs text-cyan-300 font-medium mt-2">From: <span id="card-from-display">星空探索者</span></p>
+            </div>
+
+            <!-- 切換編輯區塊按鈕 -->
+            <div class="pt-3 border-t border-white/10 flex justify-between items-center">
+                <button id="toggle-edit-btn" class="text-xs text-cyan-300 hover:text-cyan-100 flex items-center gap-1.5 transition">
+                    <i id="edit-icon" class="fas fa-pen"></i> <span id="edit-btn-text">編輯賀卡內容</span>
+                </button>
+                <button id="launch-rocket-btn" class="glass-btn py-1.5 px-3 rounded-xl text-xs font-semibold text-cyan-200 flex items-center gap-1.5 hover:text-white">
+                    <i class="fas fa-rocket text-pink-400"></i> 發射火箭
+                </button>
+            </div>
+
+            <!-- 動態客製化編輯區 (可展開/折疊) -->
+            <div id="edit-panel" class="hidden space-y-3 pt-4 mt-3 border-t border-white/10 transition-all">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[10px] font-medium text-cyan-200/80 mb-1">收件人 (To)</label>
+                        <input id="to-input" type="text" class="w-full px-2.5 py-1.5 text-xs bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-cyan-400/80 transition" value="親愛的朋友">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-medium text-cyan-200/80 mb-1">寄件人 (From)</label>
+                        <input id="from-input" type="text" class="w-full px-2.5 py-1.5 text-xs bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-cyan-400/80 transition" value="星空探索者">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-medium text-cyan-200/80 mb-1">賀卡標題</label>
+                    <input id="title-input" type="text" class="w-full px-2.5 py-1.5 text-xs bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-cyan-400/80 transition" value="願你的征途為星辰大海">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-medium text-cyan-200/80 mb-1">祝福內文</label>
+                    <textarea id="message-input" rows="3" class="w-full px-2.5 py-1.5 text-xs bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-cyan-400/80 transition resize-none">穿梭於行星軌道之間，讓光芒照亮每一個夢想。
+在這片廣袤無垠的宇宙中，祝福你擁有無盡勇氣，探索屬於自己的無限可能！</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部腳註資訊 -->
+        <div class="flex justify-between items-end w-full max-w-7xl mx-auto text-[10px] sm:text-xs text-gray-400/60 pointer-events-auto">
+            <div>
+                <span><i class="fas fa-globe mr-1"></i> 八大行星互動太陽系</span>
+            </div>
+            <div>
+                <span>Powered by Three.js WebGL</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 主程式邏輯 -->
+    <script>
+        // --- Web Audio API 聲音合成器 ---
+        class SpaceSoundManager {
+            constructor() {
+                this.ctx = null;
+                this.initialized = false;
+                this.muted = true;
+                this.ambientNode = null;
+            }
+
+            init() {
+                if (this.initialized) return;
+                try {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                    this.initialized = true;
+                } catch(e) {
+                    console.log("Web Audio API not supported.");
+                }
+            }
+
+            toggleSound() {
+                if (!this.initialized) this.init();
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+                this.muted = !this.muted;
+                if (!this.muted) {
+                    this.playAmbient();
+                } else {
+                    this.stopAmbient();
+                }
+                return !this.muted;
+            }
+
+            // 發射火箭音效（合成頻率滑移音效）
+            playRocketLaunch() {
+                if (this.muted || !this.initialized) return;
+                const now = this.ctx.currentTime;
+                
+                // 振盪器 - 引擎升頻聲
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(80, now);
+                osc.frequency.exponentialRampToValueAtTime(600, now + 1.2);
+
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 1.5);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 1.5);
+            }
+
+            // 低沉宇宙環境音效
+            playAmbient() {
+                if (this.ambientNode || !this.initialized) return;
+                const now = this.ctx.currentTime;
+                
+                const osc = this.ctx.createOscillator();
+                const filter = this.ctx.createBiquadFilter();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(55, now); // 低音 A1
+
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(120, now);
+
+                gain.gain.setValueAtTime(0.05, now);
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start();
+                this.ambientNode = { osc, gain };
+            }
+
+            stopAmbient() {
+                if (this.ambientNode) {
+                    this.ambientNode.osc.stop();
+                    this.ambientNode = null;
+                }
+            }
+        }
+
+        const soundManager = new SpaceSoundManager();
+
+        // --- Three.js 主要變數 ---
+        let scene, camera, renderer, controls;
+        let planets = [];
+        let rockets = [];
+        let particleSystems = [];
+        let raycaster, mouse;
+        const container = document.getElementById('canvas-container');
+
+        // 行星數據定義 (距離, 尺寸, 自轉速度, 公轉速度, 顏色, 紋理類型)
+        const PLANET_DATA = [
+            { name: '水星 Mercury', distance: 18, radius: 0.8, color: 0xA5A5A5, speed: 0.03, rotateSpeed: 0.01, type: 'rocky' },
+            { name: '金星 Venus', distance: 26, radius: 1.4, color: 0xE3BB76, speed: 0.02, rotateSpeed: 0.008, type: 'atmosphere' },
+            { name: '地球 Earth', distance: 36, radius: 1.6, color: 0x2B82C5, speed: 0.015, rotateSpeed: 0.02, hasMoon: true, type: 'earth' },
+            { name: '火星 Mars', distance: 48, radius: 1.1, color: 0xC1440E, speed: 0.01, rotateSpeed: 0.018, type: 'rocky' },
+            { name: '木星 Jupiter', distance: 66, radius: 3.8, color: 0xB07F35, speed: 0.007, rotateSpeed: 0.04, hasRings: true, ringType: 'jupiter', type: 'gas' },
+            { name: '土星 Saturn', distance: 88, radius: 3.2, color: 0xE2BF7D, speed: 0.005, rotateSpeed: 0.038, hasRings: true, ringType: 'saturn', type: 'gas' },
+            { name: '天王星 Uranus', distance: 108, radius: 2.3, color: 0x4B70DD, speed: 0.003, rotateSpeed: 0.025, hasRings: true, ringType: 'uranus', type: 'gas' },
+            { name: '海王星 Neptune', distance: 125, radius: 2.2, color: 0x274687, speed: 0.002, rotateSpeed: 0.022, type: 'gas' }
+        ];
+
+        // --- 程序化動態 Canvas 紋理生成器 ---
+        function createProceduralTexture(type, colorHex) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            
+            const color = '#' + new THREE.Color(colorHex).getHexString();
+
+            if (type === 'sun') {
+                const grad = ctx.createLinearGradient(0, 0, 0, 256);
+                grad.addColorStop(0, '#FFF5DD');
+                grad.addColorStop(0.5, '#FF8800');
+                grad.addColorStop(1, '#FF2200');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, 512, 256);
+                
+                // 太陽表面耀斑斑點
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                for(let i = 0; i < 400; i++) {
+                    ctx.beginPath();
+                    ctx.arc(Math.random()*512, Math.random()*256, Math.random()*6, 0, Math.PI*2);
+                    ctx.fill();
+                }
+            } else if (type === 'earth') {
+                // 地球海洋與陸地
+                ctx.fillStyle = '#1C4E80';
+                ctx.fillRect(0, 0, 512, 256);
+                ctx.fillStyle = '#2D882D';
+                for (let i = 0; i < 30; i++) {
+                    ctx.beginPath();
+                    ctx.ellipse(Math.random()*512, Math.random()*256, 30+Math.random()*50, 20+Math.random()*30, Math.random()*Math.PI, 0, Math.PI*2);
+                    ctx.fill();
+                }
+                // 大氣雲層
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                for (let i = 0; i < 20; i++) {
+                    ctx.beginPath();
+                    ctx.arc(Math.random()*512, Math.random()*256, 20+Math.random()*40, 0, Math.PI*2);
+                    ctx.fill();
+                }
+            } else if (type === 'gas') {
+                // 氣體行星條紋 (木星/土星等)
+                ctx.fillStyle = color;
+                ctx.fillRect(0, 0, 512, 256);
+                for (let y = 0; y < 256; y += 8 + Math.random()*12) {
+                    ctx.fillStyle = (Math.random() > 0.5) ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)';
+                    ctx.fillRect(0, y, 512, 4 + Math.random()*6);
+                }
+            } else {
+                // 岩石行星 (水星/火星)
+                ctx.fillStyle = color;
+                ctx.fillRect(0, 0, 512, 256);
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                for (let i = 0; i < 200; i++) {
+                    ctx.beginPath();
+                    ctx.arc(Math.random()*512, Math.random()*256, Math.random()*4, 0, Math.PI*2);
+                    ctx.fill();
+                }
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.ClampToEdgeWrapping;
+            return texture;
+        }
+
+        // --- 初始化 3D 場景 ---
+        function initScene() {
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x030308, 0.0015);
+
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 50, 100);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
+            container.appendChild(renderer.domElement);
+
+            // OrbitControls 鏡頭控制
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxDistance = 300;
+            controls.minDistance = 10;
+            controls.maxPolarAngle = Math.PI / 2 + 0.1; // 避免進到地底平視角以下
+
+            // 射線檢測
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+
+            // 光源設置
+            const ambientLight = new THREE.AmbientLight(0x333344, 1.5);
+            scene.add(ambientLight);
+
+            // 太陽光源 (PointLight)
+            const sunLight = new THREE.PointLight(0xffffff, 2.5, 400, 0.5);
+            scene.add(sunLight);
+
+            // 建立環境組件
+            createSun();
+            createPlanets();
+            createStarfield();
+            createNebula();
+
+            // 事件監聽
+            window.addEventListener('resize', onWindowResize);
+            renderer.domElement.addEventListener('pointerdown', onPointerDown);
+
+            // UI 互動事件綁定
+            bindUIEvents();
+
+            // 動畫循環
+            animate();
+        }
+
+        // --- 創建太陽 ---
+        function createSun() {
+            const sunGeo = new THREE.SphereGeometry(8, 64, 64);
+            const sunTex = createProceduralTexture('sun', 0xffaa00);
+            const sunMat = new THREE.MeshBasicMaterial({ map: sunTex });
+            const sun = new THREE.Mesh(sunGeo, sunMat);
+            scene.add(sun);
+
+            // 太陽發光 Glow 效果
+            const glowGeo = new THREE.SphereGeometry(8.8, 32, 32);
+            const glowMat = new THREE.MeshBasicMaterial({
+                color: 0xff6600,
+                transparent: true,
+                opacity: 0.35,
+                side: THREE.BackSide
+            });
+            const glow = new THREE.Mesh(glowGeo, glowMat);
+            sun.add(glow);
+
+            // 太陽外圍大暈光
+            const outerGlowGeo = new THREE.SphereGeometry(10.5, 32, 32);
+            const outerGlowMat = new THREE.MeshBasicMaterial({
+                color: 0xffaa00,
+                transparent: true,
+                opacity: 0.15,
+                side: THREE.BackSide
+            });
+            const outerGlow = new THREE.Mesh(outerGlowGeo, outerGlowMat);
+            sun.add(outerGlow);
+        }
+
+        // --- 創建八大行星與軌道 ---
+        function createPlanets() {
+            PLANET_DATA.forEach((data) => {
+                // 軌道圓環
+                const orbitGeo = new THREE.RingGeometry(data.distance - 0.15, data.distance + 0.15, 128);
+                const orbitMat = new THREE.MeshBasicMaterial({
+                    color: 0xffffff,
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.08
+                });
+                const orbit = new THREE.Mesh(orbitGeo, orbitMat);
+                orbit.rotation.x = Math.PI / 2;
+                scene.add(orbit);
+
+                // 行星樞紐（用於繞日公轉）
+                const pivot = new THREE.Group();
+                scene.add(pivot);
+
+                // 行星本體
+                const planetGeo = new THREE.SphereGeometry(data.radius, 32, 32);
+                const planetTex = createProceduralTexture(data.type, data.color);
+                const planetMat = new THREE.MeshStandardMaterial({
+                    map: planetTex,
+                    roughness: 0.8,
+                    metalness: 0.1
+                });
+                const planet = new THREE.Mesh(planetGeo, planetMat);
+                
+                // 隨機初始公轉角度
+                const initialAngle = Math.random() * Math.PI * 2;
+                planet.position.set(Math.cos(initialAngle) * data.distance, 0, Math.sin(initialAngle) * data.distance);
+                pivot.add(planet);
+
+                // 特殊特徵：土星/木星/天王星的光環
+                if (data.hasRings) {
+                    let innerR = data.radius * 1.4;
+                    let outerR = data.radius * 2.3;
+                    if (data.ringType === 'saturn') outerR = data.radius * 2.8;
+
+                    const ringGeo = new THREE.RingGeometry(innerR, outerR, 64);
+                    const ringMat = new THREE.MeshStandardMaterial({
+                        color: data.color,
+                        side: THREE.DoubleSide,
+                        transparent: true,
+                        opacity: 0.7
+                    });
+                    const ring = new THREE.Mesh(ringGeo, ringMat);
+                    ring.rotation.x = Math.PI / 2.3;
+                    planet.add(ring);
+                }
+
+                // 地球的月球
+                if (data.hasMoon) {
+                    const moonPivot = new THREE.Group();
+                    planet.add(moonPivot);
+                    const moonGeo = new THREE.SphereGeometry(0.3, 16, 16);
+                    const moonMat = new THREE.MeshStandardMaterial({ color: 0xcccccc });
+                    const moon = new THREE.Mesh(moonGeo, moonMat);
+                    moon.position.set(3, 0, 0);
+                    moonPivot.add(moon);
+                    planet.userData.moonPivot = moonPivot;
+                }
+
+                // 保存資料用於動畫更新
+                planets.push({
+                    pivot: pivot,
+                    mesh: planet,
+                    speed: data.speed,
+                    rotateSpeed: data.rotateSpeed,
+                    angle: initialAngle,
+                    distance: data.distance
+                });
+            });
+        }
+
+        // --- 璀璨背景星空粒子 ---
+        function createStarfield() {
+            const count = 3000;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(count * 3);
+            const colors = new Float32Array(count * 3);
+
+            for (let i = 0; i < count * 3; i += 3) {
+                // 均勻球體隨機分佈
+                const r = 250 + Math.random() * 400;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos((Math.random() * 2) - 1);
+
+                positions[i] = r * Math.sin(phi) * Math.cos(theta);
+                positions[i+1] = r * Math.sin(phi) * Math.sin(theta);
+                positions[i+2] = r * Math.cos(phi);
+
+                // 星星顏色微調（白、淺藍、淡黃）
+                const c = new THREE.Color();
+                const rand = Math.random();
+                if (rand > 0.8) c.setHex(0x88ccff);
+                else if (rand > 0.6) c.setHex(0xffddaa);
+                else c.setHex(0xffffff);
+
+                colors[i] = c.r;
+                colors[i+1] = c.g;
+                colors[i+2] = c.b;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 1.2,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.9
+            });
+
+            const starfield = new THREE.Points(geometry, material);
+            scene.add(starfield);
+        }
+
+        // --- 星雲氣體粒子層 ---
+        function createNebula() {
+            const count = 400;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(count * 3);
+            const colors = new Float32Array(count * 3);
+
+            const palette = [0x4b0082, 0x8a2be2, 0x00ffff, 0xff007f];
+
+            for (let i = 0; i < count * 3; i += 3) {
+                positions[i] = (Math.random() - 0.5) * 500;
+                positions[i+1] = (Math.random() - 0.5) * 200;
+                positions[i+2] = (Math.random() - 0.5) * 500;
+
+                const c = new THREE.Color(palette[Math.floor(Math.random() * palette.length)]);
+                colors[i] = c.r;
+                colors[i+1] = c.g;
+                colors[i+2] = c.b;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 25,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.15,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+
+            const nebula = new THREE.Points(geometry, material);
+            scene.add(nebula);
+        }
+
+        // --- 程序化 3D 火箭生成器 ---
+        function createRocketMesh() {
+            const rocketGroup = new THREE.Group();
+
+            // 船身 Body
+            const bodyGeo = new THREE.CylinderGeometry(0.4, 0.6, 3, 16);
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, metalness: 0.5, roughness: 0.3 });
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.position.y = 1.5;
+            rocketGroup.add(body);
+
+            // 錐形鼻錐 Cone
+            const noseGeo = new THREE.ConeGeometry(0.4, 1, 16);
+            const noseMat = new THREE.MeshStandardMaterial({ color: 0xff3355, metalness: 0.3, roughness: 0.4 });
+            const nose = new THREE.Mesh(noseGeo, noseMat);
+            nose.position.y = 3.5;
+            rocketGroup.add(nose);
+
+            // 尾翼 Fins (3個)
+            const finGeo = new THREE.BoxGeometry(0.1, 0.8, 0.6);
+            const finMat = new THREE.MeshStandardMaterial({ color: 0xff3355 });
+            for (let i = 0; i < 3; i++) {
+                const fin = new THREE.Mesh(finGeo, finMat);
+                const angle = (i * Math.PI * 2) / 3;
+                fin.position.set(Math.sin(angle) * 0.6, 0.4, Math.cos(angle) * 0.6);
+                fin.rotation.y = angle;
+                rocketGroup.add(fin);
+            }
+
+            // 噴射尾焰 Engine Light/Cone
+            const flameGeo = new THREE.ConeGeometry(0.35, 1.2, 12);
+            flameGeo.rotateX(Math.PI);
+            const flameMat = new THREE.MeshBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0.8 });
+            const flame = new THREE.Mesh(flameGeo, flameMat);
+            flame.position.y = -0.6;
+            rocketGroup.add(flame);
+
+            // 火箭調整為水平推進姿態
+            rocketGroup.rotation.x = Math.PI / 2;
+            rocketGroup.scale.set(1.2, 1.2, 1.2);
+
+            return rocketGroup;
+        }
+
+        // --- 生成噴射粒子尾跡 ---
+        function createJetParticles(targetGroup) {
+            const pCount = 40;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(pCount * 3);
+            const colors = new Float32Array(pCount * 3);
+
+            for (let i = 0; i < pCount * 3; i += 3) {
+                positions[i] = 0;
+                positions[i+1] = 0;
+                positions[i+2] = 0;
+
+                colors[i] = 1.0;
+                colors[i+1] = Math.random() * 0.6;
+                colors[i+2] = 0.0;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 0.6,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            });
+
+            const pSystem = new THREE.Points(geometry, material);
+            scene.add(pSystem);
+
+            return { mesh: pSystem, count: pCount, positions: positions, velocities: [] };
+        }
+
+        // --- 點擊畫面生成火箭 ---
+        function spawnRocket(spawnPosition) {
+            const rocket = createRocketMesh();
+            
+            // 從點擊位置起飛，加入微小偏移
+            rocket.position.copy(spawnPosition);
+
+            // 隨機發射飛行方向（向上並朝四周擴散）
+            const targetDirection = new THREE.Vector3(
+                (Math.random() - 0.5) * 2,
+                Math.random() * 1.5 + 0.5,
+                (Math.random() - 0.5) * 2
+            ).normalize();
+
+            // 火箭朝向飛行方向
+            const lookTarget = new THREE.Vector3().addVectors(rocket.position, targetDirection);
+            rocket.lookAt(lookTarget);
+
+            scene.add(rocket);
+
+            // 播放發射音效
+            soundManager.playRocketLaunch();
+
+            // 生成粒子尾跡
+            const jetParticles = createJetParticles(rocket);
+
+            rockets.push({
+                mesh: rocket,
+                direction: targetDirection,
+                speed: 0.8 + Math.random() * 0.4,
+                life: 0,
+                maxLife: 250, // 存活幀數
+                particles: jetParticles
+            });
+        }
+
+        // --- 點擊/觸控 觸發發射火箭 ---
+        function onPointerDown(event) {
+            // 忽略 UI 元素上的點擊
+            if (event.target.tagName !== 'CANVAS') return;
+
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+
+            // 在距離鏡頭一定距離的 3D 平面上取點
+            const targetPlane = new THREE.Plane(camera.getWorldDirection(new THREE.Vector3()).negate(), -20);
+            const intersectPoint = new THREE.Vector3();
+            raycaster.ray.intersectPlane(targetPlane, intersectPoint);
+
+            if (intersectPoint) {
+                spawnRocket(intersectPoint);
+            }
+        }
+
+        // --- 綁定 UI 互動事件 ---
+        function bindUIEvents() {
+            // 音效切換
+            const audioBtn = document.getElementById('audio-toggle');
+            const audioIcon = document.getElementById('audio-icon');
+            audioBtn.addEventListener('click', () => {
+                const isPlaying = soundManager.toggleSound();
+                if (isPlaying) {
+                    audioIcon.className = "fas fa-volume-up text-cyan-400";
+                } else {
+                    audioIcon.className = "fas fa-volume-mute text-white";
+                }
+            });
+
+            // 折疊/展開整張賀卡 Panel
+            const cardPanel = document.getElementById('greeting-card');
+            const toggleCardBtn = document.getElementById('toggle-card-btn');
+            const toggleCardText = document.getElementById('toggle-card-text');
+            const toggleCardIcon = toggleCardBtn.querySelector('i');
+            let isCardVisible = true;
+
+            toggleCardBtn.addEventListener('click', () => {
+                isCardVisible = !isCardVisible;
+                if (isCardVisible) {
+                    cardPanel.classList.remove('opacity-0', 'translate-y-8', 'pointer-events-none');
+                    cardPanel.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                    toggleCardText.textContent = "隱藏賀卡";
+                    toggleCardIcon.className = "fas fa-eye-slash";
+                } else {
+                    cardPanel.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                    cardPanel.classList.add('opacity-0', 'translate-y-8', 'pointer-events-none');
+                    toggleCardText.textContent = "顯示賀卡";
+                    toggleCardIcon.className = "fas fa-envelope-open-text";
+                }
+            });
+
+            // 折疊/展開編輯面板 (Edit Panel Toggle)
+            const toggleEditBtn = document.getElementById('toggle-edit-btn');
+            const editPanel = document.getElementById('edit-panel');
+            const editIcon = document.getElementById('edit-icon');
+            const editBtnText = document.getElementById('edit-btn-text');
+            let isEditing = false;
+
+            toggleEditBtn.addEventListener('click', () => {
+                isEditing = !isEditing;
+                if (isEditing) {
+                    editPanel.classList.remove('hidden');
+                    editIcon.className = "fas fa-chevron-up";
+                    editBtnText.textContent = "收起編輯";
+                } else {
+                    editPanel.classList.add('hidden');
+                    editIcon.className = "fas fa-pen";
+                    editBtnText.textContent = "編輯賀卡內容";
+                }
+            });
+
+            // 實時更新賀卡文字
+            const toInput = document.getElementById('to-input');
+            const fromInput = document.getElementById('from-input');
+            const titleInput = document.getElementById('title-input');
+            const messageInput = document.getElementById('message-input');
+
+            const toDisplay = document.getElementById('card-to-display');
+            const fromDisplay = document.getElementById('card-from-display');
+            const titleDisplay = document.getElementById('card-title-display');
+            const messageDisplay = document.getElementById('card-message-display');
+
+            toInput.addEventListener('input', (e) => {
+                toDisplay.textContent = e.target.value || "親愛的朋友";
+            });
+
+            fromInput.addEventListener('input', (e) => {
+                fromDisplay.textContent = e.target.value || "星空探索者";
+            });
+
+            titleInput.addEventListener('input', (e) => {
+                titleDisplay.textContent = e.target.value || "願你的征途為星辰大海";
+            });
+
+            messageInput.addEventListener('input', (e) => {
+                messageDisplay.textContent = e.target.value || "請輸入您的專屬祝福心願...";
+            });
+
+            // 手動發射火箭按鈕
+            const launchBtn = document.getElementById('launch-rocket-btn');
+            launchBtn.addEventListener('click', () => {
+                // 從畫面中央前方發射
+                const spawnPos = new THREE.Vector3(0, -10, 20);
+                spawnRocket(spawnPos);
+            });
+        }
+
+        // --- 視窗大小改變校正 ---
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- 動畫渲染主循環 ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // 更新 OrbitControls
+            controls.update();
+
+            // 1. 八大行星公轉與自轉
+            planets.forEach(p => {
+                p.angle += p.speed * 0.5;
+                p.mesh.position.x = Math.cos(p.angle) * p.distance;
+                p.mesh.position.z = Math.sin(p.angle) * p.distance;
+                p.mesh.rotation.y += p.rotateSpeed;
+
+                // 月球旋轉
+                if (p.mesh.userData.moonPivot) {
+                    p.mesh.userData.moonPivot.rotation.y += 0.03;
+                }
+            });
+
+            // 2. 更新火箭位置與尾跡粒子
+            for (let i = rockets.length - 1; i >= 0; i--) {
+                const r = rockets[i];
+                r.life++;
+
+                // 火箭向前飛行
+                r.mesh.position.addScaledVector(r.direction, r.speed);
+
+                // 更新尾跡粒子
+                const pSys = r.particles;
+                const posAttr = pSys.mesh.geometry.attributes.position;
+                
+                // 火箭尾端世界座標
+                const tailPos = r.mesh.position.clone().sub(r.direction.clone().multiplyScalar(1.5));
+
+                // 將舊粒子往後移並加入隨機擴散
+                for (let j = pSys.count - 1; j > 0; j--) {
+                    posAttr.setXYZ(
+                        j,
+                        posAttr.getX(j - 1) + (Math.random() - 0.5) * 0.1,
+                        posAttr.getY(j - 1) + (Math.random() - 0.5) * 0.1,
+                        posAttr.getZ(j - 1) + (Math.random() - 0.5) * 0.1
+                    );
+                }
+                // 最新粒子設置在尾端
+                posAttr.setXYZ(0, tailPos.x, tailPos.y, tailPos.z);
+                posAttr.needsUpdate = true;
+
+                // 生命週期結束時銷毀火箭
+                if (r.life > r.maxLife) {
+                    scene.remove(r.mesh);
+                    scene.remove(r.particles.mesh);
+                    r.particles.mesh.geometry.dispose();
+                    r.particles.mesh.material.dispose();
+                    rockets.splice(i, 1);
+                }
+            }
+
+            // 渲染場景
+            renderer.render(scene, camera);
+        }
+
+        // 頁面載入後初始化
+        window.onload = initScene;
+    </script>
+</body>
+</html>

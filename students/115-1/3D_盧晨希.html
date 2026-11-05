@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>3D 慶生音樂賀卡 - Happy Birthday 3D Card</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- Three.js (3D Graphics Engine) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans TC"', 'sans-serif'],
+                        cursive: ['"Dancing Script"', 'cursive']
+                    },
+                    colors: {
+                        gold: { 300: '#fde047', 400: '#facc15', 500: '#eab308' },
+                        rosepink: { 400: '#fb7185', 500: '#f43f5e', 600: '#e11d48' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Noto Sans TC', sans-serif; overflow: hidden; user-select: none; }
+        .font-cursive { font-family: 'Dancing Script', cursive; }
+        canvas#webgl { position: fixed; inset: 0; outline: none; z-index: 0; }
+        .glass-panel { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.15); }
+        .glow-text { text-shadow: 0 0 15px rgba(250, 204, 21, 0.6); }
+        .candle-glow { animation: pulseGlow 1.5s infinite alternate ease-in-out; }
+        @keyframes pulseGlow {
+            0% { filter: drop-shadow(0 0 5px rgba(253, 224, 71, 0.8)); }
+            100% { filter: drop-shadow(0 0 20px rgba(249, 115, 22, 1)); }
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between relative">
+
+    <!-- 3D Canvas Context -->
+    <canvas id="webgl"></canvas>
+
+    <!-- TOP TOOLBAR & CONTROLS -->
+    <header class="relative z-20 p-4 flex justify-between items-center pointer-events-auto">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-400 to-rose-500 flex items-center justify-center text-xl shadow-lg shadow-rose-500/30">
+                🎂
+            </div>
+            <div>
+                <h1 id="headerTitle" class="font-black text-lg text-amber-300 leading-none">生日快樂！</h1>
+                <p class="text-[10px] text-slate-400 font-bold tracking-widest uppercase mt-0.5">3D Interactive Birthday Card</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <button onclick="toggleMusic()" id="musicBtn" class="px-3.5 py-2 rounded-2xl glass-panel text-amber-300 hover:text-amber-200 border border-amber-400/30 text-xs font-bold transition-all flex items-center gap-2 shadow-lg">
+                <i class="fa-solid fa-music"></i> <span id="musicText">播放樂曲</span>
+            </button>
+            <button onclick="openEditModal()" class="px-3.5 py-2 rounded-2xl glass-panel text-sky-300 hover:text-sky-200 border border-sky-400/30 text-xs font-bold transition-all flex items-center gap-2 shadow-lg">
+                <i class="fa-solid fa-pen-to-square"></i> 修改祝福
+            </button>
+        </div>
+    </header>
+
+    <!-- FLOATING INTERACTIVE GUIDE / HINT -->
+    <div id="actionHint" class="relative z-20 text-center pointer-events-none mb-4 transition-all duration-500 opacity-90">
+        <span class="inline-flex items-center gap-2 bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-amber-400/40 text-amber-300 text-xs md:text-sm font-bold shadow-xl animate-bounce">
+            💡 拖曳可 360 度旋轉視角！點擊禮物盒或吹熄蠟燭來驚喜開箱 ✨
+        </span>
+    </div>
+
+    <!-- BIRTHDAY CARD MODAL / POPUP -->
+    <div id="cardModal" class="fixed inset-0 z-30 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4 transition-all duration-500">
+        <div class="glass-panel p-6 md:p-8 rounded-3xl max-w-lg w-full border-2 border-amber-400/40 text-center shadow-2xl relative transform scale-95 transition-transform duration-300">
+            <button onclick="closeCardModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-2xl p-1"><i class="fa-solid fa-xmark"></i></button>
+            
+            <div class="text-5xl mb-2 animate-bounce">🎁</div>
+            <h2 id="cardTitle" class="font-cursive text-4xl md:text-5xl text-amber-300 font-bold glow-text mb-2">Happy Birthday!</h2>
+            <h3 id="recipientDisplay" class="text-xl md:text-2xl font-black text-rose-400 mb-4">致 最特別的你 ✨</h3>
+            
+            <div class="bg-slate-900/90 p-5 rounded-2xl border border-amber-500/30 my-4 text-left space-y-3">
+                <p id="messageDisplay" class="text-slate-200 text-sm md:text-base leading-relaxed whitespace-pre-line font-medium">
+                    願你的每一天都充滿陽光與笑聲，所有的心願都能順利實現！
+                    天天開心，歲歲平安，生日快樂！🎉🎂✨
+                </p>
+                <div class="pt-3 border-t border-slate-800 text-right">
+                    <span id="senderDisplay" class="text-amber-400 font-bold text-xs md:text-sm">—— 來自 好朋友 的摯誠祝福</span>
+                </div>
+            </div>
+
+            <div class="flex gap-3 justify-center mt-6">
+                <button onclick="blowCandles()" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-white font-bold text-xs md:text-sm rounded-xl shadow-lg flex items-center gap-2">
+                    🕯️ 吹熄蠟燭許願
+                </button>
+                <button onclick="fireConfettiEffect()" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs md:text-sm rounded-xl border border-amber-400/30">
+                    🎉 再放一次彩帶
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CUSTOM MESSAGE EDIT MODAL -->
+    <div id="editModal" class="fixed inset-0 z-40 bg-slate-950/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="glass-panel p-6 rounded-3xl max-w-md w-full border border-sky-400/40 shadow-2xl relative">
+            <button onclick="closeEditModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl p-1"><i class="fa-solid fa-xmark"></i></button>
+            
+            <div class="flex items-center gap-2 mb-4">
+                <span class="text-2xl">✍️</span>
+                <h3 class="text-lg font-black text-sky-300">自訂卡片賀詞</h3>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">壽星姓名 / 稱呼：</label>
+                    <input type="text" id="inputRecipient" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-400" placeholder="例如：小明 / 親愛的">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">祝福內文：</label>
+                    <textarea id="inputMessage" rows="4" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-400 leading-relaxed" placeholder="寫下對壽星的溫暖祝福..."></textarea>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">落款署名：</label>
+                    <input type="text" id="inputSender" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-400" placeholder="例如：愛你的朋友">
+                </div>
+            </div>
+
+            <div class="flex gap-2 mt-5">
+                <button onclick="saveCustomMessage()" class="w-full py-2.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-lg">
+                    儲存更新 ✨
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM ACTION BAR -->
+    <footer class="relative z-20 p-4 flex justify-center items-center gap-3 pointer-events-auto">
+        <button onclick="openCardModal()" class="px-6 py-3 bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 hover:scale-105 transition-transform text-white font-extrabold text-sm rounded-full shadow-2xl flex items-center gap-2 border border-amber-300/40">
+            <i class="fa-solid fa-envelope-open-text"></i> 打開祝福卡片
+        </button>
+        <button onclick="blowCandles()" class="px-4 py-3 bg-slate-900/80 hover:bg-slate-800 text-amber-300 border border-amber-400/40 rounded-full font-bold text-sm shadow-xl flex items-center gap-2">
+            🕯️ 吹蠟燭
+        </button>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC ENGINE -->
+    <script>
+        // ==========================================
+        // 1. WEB AUDIO SYNTHESIZER (Happy Birthday Song)
+        // ==========================================
+        const BirthdayAudio = {
+            ctx: null,
+            isPlaying: false,
+            timer: null,
+            notes: [
+                { note: 261.63, dur: 0.4 }, { note: 261.63, dur: 0.4 }, { note: 293.66, dur: 0.8 }, { note: 261.63, dur: 0.8 }, { note: 349.23, dur: 0.8 }, { note: 329.63, dur: 1.2 },
+                { note: 261.63, dur: 0.4 }, { note: 261.63, dur: 0.4 }, { note: 293.66, dur: 0.8 }, { note: 261.63, dur: 0.8 }, { note: 392.00, dur: 0.8 }, { note: 349.23, dur: 1.2 },
+                { note: 261.63, dur: 0.4 }, { note: 261.63, dur: 0.4 }, { note: 523.25, dur: 0.8 }, { note: 440.00, dur: 0.8 }, { note: 349.23, dur: 0.8 }, { note: 329.63, dur: 0.8 }, { note: 293.66, dur: 0.8 },
+                { note: 466.16, dur: 0.4 }, { note: 466.16, dur: 0.4 }, { note: 440.00, dur: 0.8 }, { note: 349.23, dur: 0.8 }, { note: 392.00, dur: 0.8 }, { note: 349.23, dur: 1.5 }
+            ],
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+            },
+
+            playNote(freq, duration) {
+                if (!this.ctx || !this.isPlaying) return;
+                const now = this.ctx.currentTime;
+                
+                // Music Box Chime Tone
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now);
+
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + duration * 1.2);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + duration * 1.2);
+            },
+
+            toggle() {
+                this.init();
+                this.isPlaying = !this.isPlaying;
+                
+                if (this.isPlaying) {
+                    let step = 0;
+                    const playLoop = () => {
+                        if (!this.isPlaying) return;
+                        const curr = this.notes[step % this.notes.length];
+                        this.playNote(curr.note, curr.dur);
+                        step++;
+                        this.timer = setTimeout(playLoop, curr.dur * 600);
+                    };
+                    playLoop();
+                } else {
+                    if (this.timer) clearTimeout(this.timer);
+                }
+                return this.isPlaying;
+            }
+        };
+
+        function toggleMusic() {
+            const st = BirthdayAudio.toggle();
+            document.getElementById('musicText').innerText = st ? '暫停樂曲' : '播放樂曲';
+            document.getElementById('musicBtn').classList.toggle('bg-amber-400/20', st);
+        }
+
+        // ==========================================
+        // 2. THREE.JS 3D SCENE & OBJECTS SETUP
+        // ==========================================
+        let scene, camera, renderer, cakeGroup, giftGroup, flames = [];
+        let isCandleBlown = false;
+
+        function init3D() {
+            const canvas = document.getElementById('webgl');
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x0f172a, 0.035);
+
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 3.5, 8.5);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffedd5, 1.2);
+            dirLight.position.set(5, 10, 7);
+            dirLight.castShadow = true;
+            scene.add(dirLight);
+
+            const pointLight = new THREE.PointLight(0xfacc15, 1.5, 10);
+            pointLight.position.set(0, 2, 0);
+            scene.add(pointLight);
+
+            // Create 3D Cake & Gift Box
+            createCake();
+            createGiftBox();
+            createParticleStars();
+
+            // Orbit & Drag Touch Controls
+            let isDragging = false;
+            let previousMousePosition = { x: 0, y: 0 };
+
+            window.addEventListener('mousedown', (e) => { isDragging = true; });
+            window.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    const deltaMove = { x: e.clientX - previousMousePosition.x, y: e.clientY - previousMousePosition.y };
+                    cakeGroup.rotation.y += deltaMove.x * 0.008;
+                    giftGroup.rotation.y += deltaMove.x * 0.008;
+                    cakeGroup.rotation.x = Math.max(-0.2, Math.min(0.5, cakeGroup.rotation.x + deltaMove.y * 0.005));
+                }
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+            window.addEventListener('mouseup', () => { isDragging = false; });
+
+            // Touch events for Mobile
+            window.addEventListener('touchmove', (e) => {
+                if (e.touches[0]) {
+                    const touch = e.touches[0];
+                    if (isDragging) {
+                        const deltaMove = { x: touch.clientX - previousMousePosition.x, y: touch.clientY - previousMousePosition.y };
+                        cakeGroup.rotation.y += deltaMove.x * 0.01;
+                        giftGroup.rotation.y += deltaMove.x * 0.01;
+                    }
+                    previousMousePosition = { x: touch.clientX, y: touch.clientY };
+                }
+            }, { passive: true });
+            window.addEventListener('touchstart', (e) => {
+                if (e.touches[0]) {
+                    isDragging = true;
+                    previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                }
+            }, { passive: true });
+            window.addEventListener('touchend', () => { isDragging = false; });
+
+            // Raycaster for 3D Click Interaction
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+
+            window.addEventListener('pointerdown', (e) => {
+                mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+                raycaster.setFromCamera(mouse, camera);
+
+                const intersects = raycaster.intersectObjects(scene.children, true);
+                if (intersects.length > 0) {
+                    const hit = intersects[0].object;
+                    if (hit.name === 'giftBox' || hit.name === 'giftLid') {
+                        openCardModal();
+                    } else if (hit.name === 'flame') {
+                        blowCandles();
+                    }
+                }
+            });
+
+            // Window Resize
+            window.addEventListener('resize', onWindowResize);
+
+            // Animation Loop
+            animate();
+        }
+
+        // --- 3D CAKE BUILDER ---
+        function createCake() {
+            cakeGroup = new THREE.Group();
+
+            // Plate
+            const plateGeo = new THREE.CylinderGeometry(2.2, 2.4, 0.1, 32);
+            const plateMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.2, metalness: 0.5 });
+            const plate = new THREE.Mesh(plateGeo, plateMat);
+            plate.position.y = -1;
+            plate.receiveShadow = true;
+            cakeGroup.add(plate);
+
+            // Tier 1 (Bottom Cake)
+            const t1Geo = new THREE.CylinderGeometry(1.8, 1.8, 0.9, 32);
+            const t1Mat = new THREE.MeshStandardMaterial({ color: 0xfb7185, roughness: 0.4 }); // Strawberry Pink
+            const t1 = new THREE.Mesh(t1Geo, t1Mat);
+            t1.position.y = -0.5;
+            t1.castShadow = true;
+            cakeGroup.add(t1);
+
+            // Cream Layer
+            const creamGeo = new THREE.CylinderGeometry(1.85, 1.85, 0.15, 32);
+            const creamMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1 });
+            const cream = new THREE.Mesh(creamGeo, creamMat);
+            cream.position.y = -0.05;
+            cakeGroup.add(cream);
+
+            // Tier 2 (Top Cake)
+            const t2Geo = new THREE.CylinderGeometry(1.2, 1.2, 0.8, 32);
+            const t2Mat = new THREE.MeshStandardMaterial({ color: 0xfde047, roughness: 0.3 }); // Yellow Cream
+            const t2 = new THREE.Mesh(t2Geo, t2Mat);
+            t2.position.y = 0.4;
+            t2.castShadow = true;
+            cakeGroup.add(t2);
+
+            // Candles & Flames
+            const candlePositions = [
+                { x: 0, z: 0 },
+                { x: 0.6, z: 0.4 },
+                { x: -0.6, z: 0.4 },
+                { x: 0.5, z: -0.5 },
+                { x: -0.5, z: -0.5 }
+            ];
+
+            candlePositions.forEach((p, idx) => {
+                // Candle stick
+                const cGeo = new THREE.CylinderGeometry(0.05, 0.05, 0.5, 16);
+                const cMat = new THREE.MeshStandardMaterial({ color: idx % 2 === 0 ? 0x38bdf8 : 0xa855f7 });
+                const candle = new THREE.Mesh(cGeo, cMat);
+                candle.position.set(p.x, 1.05, p.z);
+                cakeGroup.add(candle);
+
+                // Flame
+                const fGeo = new THREE.ConeGeometry(0.06, 0.18, 16);
+                const fMat = new THREE.MeshBasicMaterial({ color: 0xf97316 });
+                const flame = new THREE.Mesh(fGeo, fMat);
+                flame.position.set(p.x, 1.38, p.z);
+                flame.name = 'flame';
+                cakeGroup.add(flame);
+                flames.push(flame);
+            });
+
+            scene.add(cakeGroup);
+        }
+
+        // --- 3D GIFT BOX BUILDER ---
+        function createGiftBox() {
+            giftGroup = new THREE.Group();
+
+            const boxGeo = new THREE.BoxGeometry(1.2, 1.0, 1.2);
+            const boxMat = new THREE.MeshStandardMaterial({ color: 0x8b5cf6, roughness: 0.3 }); // Purple Gift
+            const giftBox = new THREE.Mesh(boxGeo, boxMat);
+            giftBox.name = 'giftBox';
+            giftBox.position.set(2.8, -0.4, 1.0);
+            giftBox.castShadow = true;
+            giftGroup.add(giftBox);
+
+            // Gift Ribbon
+            const ribGeo = new THREE.BoxGeometry(1.24, 1.02, 0.2);
+            const ribMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: 0.6, roughness: 0.2 });
+            const ribbon = new THREE.Mesh(ribGeo, ribMat);
+            ribbon.position.set(2.8, -0.4, 1.0);
+            giftGroup.add(ribbon);
+
+            scene.add(giftGroup);
+        }
+
+        // --- BACKGROUND STARS PARTICLES ---
+        function createParticleStars() {
+            const count = 300;
+            const geo = new THREE.BufferGeometry();
+            const positions = new Float32Array(count * 3);
+
+            for (let i = 0; i < count * 3; i++) {
+                positions[i] = (Math.random() - 0.5) * 20;
+            }
+
+            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const mat = new THREE.PointsMaterial({ size: 0.05, color: 0xfde047, transparent: true, opacity: 0.8 });
+            const stars = new THREE.Points(geo, mat);
+            scene.add(stars);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Gentle Idle Rotation
+            if (cakeGroup) cakeGroup.rotation.y += 0.003;
+            if (giftGroup) giftGroup.rotation.y += 0.003;
+
+            // Flame Flicker Effect
+            if (!isCandleBlown) {
+                flames.forEach(f => {
+                    f.scale.x = 0.9 + Math.sin(Date.now() * 0.01) * 0.15;
+                    f.scale.z = 0.9 + Math.cos(Date.now() * 0.01) * 0.15;
+                });
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // ==========================================
+        // 3. INTERACTIVE CARD & MODAL LOGIC
+        // ==========================================
+        function blowCandles() {
+            if (isCandleBlown) return;
+            isCandleBlown = true;
+
+            flames.forEach(f => {
+                f.visible = false; // Extinguish 3D flames
+            });
+
+            fireConfettiEffect();
+            openCardModal();
+        }
+
+        function fireConfettiEffect() {
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
+
+        function openCardModal() {
+            document.getElementById('cardModal').classList.remove('hidden');
+            fireConfettiEffect();
+        }
+
+        function closeCardModal() {
+            document.getElementById('cardModal').classList.add('hidden');
+        }
+
+        function openEditModal() {
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+
+        function saveCustomMessage() {
+            const recipient = document.getElementById('inputRecipient').value.trim() || '最特別的你';
+            const message = document.getElementById('inputMessage').value.trim() || '願你的每一天都充滿陽光與笑聲！生日快樂！🎉🎂';
+            const sender = document.getElementById('inputSender').value.trim() || '好朋友';
+
+            document.getElementById('recipientDisplay').innerText = `致 ${recipient} ✨`;
+            document.getElementById('messageDisplay').innerText = message;
+            document.getElementById('senderDisplay').innerText = `—— 來自 ${sender} 的摯誠祝福`;
+
+            closeEditModal();
+            openCardModal();
+        }
+
+        // Initialize 3D Graphics on Load
+        window.onload = () => {
+            init3D();
+        };
+    </script>
+</body>
+</html>

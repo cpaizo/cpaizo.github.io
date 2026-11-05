@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>妖怪學校的菜鳥老師 - 曼陀羅草祝福卡片</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js for 3D graphics -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- OrbitControls for interaction -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- FontAwesome for cute icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Marcellus & Zen Maru Gothic / Noto Sans TC -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Zen Maru Gothic', sans-serif, system-ui;
+            user-select: none;
+            -webkit-user-select: none;
+            overflow: hidden;
+            background-color: #f6f0ea;
+        }
+
+        /* Soft pastel visual effect classes */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 32px 0 rgba(197, 185, 220, 0.25);
+        }
+
+        .pastel-glow {
+            filter: drop-shadow(0 0 12px rgba(184, 216, 190, 0.6));
+        }
+
+        .btn-bounce {
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .btn-bounce:hover {
+            transform: scale(1.06) translateY(-2px);
+        }
+        .btn-bounce:active {
+            transform: scale(0.95) translateY(1px);
+        }
+
+        /* Canvas styling */
+        #webgl-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* HTML Overlay text dynamic float */
+        .floating-blessing {
+            position: absolute;
+            pointer-events: none;
+            z-index: 50;
+            font-weight: 700;
+            white-space: nowrap;
+            animation: floatUpAndFade 2.2s ease-out forwards;
+            text-shadow: 0 2px 8px rgba(255, 255, 255, 0.9), 0 0 4px rgba(255, 198, 203, 0.8);
+        }
+
+        @keyframes floatUpAndFade {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5) rotate(-5deg);
+            }
+            20% {
+                opacity: 1;
+                transform: translate(-50%, -70%) scale(1.15) rotate(3deg);
+            }
+            80% {
+                opacity: 0.9;
+                transform: translate(-50%, -140%) scale(1) rotate(-2deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -200%) scale(0.85) rotate(0deg);
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(240, 235, 225, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="relative w-screen h-screen overflow-hidden text-slate-700">
+
+    <!-- 3D Canvas Background -->
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- UI Overlay Layer -->
+    <div class="relative z-10 flex flex-col justify-between h-full p-4 md:p-8 pointer-events-none">
+
+        <!-- Header Banner -->
+        <header class="w-full flex justify-between items-center max-w-5xl mx-auto pointer-events-auto">
+            <div class="glass-panel px-6 py-3 rounded-full flex items-center space-x-3 shadow-md">
+                <span class="text-2xl animate-bounce">🌱</span>
+                <div>
+                    <h1 class="font-black text-lg md:text-xl text-emerald-800 tracking-wide">妖怪學校的菜鳥老師</h1>
+                    <p class="text-xs text-emerald-600 font-bold">百鬼夜行學園 ✦ 曼陀羅草特別祝賀</p>
+                </div>
+            </div>
+
+            <!-- Audio & Hint Buttons -->
+            <div class="flex items-center space-x-3">
+                <button id="sound-btn" class="glass-panel p-3 rounded-full text-emerald-700 hover:text-emerald-900 btn-bounce flex items-center justify-center w-11 h-11">
+                    <i class="fa-solid fa-volume-high text-lg"></i>
+                </button>
+                <button id="info-btn" class="glass-panel p-3 rounded-full text-emerald-700 hover:text-emerald-900 btn-bounce flex items-center justify-center w-11 h-11">
+                    <i class="fa-solid fa-circle-info text-lg"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Click Hint Banner in Center Top -->
+        <div class="text-center my-2 pointer-events-none">
+            <span class="inline-block glass-panel px-5 py-2 rounded-full text-xs md:text-sm font-semibold text-emerald-900 bg-emerald-50/80 animate-pulse border-emerald-200">
+                ✨ 點擊螢幕任何地方，施展曼陀羅草魔法！ (滑鼠按住可旋轉視角)
+            </span>
+        </div>
+
+        <!-- Bottom Controls & Fortune Modal Area -->
+        <footer class="w-full max-w-xl mx-auto flex flex-col items-center space-y-4 mb-2 pointer-events-auto">
+
+            <!-- Interactive Action Card -->
+            <div class="glass-panel w-full p-4 md:p-6 rounded-3xl text-center shadow-lg border-emerald-100 flex flex-col items-center">
+                <p id="blessing-subhead" class="text-xs md:text-sm text-slate-500 mb-1">來自神祕溫室的溫馨祝福</p>
+                <h2 id="blessing-title" class="text-xl md:text-2xl font-black text-emerald-900 mb-4">
+                    「今日也要充滿活力地生長喔！」
+                </h2>
+
+                <div class="flex flex-wrap justify-center gap-3 w-full">
+                    <button id="fortune-btn" class="btn-bounce bg-gradient-to-r from-emerald-400 to-teal-400 text-white font-bold px-6 py-3 rounded-2xl shadow-md hover:shadow-lg flex items-center space-x-2">
+                        <span>🥠 抽一張妖怪幸運籤</span>
+                    </button>
+                    <button id="sprout-btn" class="btn-bounce bg-gradient-to-r from-pink-300 to-rose-300 text-rose-900 font-bold px-6 py-3 rounded-2xl shadow-md hover:shadow-lg flex items-center space-x-2">
+                        <span>🌸 召喚曼陀羅花雨</span>
+                    </button>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal: Fortune Result -->
+    <div id="fortune-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+        <div class="glass-panel bg-white/95 max-w-md w-full p-6 md:p-8 rounded-3xl text-center shadow-2xl transform scale-90 transition-transform duration-300 relative border-2 border-emerald-200">
+            <button id="close-modal" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-2 text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="text-5xl mb-3" id="fortune-icon">🌱</div>
+            <span class="inline-block bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full mb-2" id="fortune-tag">大吉 ‧ 曼陀羅之光</span>
+            <h3 class="text-2xl font-black text-slate-800 mb-3" id="fortune-title">學業與妖力大爆發！</h3>
+            <p class="text-slate-600 text-sm leading-relaxed mb-6" id="fortune-desc">
+                像小曼陀羅草一樣，努力紮根就能茁壯成長。今天老師特別准許你發呆10分鐘，好好修護精神吧！
+            </p>
+            <button id="modal-confirm" class="w-full btn-bounce bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-md">
+                收到祝福 (點擊收下) ✨
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Info / About -->
+    <div id="info-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+        <div class="glass-panel bg-white/95 max-w-md w-full p-6 rounded-3xl text-center shadow-2xl relative border-2 border-teal-200">
+            <button id="close-info" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-2 text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="text-xl font-bold text-emerald-900 mb-3">關於《妖怪學校的菜鳥老師》賀卡</h3>
+            <p class="text-slate-600 text-xs md:text-sm leading-relaxed text-left space-y-2 mb-4">
+                歡迎來到百鬼夜行學園！這張互動式 3D 賀卡以溫馨、治癒的柔和色系打造。<br><br>
+                🌿 <b>互動玩法：</b><br>
+                • 在畫面上任意點擊：發射祝福文字與魔幻曼陀羅光點粒子。<br>
+                • 拖拽滑鼠：可 360 度旋轉觀察溫室與可愛的曼陀羅草。<br>
+                • 點擊「抽一張妖怪幸運籤」可獲得今日專屬校園祝福語！
+            </p>
+            <button id="info-confirm" class="w-full btn-bounce bg-teal-500 hover:bg-teal-600 text-white font-bold py-2.5 rounded-xl">
+                開始探索 🌿
+            </button>
+        </div>
+    </div>
+
+    <!-- Container for dynamic text floaters -->
+    <div id="text-container"></div>
+
+    <script>
+        // --- Sound Generator using Web Audio API (Synthesizer for Soft Cute Chimes) ---
+        class SoundFX {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+            }
+
+            playPop() {
+                if (!this.enabled) return;
+                this.init();
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sine';
+                const freq = 400 + Math.random() * 400;
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(freq * 1.8, this.ctx.currentTime + 0.12);
+
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.13);
+            }
+
+            playChime() {
+                if (!this.enabled) return;
+                this.init();
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+
+                const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51]; // C5, E5, G5, C6, E6
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.06);
+
+                    gain.gain.setValueAtTime(0, this.ctx.currentTime + idx * 0.06);
+                    gain.gain.linearRampToValueAtTime(0.08, this.ctx.currentTime + idx * 0.06 + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + idx * 0.06 + 0.4);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start(this.ctx.currentTime + idx * 0.06);
+                    osc.stop(this.ctx.currentTime + idx * 0.06 + 0.45);
+                });
+            }
+        }
+
+        const audioFX = new SoundFX();
+
+        // --- Blessing Texts Array ---
+        const blessingWords = [
+            "✨ 平安喜樂", "🌱 元氣滿滿", "📚 學業進步", "💖 萬事順心",
+            "🌟 妖力大增", "🌸 快樂生長", "🍀 幸運加倍", "☀️ 滿滿正能量"
+        ];
+
+        const monsterFortunes = [
+            { icon: "🌱", tag: "大吉 ‧ 萌芽之日", title: "陽光充足，好運拔地而起！", desc: "就像溫室裡的曼陀羅草吸飽了養分，你今天進行的所有計畫都會順利發芽。加油！" },
+            { icon: "🎓", tag: "中吉 ‧ 菜鳥老師的筆記", title: "學習力UP！獲得溫馨解答", desc: "遇到不懂的問題時，只要保持好奇心，身邊就會有貴人（或親切的小妖怪）伸出援手。" },
+            { icon: "🌸", tag: "上吉 ‧ 百花怒放", title: "心情如春日暖陽繽紛", desc: "今天適合對身邊的人展露笑容，你的好心情會像花粉一樣擴散開來，渲染整間教室！" },
+            { icon: "🍵", tag: "平吉 ‧ 靜心茶會", title: "稍微休息一下也是修行", desc: "喝杯熱茶，伸個懶腰。菜鳥老師提醒你：就算是一塊小石頭，也有屬於它的休憩時刻。" },
+            { icon: "⭐", tag: "超吉 ‧ 星光漫舞", title: "閃耀靈感湧現！", desc: "今晚的神祕星空會賜予你源源不絕的創意，快把新想法記錄下來吧！" }
+        ];
+
+        // --- Three.js 3D Scene Setup ---
+        let scene, camera, renderer, controls;
+        let mandrakeGroup, headLeaves = [], potMesh, rootBody;
+        let particlesSystem, floatingLightsGroup;
+        let clickBurstParticles = [];
+
+        function initThreeScene() {
+            const canvas = document.getElementById('webgl-canvas');
+            
+            // 1. Scene setup
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf5eee6); // Pastel Warm Cream
+            scene.fog = new THREE.FogExp2(0xf5eee6, 0.035);
+
+            // 2. Camera setup
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.set(0, 3.5, 8.5);
+
+            // 3. Renderer setup
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            // 4. Controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 2 + 0.05; // limit below ground
+            controls.minDistance = 4;
+            controls.maxDistance = 14;
+
+            // 5. Lighting
+            const ambientLight = new THREE.AmbientLight(0xfff5ea, 0.8);
+            scene.add(ambientLight);
+
+            const sunLight = new THREE.DirectionalLight(0xfffaed, 0.9);
+            sunLight.position.set(5, 10, 6);
+            sunLight.castShadow = true;
+            sunLight.shadow.mapSize.width = 1024;
+            sunLight.shadow.mapSize.height = 1024;
+            scene.add(sunLight);
+
+            // Pastel Soft Rim/Point Lights
+            const pinkLight = new THREE.PointLight(0xffc2d1, 1.2, 10);
+            pinkLight.position.set(-3, 2, -2);
+            scene.add(pinkLight);
+
+            const mintLight = new THREE.PointLight(0xb8e0d2, 1.2, 10);
+            mintLight.position.set(3, 3, 2);
+            scene.add(mintLight);
+
+            // 6. Environment Ground & Desk
+            createEnvironment();
+
+            // 7. Procedural Cute Mandrake Character
+            createMandrake();
+
+            // 8. Ambient Soft Floating Light Particles
+            createFloatingAmbientLights();
+
+            // Window resize handler
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        // --- Create Environment (Soft Wooden Table & Flower Pot Base) ---
+        function createEnvironment() {
+            // Round wooden table surface
+            const tableGeo = new THREE.CylinderGeometry(4.5, 4.5, 0.4, 32);
+            const tableMat = new THREE.MeshStandardMaterial({
+                color: 0xe6d5c3,
+                roughness: 0.6,
+                metalness: 0.1
+            });
+            const table = new THREE.Mesh(tableGeo, tableMat);
+            table.position.y = -1.2;
+            table.receiveShadow = true;
+            scene.add(table);
+
+            // Soft shadow receiver disc
+            const shadowGeo = new THREE.PlaneGeometry(8, 8);
+            const shadowMat = new THREE.ShadowMaterial({ opacity: 0.25 });
+            const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
+            shadowMesh.rotation.x = -Math.PI / 2;
+            shadowMesh.position.y = -0.99;
+            shadowMesh.receiveShadow = true;
+            scene.add(shadowMesh);
+        }
+
+        // --- Create Stylized Procedural Mandrake Character ---
+        function createMandrake() {
+            mandrakeGroup = new THREE.Group();
+
+            // Materials
+            const potMaterial = new THREE.MeshStandardMaterial({
+                color: 0xdfb499, // Pastel Terracotta
+                roughness: 0.5,
+                metalness: 0.05
+            });
+
+            const soilMaterial = new THREE.MeshStandardMaterial({
+                color: 0x6b4f3a,
+                roughness: 0.9
+            });
+
+            const bodyMaterial = new THREE.MeshStandardMaterial({
+                color: 0xd4bd9b, // Warm Soft Mandrake Root Color
+                roughness: 0.7,
+                bumpScale: 0.05
+            });
+
+            const leafMaterial = new THREE.MeshStandardMaterial({
+                color: 0x88c999, // Soft Pastel Mint Green
+                roughness: 0.4,
+                side: THREE.DoubleSide
+            });
+
+            const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0x2c3531 });
+            const cheekMaterial = new THREE.MeshBasicMaterial({ color: 0xffaab9, transparent: true, opacity: 0.7 });
+
+            // 1. Plant Pot
+            const potShape = new THREE.CylinderGeometry(1.2, 0.9, 1.4, 24);
+            potMesh = new THREE.Mesh(potShape, potMaterial);
+            potMesh.position.y = -0.3;
+            potMesh.castShadow = true;
+            potMesh.receiveShadow = true;
+            mandrakeGroup.add(potMesh);
+
+            // Pot Rim
+            const rimGeo = new THREE.TorusGeometry(1.22, 0.08, 16, 32);
+            const rimMesh = new THREE.Mesh(rimGeo, potMaterial);
+            rimMesh.rotation.x = Math.PI / 2;
+            rimMesh.position.y = 0.4;
+            rimMesh.castShadow = true;
+            mandrakeGroup.add(rimMesh);
+
+            // Soil
+            const soilGeo = new THREE.CylinderGeometry(1.15, 1.15, 0.1, 24);
+            const soilMesh = new THREE.Mesh(soilGeo, soilMaterial);
+            soilMesh.position.y = 0.35;
+            mandrakeGroup.add(soilMesh);
+
+            // 2. Mandrake Body (Cute Root Body sitting in pot)
+            const bodyGeo = new THREE.SphereGeometry(0.85, 24, 24);
+            bodyGeo.scale(1, 1.15, 0.9); // Make slightly pear-shaped
+            rootBody = new THREE.Mesh(bodyGeo, bodyMaterial);
+            rootBody.position.y = 1.0;
+            rootBody.castShadow = true;
+            mandrakeGroup.add(rootBody);
+
+            // Little Root Arms
+            const armGeo = new THREE.CylinderGeometry(0.12, 0.06, 0.5, 12);
+            // Left Arm
+            const leftArm = new THREE.Mesh(armGeo, bodyMaterial);
+            leftArm.position.set(-0.7, 0.9, 0.2);
+            leftArm.rotation.z = 0.8;
+            leftArm.rotation.x = -0.3;
+            leftArm.castShadow = true;
+            mandrakeGroup.add(leftArm);
+
+            // Right Arm
+            const rightArm = new THREE.Mesh(armGeo, bodyMaterial);
+            rightArm.position.set(0.7, 0.9, 0.2);
+            rightArm.rotation.z = -0.8;
+            rightArm.rotation.x = -0.3;
+            rightArm.castShadow = true;
+            mandrakeGroup.add(rightArm);
+
+            // 3. Cute Facial Features
+            // Eyes
+            const eyeGeo = new THREE.SphereGeometry(0.08, 12, 12);
+            const leftEye = new THREE.Mesh(eyeGeo, eyeMaterial);
+            leftEye.position.set(-0.25, 1.15, 0.76);
+            leftEye.scale.set(1, 1.2, 0.5);
+
+            const rightEye = new THREE.Mesh(eyeGeo, eyeMaterial);
+            rightEye.position.set(0.25, 1.15, 0.76);
+            rightEye.scale.set(1, 1.2, 0.5);
+
+            // Eye Highlights
+            const highlightGeo = new THREE.SphereGeometry(0.025, 8, 8);
+            const hlMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const hlLeft = new THREE.Mesh(highlightGeo, hlMat);
+            hlLeft.position.set(-0.23, 1.18, 0.82);
+            const hlRight = new THREE.Mesh(highlightGeo, hlMat);
+            hlRight.position.set(0.27, 1.18, 0.82);
+
+            mandrakeGroup.add(leftEye, rightEye, hlLeft, hlRight);
+
+            // Rosy Cheeks
+            const cheekGeo = new THREE.CircleGeometry(0.1, 16);
+            const leftCheek = new THREE.Mesh(cheekGeo, cheekMaterial);
+            leftCheek.position.set(-0.4, 1.02, 0.75);
+            leftCheek.rotation.y = -0.3;
+
+            const rightCheek = new THREE.Mesh(cheekGeo, cheekMaterial);
+            rightCheek.position.set(0.4, 1.02, 0.75);
+            rightCheek.rotation.y = 0.3;
+
+            mandrakeGroup.add(leftCheek, rightCheek);
+
+            // Smile (Torus Arc)
+            const mouthGeo = new THREE.TorusGeometry(0.07, 0.02, 8, 16, Math.PI);
+            const mouthMat = new THREE.MeshBasicMaterial({ color: 0x4a3525 });
+            const mouth = new THREE.Mesh(mouthGeo, mouthMat);
+            mouth.position.set(0, 1.03, 0.78);
+            mouth.rotation.x = Math.PI; // Curve upward for smile
+            mandrakeGroup.add(mouth);
+
+            // 4. Head Leaves & Sprout Sprouts
+            const leafGroup = new THREE.Group();
+            leafGroup.position.y = 1.8;
+
+            // Main Stem
+            const stemGeo = new THREE.CylinderGeometry(0.06, 0.08, 0.4, 8);
+            const stem = new THREE.Mesh(stemGeo, bodyMaterial);
+            stem.position.y = -0.15;
+            leafGroup.add(stem);
+
+            // Leaves (Petal shape using custom Geometry scaling)
+            const numLeaves = 5;
+            for (let i = 0; i < numLeaves; i++) {
+                const leafShape = new THREE.SphereGeometry(0.4, 16, 16);
+                leafShape.scale(0.4, 1.4, 0.15); // Flatten & stretch like a leaf
+                const leaf = new THREE.Mesh(leafShape, leafMaterial);
+                
+                const angle = (i / numLeaves) * Math.PI * 2;
+                leaf.position.x = Math.sin(angle) * 0.25;
+                leaf.position.z = Math.cos(angle) * 0.25;
+                leaf.position.y = 0.2;
+
+                leaf.rotation.x = Math.cos(angle) * 0.5 + 0.3;
+                leaf.rotation.z = -Math.sin(angle) * 0.5;
+                leaf.rotation.y = angle;
+                leaf.castShadow = true;
+
+                headLeaves.push(leaf);
+                leafGroup.add(leaf);
+            }
+
+            // A tiny glowing magic sprout fruit
+            const fruitGeo = new THREE.SphereGeometry(0.12, 12, 12);
+            const fruitMat = new THREE.MeshStandardMaterial({
+                color: 0xffb3c6,
+                emissive: 0xff6b8b,
+                emissiveIntensity: 0.5,
+                roughness: 0.2
+            });
+            const fruit = new THREE.Mesh(fruitGeo, fruitMat);
+            fruit.position.set(0, 0.45, 0);
+            leafGroup.add(fruit);
+
+            mandrakeGroup.add(leafGroup);
+
+            // Add Mandrake to Scene
+            scene.add(mandrakeGroup);
+        }
+
+        // --- Create Ambient Soft Glowing Particles ---
+        function createFloatingAmbientLights() {
+            floatingLightsGroup = new THREE.Group();
+            const particleCount = 40;
+            const geo = new THREE.SphereGeometry(0.06, 8, 8);
+            
+            const colors = [0xffd1dc, 0xb8e0d2, 0xfffac8, 0xe8dff5];
+
+            for (let i = 0; i < particleCount; i++) {
+                const mat = new THREE.MeshBasicMaterial({
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    transparent: true,
+                    opacity: 0.5 + Math.random() * 0.4
+                });
+                const p = new THREE.Mesh(geo, mat);
+
+                p.position.set(
+                    (Math.random() - 0.5) * 12,
+                    Math.random() * 6 - 0.5,
+                    (Math.random() - 0.5) * 12
+                );
+
+                p.userData = {
+                    speedY: 0.003 + Math.random() * 0.005,
+                    amplitudeX: Math.random() * 0.02,
+                    offset: Math.random() * Math.PI * 2
+                };
+
+                floatingLightsGroup.add(p);
+            }
+            scene.add(floatingLightsGroup);
+        }
+
+        // --- Spawn Dynamic 3D Click Particles ---
+        function spawn3DClickParticles(point3D) {
+            const count = 16;
+            const geometries = [
+                new THREE.TetrahedronGeometry(0.12),
+                new THREE.SphereGeometry(0.08, 8, 8),
+                new THREE.ConeGeometry(0.08, 0.16, 6)
+            ];
+
+            const colors = [0xff85a1, 0x70d6ff, 0xffd07b, 0x99e2b4, 0xff9ebb];
+
+            for (let i = 0; i < count; i++) {
+                const geo = geometries[Math.floor(Math.random() * geometries.length)];
+                const mat = new THREE.MeshStandardMaterial({
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    roughness: 0.3,
+                    metalness: 0.2,
+                    emissive: colors[Math.floor(Math.random() * colors.length)],
+                    emissiveIntensity: 0.4,
+                    transparent: true,
+                    opacity: 1
+                });
+
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.copy(point3D);
+
+                // Random velocity
+                const vx = (Math.random() - 0.5) * 0.12;
+                const vy = 0.08 + Math.random() * 0.12;
+                const vz = (Math.random() - 0.5) * 0.12;
+
+                clickBurstParticles.push({
+                    mesh: mesh,
+                    velocity: new THREE.Vector3(vx, vy, vz),
+                    rotationSpeed: new THREE.Vector3(Math.random() * 0.2, Math.random() * 0.2, Math.random() * 0.2),
+                    life: 1.0,
+                    decay: 0.015 + Math.random() * 0.015
+                });
+
+                scene.add(mesh);
+            }
+        }
+
+        // --- Spawn HTML Floating Text Blessing at Screen Coordinates ---
+        function spawnFloatingText(x, y, text) {
+            const container = document.getElementById('text-container');
+            const el = document.createElement('div');
+            el.className = 'floating-blessing text-emerald-800 text-lg md:text-xl';
+            
+            // Random pastel color badge style
+            const bgColors = ['bg-pink-100/90', 'bg-emerald-100/90', 'bg-amber-100/90', 'bg-purple-100/90'];
+            const randomBg = bgColors[Math.floor(Math.random() * bgColors.length)];
+            
+            el.innerHTML = `<span class="${randomBg} px-4 py-1.5 rounded-full shadow-lg border border-white/80 flex items-center gap-1.5">🌱 ${text}</span>`;
+            el.style.left = `${x}px`;
+            el.style.top = `${y}px`;
+
+            container.appendChild(el);
+
+            setTimeout(() => {
+                if (el.parentNode) {
+                    el.parentNode.removeChild(el);
+                }
+            }, 2200);
+        }
+
+        // --- Screen to 3D Plane Raycasting for Click Location ---
+        function get3DClickPosition(e) {
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            
+            // Plane at Mandrake height
+            const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+            const target = new THREE.Vector3();
+            raycaster.ray.intersectPlane(plane, target);
+            
+            // Fallback if null
+            if (!target) target.set(0, 1, 0);
+            return target;
+        }
+
+        // --- Handle User Screen Click ---
+        function handleGlobalClick(e) {
+            // Ignore click if on UI buttons or modal
+            if (e.target.closest('button') || e.target.closest('#fortune-modal') || e.target.closest('#info-modal')) {
+                return;
+            }
+
+            // Audio FX
+            audioFX.playPop();
+
+            // 1. Spawn floating text at click location
+            const randomWord = blessingWords[Math.floor(Math.random() * blessingWords.length)];
+            spawnFloatingText(e.clientX, e.clientY, randomWord);
+
+            // 2. Spawn 3D Particles in Three.js world
+            const pos3D = get3DClickPosition(e);
+            spawn3DClickParticles(pos3D);
+
+            // 3. Cute Mandrake Wiggle Jump Effect
+            triggerMandrakeBounce();
+        }
+
+        // --- Mandrake Animation Triggers ---
+        let bounceTime = 0;
+        let isBouncing = false;
+
+        function triggerMandrakeBounce() {
+            isBouncing = true;
+            bounceTime = 0;
+        }
+
+        // --- Render / Animation Loop ---
+        let clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const elapsedTime = clock.getElapsedTime();
+
+            // 1. Mandrake Idle Floating / Breathing Animation
+            if (mandrakeGroup) {
+                if (!isBouncing) {
+                    mandrakeGroup.position.y = Math.sin(elapsedTime * 2) * 0.08;
+                    mandrakeGroup.rotation.y = Math.sin(elapsedTime * 0.8) * 0.08;
+                } else {
+                    // Bounce animation curve
+                    bounceTime += 0.08;
+                    mandrakeGroup.position.y = Math.abs(Math.sin(bounceTime * Math.PI)) * 0.6;
+                    mandrakeGroup.rotation.y += 0.1;
+
+                    if (bounceTime >= 1.0) {
+                        isBouncing = false;
+                        bounceTime = 0;
+                    }
+                }
+
+                // Head leaves gentle swaying
+                headLeaves.forEach((leaf, idx) => {
+                    leaf.rotation.z += Math.sin(elapsedTime * 3 + idx) * 0.005;
+                });
+            }
+
+            // 2. Update Ambient Floating Light Particles
+            if (floatingLightsGroup) {
+                floatingLightsGroup.children.forEach(p => {
+                    p.position.y += p.userData.speedY;
+                    p.position.x += Math.sin(elapsedTime + p.userData.offset) * p.userData.amplitudeX;
+
+                    if (p.position.y > 5) {
+                        p.position.y = -0.5;
+                        p.position.x = (Math.random() - 0.5) * 12;
+                    }
+                });
+            }
+
+            // 3. Update Burst Click Particles
+            for (let i = clickBurstParticles.length - 1; i >= 0; i--) {
+                const p = clickBurstParticles[i];
+                p.mesh.position.add(p.velocity);
+                p.mesh.rotation.x += p.rotationSpeed.x;
+                p.mesh.rotation.y += p.rotationSpeed.y;
+                p.velocity.y -= 0.003; // gravity
+
+                p.life -= p.decay;
+                p.mesh.material.opacity = Math.max(0, p.life);
+                p.mesh.scale.multiplyScalar(0.98);
+
+                if (p.life <= 0) {
+                    scene.remove(p.mesh);
+                    p.mesh.geometry.dispose();
+                    p.mesh.material.dispose();
+                    clickBurstParticles.splice(i, 1);
+                }
+            }
+
+            // 4. OrbitControls update
+            controls.update();
+
+            // 5. Render Scene
+            renderer.render(scene, camera);
+        }
+
+        // --- Window Resize ---
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- UI Interactions & Event Listeners ---
+        window.onload = function () {
+            // Initialize 3D Scene
+            initThreeScene();
+            animate();
+
+            // Global Click Event
+            window.addEventListener('click', handleGlobalClick);
+
+            // Audio Toggle Button
+            const soundBtn = document.getElementById('sound-btn');
+            soundBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                audioFX.enabled = !audioFX.enabled;
+                if (audioFX.enabled) {
+                    soundBtn.innerHTML = '<i class="fa-solid fa-volume-high text-lg"></i>';
+                    audioFX.playPop();
+                } else {
+                    soundBtn.innerHTML = '<i class="fa-solid fa-volume-xmark text-lg"></i>';
+                }
+            });
+
+            // Info Modal
+            const infoBtn = document.getElementById('info-btn');
+            const infoModal = document.getElementById('info-modal');
+            const closeInfo = document.getElementById('close-info');
+            const infoConfirm = document.getElementById('info-confirm');
+
+            function openInfoModal() {
+                infoModal.classList.remove('hidden');
+                setTimeout(() => {
+                    infoModal.classList.remove('opacity-0');
+                    infoModal.querySelector('div').classList.remove('scale-90');
+                    infoModal.querySelector('div').classList.add('scale-100');
+                }, 10);
+            }
+
+            function closeInfoModal() {
+                infoModal.classList.add('opacity-0');
+                infoModal.querySelector('div').classList.remove('scale-100');
+                infoModal.querySelector('div').classList.add('scale-90');
+                setTimeout(() => {
+                    infoModal.classList.add('hidden');
+                }, 300);
+            }
+
+            infoBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openInfoModal();
+            });
+            closeInfo.addEventListener('click', closeInfoModal);
+            infoConfirm.addEventListener('click', closeInfoModal);
+
+            // Fortune Drawing Modal Logic
+            const fortuneBtn = document.getElementById('fortune-btn');
+            const fortuneModal = document.getElementById('fortune-modal');
+            const closeModal = document.getElementById('close-modal');
+            const modalConfirm = document.getElementById('modal-confirm');
+
+            function openFortuneModal() {
+                // Select random fortune
+                const res = monsterFortunes[Math.floor(Math.random() * monsterFortunes.length)];
+                document.getElementById('fortune-icon').textContent = res.icon;
+                document.getElementById('fortune-tag').textContent = res.tag;
+                document.getElementById('fortune-title').textContent = res.title;
+                document.getElementById('fortune-desc').textContent = res.desc;
+
+                audioFX.playChime();
+                triggerMandrakeBounce();
+
+                fortuneModal.classList.remove('hidden');
+                setTimeout(() => {
+                    fortuneModal.classList.remove('opacity-0');
+                    fortuneModal.querySelector('div').classList.remove('scale-90');
+                    fortuneModal.querySelector('div').classList.add('scale-100');
+                }, 10);
+            }
+
+            function closeFortuneModal() {
+                fortuneModal.classList.add('opacity-0');
+                fortuneModal.querySelector('div').classList.remove('scale-100');
+                fortuneModal.querySelector('div').classList.add('scale-90');
+                setTimeout(() => {
+                    fortuneModal.classList.add('hidden');
+                }, 300);
+            }
+
+            fortuneBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openFortuneModal();
+            });
+
+            closeModal.addEventListener('click', closeFortuneModal);
+            modalConfirm.addEventListener('click', closeFortuneModal);
+
+            // Sprout Shower Button (Spawns a shower of 3D particles & texts)
+            const sproutBtn = document.getElementById('sprout-btn');
+            sproutBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                audioFX.playChime();
+                triggerMandrakeBounce();
+
+                // Spawn shower across screen
+                for (let i = 0; i < 8; i++) {
+                    setTimeout(() => {
+                        const rx = Math.random() * (window.innerWidth - 100) + 50;
+                        const ry = Math.random() * (window.innerHeight - 200) + 100;
+                        const word = blessingWords[Math.floor(Math.random() * blessingWords.length)];
+                        spawnFloatingText(rx, ry, word);
+
+                        const pos3D = new THREE.Vector3(
+                            (Math.random() - 0.5) * 5,
+                            Math.random() * 2 + 1,
+                            (Math.random() - 0.5) * 5
+                        );
+                        spawn3DClickParticles(pos3D);
+                    }, i * 150);
+                }
+            });
+        };
+    </script>
+</body>
+</html>

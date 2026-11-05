@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roblox 3D 賀卡祝福網頁</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font: Fredoka for playful gamer typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- OrbitControls -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- FontLoader & TextGeometry -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
+
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #1a1a2e;
+            user-select: none;
+        }
+        #webgl-container {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+        /* Glassmorphic Roblox UI Theme */
+        .roblox-panel {
+            background: rgba(20, 24, 36, 0.85);
+            backdrop-filter: blur(12px);
+            border: 3px solid #394258;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.1);
+        }
+        .roblox-btn {
+            background: linear-gradient(180deg, #00A2FF 0%, #0066FF 100%);
+            border-bottom: 4px solid #0044B3;
+            text-shadow: 0 2px 0 rgba(0,0,0,0.3);
+            transition: all 0.1s ease;
+        }
+        .roblox-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+        .roblox-btn:active {
+            transform: translateY(2px);
+            border-bottom-width: 0px;
+            margin-top: 4px;
+        }
+        .roblox-btn-green {
+            background: linear-gradient(180deg, #00E676 0%, #00A843 100%);
+            border-bottom: 4px solid #00702D;
+        }
+        .roblox-btn-yellow {
+            background: linear-gradient(180deg, #FFD600 0%, #FF9100 100%);
+            border-bottom: 4px solid #B76A00;
+        }
+        /* Custom Scrollbar for panel */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #394258;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="relative w-full h-screen overflow-hidden text-white select-none">
+
+    <!-- WebGL Canvas Container -->
+    <div id="webgl-container"></div>
+
+    <!-- UI Overlay Top Header -->
+    <div class="absolute top-4 left-4 right-4 flex justify-between items-center pointer-events-none z-10">
+        <!-- Title Badge -->
+        <div class="roblox-panel px-5 py-3 rounded-2xl flex items-center gap-3 pointer-events-auto transform hover:scale-105 transition-transform">
+            <div class="w-10 h-10 bg-red-500 rounded-xl flex items-center justify-center font-extrabold text-2xl shadow-inner border-2 border-white/20">
+                R
+            </div>
+            <div>
+                <h1 id="header-title" class="text-xl md:text-2xl font-bold tracking-wide text-yellow-400 drop-shadow">Happy Birthday!</h1>
+                <p id="header-subtitle" class="text-xs text-gray-300">點擊地面召喚 ROBLOX 人物跳舞！</p>
+            </div>
+        </div>
+
+        <!-- Audio & Controls Toggle -->
+        <div class="flex gap-2 pointer-events-auto">
+            <button id="btn-music" class="roblox-panel p-3 rounded-2xl hover:bg-slate-700/80 transition-colors flex items-center justify-center w-12 h-12 text-yellow-400">
+                <i class="fas fa-music text-xl"></i>
+            </button>
+            <button id="btn-settings" class="roblox-panel p-3 rounded-2xl hover:bg-slate-700/80 transition-colors flex items-center justify-center w-12 h-12 text-blue-400">
+                <i class="fas fa-cog text-xl"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Bottom Action Bar / Counter -->
+    <div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none z-10">
+        <div class="roblox-panel px-6 py-2 rounded-full flex items-center gap-3 text-sm font-semibold pointer-events-auto border-yellow-400/50">
+            <span class="flex items-center gap-1 text-yellow-400">
+                <i class="fas fa-users"></i> 跳舞隊伍:
+            </span>
+            <span id="dancer-count" class="text-lg text-white font-extrabold">1</span> 人
+            <button id="btn-clear-dancers" class="ml-3 text-xs bg-red-600/80 hover:bg-red-500 text-white px-2 py-1 rounded-lg transition-colors">
+                清空
+            </button>
+        </div>
+        <div class="bg-black/60 backdrop-blur-md px-4 py-1 rounded-full text-xs text-gray-300 border border-white/10">
+            💡 提示：按住滑鼠左鍵旋轉鏡頭，滾輪縮放，點擊地面召喚舞者！
+        </div>
+    </div>
+
+    <!-- Customization Modal Overlay -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-20 flex items-center justify-center p-4 hidden">
+        <div class="roblox-panel w-full max-w-md rounded-3xl p-6 relative animate-bounce-in">
+            <!-- Close Button -->
+            <button id="btn-close-modal" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl w-8 h-8 flex items-center justify-center rounded-full bg-white/5">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <h2 class="text-2xl font-bold text-yellow-400 mb-4 flex items-center gap-2">
+                <i class="fas fa-edit"></i> 訂製祝福賀卡
+            </h2>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">主標題文字 (3D 標語)</label>
+                    <input type="text" id="input-main-title" value="Happy Birthday!" class="w-full bg-slate-900/80 border-2 border-slate-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">給祝福對象的名字</label>
+                    <input type="text" id="input-recipient" value="Alex" class="w-full bg-slate-900/80 border-2 border-slate-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">賀卡祝福內容</label>
+                    <textarea id="input-message" rows="3" class="w-full bg-slate-900/80 border-2 border-slate-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500 resize-none">祝你 Roblox 冒險愉快！生日快樂，每天都充滿驚喜與歡笑！🎉✨</textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">主題氛圍色系</label>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button data-theme="festive" class="theme-btn border-2 border-yellow-400 bg-gradient-to-br from-yellow-500 to-red-500 h-10 rounded-xl text-xs font-bold">節慶黃</button>
+                        <button data-theme="cyber" class="theme-btn border-2 border-transparent bg-gradient-to-br from-cyan-500 to-purple-600 h-10 rounded-xl text-xs font-bold">賽博藍</button>
+                        <button data-theme="nature" class="theme-btn border-2 border-transparent bg-gradient-to-br from-green-400 to-emerald-700 h-10 rounded-xl text-xs font-bold">森林綠</button>
+                        <button data-theme="candy" class="theme-btn border-2 border-transparent bg-gradient-to-br from-pink-400 to-purple-500 h-10 rounded-xl text-xs font-bold">糖果粉</button>
+                    </div>
+                </div>
+
+                <button id="btn-apply-settings" class="roblox-btn roblox-btn-green w-full py-3 rounded-2xl font-bold text-lg text-white mt-2">
+                    更新賀卡 🚀
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Three.js App Code Logic -->
+    <script>
+        // --- Web Audio API Synth Engine for Roblox Style Sounds ---
+        class SoundEffects {
+            constructor() {
+                this.ctx = null;
+                this.isMuted = false;
+                this.bgmInterval = null;
+                this.isPlayingBGM = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+            }
+
+            playSpawnSound() {
+                if (this.isMuted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                
+                // Roblox-style happy jump "boing"
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.exponentialRampToValueAtTime(880, now + 0.15);
+                
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                
+                osc.start(now);
+                osc.stop(now + 0.15);
+            }
+
+            playClickSound() {
+                if (this.isMuted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.setValueAtTime(659.25, now + 0.05); // E5
+                
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                
+                osc.start(now);
+                osc.stop(now + 0.1);
+            }
+
+            toggleBGM() {
+                this.init();
+                if (this.isPlayingBGM) {
+                    this.stopBGM();
+                } else {
+                    this.startBGM();
+                }
+                return this.isPlayingBGM;
+            }
+
+            startBGM() {
+                this.isPlayingBGM = true;
+                let noteIdx = 0;
+                // Happy festive cheerful melody notes (8-bit style)
+                const notes = [
+                    261.63, 261.63, 293.66, 261.63, 349.23, 329.63, // Happy birthday fragment
+                    261.63, 261.63, 293.66, 261.63, 392.00, 349.23,
+                    261.63, 261.63, 523.25, 440.00, 349.23, 329.63, 293.66,
+                    466.16, 466.16, 440.00, 349.23, 392.00, 349.23
+                ];
+
+                this.bgmInterval = setInterval(() => {
+                    if (this.isMuted || !this.isPlayingBGM) return;
+                    const freq = notes[noteIdx % notes.length];
+                    noteIdx++;
+
+                    const now = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(freq, now);
+
+                    gain.gain.setValueAtTime(0.05, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                }, 250);
+            }
+
+            stopBGM() {
+                this.isPlayingBGM = false;
+                if (this.bgmInterval) {
+                    clearInterval(this.bgmInterval);
+                    this.bgmInterval = null;
+                }
+            }
+        }
+
+        const audio = new SoundEffects();
+
+        // --- Main Three.js World Engine ---
+        let scene, camera, renderer, controls;
+        let groundPlane, raycaster, mouse;
+        let dancers = [];
+        let confettiParticles = [];
+        let floatingBalloons = [];
+        let mainTextMesh, recipientTextMesh;
+        
+        // Colors & Theme definitions
+        const themes = {
+            festive: { bg: 0x1a1a2e, ground: 0x228B22, text: 0xFFD700, accent: 0xFF4500 },
+            cyber: { bg: 0x050515, ground: 0x111827, text: 0x00F0FF, accent: 0xFF007F },
+            nature: { bg: 0x0f2027, ground: 0x4158D0, text: 0x00FF87, accent: 0xFFFB7D },
+            candy: { bg: 0x23074d, ground: 0xcc5333, text: 0xFF69B4, accent: 0x00FFFF }
+        };
+        let currentTheme = themes.festive;
+
+        // Roblox Character Colors Palette
+        const characterColors = [
+            { head: 0xFFCD00, torso: 0x00A2FF, leftArm: 0xFF0000, rightArm: 0xFF0000, legs: 0x00E676 }, // Classic Noob
+            { head: 0xFFCD00, torso: 0xE53935, leftArm: 0xFFCD00, rightArm: 0xFFCD00, legs: 0x1E88E5 }, // Guest
+            { head: 0xFFCD00, torso: 0x8E24AA, leftArm: 0xFFCD00, rightArm: 0xFFCD00, legs: 0x26A69A }, // Colorful
+            { head: 0xFFCD00, torso: 0xFB8C00, leftArm: 0x333333, rightArm: 0x333333, legs: 0x424242 }, // Cool Guy
+            { head: 0xFFCD00, torso: 0xEC407A, leftArm: 0xFFCD00, rightArm: 0xFFCD00, legs: 0xAB47BC }  // Party Girl
+        ];
+
+        // Initialize Scene
+        function init() {
+            const container = document.getElementById('webgl-container');
+
+            // Scene setup
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(currentTheme.bg);
+            scene.fog = new THREE.FogExp2(currentTheme.bg, 0.015);
+
+            // Camera setup
+            camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 12, 22);
+
+            // Renderer setup
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            // Controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 2 - 0.05; // Don't go below ground
+            controls.minDistance = 5;
+            controls.maxDistance = 50;
+            controls.target.set(0, 4, 0);
+
+            // Raycaster for mouse interaction
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+
+            // Lighting Setup
+            setupLights();
+
+            // World Environment (Ground grid, stage, floating decorations)
+            buildEnvironment();
+
+            // Floating Balloons & Confetti System
+            createFloatingDecorations();
+            initConfetti();
+
+            // 3D Text Banner Initialization
+            create3DText("Happy Birthday!", "Alex");
+
+            // Spawn Initial Center Roblox Character
+            spawnRobloxCharacter(0, 0, true);
+
+            // Event Listeners
+            window.addEventListener('resize', onWindowResize);
+            renderer.domElement.addEventListener('pointerdown', onPointerDown);
+
+            // Start Animation Loop
+            animate();
+        }
+
+        // --- Lighting ---
+        function setupLights() {
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(20, 40, 20);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
+            dirLight.shadow.camera.near = 0.5;
+            dirLight.shadow.camera.far = 100;
+            const d = 25;
+            dirLight.shadow.camera.left = -d;
+            dirLight.shadow.camera.right = d;
+            dirLight.shadow.camera.top = d;
+            dirLight.shadow.camera.bottom = -d;
+            scene.add(dirLight);
+
+            // Colorful Point Light for gaming vibe
+            const pointLight = new THREE.PointLight(0xFFD700, 1, 30);
+            pointLight.position.set(0, 8, 0);
+            scene.add(pointLight);
+        }
+
+        // --- Roblox World Environment ---
+        function buildEnvironment() {
+            // Blocky Grid Floor (Roblox Baseplate style)
+            const stageSize = 40;
+            const groundGeo = new THREE.BoxGeometry(stageSize, 1, stageSize);
+            const groundMat = new THREE.MeshStandardMaterial({ 
+                color: currentTheme.ground,
+                roughness: 0.6,
+                metalness: 0.1
+            });
+            groundPlane = new THREE.Mesh(groundGeo, groundMat);
+            groundPlane.position.y = -0.5;
+            groundPlane.receiveShadow = true;
+            scene.add(groundPlane);
+
+            // Roblox Baseplate Studs Overlay Grid Effect
+            const gridHelper = new THREE.GridHelper(stageSize, 40, 0xffffff, 0xffffff);
+            gridHelper.position.y = 0.01;
+            gridHelper.material.opacity = 0.25;
+            gridHelper.material.transparent = true;
+            scene.add(gridHelper);
+
+            // Center Dance Stage Platform
+            const stageGeo = new THREE.CylinderGeometry(5, 5.5, 0.6, 8); // Octagonal blocky stage
+            const stageMat = new THREE.MeshStandardMaterial({
+                color: 0x333344,
+                roughness: 0.3,
+                metalness: 0.5
+            });
+            const stage = new THREE.Mesh(stageGeo, stageMat);
+            stage.position.set(0, 0.3, 0);
+            stage.receiveShadow = true;
+            stage.castShadow = true;
+            scene.add(stage);
+
+            // Glowing Stage Ring
+            const ringGeo = new THREE.TorusGeometry(5.2, 0.15, 8, 32);
+            const ringMat = new THREE.MeshBasicMaterial({ color: 0x00E676 });
+            const ring = new THREE.Mesh(ringGeo, ringMat);
+            ring.rotation.x = Math.PI / 2;
+            ring.position.y = 0.61;
+            scene.add(ring);
+        }
+
+        // --- Procedural Roblox Character Builder (Classic R6 Blocky Style) ---
+        function createRobloxCharacterMesh(palette = characterColors[0]) {
+            const characterGroup = new THREE.Group();
+
+            // Materials with vibrant colors
+            const headMat = new THREE.MeshStandardMaterial({ color: palette.head, roughness: 0.4 });
+            const torsoMat = new THREE.MeshStandardMaterial({ color: palette.torso, roughness: 0.4 });
+            const lArmMat = new THREE.MeshStandardMaterial({ color: palette.leftArm, roughness: 0.4 });
+            const rArmMat = new THREE.MeshStandardMaterial({ color: palette.rightArm, roughness: 0.4 });
+            const legMat = new THREE.MeshStandardMaterial({ color: palette.legs, roughness: 0.4 });
+
+            // 1. Torso (1.2 wide, 1.2 high, 0.6 deep)
+            const torsoGeo = new THREE.BoxGeometry(1.2, 1.2, 0.6);
+            const torso = new THREE.Mesh(torsoGeo, torsoMat);
+            torso.position.y = 1.5;
+            torso.castShadow = true;
+            characterGroup.add(torso);
+
+            // 2. Head (1 x 1 x 1 block)
+            const headGeo = new THREE.BoxGeometry(1, 1, 1);
+            const head = new THREE.Mesh(headGeo, headMat);
+            head.position.y = 1.1; // relative to torso center
+            head.castShadow = true;
+            torso.add(head);
+
+            // Face (Classic Roblox Smile - Canvas Texture)
+            const faceCanvas = document.createElement('canvas');
+            faceCanvas.width = 128;
+            faceCanvas.height = 128;
+            const ctx = faceCanvas.getContext('2d');
+            ctx.fillStyle = '#FFCD00';
+            ctx.fillRect(0, 0, 128, 128);
+            // Eyes
+            ctx.fillStyle = '#111111';
+            ctx.fillRect(30, 35, 16, 28);
+            ctx.fillRect(82, 35, 16, 28);
+            // Classic Smile
+            ctx.beginPath();
+            ctx.lineWidth = 8;
+            ctx.lineCap = 'round';
+            ctx.arc(64, 70, 32, 0.1 * Math.PI, 0.9 * Math.PI, false);
+            ctx.stroke();
+
+            const faceTex = new THREE.CanvasTexture(faceCanvas);
+            const faceMat = new THREE.MeshBasicMaterial({ map: faceTex, transparent: true });
+            const faceGeo = new THREE.PlaneGeometry(0.85, 0.85);
+            const face = new THREE.Mesh(faceGeo, faceMat);
+            face.position.set(0, 0, 0.51);
+            head.add(face);
+
+            // Roblox Cap / Party Hat Accessory
+            const hatGroup = new THREE.Group();
+            const hatBaseGeo = new THREE.CylinderGeometry(0.6, 0.6, 0.2, 8);
+            const hatMat = new THREE.MeshStandardMaterial({ color: 0xE53935 });
+            const hatBase = new THREE.Mesh(hatBaseGeo, hatMat);
+            hatBase.position.y = 0.55;
+            
+            const visorGeo = new THREE.BoxGeometry(0.7, 0.05, 0.4);
+            const visor = new THREE.Mesh(visorGeo, hatMat);
+            visor.position.set(0, 0.5, 0.5);
+            
+            hatGroup.add(hatBase, visor);
+            head.add(hatGroup);
+
+            // 3. Left Arm (Pivot at top shoulder)
+            const armGeo = new THREE.BoxGeometry(0.55, 1.2, 0.55);
+            armGeo.translate(0, -0.5, 0); // shift origin to shoulder
+
+            const leftArmGroup = new THREE.Group();
+            leftArmGroup.position.set(-0.9, 0.6, 0);
+            const leftArmMesh = new THREE.Mesh(armGeo, lArmMat);
+            leftArmMesh.castShadow = true;
+            leftArmGroup.add(leftArmMesh);
+            torso.add(leftArmGroup);
+
+            // 4. Right Arm
+            const rightArmGroup = new THREE.Group();
+            rightArmGroup.position.set(0.9, 0.6, 0);
+            const rightArmMesh = new THREE.Mesh(armGeo, rArmMat);
+            rightArmMesh.castShadow = true;
+            rightArmGroup.add(rightArmMesh);
+            torso.add(rightArmGroup);
+
+            // 5. Left Leg
+            const legGeo = new THREE.BoxGeometry(0.58, 1.2, 0.58);
+            legGeo.translate(0, -0.6, 0); // shift origin to hip
+
+            const leftLegGroup = new THREE.Group();
+            leftLegGroup.position.set(-0.31, -0.6, 0);
+            const leftLegMesh = new THREE.Mesh(legGeo, legMat);
+            leftLegMesh.castShadow = true;
+            leftLegGroup.add(leftLegMesh);
+            torso.add(leftLegGroup);
+
+            // 6. Right Leg
+            const rightLegGroup = new THREE.Group();
+            rightLegGroup.position.set(0.31, -0.6, 0);
+            const rightLegMesh = new THREE.Mesh(legGeo, legMat);
+            rightLegMesh.castShadow = true;
+            rightLegGroup.add(rightLegMesh);
+            torso.add(rightLegGroup);
+
+            return {
+                mesh: characterGroup,
+                joints: {
+                    torso: torso,
+                    head: head,
+                    leftArm: leftArmGroup,
+                    rightArm: rightArmGroup,
+                    leftLeg: leftLegGroup,
+                    rightLeg: rightLegGroup
+                }
+            };
+        }
+
+        // Spawn a new Dancer into the Scene
+        function spawnRobloxCharacter(x, z, isCenter = false) {
+            const colorPalette = characterColors[Math.floor(Math.random() * characterColors.length)];
+            const charObj = createRobloxCharacterMesh(colorPalette);
+            
+            charObj.mesh.position.set(x, isCenter ? 0.6 : 0, z);
+            
+            // Random dance style offset so they aren't completely synced
+            const dancerData = {
+                mesh: charObj.mesh,
+                joints: charObj.joints,
+                danceStyle: Math.floor(Math.random() * 3), // 0: Hop & Wave, 1: Twist & Floss, 2: Spin Hop
+                timeOffset: Math.random() * 100,
+                speed: 6 + Math.random() * 4,
+                scaleOffset: isCenter ? 1.2 : 0.8 + Math.random() * 0.3
+            };
+
+            charObj.mesh.scale.setScalar(dancerData.scaleOffset);
+
+            scene.add(charObj.mesh);
+            dancers.push(dancerData);
+
+            // Spawn Particles Effect at Spawn position
+            createSpawnBurst(x, isCenter ? 0.6 : 0, z);
+
+            // Update UI Counter
+            document.getElementById('dancer-count').innerText = dancers.length;
+
+            audio.playSpawnSound();
+        }
+
+        // --- 3D Floating Greeting Text Banner ---
+        function create3DText(mainText, nameText) {
+            // Clear existing text if updating
+            if (mainTextMesh) scene.remove(mainTextMesh);
+            if (recipientTextMesh) scene.remove(recipientTextMesh);
+
+            const fontLoader = new THREE.FontLoader();
+            // Load helvetiker font from CDN
+            fontLoader.load('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/fonts/helvetiker_bold.typeface.json', (font) => {
+                
+                const textGeoParams = {
+                    font: font,
+                    size: 1.4,
+                    height: 0.3,
+                    curveSegments: 12,
+                    bevelEnabled: true,
+                    bevelThickness: 0.05,
+                    bevelSize: 0.03,
+                    bevelSegments: 5
+                };
+
+                // Main Title Text
+                const titleGeo = new THREE.TextGeometry(mainText, textGeoParams);
+                titleGeo.center();
+                const titleMat = new THREE.MeshStandardMaterial({
+                    color: currentTheme.text,
+                    metalness: 0.3,
+                    roughness: 0.2
+                });
+                mainTextMesh = new THREE.Mesh(titleGeo, titleMat);
+                mainTextMesh.position.set(0, 8.5, -2);
+                mainTextMesh.castShadow = true;
+                scene.add(mainTextMesh);
+
+                // Recipient Subtitle Text
+                const subGeoParams = { ...textGeoParams, size: 0.9, height: 0.2 };
+                const subGeo = new THREE.TextGeometry(`To: ${nameText} ✨`, subGeoParams);
+                subGeo.center();
+                const subMat = new THREE.MeshStandardMaterial({
+                    color: currentTheme.accent,
+                    metalness: 0.2,
+                    roughness: 0.3
+                });
+                recipientTextMesh = new THREE.Mesh(subGeo, subMat);
+                recipientTextMesh.position.set(0, 6.8, -2);
+                recipientTextMesh.castShadow = true;
+                scene.add(recipientTextMesh);
+            });
+        }
+
+        // --- Floating Balloons & Confetti System ---
+        function createFloatingDecorations() {
+            const balloonGeo = new THREE.SphereGeometry(0.7, 16, 16);
+            const balloonColors = [0xFF5252, 0xFF4081, 0x7C4DFF, 0x448AFF, 0x69F0AE, 0xFFD740];
+
+            for (let i = 0; i < 20; i++) {
+                const mat = new THREE.MeshStandardMaterial({
+                    color: balloonColors[i % balloonColors.length],
+                    roughness: 0.2,
+                    metalness: 0.1
+                });
+                const balloon = new THREE.Mesh(balloonGeo, mat);
+                
+                const x = (Math.random() - 0.5) * 35;
+                const z = (Math.random() - 0.5) * 35;
+                const y = 3 + Math.random() * 10;
+                
+                balloon.position.set(x, y, z);
+                balloon.userData = {
+                    initialY: y,
+                    speed: 0.5 + Math.random() * 1.5,
+                    offset: Math.random() * Math.PI * 2
+                };
+                
+                scene.add(balloon);
+                floatingBalloons.push(balloon);
+            }
+        }
+
+        function initConfetti() {
+            const count = 150;
+            const geo = new THREE.BoxGeometry(0.15, 0.15, 0.02);
+            const colors = [0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF];
+
+            for (let i = 0; i < count; i++) {
+                const mat = new THREE.MeshBasicMaterial({
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    side: THREE.DoubleSide
+                });
+                const p = new THREE.Mesh(geo, mat);
+                resetConfettiParticle(p);
+                scene.add(p);
+                confettiParticles.push(p);
+            }
+        }
+
+        function resetConfettiParticle(p) {
+            p.position.set(
+                (Math.random() - 0.5) * 30,
+                12 + Math.random() * 10,
+                (Math.random() - 0.5) * 30
+            );
+            p.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+            p.userData = {
+                vy: -0.03 - Math.random() * 0.05,
+                vx: (Math.random() - 0.5) * 0.02,
+                vz: (Math.random() - 0.5) * 0.02,
+                rotSpeed: (Math.random() - 0.5) * 0.1
+            };
+        }
+
+        // Spawn Burst Particles on Click
+        function createSpawnBurst(x, y, z) {
+            const burstCount = 30;
+            const geo = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+            const mat = new THREE.MeshBasicMaterial({ color: 0xFFD700 });
+
+            for (let i = 0; i < burstCount; i++) {
+                const p = new THREE.Mesh(geo, mat);
+                p.position.set(x, y + 0.5, z);
+                
+                const dir = new THREE.Vector3(
+                    (Math.random() - 0.5) * 2,
+                    Math.random() * 2 + 1,
+                    (Math.random() - 0.5) * 2
+                ).normalize().multiplyScalar(0.15 + Math.random() * 0.1);
+
+                p.userData = { vel: dir, life: 1.0 };
+                scene.add(p);
+
+                // Animate and destroy
+                const animateParticle = () => {
+                    if (p.userData.life <= 0) {
+                        scene.remove(p);
+                        p.geometry.dispose();
+                        p.material.dispose();
+                        return;
+                    }
+                    p.position.add(p.userData.vel);
+                    p.userData.vel.y -= 0.005; // gravity
+                    p.userData.life -= 0.03;
+                    p.scale.setScalar(p.userData.life);
+                    requestAnimationFrame(animateParticle);
+                };
+                animateParticle();
+            }
+        }
+
+        // --- Interaction Handler ---
+        function onPointerDown(event) {
+            // Only spawn on left click
+            if (event.button !== 0) return;
+
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObject(groundPlane);
+
+            if (intersects.length > 0) {
+                const pt = intersects[0].point;
+                // Limit spawn bounds within floor
+                if (Math.abs(pt.x) < 18 && Math.abs(pt.z) < 18) {
+                    spawnRobloxCharacter(pt.x, pt.z);
+                }
+            }
+        }
+
+        // Window Resize
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- Animation Loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = clock.getElapsedTime();
+
+            // Update Controls
+            controls.update();
+
+            // 1. Animate Roblox Character Dancing Logic
+            dancers.forEach((dancer) => {
+                const t = time * dancer.speed + dancer.timeOffset;
+                const joints = dancer.joints;
+
+                if (dancer.danceStyle === 0) {
+                    // Dance Style 0: Classic Roblox Hop & Arm Wave
+                    dancer.mesh.position.y = Math.abs(Math.sin(t * 1.5)) * 0.4 + (dancer.mesh.position.x === 0 && dancer.mesh.position.z === 0 ? 0.6 : 0);
+                    joints.leftArm.rotation.z = Math.sin(t) * 0.8 + 0.4;
+                    joints.rightArm.rotation.z = -Math.sin(t) * 0.8 - 0.4;
+                    joints.leftLeg.rotation.x = Math.sin(t) * 0.5;
+                    joints.rightLeg.rotation.x = -Math.sin(t) * 0.5;
+                    joints.head.rotation.y = Math.sin(t * 0.5) * 0.3;
+                } else if (dancer.danceStyle === 1) {
+                    // Dance Style 1: Body Twist & Side Hips
+                    dancer.mesh.rotation.y = Math.sin(t * 0.8) * 0.5;
+                    joints.torso.position.y = 1.5 + Math.sin(t * 2) * 0.1;
+                    joints.leftArm.rotation.x = Math.cos(t) * 1.2;
+                    joints.rightArm.rotation.x = -Math.cos(t) * 1.2;
+                    joints.leftLeg.rotation.z = Math.max(0, Math.sin(t) * 0.3);
+                    joints.rightLeg.rotation.z = Math.min(0, -Math.sin(t) * 0.3);
+                } else {
+                    // Dance Style 2: Spin & Overhead Hands Wave
+                    dancer.mesh.rotation.y += 0.03;
+                    dancer.mesh.position.y = Math.abs(Math.cos(t * 2)) * 0.5 + (dancer.mesh.position.x === 0 && dancer.mesh.position.z === 0 ? 0.6 : 0);
+                    joints.leftArm.rotation.z = 2.5 + Math.sin(t * 2) * 0.3;
+                    joints.rightArm.rotation.z = -2.5 - Math.sin(t * 2) * 0.3;
+                    joints.head.rotation.x = Math.sin(t * 2) * 0.2;
+                }
+            });
+
+            // 2. Animate Floating Balloons
+            floatingBalloons.forEach(b => {
+                b.position.y = b.userData.initialY + Math.sin(time * b.userData.speed + b.userData.offset) * 0.8;
+                b.rotation.y += 0.01;
+            });
+
+            // 3. Animate Confetti Rain
+            confettiParticles.forEach(p => {
+                p.position.y += p.userData.vy;
+                p.position.x += p.userData.vx;
+                p.position.z += p.userData.vz;
+                p.rotation.x += p.userData.rotSpeed;
+                p.rotation.y += p.userData.rotSpeed;
+
+                if (p.position.y < 0) {
+                    resetConfettiParticle(p);
+                }
+            });
+
+            // 4. Gently Bob 3D Banners
+            if (mainTextMesh) {
+                mainTextMesh.position.y = 8.5 + Math.sin(time * 1.5) * 0.2;
+            }
+            if (recipientTextMesh) {
+                recipientTextMesh.position.y = 6.8 + Math.sin(time * 1.5 + 0.5) * 0.15;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        const clock = new THREE.Clock();
+
+        // --- UI Interactions Logic ---
+        document.addEventListener('DOMContentLoaded', () => {
+            init();
+
+            // Toggle Music
+            const musicBtn = document.getElementById('btn-music');
+            musicBtn.addEventListener('click', () => {
+                const isPlaying = audio.toggleBGM();
+                musicBtn.classList.toggle('text-yellow-400', isPlaying);
+                musicBtn.classList.toggle('text-gray-400', !isPlaying);
+            });
+
+            // Open Settings Modal
+            const settingsBtn = document.getElementById('btn-settings');
+            const settingsModal = document.getElementById('settings-modal');
+            const closeModalBtn = document.getElementById('btn-close-modal');
+
+            settingsBtn.addEventListener('click', () => {
+                audio.playClickSound();
+                settingsModal.classList.remove('hidden');
+            });
+
+            closeModalBtn.addEventListener('click', () => {
+                audio.playClickSound();
+                settingsModal.classList.add('hidden');
+            });
+
+            // Clear Extra Dancers
+            document.getElementById('btn-clear-dancers').addEventListener('click', (e) => {
+                e.stopPropagation();
+                audio.playClickSound();
+                
+                // Keep center dancer (index 0)
+                for (let i = dancers.length - 1; i > 0; i--) {
+                    scene.remove(dancers[i].mesh);
+                    dancers.pop();
+                }
+                document.getElementById('dancer-count').innerText = dancers.length;
+            });
+
+            // Theme Selection Buttons
+            const themeBtns = document.querySelectorAll('.theme-btn');
+            themeBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    audio.playClickSound();
+                    themeBtns.forEach(b => b.classList.replace('border-yellow-400', 'border-transparent'));
+                    btn.classList.replace('border-transparent', 'border-yellow-400');
+                    
+                    const themeKey = btn.getAttribute('data-theme');
+                    currentTheme = themes[themeKey];
+                    
+                    // Apply theme changes to scene
+                    scene.background.set(currentTheme.bg);
+                    scene.fog.color.set(currentTheme.bg);
+                    groundPlane.material.color.set(currentTheme.ground);
+
+                    // Re-create text with theme colors
+                    const titleVal = document.getElementById('input-main-title').value || "Happy Birthday!";
+                    const nameVal = document.getElementById('input-recipient').value || "Alex";
+                    create3DText(titleVal, nameVal);
+                });
+            });
+
+            // Apply Settings Customization
+            document.getElementById('btn-apply-settings').addEventListener('click', () => {
+                audio.playClickSound();
+                const mainTitle = document.getElementById('input-main-title').value || "Happy Birthday!";
+                const recipient = document.getElementById('input-recipient').value || "Alex";
+
+                // Update Header UI
+                document.getElementById('header-title').innerText = mainTitle;
+                
+                // Update 3D World Text
+                create3DText(mainTitle, recipient);
+
+                settingsModal.classList.add('hidden');
+            });
+        });
+    </script>
+</body>
+</html>

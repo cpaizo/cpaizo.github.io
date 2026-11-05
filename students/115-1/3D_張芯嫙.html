@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>物怪祝福賀卡 | Mononoke 3D Greeting Card</title>
+    <!-- Tailwind CSS for UI layout -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Zen Maru Gothic for a friendly, soft rounded aesthetic -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- Three.js & OrbitControls -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 50%, #e0e7ff 100%);
+            color: #334155;
+        }
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            outline: none;
+        }
+        /* Custom Macaron Blue Soft Glassmorphism */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 10px 30px -5px rgba(186, 230, 253, 0.5),
+                        0 4px 12px 0 rgba(147, 197, 253, 0.3);
+        }
+        .btn-macaron {
+            background: linear-gradient(135deg, #bae6fd 0%, #93c5fd 100%);
+            color: #1e3a8a;
+            box-shadow: 0 4px 15px rgba(147, 197, 253, 0.4);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .btn-macaron:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 8px 25px rgba(147, 197, 253, 0.6);
+            background: linear-gradient(135deg, #7dd3fc 0%, #60a5fa 100%);
+        }
+        .btn-macaron:active {
+            transform: translateY(1px) scale(0.98);
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.85);
+            color: #0284c7;
+            border: 2px solid #bae6fd;
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background: #f0f9ff;
+            border-color: #7dd3fc;
+            transform: translateY(-2px);
+        }
+        /* Gentle Floating Animation */
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(1deg); }
+        }
+        .animate-float {
+            animation: floatSlow 4s ease-in-out infinite;
+        }
+        /* Modal Transition */
+        .modal-enter {
+            opacity: 0;
+            transform: scale(0.9) translateY(20px);
+        }
+        .modal-active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+    </style>
+</head>
+<body class="w-full h-screen overflow-hidden select-none">
+
+    <!-- 3D WebGL Canvas Container -->
+    <div id="canvas-container" class="w-full h-full absolute inset-0 cursor-grab active:cursor-grabbing"></div>
+
+    <!-- UI Overlay Header -->
+    <header class="absolute top-4 left-4 right-4 md:top-6 md:left-8 md:right-8 flex justify-between items-center pointer-events-none z-10">
+        <div class="glass-panel px-5 py-3 rounded-2xl flex items-center gap-3 pointer-events-auto shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-200 to-indigo-200 flex items-center justify-center text-sky-600 shadow-inner">
+                <i class="fa-solid font-bold text-xl fa-ghost"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-slate-800 text-base md:text-lg tracking-wide">物怪祝福賀卡</h1>
+                <p class="text-xs text-sky-600 font-medium">Mononoke 3D Blessing</p>
+            </div>
+        </div>
+
+        <!-- Audio / Controls Quick Toolbar -->
+        <div class="glass-panel px-3 py-2 rounded-2xl flex items-center gap-2 pointer-events-auto">
+            <button id="toggle-sound-btn" class="w-10 h-10 rounded-xl hover:bg-sky-100/70 text-sky-700 flex items-center justify-center transition" title="背景音效">
+                <i class="fa-solid fa-music text-base"></i>
+            </button>
+            <button id="reset-cam-btn" class="w-10 h-10 rounded-xl hover:bg-sky-100/70 text-sky-700 flex items-center justify-center transition" title="重設視角">
+                <i class="fa-solid fa-rotate-left text-base"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Interactive Hint Banner -->
+    <div class="absolute top-20 left-1/2 -translate-x-1/2 pointer-events-none z-10 text-center w-11/12 max-w-md">
+        <div class="glass-panel px-4 py-2 rounded-full inline-flex items-center gap-2 text-xs md:text-sm text-sky-800 animate-float shadow-sm">
+            <span class="inline-block w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
+            <span>點擊畫面任何地方或小物怪，觸發 3D 驚喜花火！</span>
+        </div>
+    </div>
+
+    <!-- Bottom Action Controls -->
+    <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex flex-wrap justify-center gap-3 md:gap-4 w-11/12 max-w-lg pointer-events-auto">
+        <button id="btn-blessing" class="btn-macaron px-6 py-3.5 rounded-2xl font-bold text-sm md:text-base flex items-center gap-2">
+            <i class="fa-solid fa-envelope-open-text text-lg"></i>
+            <span>開啟物怪祝福</span>
+        </button>
+        <button id="btn-surprise" class="btn-secondary px-5 py-3.5 rounded-2xl font-bold text-sm md:text-base flex items-center gap-2 shadow-sm">
+            <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+            <span>釋放靈魂星光</span>
+        </button>
+    </div>
+
+    <!-- Interactive Blessing Card Modal -->
+    <div id="blessing-modal" class="fixed inset-0 z-30 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300">
+        <div id="modal-card" class="glass-panel w-full max-w-md p-6 md:p-8 rounded-3xl modal-enter relative shadow-2xl border border-white">
+            <!-- Close Button -->
+            <button id="close-modal-btn" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/80 hover:bg-white text-slate-500 hover:text-slate-800 flex items-center justify-center transition shadow-sm">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <!-- Card Header Badge -->
+            <div class="text-center mb-5">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-gradient-to-tr from-sky-100 via-sky-200 to-indigo-100 text-sky-600 mb-3 shadow-inner">
+                    <i class="fa-solid fa-sparkles text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800">馬卡龍精靈的御守祝福</h3>
+                <p class="text-xs text-sky-600 mt-1 font-medium">✨ Gentle Spirit Blessing ✨</p>
+            </div>
+
+            <!-- Dynamic Blessing Text Container -->
+            <div class="bg-white/70 p-5 rounded-2xl border border-sky-100 text-center mb-6 shadow-inner">
+                <p id="blessing-text" class="text-slate-700 text-base md:text-lg leading-relaxed font-medium">
+                    願你的日子如馬卡龍般甜美，充滿柔軟的光芒與溫柔的幸運！
+                </p>
+            </div>
+
+            <!-- Modal Action Footer -->
+            <div class="flex gap-3">
+                <button id="next-blessing-btn" class="flex-1 btn-macaron py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-dice-three"></i>
+                    <span>換一張卡片</span>
+                </button>
+                <button id="modal-burst-btn" class="flex-1 btn-secondary py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-heart"></i>
+                    <span>撒滿祝福心花</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Logic Script -->
+    <script>
+        // --- 1. Audio Synth Setup (Web Audio API) for Interactive Sound Effects ---
+        let audioCtx = null;
+        let soundEnabled = true;
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+            }
+        }
+
+        function playPopSound(freq = 440, type = 'sine', duration = 0.15) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(freq * 1.8, audioCtx.currentTime + duration);
+                
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {
+                console.log('Audio playback prevented or unsupported');
+            }
+        }
+
+        // --- 2. Three.js Scene Setup & Color Palette ---
+        const PALETTE = {
+            macaronBlue: 0xbfe0fe,
+            macaronAqua: 0xa7f3d0,
+            macaronMint: 0xbaefec,
+            macaronLavender: 0xdbeafe,
+            macaronWhite: 0xf8fafc,
+            macaronPink: 0xfbcfe8,
+            darkNavy: 0x1e293b,
+            blushPink: 0xf472b6,
+            goldAccent: 0xfde047
+        };
+
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(PALETTE.macaronBlue);
+        scene.fog = new THREE.FogExp2(PALETTE.macaronBlue, 0.035);
+
+        // Camera Setup
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 2.5, 9);
+
+        // Renderer
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.1;
+        container.appendChild(renderer.domElement);
+
+        // OrbitControls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.maxPolarAngle = Math.PI / 2 + 0.05; // Prevent camera from going too far under floor
+        controls.minDistance = 4;
+        controls.maxDistance = 14;
+
+        // --- 3. Lighting Setup ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+        scene.add(ambientLight);
+
+        const mainLight = new THREE.DirectionalLight(0xffffff, 0.9);
+        mainLight.position.set(5, 8, 5);
+        mainLight.castShadow = true;
+        mainLight.shadow.mapSize.width = 1024;
+        mainLight.shadow.mapSize.height = 1024;
+        mainLight.shadow.bias = -0.0005;
+        scene.add(mainLight);
+
+        // Soft pastel fill lights
+        const fillLight1 = new THREE.PointLight(PALETTE.macaronPink, 0.6, 12);
+        fillLight1.position.set(-4, 3, 2);
+        scene.add(fillLight1);
+
+        const fillLight2 = new THREE.PointLight(PALETTE.macaronAqua, 0.6, 12);
+        fillLight2.position.set(4, 2, -2);
+        scene.add(fillLight2);
+
+        // --- 4. Environment: Floating Islands & Decorative Elements ---
+        const worldGroup = new THREE.Group();
+        scene.add(worldGroup);
+
+        // Main Soft Floating Podium
+        const podiumGeo = new THREE.CylinderGeometry(2.6, 2.8, 0.8, 32);
+        const podiumMat = new THREE.MeshStandardMaterial({
+            color: PALETTE.macaronWhite,
+            roughness: 0.3,
+            metalness: 0.05
+        });
+        const podium = new THREE.Mesh(podiumGeo, podiumMat);
+        podium.position.y = -1.4;
+        podium.receiveShadow = true;
+        worldGroup.add(podium);
+
+        // Decorative Ring around Podium
+        const ringGeo = new THREE.TorusGeometry(2.9, 0.06, 16, 64);
+        const ringMat = new THREE.MeshStandardMaterial({
+            color: PALETTE.macaronLavender,
+            roughness: 0.2,
+            metalness: 0.2
+        });
+        const podiumRing = new THREE.Mesh(ringGeo, ringMat);
+        podiumRing.rotation.x = Math.PI / 2;
+        podiumRing.position.y = -1.4;
+        worldGroup.add(podiumRing);
+
+        // Soft Shadow Plane
+        const shadowPlaneGeo = new THREE.PlaneGeometry(20, 20);
+        const shadowPlaneMat = new THREE.ShadowMaterial({ opacity: 0.15 });
+        const shadowPlane = new THREE.Mesh(shadowPlaneGeo, shadowPlaneMat);
+        shadowPlane.rotation.x = -Math.PI / 2;
+        shadowPlane.position.y = -1.8;
+        shadowPlane.receiveShadow = true;
+        scene.add(shadowPlane);
+
+        // Background Floating Clouds / Pastel Spheres
+        const bgElements = new THREE.Group();
+        scene.add(bgElements);
+
+        function createBgCloud(x, y, z, scale = 1) {
+            const cloudGroup = new THREE.Group();
+            const cloudMat = new THREE.MeshStandardMaterial({
+                color: 0xffffff,
+                roughness: 0.4,
+                transparent: true,
+                opacity: 0.85
+            });
+
+            const sphereGeo = new THREE.SphereGeometry(0.6, 16, 16);
+            const positions = [
+                [0, 0, 0], [0.5, 0.1, 0], [-0.5, 0, 0],
+                [0.2, 0.4, 0.1], [-0.2, 0.3, -0.1]
+            ];
+
+            positions.forEach(pos => {
+                const m = new THREE.Mesh(sphereGeo, cloudMat);
+                m.position.set(...pos);
+                cloudGroup.add(m);
+            });
+
+            cloudGroup.position.set(x, y, z);
+            cloudGroup.scale.setScalar(scale);
+            bgElements.add(cloudGroup);
+            return cloudGroup;
+        }
+
+        // Spawn background floating clouds
+        const clouds = [
+            createBgCloud(-4.5, 3.2, -3, 1.2),
+            createBgCloud(4.8, 2.5, -4, 1.4),
+            createBgCloud(-3.5, -0.5, -2, 0.9),
+            createBgCloud(3.8, -1.0, -3, 1.0)
+        ];
+
+        // --- 5. Cute Stylized Mononoke Character Construction ---
+        const mononokeGroup = new THREE.Group();
+        mononokeGroup.position.set(0, -0.2, 0);
+        worldGroup.add(mononokeGroup);
+
+        // Mononoke Main Body (Soft rounded dumpling/spirit shape)
+        const bodyGeo = new THREE.SphereGeometry(1.2, 32, 32);
+        bodyGeo.scale(1.0, 1.15, 0.95); // Slightly elongated & cute shape
+        const bodyMat = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            roughness: 0.25,
+            metalness: 0.05
+        });
+        const mononokeBody = new THREE.Mesh(bodyGeo, bodyMat);
+        mononokeBody.castShadow = true;
+        mononokeBody.receiveShadow = true;
+        mononokeGroup.add(mononokeBody);
+
+        // Cute Mononoke Ears / Horns (Spirit Antennae)
+        function createEar(x, isRight = false) {
+            const earGeo = new THREE.ConeGeometry(0.3, 0.8, 16);
+            earGeo.translate(0, 0.4, 0);
+            const earMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 });
+            const ear = new THREE.Mesh(earGeo, earMat);
+            ear.position.set(x, 1.0, 0);
+            ear.rotation.z = isRight ? -0.25 : 0.25;
+            ear.rotation.x = -0.1;
+            ear.castShadow = true;
+            return ear;
+        }
+        const leftEar = createEar(-0.65, false);
+        const rightEar = createEar(0.65, true);
+        mononokeGroup.add(leftEar);
+        mononokeGroup.add(rightEar);
+
+        // Cute Facial Features
+        const faceGroup = new THREE.Group();
+        faceGroup.position.set(0, 0.2, 1.05);
+        mononokeGroup.add(faceGroup);
+
+        // Eyes
+        const eyeGeo = new THREE.SphereGeometry(0.12, 16, 16);
+        eyeGeo.scale(1, 1.2, 0.4);
+        const eyeMat = new THREE.MeshBasicMaterial({ color: PALETTE.darkNavy });
+
+        const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
+        leftEye.position.set(-0.35, 0.1, 0);
+        faceGroup.add(leftEye);
+
+        const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
+        rightEye.position.set(0.35, 0.1, 0);
+        faceGroup.add(rightEye);
+
+        // Eye Highlights
+        const eyeHighlightGeo = new THREE.SphereGeometry(0.04, 8, 8);
+        const eyeHighlightMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        
+        const hl1 = new THREE.Mesh(eyeHighlightGeo, eyeHighlightMat);
+        hl1.position.set(-0.32, 0.14, 0.04);
+        faceGroup.add(hl1);
+
+        const hl2 = new THREE.Mesh(eyeHighlightGeo, eyeHighlightMat);
+        hl2.position.set(0.38, 0.14, 0.04);
+        faceGroup.add(hl2);
+
+        // Soft Blush Cheeks
+        const blushGeo = new THREE.SphereGeometry(0.15, 16, 16);
+        blushGeo.scale(1.2, 0.6, 0.2);
+        const blushMat = new THREE.MeshBasicMaterial({
+            color: PALETTE.blushPink,
+            transparent: true,
+            opacity: 0.6
+        });
+
+        const leftBlush = new THREE.Mesh(blushGeo, blushMat);
+        leftBlush.position.set(-0.52, -0.08, -0.05);
+        faceGroup.add(leftBlush);
+
+        const rightBlush = new THREE.Mesh(blushGeo, blushMat);
+        rightBlush.position.set(0.52, -0.08, -0.05);
+        faceGroup.add(rightBlush);
+
+        // Cute Mouth (Curved arc shape)
+        const mouthCurve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(-0.1, -0.08, 0),
+            new THREE.Vector3(0, -0.15, 0.02),
+            new THREE.Vector3(0.1, -0.08, 0)
+        ]);
+        const mouthGeo = new THREE.TubeGeometry(mouthCurve, 16, 0.02, 8, false);
+        const mouthMat = new THREE.MeshBasicMaterial({ color: PALETTE.darkNavy });
+        const mouth = new THREE.Mesh(mouthGeo, mouthMat);
+        faceGroup.add(mouth);
+
+        // Mononoke Floating Spirit Orbs (Companion Whisps)
+        const whisps = [];
+        function createWhisp(orbitRadius, speed, colorHex, initialAngle) {
+            const whispGroup = new THREE.Group();
+            const sphereGeo = new THREE.SphereGeometry(0.25, 16, 16);
+            const sphereMat = new THREE.MeshStandardMaterial({
+                color: colorHex,
+                emissive: colorHex,
+                emissiveIntensity: 0.4,
+                roughness: 0.1
+            });
+            const mesh = new THREE.Mesh(sphereGeo, sphereMat);
+            mesh.castShadow = true;
+            whispGroup.add(mesh);
+
+            // Whisp Eyes
+            const wEyeGeo = new THREE.SphereGeometry(0.03, 8, 8);
+            const wEyeMat = new THREE.MeshBasicMaterial({ color: PALETTE.darkNavy });
+            const e1 = new THREE.Mesh(wEyeGeo, wEyeMat);
+            e1.position.set(-0.07, 0.04, 0.22);
+            const e2 = new THREE.Mesh(wEyeGeo, wEyeMat);
+            e2.position.set(0.07, 0.04, 0.22);
+            whispGroup.add(e1);
+            whispGroup.add(e2);
+
+            scene.add(whispGroup);
+            return { group: whispGroup, radius: orbitRadius, speed, angle: initialAngle, heightOffset: Math.random() * 2 };
+        }
+
+        whisps.push(createWhisp(2.2, 0.8, PALETTE.macaronMint, 0));
+        whisps.push(createWhisp(2.5, -0.6, PALETTE.macaronPink, Math.PI));
+        whisps.push(createWhisp(1.8, 1.1, PALETTE.macaronLavender, Math.PI * 0.5));
+
+        // --- 6. Interactive 3D Particle & Shape Bursts System ---
+        const particleSystems = [];
+
+        // Geometries for Surprise Particles
+        const starGeo = createStarGeometry(0.15, 0.3, 5);
+        const heartGeo = createHeartGeometry(0.2);
+        const bubbleGeo = new THREE.SphereGeometry(0.18, 12, 12);
+        const petalGeo = new THREE.ConeGeometry(0.12, 0.3, 5);
+
+        function createStarGeometry(innerRadius, outerRadius, points) {
+            const shape = new THREE.Shape();
+            const angleStep = Math.PI / points;
+            for (let i = 0; i < 2 * points; i++) {
+                const r = (i % 2 === 0) ? outerRadius : innerRadius;
+                const a = i * angleStep;
+                const x = Math.cos(a) * r;
+                const y = Math.sin(a) * r;
+                if (i === 0) shape.moveTo(x, y);
+                else shape.lineTo(x, y);
+            }
+            shape.closePath();
+            const extrudeSettings = { depth: 0.05, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.02, bevelThickness: 0.02 };
+            return new THREE.ExtrudeGeometry(shape, extrudeSettings);
+        }
+
+        function createHeartGeometry(scale = 1) {
+            const shape = new THREE.Shape();
+            const x = 0, y = 0;
+            shape.moveTo(x + 0.25 * scale, y + 0.25 * scale);
+            shape.bezierCurveTo(x + 0.25 * scale, y + 0.25 * scale, x + 0.2 * scale, y, x, y);
+            shape.bezierCurveTo(x - 0.3 * scale, y, x - 0.3 * scale, y + 0.35 * scale, x - 0.3 * scale, y + 0.35 * scale);
+            shape.bezierCurveTo(x - 0.3 * scale, y + 0.55 * scale, x - 0.1 * scale, y + 0.77 * scale, x + 0.25 * scale, y + 0.95 * scale);
+            shape.bezierCurveTo(x + 0.6 * scale, y + 0.77 * scale, x + 0.8 * scale, y + 0.55 * scale, x + 0.8 * scale, y + 0.35 * scale);
+            shape.bezierCurveTo(x + 0.8 * scale, y + 0.35 * scale, x + 0.8 * scale, y, x + 0.5 * scale, y);
+            shape.bezierCurveTo(x + 0.35 * scale, y, x + 0.25 * scale, y + 0.25 * scale, x + 0.25 * scale, y + 0.25 * scale);
+            const extrudeSettings = { depth: 0.05, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.02, bevelThickness: 0.02 };
+            const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+            geo.center();
+            return geo;
+        }
+
+        const particleMaterials = [
+            new THREE.MeshStandardMaterial({ color: PALETTE.macaronAqua, roughness: 0.2, metalness: 0.1 }),
+            new THREE.MeshStandardMaterial({ color: PALETTE.macaronPink, roughness: 0.2, metalness: 0.1 }),
+            new THREE.MeshStandardMaterial({ color: PALETTE.macaronLavender, roughness: 0.2, metalness: 0.1 }),
+            new THREE.MeshStandardMaterial({ color: PALETTE.goldAccent, roughness: 0.2, metalness: 0.3 }),
+            new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1, metalness: 0.2 })
+        ];
+
+        function spawnParticleBurst(position, count = 25) {
+            const burstGroup = new THREE.Group();
+            burstGroup.position.copy(position);
+
+            const particles = [];
+            const geometries = [starGeo, heartGeo, bubbleGeo, petalGeo];
+
+            for (let i = 0; i < count; i++) {
+                const geo = geometries[Math.floor(Math.random() * geometries.length)];
+                const mat = particleMaterials[Math.floor(Math.random() * particleMaterials.length)].clone();
+                mat.transparent = true;
+                mat.opacity = 1;
+
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.scale.setScalar(0.4 + Math.random() * 0.6);
+                mesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+
+                // Initial Velocity Vector
+                const theta = Math.random() * Math.PI * 2;
+                const phi = (Math.random() - 0.5) * Math.PI;
+                const speed = 0.08 + Math.random() * 0.12;
+
+                const vx = Math.cos(phi) * Math.cos(theta) * speed;
+                const vy = Math.sin(phi) * speed + 0.05; // Gentle upward bias
+                const vz = Math.cos(phi) * Math.sin(theta) * speed;
+
+                const rotSpeed = {
+                    x: (Math.random() - 0.5) * 0.1,
+                    y: (Math.random() - 0.5) * 0.1,
+                    z: (Math.random() - 0.5) * 0.1
+                };
+
+                burstGroup.add(mesh);
+                particles.push({ mesh, vx, vy, vz, rotSpeed, life: 1.0, decay: 0.012 + Math.random() * 0.015 });
+            }
+
+            scene.add(burstGroup);
+            particleSystems.push({ group: burstGroup, particles });
+
+            // Trigger Pop Sound
+            playPopSound(350 + Math.random() * 300, 'sine', 0.2);
+        }
+
+        function updateParticles() {
+            for (let i = particleSystems.length - 1; i >= 0; i--) {
+                const sys = particleSystems[i];
+                let allDead = true;
+
+                sys.particles.forEach(p => {
+                    if (p.life > 0) {
+                        allDead = false;
+                        p.mesh.position.x += p.vx;
+                        p.mesh.position.y += p.vy;
+                        p.mesh.position.z += p.vz;
+
+                        // Drag & gentle float physics
+                        p.vx *= 0.96;
+                        p.vy *= 0.96;
+                        p.vz *= 0.96;
+                        p.vy += 0.001; // Soft upward float
+
+                        p.mesh.rotation.x += p.rotSpeed.x;
+                        p.mesh.rotation.y += p.rotSpeed.y;
+                        p.mesh.rotation.z += p.rotSpeed.z;
+
+                        p.life -= p.decay;
+                        p.mesh.material.opacity = Math.max(0, p.life);
+                        p.mesh.scale.multiplyScalar(0.99);
+                    }
+                });
+
+                if (allDead) {
+                    scene.remove(sys.group);
+                    // Dispose geometries/materials
+                    sys.particles.forEach(p => {
+                        p.mesh.material.dispose();
+                    });
+                    particleSystems.splice(i, 1);
+                }
+            }
+        }
+
+        // --- 7. Interactive Click / Raycasting & Animations ---
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        // Bounce Animation State for Character
+        let isBouncing = false;
+        let bounceStartTime = 0;
+
+        function triggerCharacterBounce() {
+            isBouncing = true;
+            bounceStartTime = clock.getElapsedTime();
+            playPopSound(520, 'triangle', 0.25);
+            // Also spawn a head burst
+            spawnParticleBurst(new THREE.Vector3(0, 1.2, 0), 18);
+        }
+
+        // Mouse Click Handler
+        window.addEventListener('pointerdown', (event) => {
+            // Ignore UI clicks
+            if (event.target.closest('#blessing-modal') || 
+                event.target.closest('button') || 
+                event.target.closest('header')) {
+                return;
+            }
+
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects([mononokeBody, ...mononokeGroup.children], true);
+
+            if (intersects.length > 0) {
+                triggerCharacterBounce();
+            } else {
+                // Raycast against imaginary plane at z=0 to spawn 3D particles where clicked
+                const planeZ = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+                const worldPoint = new THREE.Vector3();
+                raycaster.ray.intersectPlane(planeZ, worldPoint);
+                if (worldPoint) {
+                    spawnParticleBurst(worldPoint, 20);
+                }
+            }
+        });
+
+        // --- 8. UI Interactions & Blessing Messages ---
+        const BLESSINGS = [
+            "願你的日子如馬卡龍般甜美，充滿柔軟的光芒與溫柔的幸運！✨",
+            "物怪靈魂為你驅散煩惱，願今日所有美好都與你撞個滿懷！🌸",
+            "保持可愛，保持純真，生活中的小驚喜正在路上等你！☁️",
+            "祝你擁有棉花糖般的甜夢，與晴空萬里般的好心情！🎈",
+            "願靈魂之光陪伴你，把平凡的每一天都點綴得閃亮無比！🌟",
+            "治癒系物怪為你送上元氣御守：平安、順心、每天都有好口福！🧁"
+        ];
+
+        let currentBlessingIdx = 0;
+        const blessingModal = document.getElementById('blessing-modal');
+        const modalCard = document.getElementById('modal-card');
+        const blessingText = document.getElementById('blessing-text');
+
+        function openBlessingModal() {
+            blessingText.textContent = BLESSINGS[currentBlessingIdx];
+            blessingModal.classList.remove('opacity-0', 'pointer-events-none');
+            modalCard.classList.remove('modal-enter');
+            modalCard.classList.add('modal-active');
+            playPopSound(480, 'sine', 0.2);
+            spawnParticleBurst(new THREE.Vector3(0, 0.5, 0), 30);
+        }
+
+        function closeBlessingModal() {
+            modalCard.classList.remove('modal-active');
+            modalCard.classList.add('modal-enter');
+            blessingModal.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        document.getElementById('btn-blessing').addEventListener('click', openBlessingModal);
+        document.getElementById('close-modal-btn').addEventListener('click', closeBlessingModal);
+
+        document.getElementById('next-blessing-btn').addEventListener('click', () => {
+            currentBlessingIdx = (currentBlessingIdx + 1) % BLESSINGS.length;
+            blessingText.style.opacity = 0;
+            playPopSound(600, 'triangle', 0.15);
+            setTimeout(() => {
+                blessingText.textContent = BLESSINGS[currentBlessingIdx];
+                blessingText.style.opacity = 1;
+            }, 150);
+            spawnParticleBurst(new THREE.Vector3(0, 0, 1), 15);
+        });
+
+        document.getElementById('modal-burst-btn').addEventListener('click', () => {
+            spawnParticleBurst(new THREE.Vector3(0, 0.5, 0), 35);
+            playPopSound(700, 'sine', 0.3);
+        });
+
+        document.getElementById('btn-surprise').addEventListener('click', () => {
+            triggerCharacterBounce();
+            spawnParticleBurst(new THREE.Vector3(-1.5, 1, 0), 20);
+            spawnParticleBurst(new THREE.Vector3(1.5, 1, 0), 20);
+            spawnParticleBurst(new THREE.Vector3(0, 2, 0), 25);
+        });
+
+        document.getElementById('reset-cam-btn').addEventListener('click', () => {
+            controls.reset();
+            playPopSound(300, 'sine', 0.1);
+        });
+
+        const toggleSoundBtn = document.getElementById('toggle-sound-btn');
+        toggleSoundBtn.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            toggleSoundBtn.classList.toggle('text-sky-700');
+            toggleSoundBtn.classList.toggle('text-slate-400');
+            toggleSoundBtn.innerHTML = soundEnabled ? `<i class="fa-solid fa-music text-base"></i>` : `<i class="fa-solid fa-volume-xmark text-base"></i>`;
+            if (soundEnabled) playPopSound(500, 'sine', 0.15);
+        });
+
+        // --- 9. Window Resize Handling ---
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- 10. Main Animation Loop ---
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const elapsedTime = clock.getElapsedTime();
+
+            // 1. Mononoke Idle Floating Animation
+            if (!isBouncing) {
+                mononokeGroup.position.y = -0.2 + Math.sin(elapsedTime * 2) * 0.12;
+                mononokeGroup.rotation.y = Math.sin(elapsedTime * 0.8) * 0.15;
+                mononokeGroup.rotation.z = Math.sin(elapsedTime * 1.5) * 0.03;
+            } else {
+                // Character Bounce Animation Physics
+                const bounceTime = elapsedTime - bounceStartTime;
+                const duration = 0.6;
+                if (bounceTime < duration) {
+                    const progress = bounceTime / duration;
+                    const bounceY = Math.sin(progress * Math.PI) * 0.7;
+                    const squashScale = 1 + Math.sin(progress * Math.PI * 2) * 0.15;
+                    
+                    mononokeGroup.position.y = -0.2 + bounceY;
+                    mononokeGroup.scale.set(1 / squashScale, squashScale, 1 / squashScale);
+                    mononokeGroup.rotation.y += 0.1; // Spin during bounce
+                } else {
+                    isBouncing = false;
+                    mononokeGroup.scale.set(1, 1, 1);
+                }
+            }
+
+            // Ears idle twitching
+            leftEar.rotation.z = 0.25 + Math.sin(elapsedTime * 4) * 0.05;
+            rightEar.rotation.z = -0.25 - Math.sin(elapsedTime * 4 + 1) * 0.05;
+
+            // 2. Whisps Orbiting Animation
+            whisps.forEach(w => {
+                w.angle += w.speed * 0.02;
+                w.group.position.x = Math.cos(w.angle) * w.radius;
+                w.group.position.z = Math.sin(w.angle) * w.radius;
+                w.group.position.y = Math.sin(elapsedTime * 2 + w.heightOffset) * 0.4 + 0.2;
+                w.group.rotation.y = -w.angle + Math.PI / 2;
+            });
+
+            // 3. Background Clouds Gentle Sway
+            clouds.forEach((cloud, index) => {
+                cloud.position.y += Math.sin(elapsedTime * 1.2 + index) * 0.0015;
+                cloud.rotation.y = Math.sin(elapsedTime * 0.5 + index) * 0.05;
+            });
+
+            // 4. Update Particle Effects & Orbit Controls
+            updateParticles();
+            controls.update();
+
+            // Render
+            renderer.render(scene, camera);
+        }
+
+        // Start Animation Loop on Window Load
+        window.onload = function() {
+            animate();
+            // Initial spawn burst for welcoming visual effect
+            setTimeout(() => {
+                spawnParticleBurst(new THREE.Vector3(0, 0.5, 0), 20);
+            }, 600);
+        };
+    </script>
+</body>
+</html>

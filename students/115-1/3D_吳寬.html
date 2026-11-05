@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROBLOX 競技王者 · 2025 慶典賀卡 | Roblox FPS Celebration Card</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- GSAP for smooth animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Fredoka:wght@600;700&family=Noto+Sans+TC:wght@700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #03040b;
+            font-family: 'Noto Sans TC', sans-serif;
+            color: #ffffff;
+            user-select: none;
+            cursor: none; /* Custom crosshair pointer */
+        }
+
+        /* FPS Custom Crosshair */
+        #crosshair {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 40px;
+            height: 40px;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: transform 0.05s linear;
+        }
+
+        .crosshair-line {
+            position: absolute;
+            background-color: #00f0ff;
+            box-shadow: 0 0 8px #00f0ff, 0 0 15px #00f0ff;
+        }
+
+        /* Glassmorphic Cyber UI Containers */
+        .glass-panel {
+            background: rgba(10, 15, 30, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6),
+                        inset 0 0 15px rgba(0, 240, 255, 0.1);
+        }
+
+        .glass-panel-gold {
+            background: rgba(25, 18, 5, 0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            box-shadow: 0 8px 32px 0 rgba(255, 215, 0, 0.25),
+                        inset 0 0 15px rgba(255, 215, 0, 0.15);
+        }
+
+        /* Cyberpunk FPS Glow Buttons */
+        .cyber-btn {
+            position: relative;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(0, 80, 255, 0.4));
+            border: 2px solid #00f0ff;
+            color: #ffffff;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 800;
+            text-transform: uppercase;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            transition: all 0.2s ease;
+        }
+
+        .cyber-btn:hover {
+            background: linear-gradient(135deg, #00f0ff, #0055ff);
+            color: #000;
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.8);
+            transform: scale(1.05);
+        }
+
+        .cyber-btn-red {
+            background: linear-gradient(135deg, rgba(255, 0, 85, 0.3), rgba(180, 0, 40, 0.5));
+            border-color: #ff0055;
+        }
+
+        .cyber-btn-red:hover {
+            background: linear-gradient(135deg, #ff0055, #ff5500);
+            color: #fff;
+            box-shadow: 0 0 25px rgba(255, 0, 85, 0.9);
+        }
+
+        .orbitron-font {
+            font-family: 'Orbitron', 'Noto Sans TC', sans-serif;
+        }
+
+        .fps-title-font {
+            font-family: 'Black Ops One', 'Noto Sans TC', cursive;
+        }
+
+        /* Dynamic Combo Text Punch Effects */
+        .combo-pop {
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.3) rotate(-5deg); opacity: 0; }
+            50% { transform: scale(1.3) rotate(3deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        /* Scanline Overlay Effect */
+        .scanlines {
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.25) 50%
+            );
+            background-size: 100% 4px;
+        }
+    </style>
+</head>
+<body class="w-full h-full relative overflow-hidden bg-black select-none">
+
+    <!-- Canvas Container -->
+    <div id="canvas-container" class="absolute inset-0 z-0"></div>
+
+    <!-- Scanline Layer -->
+    <div class="absolute inset-0 pointer-events-none scanlines z-10 opacity-30"></div>
+
+    <!-- FPS Crosshair UI -->
+    <div id="crosshair">
+        <!-- Center Dot -->
+        <div class="absolute top-1/2 left-1/2 w-2 h-2 -translate-x-1/2 -translate-y-1/2 bg-yellow-300 rounded-full shadow-[0_0_8px_#ffd700]"></div>
+        <!-- Cross lines -->
+        <div class="crosshair-line top-0 left-1/2 -translate-x-1/2 w-0.5 h-3"></div>
+        <div class="crosshair-line bottom-0 left-1/2 -translate-x-1/2 w-0.5 h-3"></div>
+        <div class="crosshair-line left-0 top-1/2 -translate-y-1/2 h-0.5 w-3"></div>
+        <div class="crosshair-line right-0 top-1/2 -translate-y-1/2 h-0.5 w-3"></div>
+    </div>
+
+    <!-- UI Overlay Layer -->
+    <div class="relative z-20 w-full h-full flex flex-col justify-between p-4 md:p-6 pointer-events-none">
+
+        <!-- Top Header Navigation -->
+        <header class="w-full flex justify-between items-start">
+            <!-- Left FPS Player Tag -->
+            <div class="glass-panel px-5 py-3 rounded-2xl flex items-center space-x-4 pointer-events-auto border-l-4 border-l-cyan-400">
+                <div class="relative">
+                    <div class="w-12 h-12 bg-gradient-to-tr from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center font-black text-xl text-yellow-300 shadow-lg border border-cyan-300">
+                        <i class="fa-solid fa-crown text-2xl"></i>
+                    </div>
+                    <span class="absolute -bottom-1 -right-1 bg-green-500 w-4 h-4 rounded-full border-2 border-slate-900"></span>
+                </div>
+                <div>
+                    <div class="text-xs text-cyan-300 font-extrabold orbitron-font tracking-widest flex items-center space-x-2">
+                        <span>ROBLOX MVP PLAYER</span>
+                        <span class="bg-red-600 text-white px-1.5 py-0.5 rounded text-[10px]">LIVE</span>
+                    </div>
+                    <div id="player-tag" class="text-lg md:text-xl font-black text-white tracking-wide">RANK #1 CHAMPION</div>
+                </div>
+            </div>
+
+            <!-- Combo & Score HUD Floating Right -->
+            <div id="combo-container" class="text-right pointer-events-none transform transition-transform">
+                <div class="text-xs orbitron-font text-yellow-400 tracking-wider">CELEBRATION STRIKES</div>
+                <div id="combo-count" class="fps-title-font text-4xl md:text-6xl text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-red-500 drop-shadow-[0_0_15px_rgba(255,215,0,0.8)]">
+                    0x COMBO
+                </div>
+                <div id="combo-subtitle" class="text-xs md:text-sm font-bold text-cyan-300 orbitron-font tracking-widest opacity-0">
+                    CHAMPION STRIKE!
+                </div>
+            </div>
+        </header>
+
+        <!-- Center Main Greeting Banner -->
+        <div class="text-center my-auto pointer-events-none space-y-3 max-w-4xl mx-auto">
+            <div class="inline-block glass-panel-gold px-6 py-2 rounded-full border border-yellow-400/50 mb-1">
+                <span class="text-yellow-300 font-extrabold tracking-widest text-sm md:text-base orbitron-font flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-trophy text-yellow-400 animate-bounce"></i>
+                    <span>2025 ROBLOX LUNAR VICTORY</span>
+                    <i class="fa-solid fa-fire text-red-500"></i>
+                </span>
+            </div>
+            
+            <h1 id="main-title" class="fps-title-font text-4xl sm:text-6xl md:text-7xl lg:text-8xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-yellow-200 to-red-500 drop-shadow-[0_0_25px_rgba(0,240,255,0.7)] tracking-wider">
+                槍槍命中 · 連勝不斷
+            </h1>
+            
+            <p id="sub-title" class="text-base sm:text-xl md:text-2xl text-cyan-100 font-bold tracking-widest max-w-2xl mx-auto drop-shadow-md">
+                祝你新的一年 戰力爆表、槍槍爆頭、賀歲大吉大利！
+            </p>
+
+            <div class="pt-2 text-xs md:text-sm text-yellow-400/90 orbitron-font animate-pulse">
+                [ 點擊螢幕發射慶典雷射彈，觸發 3D 冠軍獎盃與派對 Noob！ ]
+            </div>
+        </div>
+
+        <!-- Bottom Controls Floating Toolbar -->
+        <footer class="w-full flex flex-col md:flex-row justify-between items-center gap-4 pointer-events-auto">
+            <!-- Quick Preset Blessings -->
+            <div class="flex flex-wrap gap-2 justify-center md:justify-start">
+                <button data-text="槍槍命中 · 連勝不斷" class="blessing-pill glass-panel hover:bg-cyan-500/30 px-3 py-1.5 rounded-xl text-xs md:text-sm font-bold text-cyan-300 border border-cyan-400/40 transition">
+                    🎮 槍槍命中
+                </button>
+                <button data-text="戰力爆表 · 乙巳大吉" class="blessing-pill glass-panel hover:bg-yellow-500/30 px-3 py-1.5 rounded-xl text-xs md:text-sm font-bold text-yellow-300 border border-yellow-400/40 transition">
+                    🏆 戰力爆表
+                </button>
+                <button data-text="GG WP · 新春大吉" class="blessing-pill glass-panel hover:bg-red-500/30 px-3 py-1.5 rounded-xl text-xs md:text-sm font-bold text-red-400 border border-red-500/40 transition">
+                    🔥 GG WP 恭喜
+                </button>
+            </div>
+
+            <!-- Action Controls Group -->
+            <div class="flex items-center space-x-3">
+                <button id="trigger-fireworks-btn" class="cyber-btn cyber-btn-red px-5 py-3 rounded-xl text-xs md:text-sm flex items-center space-x-2">
+                    <i class="fa-solid fa-burst text-lg"></i>
+                    <span>慶典連發爆破</span>
+                </button>
+                
+                <button id="modal-btn" class="cyber-btn px-5 py-3 rounded-xl text-xs md:text-sm flex items-center space-x-2">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <span>客製賀卡</span>
+                </button>
+
+                <button id="sound-btn" class="glass-panel w-11 h-11 rounded-xl flex items-center justify-center text-yellow-300 hover:bg-yellow-400/20 border border-yellow-400/40 transition">
+                    <i id="sound-icon" class="fa-solid fa-volume-high text-lg"></i>
+                </button>
+
+                <button id="auto-btn" class="glass-panel w-11 h-11 rounded-xl flex items-center justify-center text-cyan-300 hover:bg-cyan-400/20 border border-cyan-400/40 transition" title="自動煙火">
+                    <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal Dialog: Custom Greeting Card -->
+    <div id="greeting-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300">
+        <div id="modal-content" class="glass-panel-gold max-w-md w-full p-6 md:p-8 rounded-3xl border-2 border-yellow-400 transform scale-95 transition-transform duration-300 space-y-5 relative">
+            
+            <button id="close-modal-btn" class="absolute top-4 right-4 text-yellow-400 hover:text-white text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="text-center space-y-1">
+                <h3 class="fps-title-font text-2xl md:text-3xl text-yellow-400">ROBLOX 競技賀卡編輯</h3>
+                <p class="text-xs text-yellow-200/80 orbitron-font">CUSTOMIZE YOUR CHAMPION GREETING CARD</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-yellow-300 mb-1">祝賀標題 (Title)</label>
+                    <input type="text" id="card-theme" value="槍槍命中 · 2025 連勝不斷" class="w-full bg-black/60 border border-yellow-500/50 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-yellow-400 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-yellow-300 mb-1">玩家玩家暱稱 / 稱號</label>
+                    <input type="text" id="card-player-name" value="RANK #1 CHAMPION" class="w-full bg-black/60 border border-yellow-500/50 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-yellow-400 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-yellow-300 mb-1">祝福內文 (Message)</label>
+                    <textarea id="card-message" rows="3" class="w-full bg-black/60 border border-yellow-500/50 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-yellow-400 text-sm resize-none">祝你新的一年 戰力爆表、槍槍爆頭、連勝不斷、賀歲大吉大利！GG WP！</textarea>
+                </div>
+            </div>
+
+            <button id="apply-card-btn" class="w-full cyber-btn py-3 rounded-xl text-center text-yellow-300 border-yellow-400 hover:bg-yellow-500">
+                🚀 套用並發射宣戰煙火
+            </button>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 glass-panel px-6 py-2.5 rounded-full border border-cyan-400 text-cyan-200 text-xs md:text-sm font-bold opacity-0 pointer-events-none transition-opacity duration-300 shadow-[0_0_20px_rgba(0,240,255,0.4)]">
+        🎮 系統就緒
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        // --- System State & Configuration ---
+        const STATE = {
+            soundEnabled: true,
+            autoFireworks: false,
+            combo: 0,
+            comboTimer: null,
+            lastSpawnTime: 0,
+            spawnInterval: 120
+        };
+
+        // --- Web Audio API FPS & Party Synthesizer ---
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            // High-tech Cyber Laser Shot sound
+            playLaser() {
+                if (!STATE.soundEnabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(1400, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.12);
+
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.12);
+            }
+
+            // Victory Gold Chime sound (Robux style)
+            playGoldChime() {
+                if (!STATE.soundEnabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+
+                const notes = [1046.50, 1318.51, 1567.98]; // C6, E6, G6
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.05);
+
+                    gain.gain.setValueAtTime(0.12, now + idx * 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.25);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start(now + idx * 0.05);
+                    osc.stop(now + idx * 0.05 + 0.25);
+                });
+            }
+
+            // Confetti Blast Noise Sound
+            playExplosion() {
+                if (!STATE.soundEnabled || !this.ctx) return;
+                const now = this.ctx.currentTime;
+                const bufferSize = this.ctx.sampleRate * 0.25;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(1200, now);
+                filter.frequency.exponentialRampToValueAtTime(200, now + 0.25);
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                noise.start(now);
+                noise.stop(now + 0.25);
+            }
+        }
+
+        const audioFX = new SoundEngine();
+
+        // --- Three.js Scene Setup ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x03040b, 0.012);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 0, 38);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.4;
+        container.appendChild(renderer.domElement);
+
+        // --- Lighting ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+        scene.add(ambientLight);
+
+        const cyanSun = new THREE.DirectionalLight(0x00f0ff, 2.2);
+        cyanSun.position.set(20, 30, 20);
+        scene.add(cyanSun);
+
+        const goldSun = new THREE.DirectionalLight(0xffd700, 2.0);
+        goldSun.position.set(-20, -10, 15);
+        scene.add(goldSun);
+
+        const centerPointLight = new THREE.PointLight(0xff0055, 3.0, 60);
+        centerPointLight.position.set(0, 0, 10);
+        scene.add(centerPointLight);
+
+        // --- Cyber Starfield Background ---
+        function createCyberSpace() {
+            const count = 3500;
+            const geo = new THREE.BufferGeometry();
+            const pos = new Float32Array(count * 3);
+            const cols = new Float32Array(count * 3);
+
+            const palette = [new THREE.Color(0x00f0ff), new THREE.Color(0xffd700), new THREE.Color(0xff0055), new THREE.Color(0xffffff)];
+
+            for (let i = 0; i < count; i++) {
+                pos[i * 3] = (Math.random() - 0.5) * 260;
+                pos[i * 3 + 1] = (Math.random() - 0.5) * 260;
+                pos[i * 3 + 2] = (Math.random() - 0.5) * 260;
+
+                const c = palette[Math.floor(Math.random() * palette.length)];
+                cols[i * 3] = c.r;
+                cols[i * 3 + 1] = c.g;
+                cols[i * 3 + 2] = c.b;
+            }
+
+            geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+            geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+
+            const mat = new THREE.PointsMaterial({
+                size: 1.5,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.85,
+                blending: THREE.AdditiveBlending
+            });
+
+            const points = new THREE.Points(geo, mat);
+            scene.add(points);
+            return points;
+        }
+
+        const cyberBg = createCyberSpace();
+
+        // --- Materials ---
+        const goldMat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.9, roughness: 0.2 });
+        const cyanMat = new THREE.MeshStandardMaterial({ color: 0x00f0ff, metalness: 0.5, roughness: 0.2 });
+        const redMat = new THREE.MeshStandardMaterial({ color: 0xee1133, metalness: 0.2, roughness: 0.3 });
+        const darkMetalMat = new THREE.MeshStandardMaterial({ color: 0x111827, metalness: 0.8, roughness: 0.3 });
+        const yellowMat = new THREE.MeshStandardMaterial({ color: 0xffcc00, roughness: 0.4 });
+        const blueMat = new THREE.MeshStandardMaterial({ color: 0x0066ff, roughness: 0.4 });
+        const greenMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.4 });
+
+        // --- Roblox 3D Models (Enlarged Champion Models) ---
+
+        // 1. Roblox Champion Trophy Cup (Large 3D Model)
+        function createChampionTrophyMesh() {
+            const group = new THREE.Group();
+
+            // Pedestal Base
+            const baseGeo = new THREE.BoxGeometry(3.5, 1.0, 3.5);
+            const base = new THREE.Mesh(baseGeo, darkMetalMat);
+            base.position.y = -2.0;
+            group.add(base);
+
+            // Gold Cup Base Block
+            const cupStemGeo = new THREE.BoxGeometry(1.2, 1.8, 1.2);
+            const cupStem = new THREE.Mesh(cupStemGeo, goldMat);
+            cupStem.position.y = -0.8;
+            group.add(cupStem);
+
+            // Cup Main Bowl Block
+            const bowlGeo = new THREE.BoxGeometry(3.8, 3.2, 2.8);
+            const bowl = new THREE.Mesh(bowlGeo, goldMat);
+            bowl.position.y = 1.4;
+            group.add(bowl);
+
+            // Cup Side Handles
+            const handleGeo = new THREE.BoxGeometry(0.6, 2.2, 0.6);
+            const leftHandle = new THREE.Mesh(handleGeo, goldMat);
+            leftHandle.position.set(-2.2, 1.4, 0);
+            const rightHandle = new THREE.Mesh(handleGeo, goldMat);
+            rightHandle.position.set(2.2, 1.4, 0);
+            group.add(leftHandle, rightHandle);
+
+            // Shining Victory Star Emblem on top
+            const starGeo = new THREE.BoxGeometry(1.4, 1.4, 0.5);
+            const star = new THREE.Mesh(starGeo, cyanMat);
+            star.position.y = 3.6;
+            star.rotation.z = Math.PI / 4;
+            group.add(star);
+
+            group.scale.set(2.2, 2.2, 2.2);
+            return group;
+        }
+
+        // 2. Roblox Confetti Blaster Avatar Noob (Large 3D Model)
+        function createRobloxBlasterNoobMesh() {
+            const group = new THREE.Group();
+
+            // Yellow Head
+            const headGeo = new THREE.BoxGeometry(1.4, 1.4, 1.4);
+            const head = new THREE.Mesh(headGeo, yellowMat);
+            head.position.y = 2.4;
+            group.add(head);
+
+            // Blue Torso
+            const torsoGeo = new THREE.BoxGeometry(2.0, 2.2, 1.1);
+            const torso = new THREE.Mesh(torsoGeo, blueMat);
+            torso.position.y = 0.6;
+            group.add(torso);
+
+            // Green Legs
+            const legGeo = new THREE.BoxGeometry(0.9, 2.0, 0.9);
+            const leftLeg = new THREE.Mesh(legGeo, greenMat);
+            leftLeg.position.set(-0.55, -1.4, 0);
+            const rightLeg = new THREE.Mesh(legGeo, greenMat);
+            rightLeg.position.set(0.55, -1.4, 0);
+            group.add(leftLeg, rightLeg);
+
+            // Arms holding Blaster
+            const armGeo = new THREE.BoxGeometry(0.8, 2.0, 0.8);
+            const leftArm = new THREE.Mesh(armGeo, yellowMat);
+            leftArm.position.set(-1.45, 0.6, 0);
+
+            const rightArm = new THREE.Mesh(armGeo, yellowMat);
+            rightArm.position.set(1.45, 0.6, 0.5);
+            rightArm.rotation.x = -Math.PI / 3;
+            group.add(leftArm, rightArm);
+
+            // Festive Confetti Blaster Tool
+            const blasterBodyGeo = new THREE.BoxGeometry(1.0, 1.0, 3.2);
+            const blaster = new THREE.Mesh(blasterBodyGeo, redMat);
+            blaster.position.set(1.45, 0.7, 1.2);
+            group.add(blaster);
+
+            const barrelGeo = new THREE.BoxGeometry(1.2, 1.2, 0.6);
+            const barrel = new THREE.Mesh(barrelGeo, goldMat);
+            barrel.position.set(1.45, 0.7, 2.8);
+            group.add(barrel);
+
+            group.scale.set(1.8, 1.8, 1.8);
+            return group;
+        }
+
+        // 3. Roblox Gold Ingot (Large Sycee)
+        function createIngotMesh() {
+            const group = new THREE.Group();
+
+            const baseGeo = new THREE.BoxGeometry(3.6, 1.2, 2.2);
+            const base = new THREE.Mesh(baseGeo, goldMat);
+            base.position.y = -0.4;
+            group.add(base);
+
+            const wingGeo = new THREE.BoxGeometry(1.0, 1.2, 2.2);
+            const leftWing = new THREE.Mesh(wingGeo, goldMat);
+            leftWing.position.set(-1.8, 0.4, 0);
+            const rightWing = new THREE.Mesh(wingGeo, goldMat);
+            rightWing.position.set(1.8, 0.4, 0);
+            group.add(leftWing, rightWing);
+
+            const centerGeo = new THREE.BoxGeometry(1.8, 1.0, 1.8);
+            const centerMound = new THREE.Mesh(centerGeo, goldMat);
+            centerMound.position.y = 0.5;
+            group.add(centerMound);
+
+            group.scale.set(2.4, 2.4, 2.4);
+            return group;
+        }
+
+        // 4. Roblox Lucky Gift Box
+        function createGiftBoxMesh() {
+            const group = new THREE.Group();
+
+            const boxGeo = new THREE.BoxGeometry(2.6, 2.6, 2.6);
+            const box = new THREE.Mesh(boxGeo, redMat);
+            group.add(box);
+
+            const ribbonX = new THREE.Mesh(new THREE.BoxGeometry(2.7, 2.7, 0.6), goldMat);
+            const ribbonY = new THREE.Mesh(new THREE.BoxGeometry(0.6, 2.7, 2.7), goldMat);
+            group.add(ribbonX, ribbonY);
+
+            group.scale.set(2.0, 2.0, 2.0);
+            return group;
+        }
+
+        // --- Laser Pulse Trail Line ---
+        function createLaserPulseBeam(startPos, endPos) {
+            const points = [startPos, endPos];
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const material = new THREE.LineBasicMaterial({
+                color: 0x00f0ff,
+                linewidth: 3,
+                transparent: true,
+                opacity: 1.0
+            });
+            const line = new THREE.Line(geometry, material);
+            scene.add(line);
+
+            gsap.to(material, {
+                opacity: 0,
+                duration: 0.25,
+                onComplete: () => {
+                    scene.remove(line);
+                    geometry.dispose();
+                    material.dispose();
+                }
+            });
+        }
+
+        // --- 3D Particle Fireworks & Confetti Burst System ---
+        class ConfettiFirework {
+            constructor(originPosition, colorHex) {
+                this.isDead = false;
+                this.particleCount = 150;
+                this.geometry = new THREE.BufferGeometry();
+                
+                const positions = new Float32Array(this.particleCount * 3);
+                this.velocities = [];
+                const colors = new Float32Array(this.particleCount * 3);
+
+                const palette = [new THREE.Color(0x00f0ff), new THREE.Color(0xffd700), new THREE.Color(0xff0055), new THREE.Color(0x00ff66)];
+                const baseColor = new THREE.Color(colorHex || 0x00f0ff);
+
+                for (let i = 0; i < this.particleCount; i++) {
+                    positions[i * 3] = originPosition.x;
+                    positions[i * 3 + 1] = originPosition.y;
+                    positions[i * 3 + 2] = originPosition.z;
+
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi = Math.acos((Math.random() * 2) - 1);
+                    const speed = Math.random() * 24 + 12;
+
+                    this.velocities.push(new THREE.Vector3(
+                        speed * Math.sin(phi) * Math.cos(theta),
+                        speed * Math.sin(phi) * Math.sin(theta),
+                        speed * Math.cos(phi)
+                    ));
+
+                    const c = palette[Math.floor(Math.random() * palette.length)];
+                    colors[i * 3] = c.r;
+                    colors[i * 3 + 1] = c.g;
+                    colors[i * 3 + 2] = c.b;
+                }
+
+                this.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                this.geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+                this.material = new THREE.PointsMaterial({
+                    size: 1.5,
+                    vertexColors: true,
+                    transparent: true,
+                    opacity: 1.0,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false
+                });
+
+                this.mesh = new THREE.Points(this.geometry, this.material);
+                scene.add(this.mesh);
+
+                this.age = 0;
+                this.maxAge = 1.3;
+            }
+
+            update(delta) {
+                if (this.isDead) return;
+                this.age += delta;
+
+                if (this.age >= this.maxAge) {
+                    this.isDead = true;
+                    scene.remove(this.mesh);
+                    this.geometry.dispose();
+                    this.material.dispose();
+                    return;
+                }
+
+                const positions = this.geometry.attributes.position.array;
+                for (let i = 0; i < this.particleCount; i++) {
+                    const v = this.velocities[i];
+                    v.y -= 6.0 * delta; // Gravity fall
+                    positions[i * 3] += v.x * delta;
+                    positions[i * 3 + 1] += v.y * delta;
+                    positions[i * 3 + 2] += v.z * delta;
+                }
+
+                this.geometry.attributes.position.needsUpdate = true;
+                this.material.opacity = 1.0 - (this.age / this.maxAge);
+            }
+        }
+
+        const fireworksList = [];
+        function spawnFireworkBurst(pos, color) {
+            fireworksList.push(new ConfettiFirework(pos, color));
+            audioFX.playExplosion();
+        }
+
+        // --- Interactive Objects Manager ---
+        const interactiveMeshes = [];
+
+        function spawnSurpriseObject(worldPos) {
+            const types = ['trophy', 'noob', 'ingot', 'giftbox'];
+            const chosenType = types[Math.floor(Math.random() * types.length)];
+            
+            let mesh;
+            if (chosenType === 'trophy') mesh = createChampionTrophyMesh();
+            else if (chosenType === 'noob') mesh = createRobloxBlasterNoobMesh();
+            else if (chosenType === 'ingot') mesh = createIngotMesh();
+            else mesh = createGiftBoxMesh();
+
+            mesh.position.copy(worldPos);
+
+            const targetScale = mesh.scale.x;
+            mesh.scale.set(0.01, 0.01, 0.01);
+            
+            gsap.to(mesh.scale, {
+                x: targetScale,
+                y: targetScale,
+                z: targetScale,
+                duration: 0.6,
+                ease: "back.out(2)"
+            });
+
+            mesh.userData = {
+                rotSpeedX: (Math.random() - 0.5) * 2.2,
+                rotSpeedY: (Math.random() - 0.5) * 2.5,
+                driftY: Math.random() * 2.0 + 1.5,
+                createdTime: Date.now(),
+                lifespan: 8000
+            };
+
+            scene.add(mesh);
+            interactiveMeshes.push(mesh);
+            audioFX.playGoldChime();
+
+            spawnFireworkBurst(worldPos, chosenType === 'trophy' ? 0xffd700 : 0x00f0ff);
+        }
+
+        // --- Crosshair Mouse & Pointer Handler ---
+        const crosshair = document.getElementById('crosshair');
+        const mouseVec = new THREE.Vector2();
+
+        function updatePointer(e) {
+            crosshair.style.left = e.clientX + 'px';
+            crosshair.style.top = e.clientY + 'px';
+
+            mouseVec.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouseVec.y = -(e.clientY / window.innerHeight) * 2 + 1;
+        }
+
+        window.addEventListener('mousemove', updatePointer);
+
+        // Click / Shot Action Trigger
+        function triggerShot(e) {
+            if (e.target.closest('.interactive') || e.target.closest('#greeting-modal') || e.target.closest('button')) return;
+
+            const now = Date.now();
+            if (now - STATE.lastSpawnTime < STATE.spawnInterval) return;
+            STATE.lastSpawnTime = now;
+
+            // Unproject click position to 3D space
+            const vector = new THREE.Vector3(mouseVec.x, mouseVec.y, 0.5);
+            vector.unproject(camera);
+            const dir = vector.sub(camera.position).normalize();
+            const distance = -camera.position.z / dir.z;
+            const target3DPos = camera.position.clone().add(dir.multiplyScalar(distance));
+
+            // Laser Beam effect from camera lower right
+            const gunOrigin = camera.position.clone().add(new THREE.Vector3(4, -3, -5));
+            createLaserPulseBeam(gunOrigin, target3DPos);
+            audioFX.playLaser();
+
+            // Spawn 3D Surprise Object & Particle Burst
+            spawnSurpriseObject(target3DPos);
+
+            // Increment Combo Counter
+            addCombo();
+        }
+
+        window.addEventListener('pointerdown', triggerShot);
+
+        // --- Combo Counter System ---
+        const comboContainer = document.getElementById('combo-container');
+        const comboCountText = document.getElementById('combo-count');
+        const comboSubtitle = document.getElementById('combo-subtitle');
+
+        function addCombo() {
+            STATE.combo++;
+            comboCountText.textContent = `${STATE.combo}x COMBO`;
+            
+            // Pop Animation
+            comboContainer.classList.remove('combo-pop');
+            void comboContainer.offsetWidth; // trigger reflow
+            comboContainer.classList.add('combo-pop');
+
+            if (STATE.combo >= 5) {
+                comboSubtitle.style.opacity = '1';
+                if (STATE.combo >= 20) comboSubtitle.textContent = '🔥 ULTRA CHAMPION STRIKE!';
+                else if (STATE.combo >= 10) comboSubtitle.textContent = '⚡ MEGA VICTORY STRIKE!';
+                else comboSubtitle.textContent = 'CHAMPION STRIKE!';
+            }
+
+            clearTimeout(STATE.comboTimer);
+            STATE.comboTimer = setTimeout(() => {
+                STATE.combo = 0;
+                comboCountText.textContent = `0x COMBO`;
+                comboSubtitle.style.opacity = '0';
+            }, 3000);
+        }
+
+        // Window Resize Listener
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- Animation Render Loop ---
+        let autoTimer = 0;
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const delta = clock.getDelta();
+            const time = clock.getElapsedTime();
+
+            cyberBg.rotation.y = time * 0.04;
+
+            // Update Fireworks
+            for (let i = fireworksList.length - 1; i >= 0; i--) {
+                fireworksList[i].update(delta);
+                if (fireworksList[i].isDead) fireworksList.splice(i, 1);
+            }
+
+            // Update Interactive 3D Objects
+            const now = Date.now();
+            for (let i = interactiveMeshes.length - 1; i >= 0; i--) {
+                const item = interactiveMeshes[i];
+                item.rotation.x += item.userData.rotSpeedX * delta;
+                item.rotation.y += item.userData.rotSpeedY * delta;
+                item.position.y += item.userData.driftY * delta;
+
+                const age = now - item.userData.createdTime;
+                if (age > item.userData.lifespan - 1200) {
+                    const fade = (item.userData.lifespan - age) / 1200;
+                    item.scale.setScalar(Math.max(0, fade * 2.2));
+                }
+
+                if (age >= item.userData.lifespan) {
+                    scene.remove(item);
+                    interactiveMeshes.splice(i, 1);
+                }
+            }
+
+            // Auto Fireworks Mode Loop
+            if (STATE.autoFireworks) {
+                autoTimer += delta;
+                if (autoTimer > 1.2) {
+                    autoTimer = 0;
+                    const randomPos = new THREE.Vector3(
+                        (Math.random() - 0.5) * 45,
+                        (Math.random() - 0.3) * 30,
+                        (Math.random() - 0.5) * 20
+                    );
+                    const colors = [0x00f0ff, 0xffd700, 0xff0055, 0x00ff66];
+                    spawnSurpriseObject(randomPos);
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // --- Modal & UI Logic ---
+        const modal = document.getElementById('greeting-modal');
+        const modalContent = document.getElementById('modal-content');
+        const modalBtn = document.getElementById('modal-btn');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const applyCardBtn = document.getElementById('apply-card-btn');
+        const soundBtn = document.getElementById('sound-btn');
+        const soundIcon = document.getElementById('sound-icon');
+        const autoBtn = document.getElementById('auto-btn');
+        const toast = document.getElementById('toast');
+
+        function openModal() {
+            modal.classList.remove('pointer-events-none', 'opacity-0');
+            modalContent.classList.remove('scale-95');
+            modalContent.classList.add('scale-100');
+        }
+
+        function closeModal() {
+            modal.classList.add('pointer-events-none', 'opacity-0');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+        }
+
+        modalBtn.addEventListener('click', openModal);
+        closeModalBtn.addEventListener('click', closeModal);
+
+        document.querySelectorAll('.blessing-pill').forEach(pill => {
+            pill.addEventListener('click', (e) => {
+                const text = e.target.getAttribute('data-text');
+                document.getElementById('main-title').textContent = text;
+                showToast(`已更新王者祝賀詞：${text}`);
+                spawnFireworkBurst(new THREE.Vector3(0, 0, 0), 0xffd700);
+            });
+        });
+
+        applyCardBtn.addEventListener('click', () => {
+            const theme = document.getElementById('card-theme').value;
+            const playerName = document.getElementById('card-player-name').value;
+            const message = document.getElementById('card-message').value;
+
+            document.getElementById('main-title').textContent = theme;
+            document.getElementById('player-tag').textContent = playerName;
+            document.getElementById('sub-title').textContent = message;
+
+            closeModal();
+            showToast("🎮 王者賀卡數據已套用！");
+
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    spawnFireworkBurst(new THREE.Vector3((Math.random() - 0.5) * 35, (Math.random() - 0.5) * 25, 0), 0x00f0ff);
+                }, i * 150);
+            }
+        });
+
+        document.getElementById('trigger-fireworks-btn').addEventListener('click', () => {
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => {
+                    spawnSurpriseObject(new THREE.Vector3((Math.random() - 0.5) * 45, (Math.random() - 0.5) * 30, 0));
+                }, i * 120);
+            }
+            showToast("💥 觸發 CHAMPION 雷射連發慶典！");
+        });
+
+        soundBtn.addEventListener('click', () => {
+            STATE.soundEnabled = !STATE.soundEnabled;
+            if (STATE.soundEnabled) {
+                audioFX.init();
+                soundIcon.className = "fa-solid fa-volume-high text-yellow-300";
+                showToast("🔊 賽博電競音效已開啟");
+                audioFX.playGoldChime();
+            } else {
+                soundIcon.className = "fa-solid fa-volume-xmark text-yellow-300/60";
+                showToast("🔇 已靜音");
+            }
+        });
+
+        autoBtn.addEventListener('click', () => {
+            STATE.autoFireworks = !STATE.autoFireworks;
+            showToast(STATE.autoFireworks ? "✨ 自動背景連爆已開啟" : "⏸️ 自動爆破已暫停");
+        });
+
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.classList.remove('opacity-0');
+            gsap.killTweensOf(toast);
+            gsap.to(toast, {
+                opacity: 1,
+                duration: 0.2,
+                onComplete: () => {
+                    gsap.to(toast, { opacity: 0, delay: 1.8, duration: 0.4 });
+                }
+            });
+        }
+
+        // Start Application on Load
+        window.onload = () => {
+            animate();
+            setTimeout(() => {
+                spawnFireworkBurst(new THREE.Vector3(-12, 6, 0), 0x00f0ff);
+                spawnFireworkBurst(new THREE.Vector3(12, 8, 0), 0xffd700);
+            }, 400);
+        };
+    </script>
+</body>
+</html>
