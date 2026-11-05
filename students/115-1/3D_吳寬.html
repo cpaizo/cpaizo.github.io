@@ -3,994 +3,883 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ROBLOX 競技王者 · 2025 慶典賀卡 | Roblox FPS Celebration Card</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Three.js -->
+    <title>Roblox 槍戰新春賀卡 2026 - 勝者為王</title>
+    <!-- Three.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- GSAP for smooth animations -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <!-- FontAwesome icons -->
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Fredoka:wght@600;700&family=Noto+Sans+TC:wght@700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
-
+    <!-- Google Fonts: Noto Sans TC & Press Start 2P -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@700;900&family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        body, html {
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body, html {
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #03040b;
+            background-color: #030308;
             font-family: 'Noto Sans TC', sans-serif;
-            color: #ffffff;
-            user-select: none;
-            cursor: none; /* Custom crosshair pointer */
+            color: #fff;
         }
 
-        /* FPS Custom Crosshair */
-        #crosshair {
-            position: fixed;
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
             top: 0;
             left: 0;
-            width: 40px;
-            height: 40px;
-            pointer-events: none;
-            z-index: 9999;
-            transform: translate(-50%, -50%);
-            transition: transform 0.05s linear;
+            z-index: 1;
+            cursor: crosshair;
         }
 
-        .crosshair-line {
+        /* 瞄準線十字架 (Crosshair) */
+        #crosshair {
             position: absolute;
-            background-color: #00f0ff;
-            box-shadow: 0 0 8px #00f0ff, 0 0 15px #00f0ff;
+            top: 50%;
+            left: 50%;
+            width: 30px;
+            height: 30px;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #crosshair::before, #crosshair::after {
+            content: '';
+            position: absolute;
+            background: rgba(0, 255, 204, 0.8);
+            box-shadow: 0 0 8px #00ffcc;
+        }
+        #crosshair::before { width: 2px; height: 24px; }
+        #crosshair::after { width: 24px; height: 2px; }
+        .crosshair-dot {
+            width: 4px;
+            height: 4px;
+            background: #ff0055;
+            border-radius: 50%;
+            box-shadow: 0 0 6px #ff0055;
         }
 
-        /* Glassmorphic Cyber UI Containers */
-        .glass-panel {
+        /* UI Overlay */
+        .ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 24px;
+        }
+
+        .interactive {
+            pointer-events: auto;
+        }
+
+        /* 標題與風格抬頭顯示 (HUD) */
+        .header-hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .title-box {
             background: rgba(10, 15, 30, 0.75);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(0, 240, 255, 0.3);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6),
-                        inset 0 0 15px rgba(0, 240, 255, 0.1);
+            border: 2px solid #ffcc00;
+            border-left: 6px solid #ff0055;
+            padding: 16px 28px;
+            border-radius: 8px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 0 25px rgba(255, 204, 0, 0.3), inset 0 0 15px rgba(255, 0, 85, 0.2);
+            transform: skew(-5deg);
         }
-
-        .glass-panel-gold {
-            background: rgba(25, 18, 5, 0.8);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 215, 0, 0.4);
-            box-shadow: 0 8px 32px 0 rgba(255, 215, 0, 0.25),
-                        inset 0 0 15px rgba(255, 215, 0, 0.15);
-        }
-
-        /* Cyberpunk FPS Glow Buttons */
-        .cyber-btn {
-            position: relative;
-            background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(0, 80, 255, 0.4));
-            border: 2px solid #00f0ff;
-            color: #ffffff;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 800;
+        .title-box h1 {
+            font-size: 2.2rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, #ffe600, #ff0055, #00f0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             text-transform: uppercase;
-            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255,230,0,0.5);
+        }
+        .title-box p {
+            font-size: 0.95rem;
+            color: #00ffcc;
+            letter-spacing: 1px;
+            margin-top: 4px;
+            font-weight: 700;
+        }
+
+        /* 連擊擊殺計數器 (Combo HUD) */
+        .combo-box {
+            background: rgba(15, 5, 25, 0.8);
+            border: 2px solid #00f0ff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-align: center;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+            transform: skew(5deg);
+        }
+        .combo-count {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 1.8rem;
+            color: #ffcc00;
+            text-shadow: 0 0 10px #ffcc00;
+        }
+        .combo-label {
+            font-size: 0.85rem;
+            color: #ff0055;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        /* 浮動祝賀特效彈字幕 */
+        .floating-blessing {
+            position: absolute;
+            font-weight: 900;
+            font-size: 2rem;
+            color: #fff700;
+            text-shadow: 0 0 12px #ff0055, 2px 2px 0px #000;
+            pointer-events: none;
+            z-index: 20;
+            animation: floatUp 1.2s cubic-bezier(0.18, 0.89, 0.32, 1.28) FORWARD;
+            transform: translate(-50%, -50%);
+            white-space: nowrap;
+        }
+        @keyframes floatUp {
+            0% { opacity: 0; transform: translate(-50%, 0) scale(0.5) rotate(-5deg); }
+            20% { opacity: 1; transform: translate(-50%, -20px) scale(1.3) rotate(3deg); }
+            100% { opacity: 0; transform: translate(-50%, -90px) scale(1) rotate(0deg); }
+        }
+
+        /* 祝賀賀詞卡與控制面板 */
+        .controls-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 20px;
+        }
+
+        .card-preview {
+            background: rgba(12, 12, 24, 0.85);
+            border: 2px solid rgba(255, 215, 0, 0.6);
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 420px;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(255,215,0,0.15);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            color: #ffcc00;
+            font-size: 1.1rem;
+        }
+        .card-body {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #e0e0ff;
+            background: rgba(0,0,0,0.3);
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 3px solid #00f0ff;
+        }
+
+        /* 按鈕群組 */
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .cyber-btn {
+            background: linear-gradient(135deg, #ff0055 0%, #ff5500 100%);
+            border: none;
+            color: #fff;
+            padding: 14px 24px;
+            font-size: 1rem;
+            font-weight: 900;
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
             transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transform: skew(-8deg);
         }
-
         .cyber-btn:hover {
-            background: linear-gradient(135deg, #00f0ff, #0055ff);
-            color: #000;
-            box-shadow: 0 0 25px rgba(0, 240, 255, 0.8);
-            transform: scale(1.05);
+            transform: skew(-8deg) scale(1.05);
+            box-shadow: 0 0 25px rgba(255, 0, 85, 0.8);
+            background: linear-gradient(135deg, #ff2a75 0%, #ff7700 100%);
+        }
+        .cyber-btn:active {
+            transform: skew(-8deg) scale(0.98);
+        }
+        .cyber-btn.gold {
+            background: linear-gradient(135deg, #ffaa00 0%, #e67e22 100%);
+            box-shadow: 0 0 15px rgba(255, 170, 0, 0.4);
+        }
+        .cyber-btn.gold:hover {
+            background: linear-gradient(135deg, #ffc400 0%, #f39c12 100%);
+            box-shadow: 0 0 25px rgba(255, 170, 0, 0.8);
+        }
+        .cyber-btn.cyan {
+            background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%);
+            box-shadow: 0 0 15px rgba(0, 180, 219, 0.4);
+        }
+        .cyber-btn.cyan:hover {
+            background: linear-gradient(135deg, #00d2ff 0%, #00a8e8 100%);
+            box-shadow: 0 0 25px rgba(0, 210, 255, 0.8);
         }
 
-        .cyber-btn-red {
-            background: linear-gradient(135deg, rgba(255, 0, 85, 0.3), rgba(180, 0, 40, 0.5));
+        /* Modal 彈窗 */
+        .modal {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            background: #0f1220;
+            border: 2px solid #ff0055;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 480px;
+            padding: 28px;
+            box-shadow: 0 0 35px rgba(255, 0, 85, 0.5);
+        }
+        .modal-content h2 {
+            color: #ffcc00;
+            margin-bottom: 16px;
+            font-size: 1.5rem;
+        }
+        .modal-content textarea {
+            width: 100%;
+            height: 100px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #00f0ff;
+            border-radius: 6px;
+            color: #fff;
+            padding: 12px;
+            font-size: 1rem;
+            margin-bottom: 16px;
+            resize: none;
+        }
+        .preset-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .tag {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .tag:hover {
+            background: #ff0055;
             border-color: #ff0055;
         }
 
-        .cyber-btn-red:hover {
-            background: linear-gradient(135deg, #ff0055, #ff5500);
-            color: #fff;
-            box-shadow: 0 0 25px rgba(255, 0, 85, 0.9);
-        }
-
-        .orbitron-font {
-            font-family: 'Orbitron', 'Noto Sans TC', sans-serif;
-        }
-
-        .fps-title-font {
-            font-family: 'Black Ops One', 'Noto Sans TC', cursive;
-        }
-
-        /* Dynamic Combo Text Punch Effects */
-        .combo-pop {
-            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        @keyframes popIn {
-            0% { transform: scale(0.3) rotate(-5deg); opacity: 0; }
-            50% { transform: scale(1.3) rotate(3deg); opacity: 1; }
-            100% { transform: scale(1) rotate(0deg); opacity: 1; }
-        }
-
-        /* Scanline Overlay Effect */
-        .scanlines {
-            background: linear-gradient(
-                rgba(18, 16, 16, 0) 50%, 
-                rgba(0, 0, 0, 0.25) 50%
-            );
-            background-size: 100% 4px;
+        /* 響應式微調 */
+        @media (max-width: 768px) {
+            .ui-layer { padding: 12px; }
+            .title-box h1 { font-size: 1.5rem; }
+            .controls-bottom { flex-direction: column; align-items: stretch; gap: 12px; }
+            .card-preview { max-width: 100%; }
+            .btn-group { flex-direction: row; flex-wrap: wrap; }
+            .cyber-btn { flex: 1; min-width: 130px; padding: 10px 14px; font-size: 0.85rem; }
         }
     </style>
 </head>
-<body class="w-full h-full relative overflow-hidden bg-black select-none">
+<body>
 
-    <!-- Canvas Container -->
-    <div id="canvas-container" class="absolute inset-0 z-0"></div>
+    <div id="canvas-container"></div>
+    <div id="crosshair"><div class="crosshair-dot"></div></div>
 
-    <!-- Scanline Layer -->
-    <div class="absolute inset-0 pointer-events-none scanlines z-10 opacity-30"></div>
-
-    <!-- FPS Crosshair UI -->
-    <div id="crosshair">
-        <!-- Center Dot -->
-        <div class="absolute top-1/2 left-1/2 w-2 h-2 -translate-x-1/2 -translate-y-1/2 bg-yellow-300 rounded-full shadow-[0_0_8px_#ffd700]"></div>
-        <!-- Cross lines -->
-        <div class="crosshair-line top-0 left-1/2 -translate-x-1/2 w-0.5 h-3"></div>
-        <div class="crosshair-line bottom-0 left-1/2 -translate-x-1/2 w-0.5 h-3"></div>
-        <div class="crosshair-line left-0 top-1/2 -translate-y-1/2 h-0.5 w-3"></div>
-        <div class="crosshair-line right-0 top-1/2 -translate-y-1/2 h-0.5 w-3"></div>
-    </div>
-
-    <!-- UI Overlay Layer -->
-    <div class="relative z-20 w-full h-full flex flex-col justify-between p-4 md:p-6 pointer-events-none">
-
-        <!-- Top Header Navigation -->
-        <header class="w-full flex justify-between items-start">
-            <!-- Left FPS Player Tag -->
-            <div class="glass-panel px-5 py-3 rounded-2xl flex items-center space-x-4 pointer-events-auto border-l-4 border-l-cyan-400">
-                <div class="relative">
-                    <div class="w-12 h-12 bg-gradient-to-tr from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center font-black text-xl text-yellow-300 shadow-lg border border-cyan-300">
-                        <i class="fa-solid fa-crown text-2xl"></i>
-                    </div>
-                    <span class="absolute -bottom-1 -right-1 bg-green-500 w-4 h-4 rounded-full border-2 border-slate-900"></span>
-                </div>
-                <div>
-                    <div class="text-xs text-cyan-300 font-extrabold orbitron-font tracking-widest flex items-center space-x-2">
-                        <span>ROBLOX MVP PLAYER</span>
-                        <span class="bg-red-600 text-white px-1.5 py-0.5 rounded text-[10px]">LIVE</span>
-                    </div>
-                    <div id="player-tag" class="text-lg md:text-xl font-black text-white tracking-wide">RANK #1 CHAMPION</div>
-                </div>
+    <div class="ui-layer">
+        <!-- 頂部抬頭顯示器 HUD -->
+        <div class="header-hud">
+            <div class="title-box">
+                <h1>新春大吉 · 勝者為王</h1>
+                <p><i class="fa-solid fa-crosshairs"></i> ROBLOX 競技王者 · 2026 太空賀歲卡</p>
             </div>
-
-            <!-- Combo & Score HUD Floating Right -->
-            <div id="combo-container" class="text-right pointer-events-none transform transition-transform">
-                <div class="text-xs orbitron-font text-yellow-400 tracking-wider">CELEBRATION STRIKES</div>
-                <div id="combo-count" class="fps-title-font text-4xl md:text-6xl text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-red-500 drop-shadow-[0_0_15px_rgba(255,215,0,0.8)]">
-                    0x COMBO
-                </div>
-                <div id="combo-subtitle" class="text-xs md:text-sm font-bold text-cyan-300 orbitron-font tracking-widest opacity-0">
-                    CHAMPION STRIKE!
-                </div>
-            </div>
-        </header>
-
-        <!-- Center Main Greeting Banner -->
-        <div class="text-center my-auto pointer-events-none space-y-3 max-w-4xl mx-auto">
-            <div class="inline-block glass-panel-gold px-6 py-2 rounded-full border border-yellow-400/50 mb-1">
-                <span class="text-yellow-300 font-extrabold tracking-widest text-sm md:text-base orbitron-font flex items-center justify-center space-x-2">
-                    <i class="fa-solid fa-trophy text-yellow-400 animate-bounce"></i>
-                    <span>2025 ROBLOX LUNAR VICTORY</span>
-                    <i class="fa-solid fa-fire text-red-500"></i>
-                </span>
-            </div>
-            
-            <h1 id="main-title" class="fps-title-font text-4xl sm:text-6xl md:text-7xl lg:text-8xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-yellow-200 to-red-500 drop-shadow-[0_0_25px_rgba(0,240,255,0.7)] tracking-wider">
-                槍槍命中 · 連勝不斷
-            </h1>
-            
-            <p id="sub-title" class="text-base sm:text-xl md:text-2xl text-cyan-100 font-bold tracking-widest max-w-2xl mx-auto drop-shadow-md">
-                祝你新的一年 戰力爆表、槍槍爆頭、賀歲大吉大利！
-            </p>
-
-            <div class="pt-2 text-xs md:text-sm text-yellow-400/90 orbitron-font animate-pulse">
-                [ 點擊螢幕發射慶典雷射彈，觸發 3D 冠軍獎盃與派對 Noob！ ]
+            <div class="combo-box">
+                <div class="combo-count" id="comboCount">00</div>
+                <div class="combo-label">連連大吉 COMBO</div>
             </div>
         </div>
 
-        <!-- Bottom Controls Floating Toolbar -->
-        <footer class="w-full flex flex-col md:flex-row justify-between items-center gap-4 pointer-events-auto">
-            <!-- Quick Preset Blessings -->
-            <div class="flex flex-wrap gap-2 justify-center md:justify-start">
-                <button data-text="槍槍命中 · 連勝不斷" class="blessing-pill glass-panel hover:bg-cyan-500/30 px-3 py-1.5 rounded-xl text-xs md:text-sm font-bold text-cyan-300 border border-cyan-400/40 transition">
-                    🎮 槍槍命中
-                </button>
-                <button data-text="戰力爆表 · 乙巳大吉" class="blessing-pill glass-panel hover:bg-yellow-500/30 px-3 py-1.5 rounded-xl text-xs md:text-sm font-bold text-yellow-300 border border-yellow-400/40 transition">
-                    🏆 戰力爆表
-                </button>
-                <button data-text="GG WP · 新春大吉" class="blessing-pill glass-panel hover:bg-red-500/30 px-3 py-1.5 rounded-xl text-xs md:text-sm font-bold text-red-400 border border-red-500/40 transition">
-                    🔥 GG WP 恭喜
-                </button>
-            </div>
-
-            <!-- Action Controls Group -->
-            <div class="flex items-center space-x-3">
-                <button id="trigger-fireworks-btn" class="cyber-btn cyber-btn-red px-5 py-3 rounded-xl text-xs md:text-sm flex items-center space-x-2">
-                    <i class="fa-solid fa-burst text-lg"></i>
-                    <span>慶典連發爆破</span>
-                </button>
-                
-                <button id="modal-btn" class="cyber-btn px-5 py-3 rounded-xl text-xs md:text-sm flex items-center space-x-2">
-                    <i class="fa-solid fa-pen-to-square"></i>
-                    <span>客製賀卡</span>
-                </button>
-
-                <button id="sound-btn" class="glass-panel w-11 h-11 rounded-xl flex items-center justify-center text-yellow-300 hover:bg-yellow-400/20 border border-yellow-400/40 transition">
-                    <i id="sound-icon" class="fa-solid fa-volume-high text-lg"></i>
-                </button>
-
-                <button id="auto-btn" class="glass-panel w-11 h-11 rounded-xl flex items-center justify-center text-cyan-300 hover:bg-cyan-400/20 border border-cyan-400/40 transition" title="自動煙火">
-                    <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
-                </button>
-            </div>
-        </footer>
-    </div>
-
-    <!-- Modal Dialog: Custom Greeting Card -->
-    <div id="greeting-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300">
-        <div id="modal-content" class="glass-panel-gold max-w-md w-full p-6 md:p-8 rounded-3xl border-2 border-yellow-400 transform scale-95 transition-transform duration-300 space-y-5 relative">
-            
-            <button id="close-modal-btn" class="absolute top-4 right-4 text-yellow-400 hover:text-white text-xl">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-
-            <div class="text-center space-y-1">
-                <h3 class="fps-title-font text-2xl md:text-3xl text-yellow-400">ROBLOX 競技賀卡編輯</h3>
-                <p class="text-xs text-yellow-200/80 orbitron-font">CUSTOMIZE YOUR CHAMPION GREETING CARD</p>
-            </div>
-
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-yellow-300 mb-1">祝賀標題 (Title)</label>
-                    <input type="text" id="card-theme" value="槍槍命中 · 2025 連勝不斷" class="w-full bg-black/60 border border-yellow-500/50 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-yellow-400 text-sm">
+        <!-- 底部控制面板與賀詞卡 -->
+        <div class="controls-bottom">
+            <div class="card-preview interactive">
+                <div class="card-header">
+                    <i class="fa-solid fa-award"></i>
+                    <strong>2026 新春特別祝福</strong>
+                    <i class="fa-solid fa-pen interactive" id="openModalBtn" style="margin-left: auto; cursor: pointer; color: #00f0ff;" title="修改賀詞"></i>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-yellow-300 mb-1">玩家玩家暱稱 / 稱號</label>
-                    <input type="text" id="card-player-name" value="RANK #1 CHAMPION" class="w-full bg-black/60 border border-yellow-500/50 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-yellow-400 text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-yellow-300 mb-1">祝福內文 (Message)</label>
-                    <textarea id="card-message" rows="3" class="w-full bg-black/60 border border-yellow-500/50 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-yellow-400 text-sm resize-none">祝你新的一年 戰力爆表、槍槍爆頭、連勝不斷、賀歲大吉大利！GG WP！</textarea>
+                <div class="card-body" id="cardTextDisplay">
+                    祝你在新的一年裡：槍法神準連戰連勝，開箱大吉金幣滿滿！新春快樂，吉祥如意！
                 </div>
             </div>
 
-            <button id="apply-card-btn" class="w-full cyber-btn py-3 rounded-xl text-center text-yellow-300 border-yellow-400 hover:bg-yellow-500">
-                🚀 套用並發射宣戰煙火
-            </button>
+            <div class="btn-group interactive">
+                <button class="cyber-btn" id="fireworksBtn">
+                    <i class="fa-solid fa-fire"></i> 萬事如意 (自動煙火)
+                </button>
+                <button class="cyber-btn gold" id="burstBtn">
+                    <i class="fa-solid fa-burst"></i> 恭喜發財 (五連連發)
+                </button>
+                <button class="cyber-btn cyan" id="clearBtn">
+                    <i class="fa-solid fa-trash-can"></i> 一鍵清場 (清除模型)
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Notification Toast -->
-    <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 glass-panel px-6 py-2.5 rounded-full border border-cyan-400 text-cyan-200 text-xs md:text-sm font-bold opacity-0 pointer-events-none transition-opacity duration-300 shadow-[0_0_20px_rgba(0,240,255,0.4)]">
-        🎮 系統就緒
+    <!-- 自訂祝賀語 Modal -->
+    <div class="modal" id="wishModal">
+        <div class="modal-content">
+            <h2><i class="fa-solid fa-scroll"></i> 設定新春祝賀語</h2>
+            <textarea id="wishInput" placeholder="請輸入您的新春祝福文字..."></textarea>
+            <div class="preset-tags">
+                <span class="tag" onclick="setPreset('蛇年大吉，戰力爆表！大吉大利，今晚勝者！')">蛇年大吉</span>
+                <span class="tag" onclick="setPreset('槍槍頭標，萬事如意！金幣福氣全收攬！')">萬事如意</span>
+                <span class="tag" onclick="setPreset('新春開局，勝率百分百！財源滾滾一路開掛！')">財源滾滾</span>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="cyber-btn cyan" id="closeModalBtn" style="transform: none;">取消</button>
+                <button class="cyber-btn" id="saveWishBtn" style="transform: none;">儲存賀詞</button>
+            </div>
+        </div>
     </div>
 
-    <!-- Application Script -->
     <script>
-        // --- System State & Configuration ---
-        const STATE = {
-            soundEnabled: true,
-            autoFireworks: false,
-            combo: 0,
-            comboTimer: null,
-            lastSpawnTime: 0,
-            spawnInterval: 120
-        };
+        // --- Web Audio API 音效合成器 ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
 
-        // --- Web Audio API FPS & Party Synthesizer ---
-        class SoundEngine {
-            constructor() {
-                this.ctx = null;
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
             }
+        }
 
-            init() {
-                if (!this.ctx) {
-                    const AudioContext = window.AudioContext || window.webkitAudioContext;
-                    this.ctx = new AudioContext();
-                }
-                if (this.ctx.state === 'suspended') {
-                    this.ctx.resume();
-                }
-            }
+        function playSound(type) {
+            initAudio();
+            if (!audioCtx) return;
 
-            // High-tech Cyber Laser Shot sound
-            playLaser() {
-                if (!STATE.soundEnabled) return;
-                this.init();
-                const now = this.ctx.currentTime;
-                
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
 
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'laser') {
                 osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(1400, now);
-                osc.frequency.exponentialRampToValueAtTime(100, now + 0.12);
-
-                gain.gain.setValueAtTime(0.15, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-
+                osc.frequency.setValueAtTime(880, now);
+                osc.frequency.exponentialRampToValueAtTime(110, now + 0.15);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
                 osc.start(now);
-                osc.stop(now + 0.12);
-            }
-
-            // Victory Gold Chime sound (Robux style)
-            playGoldChime() {
-                if (!STATE.soundEnabled) return;
-                this.init();
-                const now = this.ctx.currentTime;
-
-                const notes = [1046.50, 1318.51, 1567.98]; // C6, E6, G6
-                notes.forEach((freq, idx) => {
-                    const osc = this.ctx.createOscillator();
-                    const gain = this.ctx.createGain();
-                    
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(freq, now + idx * 0.05);
-
-                    gain.gain.setValueAtTime(0.12, now + idx * 0.05);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.25);
-
-                    osc.connect(gain);
-                    gain.connect(this.ctx.destination);
-
-                    osc.start(now + idx * 0.05);
-                    osc.stop(now + idx * 0.05 + 0.25);
-                });
-            }
-
-            // Confetti Blast Noise Sound
-            playExplosion() {
-                if (!STATE.soundEnabled || !this.ctx) return;
-                const now = this.ctx.currentTime;
-                const bufferSize = this.ctx.sampleRate * 0.25;
-                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                osc.stop(now + 0.15);
+            } else if (type === 'coin') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(987.77, now); // B5
+                osc.frequency.setValueAtTime(1318.51, now + 0.08); // E6
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'explosion') {
+                const bufferSize = audioCtx.sampleRate * 0.4;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
                 const data = buffer.getChannelData(0);
-
                 for (let i = 0; i < bufferSize; i++) {
                     data[i] = Math.random() * 2 - 1;
                 }
-
-                const noise = this.ctx.createBufferSource();
+                const noise = audioCtx.createBufferSource();
                 noise.buffer = buffer;
 
-                const filter = this.ctx.createBiquadFilter();
+                const filter = audioCtx.createBiquadFilter();
                 filter.type = 'lowpass';
-                filter.frequency.setValueAtTime(1200, now);
-                filter.frequency.exponentialRampToValueAtTime(200, now + 0.25);
+                filter.frequency.setValueAtTime(800, now);
+                filter.frequency.linearRampToValueAtTime(50, now + 0.4);
 
-                const gain = this.ctx.createGain();
-                gain.gain.setValueAtTime(0.25, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                const noiseGain = audioCtx.createGain();
+                noiseGain.gain.setValueAtTime(0.4, now);
+                noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
 
                 noise.connect(filter);
-                filter.connect(gain);
-                gain.connect(this.ctx.destination);
+                filter.connect(noiseGain);
+                noiseGain.connect(audioCtx.destination);
 
                 noise.start(now);
-                noise.stop(now + 0.25);
+                noise.stop(now + 0.4);
             }
         }
 
-        const audioFX = new SoundEngine();
-
-        // --- Three.js Scene Setup ---
+        // --- Three.js 初始化 3D 場景 ---
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x03040b, 0.012);
+        scene.fog = new THREE.FogExp2(0x030308, 0.015);
 
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 0, 38);
+        camera.position.set(0, 0, 40);
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.4;
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         container.appendChild(renderer.domElement);
 
-        // --- Lighting ---
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+        // 光源設定
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
         scene.add(ambientLight);
 
-        const cyanSun = new THREE.DirectionalLight(0x00f0ff, 2.2);
-        cyanSun.position.set(20, 30, 20);
-        scene.add(cyanSun);
+        const dirLight1 = new THREE.DirectionalLight(0xff0055, 1.5);
+        dirLight1.position.set(20, 40, 20);
+        scene.add(dirLight1);
 
-        const goldSun = new THREE.DirectionalLight(0xffd700, 2.0);
-        goldSun.position.set(-20, -10, 15);
-        scene.add(goldSun);
+        const dirLight2 = new THREE.DirectionalLight(0x00f0ff, 1.2);
+        dirLight2.position.set(-20, -20, 20);
+        scene.add(dirLight2);
 
-        const centerPointLight = new THREE.PointLight(0xff0055, 3.0, 60);
-        centerPointLight.position.set(0, 0, 10);
-        scene.add(centerPointLight);
+        const pointLight = new THREE.PointLight(0xffcc00, 2, 50);
+        pointLight.position.set(0, 0, 10);
+        scene.add(pointLight);
 
-        // --- Cyber Starfield Background ---
-        function createCyberSpace() {
-            const count = 3500;
-            const geo = new THREE.BufferGeometry();
-            const pos = new Float32Array(count * 3);
-            const cols = new Float32Array(count * 3);
+        // --- 太空星雲背景系統 ---
+        const starCount = 1500;
+        const starGeo = new THREE.BufferGeometry();
+        const starPositions = new Float32Array(starCount * 3);
+        const starColors = new Float32Array(starCount * 3);
 
-            const palette = [new THREE.Color(0x00f0ff), new THREE.Color(0xffd700), new THREE.Color(0xff0055), new THREE.Color(0xffffff)];
+        for (let i = 0; i < starCount; i++) {
+            starPositions[i * 3] = (Math.random() - 0.5) * 250;
+            starPositions[i * 3 + 1] = (Math.random() - 0.5) * 250;
+            starPositions[i * 3 + 2] = (Math.random() - 0.5) * 250;
 
-            for (let i = 0; i < count; i++) {
-                pos[i * 3] = (Math.random() - 0.5) * 260;
-                pos[i * 3 + 1] = (Math.random() - 0.5) * 260;
-                pos[i * 3 + 2] = (Math.random() - 0.5) * 260;
-
-                const c = palette[Math.floor(Math.random() * palette.length)];
-                cols[i * 3] = c.r;
-                cols[i * 3 + 1] = c.g;
-                cols[i * 3 + 2] = c.b;
+            const r = Math.random();
+            if (r > 0.6) {
+                starColors[i * 3] = 1.0; starColors[i * 3 + 1] = 0.8; starColors[i * 3 + 2] = 0.2;
+            } else if (r > 0.3) {
+                starColors[i * 3] = 1.0; starColors[i * 3 + 1] = 0.0; starColors[i * 3 + 2] = 0.35;
+            } else {
+                starColors[i * 3] = 0.0; starColors[i * 3 + 1] = 0.95; starColors[i * 3 + 2] = 1.0;
             }
+        }
+        starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+        starGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
 
-            geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-            geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+        const starMat = new THREE.PointsMaterial({
+            size: 0.8,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.8
+        });
+        const starField = new THREE.Points(starGeo, starMat);
+        scene.add(starField);
 
-            const mat = new THREE.PointsMaterial({
-                size: 1.5,
-                vertexColors: true,
-                transparent: true,
-                opacity: 0.85,
-                blending: THREE.AdditiveBlending
+        // 輔助函式：將模型材質設置為支援透明度（為自動淡出準備）
+        function makeTransparent(group) {
+            group.traverse((child) => {
+                if (child.isMesh && child.material) {
+                    child.material = child.material.clone();
+                    child.material.transparent = true;
+                    child.material.opacity = 1.0;
+                }
             });
-
-            const points = new THREE.Points(geo, mat);
-            scene.add(points);
-            return points;
         }
 
-        const cyberBg = createCyberSpace();
+        // --- Roblox 3D 模型生成器 ---
+        const spawnedObjects = [];
 
-        // --- Materials ---
-        const goldMat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.9, roughness: 0.2 });
-        const cyanMat = new THREE.MeshStandardMaterial({ color: 0x00f0ff, metalness: 0.5, roughness: 0.2 });
-        const redMat = new THREE.MeshStandardMaterial({ color: 0xee1133, metalness: 0.2, roughness: 0.3 });
-        const darkMetalMat = new THREE.MeshStandardMaterial({ color: 0x111827, metalness: 0.8, roughness: 0.3 });
-        const yellowMat = new THREE.MeshStandardMaterial({ color: 0xffcc00, roughness: 0.4 });
-        const blueMat = new THREE.MeshStandardMaterial({ color: 0x0066ff, roughness: 0.4 });
-        const greenMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.4 });
-
-        // --- Roblox 3D Models (Enlarged Champion Models) ---
-
-        // 1. Roblox Champion Trophy Cup (Large 3D Model)
-        function createChampionTrophyMesh() {
+        function createRobloxIngot() {
             const group = new THREE.Group();
-
-            // Pedestal Base
-            const baseGeo = new THREE.BoxGeometry(3.5, 1.0, 3.5);
-            const base = new THREE.Mesh(baseGeo, darkMetalMat);
-            base.position.y = -2.0;
-            group.add(base);
-
-            // Gold Cup Base Block
-            const cupStemGeo = new THREE.BoxGeometry(1.2, 1.8, 1.2);
-            const cupStem = new THREE.Mesh(cupStemGeo, goldMat);
-            cupStem.position.y = -0.8;
-            group.add(cupStem);
-
-            // Cup Main Bowl Block
-            const bowlGeo = new THREE.BoxGeometry(3.8, 3.2, 2.8);
-            const bowl = new THREE.Mesh(bowlGeo, goldMat);
-            bowl.position.y = 1.4;
-            group.add(bowl);
-
-            // Cup Side Handles
-            const handleGeo = new THREE.BoxGeometry(0.6, 2.2, 0.6);
-            const leftHandle = new THREE.Mesh(handleGeo, goldMat);
-            leftHandle.position.set(-2.2, 1.4, 0);
-            const rightHandle = new THREE.Mesh(handleGeo, goldMat);
-            rightHandle.position.set(2.2, 1.4, 0);
-            group.add(leftHandle, rightHandle);
-
-            // Shining Victory Star Emblem on top
-            const starGeo = new THREE.BoxGeometry(1.4, 1.4, 0.5);
-            const star = new THREE.Mesh(starGeo, cyanMat);
-            star.position.y = 3.6;
-            star.rotation.z = Math.PI / 4;
-            group.add(star);
-
-            group.scale.set(2.2, 2.2, 2.2);
+            const mat = new THREE.MeshStandardMaterial({ color: 0xffcc00, roughness: 0.2, metalness: 0.9 });
+            group.add(new THREE.Mesh(new THREE.BoxGeometry(7.5, 2.5, 4.5), mat));
+            const top = new THREE.Mesh(new THREE.BoxGeometry(9, 3, 5.5), mat); top.position.y = 2.2; group.add(top);
+            const centerBall = new THREE.Mesh(new THREE.BoxGeometry(3.5, 2.2, 3.5), mat); centerBall.position.y = 4.2; group.add(centerBall);
+            group.scale.set(1.4, 1.4, 1.4);
+            makeTransparent(group);
             return group;
         }
 
-        // 2. Roblox Confetti Blaster Avatar Noob (Large 3D Model)
-        function createRobloxBlasterNoobMesh() {
+        function createRobloxCoin() {
             const group = new THREE.Group();
-
-            // Yellow Head
-            const headGeo = new THREE.BoxGeometry(1.4, 1.4, 1.4);
-            const head = new THREE.Mesh(headGeo, yellowMat);
-            head.position.y = 2.4;
-            group.add(head);
-
-            // Blue Torso
-            const torsoGeo = new THREE.BoxGeometry(2.0, 2.2, 1.1);
-            const torso = new THREE.Mesh(torsoGeo, blueMat);
-            torso.position.y = 0.6;
-            group.add(torso);
-
-            // Green Legs
-            const legGeo = new THREE.BoxGeometry(0.9, 2.0, 0.9);
-            const leftLeg = new THREE.Mesh(legGeo, greenMat);
-            leftLeg.position.set(-0.55, -1.4, 0);
-            const rightLeg = new THREE.Mesh(legGeo, greenMat);
-            rightLeg.position.set(0.55, -1.4, 0);
-            group.add(leftLeg, rightLeg);
-
-            // Arms holding Blaster
-            const armGeo = new THREE.BoxGeometry(0.8, 2.0, 0.8);
-            const leftArm = new THREE.Mesh(armGeo, yellowMat);
-            leftArm.position.set(-1.45, 0.6, 0);
-
-            const rightArm = new THREE.Mesh(armGeo, yellowMat);
-            rightArm.position.set(1.45, 0.6, 0.5);
-            rightArm.rotation.x = -Math.PI / 3;
-            group.add(leftArm, rightArm);
-
-            // Festive Confetti Blaster Tool
-            const blasterBodyGeo = new THREE.BoxGeometry(1.0, 1.0, 3.2);
-            const blaster = new THREE.Mesh(blasterBodyGeo, redMat);
-            blaster.position.set(1.45, 0.7, 1.2);
-            group.add(blaster);
-
-            const barrelGeo = new THREE.BoxGeometry(1.2, 1.2, 0.6);
-            const barrel = new THREE.Mesh(barrelGeo, goldMat);
-            barrel.position.set(1.45, 0.7, 2.8);
-            group.add(barrel);
-
-            group.scale.set(1.8, 1.8, 1.8);
+            const goldMat = new THREE.MeshStandardMaterial({ color: 0xffaa00, roughness: 0.3, metalness: 0.8 });
+            const darkGold = new THREE.MeshStandardMaterial({ color: 0xcc8800, roughness: 0.4, metalness: 0.7 });
+            group.add(new THREE.Mesh(new THREE.BoxGeometry(9, 9, 1.5), goldMat));
+            group.add(new THREE.Mesh(new THREE.BoxGeometry(4.5, 4.5, 1.8), darkGold));
+            group.scale.set(1.3, 1.3, 1.3);
+            makeTransparent(group);
             return group;
         }
 
-        // 3. Roblox Gold Ingot (Large Sycee)
-        function createIngotMesh() {
+        function createRobloxLantern() {
             const group = new THREE.Group();
-
-            const baseGeo = new THREE.BoxGeometry(3.6, 1.2, 2.2);
-            const base = new THREE.Mesh(baseGeo, goldMat);
-            base.position.y = -0.4;
-            group.add(base);
-
-            const wingGeo = new THREE.BoxGeometry(1.0, 1.2, 2.2);
-            const leftWing = new THREE.Mesh(wingGeo, goldMat);
-            leftWing.position.set(-1.8, 0.4, 0);
-            const rightWing = new THREE.Mesh(wingGeo, goldMat);
-            rightWing.position.set(1.8, 0.4, 0);
-            group.add(leftWing, rightWing);
-
-            const centerGeo = new THREE.BoxGeometry(1.8, 1.0, 1.8);
-            const centerMound = new THREE.Mesh(centerGeo, goldMat);
-            centerMound.position.y = 0.5;
-            group.add(centerMound);
-
-            group.scale.set(2.4, 2.4, 2.4);
+            const redMat = new THREE.MeshStandardMaterial({ color: 0xee0033, roughness: 0.4 });
+            const goldMat = new THREE.MeshStandardMaterial({ color: 0xffcc00, metalness: 0.8, roughness: 0.2 });
+            group.add(new THREE.Mesh(new THREE.BoxGeometry(7.5, 9, 7.5), redMat));
+            const topCap = new THREE.Mesh(new THREE.BoxGeometry(8.5, 1.5, 8.5), goldMat); topCap.position.y = 5.2; group.add(topCap);
+            const botCap = new THREE.Mesh(new THREE.BoxGeometry(8.5, 1.5, 8.5), goldMat); botCap.position.y = -5.2; group.add(botCap);
+            const tassel = new THREE.Mesh(new THREE.BoxGeometry(1.5, 4.5, 1.5), goldMat); tassel.position.y = -8; group.add(tassel);
+            group.scale.set(1.2, 1.2, 1.2);
+            makeTransparent(group);
             return group;
         }
 
-        // 4. Roblox Lucky Gift Box
-        function createGiftBoxMesh() {
+        function createRobloxNoob() {
             const group = new THREE.Group();
+            const yellowMat = new THREE.MeshStandardMaterial({ color: 0xffd700, roughness: 0.5 });
+            const blueMat = new THREE.MeshStandardMaterial({ color: 0x0055ff, roughness: 0.5 });
+            const greenMat = new THREE.MeshStandardMaterial({ color: 0x00cc44, roughness: 0.5 });
+            const redMat = new THREE.MeshStandardMaterial({ color: 0xff0044, roughness: 0.3 });
 
-            const boxGeo = new THREE.BoxGeometry(2.6, 2.6, 2.6);
-            const box = new THREE.Mesh(boxGeo, redMat);
-            group.add(box);
-
-            const ribbonX = new THREE.Mesh(new THREE.BoxGeometry(2.7, 2.7, 0.6), goldMat);
-            const ribbonY = new THREE.Mesh(new THREE.BoxGeometry(0.6, 2.7, 2.7), goldMat);
-            group.add(ribbonX, ribbonY);
-
-            group.scale.set(2.0, 2.0, 2.0);
+            const head = new THREE.Mesh(new THREE.BoxGeometry(3.6, 3.6, 3.6), yellowMat); head.position.y = 6.6; group.add(head);
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(4.8, 6, 2.4), blueMat); torso.position.y = 1.8; group.add(torso);
+            const leftArm = new THREE.Mesh(new THREE.BoxGeometry(2.2, 5.8, 2.2), yellowMat); leftArm.position.set(-3.7, 1.8, 0); leftArm.rotation.z = 0.2; group.add(leftArm);
+            const rightArm = new THREE.Mesh(new THREE.BoxGeometry(2.2, 5.8, 2.2), yellowMat); rightArm.position.set(3.7, 1.8, 0); rightArm.rotation.z = -0.2; group.add(rightArm);
+            const leftLeg = new THREE.Mesh(new THREE.BoxGeometry(2.3, 5.8, 2.3), greenMat); leftLeg.position.set(-1.3, -4.1, 0); group.add(leftLeg);
+            const rightLeg = new THREE.Mesh(new THREE.BoxGeometry(2.3, 5.8, 2.3), greenMat); rightLeg.position.set(1.3, -4.1, 0); group.add(rightLeg);
+            const scarf = new THREE.Mesh(new THREE.BoxGeometry(5.2, 1.5, 3), redMat); scarf.position.y = 4.8; group.add(scarf);
+            group.scale.set(1.3, 1.3, 1.3);
+            makeTransparent(group);
             return group;
         }
 
-        // --- Laser Pulse Trail Line ---
-        function createLaserPulseBeam(startPos, endPos) {
-            const points = [startPos, endPos];
-            const geometry = new THREE.BufferGeometry().setFromPoints(points);
-            const material = new THREE.LineBasicMaterial({
-                color: 0x00f0ff,
-                linewidth: 3,
-                transparent: true,
-                opacity: 1.0
-            });
-            const line = new THREE.Line(geometry, material);
-            scene.add(line);
+        function createRobloxTrophy() {
+            const group = new THREE.Group();
+            const goldMat = new THREE.MeshStandardMaterial({ color: 0xffcc00, roughness: 0.1, metalness: 0.95 });
+            const darkMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 });
+            group.add(new THREE.Mesh(new THREE.BoxGeometry(6, 3, 6), darkMat));
+            const stem = new THREE.Mesh(new THREE.BoxGeometry(2, 4, 2), goldMat); stem.position.y = 3.5; group.add(stem);
+            const cup = new THREE.Mesh(new THREE.BoxGeometry(7, 6, 7), goldMat); cup.position.y = 8.5; group.add(cup);
+            group.scale.set(1.2, 1.2, 1.2);
+            makeTransparent(group);
+            return group;
+        }
 
-            gsap.to(material, {
-                opacity: 0,
-                duration: 0.25,
-                onComplete: () => {
-                    scene.remove(line);
+        const objectGenerators = [createRobloxIngot, createRobloxCoin, createRobloxLantern, createRobloxNoob, createRobloxTrophy];
+
+        // --- 3D 粒子與雷射爆破系統 ---
+        const fireworks = [];
+        const confettiParticles = [];
+
+        function createLaserBeam(targetPos) {
+            const geometry = new THREE.BufferGeometry();
+            const startPos = new THREE.Vector3(0, -20, 20);
+            geometry.setFromPoints([startPos, targetPos]);
+            const material = new THREE.LineBasicMaterial({ color: 0x00f0ff, linewidth: 4, transparent: true, opacity: 1 });
+            const laser = new THREE.Line(geometry, material);
+            scene.add(laser);
+
+            let opacity = 1;
+            const fade = setInterval(() => {
+                opacity -= 0.15;
+                material.opacity = opacity;
+                if (opacity <= 0) {
+                    scene.remove(laser);
                     geometry.dispose();
                     material.dispose();
+                    clearInterval(fade);
                 }
-            });
+            }, 30);
         }
 
-        // --- 3D Particle Fireworks & Confetti Burst System ---
-        class ConfettiFirework {
-            constructor(originPosition, colorHex) {
-                this.isDead = false;
-                this.particleCount = 150;
-                this.geometry = new THREE.BufferGeometry();
-                
-                const positions = new Float32Array(this.particleCount * 3);
-                this.velocities = [];
-                const colors = new Float32Array(this.particleCount * 3);
+        function createFireworkExplosion(pos) {
+            const pCount = 80;
+            const geo = new THREE.BufferGeometry();
+            const positions = new Float32Array(pCount * 3);
+            const velocities = [];
+            const colors = new Float32Array(pCount * 3);
 
-                const palette = [new THREE.Color(0x00f0ff), new THREE.Color(0xffd700), new THREE.Color(0xff0055), new THREE.Color(0x00ff66)];
-                const baseColor = new THREE.Color(colorHex || 0x00f0ff);
+            const colorOptions = [new THREE.Color(0xff0055), new THREE.Color(0xffcc00), new THREE.Color(0x00f0ff), new THREE.Color(0x00ff66)];
 
-                for (let i = 0; i < this.particleCount; i++) {
-                    positions[i * 3] = originPosition.x;
-                    positions[i * 3 + 1] = originPosition.y;
-                    positions[i * 3 + 2] = originPosition.z;
-
-                    const theta = Math.random() * Math.PI * 2;
-                    const phi = Math.acos((Math.random() * 2) - 1);
-                    const speed = Math.random() * 24 + 12;
-
-                    this.velocities.push(new THREE.Vector3(
-                        speed * Math.sin(phi) * Math.cos(theta),
-                        speed * Math.sin(phi) * Math.sin(theta),
-                        speed * Math.cos(phi)
-                    ));
-
-                    const c = palette[Math.floor(Math.random() * palette.length)];
-                    colors[i * 3] = c.r;
-                    colors[i * 3 + 1] = c.g;
-                    colors[i * 3 + 2] = c.b;
-                }
-
-                this.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-                this.geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-                this.material = new THREE.PointsMaterial({
-                    size: 1.5,
-                    vertexColors: true,
-                    transparent: true,
-                    opacity: 1.0,
-                    blending: THREE.AdditiveBlending,
-                    depthWrite: false
-                });
-
-                this.mesh = new THREE.Points(this.geometry, this.material);
-                scene.add(this.mesh);
-
-                this.age = 0;
-                this.maxAge = 1.3;
+            for (let i = 0; i < pCount; i++) {
+                positions[i * 3] = pos.x;
+                positions[i * 3 + 1] = pos.y;
+                positions[i * 3 + 2] = pos.z;
+                const dir = new THREE.Vector3((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2).normalize().multiplyScalar(Math.random() * 0.8 + 0.3);
+                velocities.push(dir);
+                const col = colorOptions[Math.floor(Math.random() * colorOptions.length)];
+                colors[i * 3] = col.r; colors[i * 3 + 1] = col.g; colors[i * 3 + 2] = col.b;
             }
 
-            update(delta) {
-                if (this.isDead) return;
-                this.age += delta;
+            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-                if (this.age >= this.maxAge) {
-                    this.isDead = true;
-                    scene.remove(this.mesh);
-                    this.geometry.dispose();
-                    this.material.dispose();
-                    return;
-                }
+            const mat = new THREE.PointsMaterial({ size: 1.2, vertexColors: true, transparent: true, opacity: 1 });
+            const pSystem = new THREE.Points(geo, mat);
+            scene.add(pSystem);
 
-                const positions = this.geometry.attributes.position.array;
-                for (let i = 0; i < this.particleCount; i++) {
-                    const v = this.velocities[i];
-                    v.y -= 6.0 * delta; // Gravity fall
-                    positions[i * 3] += v.x * delta;
-                    positions[i * 3 + 1] += v.y * delta;
-                    positions[i * 3 + 2] += v.z * delta;
-                }
+            fireworks.push({ system: pSystem, velocities: velocities, life: 1.0 });
+        }
 
-                this.geometry.attributes.position.needsUpdate = true;
-                this.material.opacity = 1.0 - (this.age / this.maxAge);
+        function createConfettiBurst(pos) {
+            const count = 40;
+            const confettiMat = new THREE.MeshStandardMaterial({ color: 0xffcc00, side: THREE.DoubleSide });
+            for (let i = 0; i < count; i++) {
+                const p = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.8), confettiMat);
+                p.position.copy(pos);
+                p.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+                const velocity = new THREE.Vector3((Math.random() - 0.5) * 0.6, Math.random() * 0.8 + 0.2, (Math.random() - 0.5) * 0.6);
+                scene.add(p);
+                confettiParticles.push({ mesh: p, vel: velocity, rotVel: Math.random() * 0.2, life: 1.0 });
             }
         }
 
-        const fireworksList = [];
-        function spawnFireworkBurst(pos, color) {
-            fireworksList.push(new ConfettiFirework(pos, color));
-            audioFX.playExplosion();
+        // --- 中文祝賀語字幕 ---
+        const blessingTexts = [
+            "大吉大利！", "槍槍頭標！", "財源廣進！", "勝者為王！", 
+            "蛇年大吉！", "金幣滿滿！", "萬事如意！", "戰力爆表！",
+            "歐氣爆棚！", "鴻運當頭！", "福氣滿滿！", "一路開掛！"
+        ];
+        let comboCounter = 0;
+
+        function showFloatingBlessing(screenX, screenY) {
+            const textEl = document.createElement('div');
+            textEl.className = 'floating-blessing';
+            textEl.innerText = blessingTexts[Math.floor(Math.random() * blessingTexts.length)];
+            textEl.style.left = `${screenX}px`;
+            textEl.style.top = `${screenY}px`;
+            document.body.appendChild(textEl);
+            setTimeout(() => textEl.remove(), 1200);
+
+            comboCounter++;
+            document.getElementById('comboCount').innerText = comboCounter < 10 ? `0${comboCounter}` : comboCounter;
         }
 
-        // --- Interactive Objects Manager ---
-        const interactiveMeshes = [];
+        // --- 滑鼠點擊觸發物件生成 ---
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
 
-        function spawnSurpriseObject(worldPos) {
-            const types = ['trophy', 'noob', 'ingot', 'giftbox'];
-            const chosenType = types[Math.floor(Math.random() * types.length)];
-            
-            let mesh;
-            if (chosenType === 'trophy') mesh = createChampionTrophyMesh();
-            else if (chosenType === 'noob') mesh = createRobloxBlasterNoobMesh();
-            else if (chosenType === 'ingot') mesh = createIngotMesh();
-            else mesh = createGiftBoxMesh();
+        function spawnSurprise(e) {
+            if (e.target.closest('.interactive')) return;
 
-            mesh.position.copy(worldPos);
+            initAudio();
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
 
-            const targetScale = mesh.scale.x;
-            mesh.scale.set(0.01, 0.01, 0.01);
-            
-            gsap.to(mesh.scale, {
-                x: targetScale,
-                y: targetScale,
-                z: targetScale,
-                duration: 0.6,
-                ease: "back.out(2)"
-            });
+            const targetPos = new THREE.Vector3();
+            raycaster.ray.at(30, targetPos);
 
-            mesh.userData = {
-                rotSpeedX: (Math.random() - 0.5) * 2.2,
-                rotSpeedY: (Math.random() - 0.5) * 2.5,
-                driftY: Math.random() * 2.0 + 1.5,
-                createdTime: Date.now(),
-                lifespan: 8000
+            createLaserBeam(targetPos);
+            playSound('laser');
+
+            const randomGen = objectGenerators[Math.floor(Math.random() * objectGenerators.length)];
+            const obj = randomGen();
+            obj.position.copy(targetPos);
+            obj.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+
+            const rotSpeed = {
+                x: (Math.random() - 0.5) * 0.04,
+                y: (Math.random() - 0.5) * 0.04,
+                z: (Math.random() - 0.5) * 0.04
             };
 
-            scene.add(mesh);
-            interactiveMeshes.push(mesh);
-            audioFX.playGoldChime();
+            scene.add(obj);
 
-            spawnFireworkBurst(worldPos, chosenType === 'trophy' ? 0xffd700 : 0x00f0ff);
+            // 將物件加入管理陣列，設置壽命 Life = 1.0 (慢慢減少)
+            spawnedObjects.push({
+                mesh: obj,
+                rotSpeed: rotSpeed,
+                life: 1.0
+            });
+
+            setTimeout(() => {
+                createFireworkExplosion(targetPos);
+                createConfettiBurst(targetPos);
+                playSound(Math.random() > 0.5 ? 'coin' : 'explosion');
+                showFloatingBlessing(e.clientX, e.clientY);
+            }, 100);
         }
 
-        // --- Crosshair Mouse & Pointer Handler ---
-        const crosshair = document.getElementById('crosshair');
-        const mouseVec = new THREE.Vector2();
+        window.addEventListener('pointerdown', spawnSurprise);
 
-        function updatePointer(e) {
-            crosshair.style.left = e.clientX + 'px';
-            crosshair.style.top = e.clientY + 'px';
+        // --- 自動煙火與按鈕 ---
+        let autoFireworkInterval = null;
 
-            mouseVec.x = (e.clientX / window.innerWidth) * 2 - 1;
-            mouseVec.y = -(e.clientY / window.innerHeight) * 2 + 1;
-        }
-
-        window.addEventListener('mousemove', updatePointer);
-
-        // Click / Shot Action Trigger
-        function triggerShot(e) {
-            if (e.target.closest('.interactive') || e.target.closest('#greeting-modal') || e.target.closest('button')) return;
-
-            const now = Date.now();
-            if (now - STATE.lastSpawnTime < STATE.spawnInterval) return;
-            STATE.lastSpawnTime = now;
-
-            // Unproject click position to 3D space
-            const vector = new THREE.Vector3(mouseVec.x, mouseVec.y, 0.5);
-            vector.unproject(camera);
-            const dir = vector.sub(camera.position).normalize();
-            const distance = -camera.position.z / dir.z;
-            const target3DPos = camera.position.clone().add(dir.multiplyScalar(distance));
-
-            // Laser Beam effect from camera lower right
-            const gunOrigin = camera.position.clone().add(new THREE.Vector3(4, -3, -5));
-            createLaserPulseBeam(gunOrigin, target3DPos);
-            audioFX.playLaser();
-
-            // Spawn 3D Surprise Object & Particle Burst
-            spawnSurpriseObject(target3DPos);
-
-            // Increment Combo Counter
-            addCombo();
-        }
-
-        window.addEventListener('pointerdown', triggerShot);
-
-        // --- Combo Counter System ---
-        const comboContainer = document.getElementById('combo-container');
-        const comboCountText = document.getElementById('combo-count');
-        const comboSubtitle = document.getElementById('combo-subtitle');
-
-        function addCombo() {
-            STATE.combo++;
-            comboCountText.textContent = `${STATE.combo}x COMBO`;
-            
-            // Pop Animation
-            comboContainer.classList.remove('combo-pop');
-            void comboContainer.offsetWidth; // trigger reflow
-            comboContainer.classList.add('combo-pop');
-
-            if (STATE.combo >= 5) {
-                comboSubtitle.style.opacity = '1';
-                if (STATE.combo >= 20) comboSubtitle.textContent = '🔥 ULTRA CHAMPION STRIKE!';
-                else if (STATE.combo >= 10) comboSubtitle.textContent = '⚡ MEGA VICTORY STRIKE!';
-                else comboSubtitle.textContent = 'CHAMPION STRIKE!';
+        document.getElementById('fireworksBtn').addEventListener('click', () => {
+            if (autoFireworkInterval) {
+                clearInterval(autoFireworkInterval);
+                autoFireworkInterval = null;
+                document.getElementById('fireworksBtn').style.background = '';
+            } else {
+                autoFireworkInterval = setInterval(() => {
+                    const pos = new THREE.Vector3((Math.random() - 0.5) * 50, (Math.random() - 0.5) * 30, (Math.random() - 0.5) * 20);
+                    createFireworkExplosion(pos);
+                    playSound('explosion');
+                }, 400);
+                document.getElementById('fireworksBtn').style.background = 'linear-gradient(135deg, #00ff66 0%, #009933 100%)';
             }
+        });
 
-            clearTimeout(STATE.comboTimer);
-            STATE.comboTimer = setTimeout(() => {
-                STATE.combo = 0;
-                comboCountText.textContent = `0x COMBO`;
-                comboSubtitle.style.opacity = '0';
-            }, 3000);
-        }
+        document.getElementById('burstBtn').addEventListener('click', () => {
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const pos = new THREE.Vector3((Math.random() - 0.5) * 40, (Math.random() - 0.5) * 25, (Math.random() - 0.5) * 20);
+                    const randomGen = objectGenerators[Math.floor(Math.random() * objectGenerators.length)];
+                    const obj = randomGen();
+                    obj.position.copy(pos);
+                    scene.add(obj);
+                    spawnedObjects.push({
+                        mesh: obj,
+                        rotSpeed: { x: 0.02, y: 0.02, z: 0.02 },
+                        life: 1.0
+                    });
 
-        // Window Resize Listener
+                    createFireworkExplosion(pos);
+                    createConfettiBurst(pos);
+                    playSound('coin');
+                }, i * 150);
+            }
+        });
+
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            spawnedObjects.forEach(item => scene.remove(item.mesh));
+            spawnedObjects.length = 0;
+            playSound('laser');
+        });
+
+        // --- Modal 控制 ---
+        const modal = document.getElementById('wishModal');
+        const cardDisplay = document.getElementById('cardTextDisplay');
+        const wishInput = document.getElementById('wishInput');
+
+        document.getElementById('openModalBtn').addEventListener('click', () => {
+            wishInput.value = cardDisplay.innerText.trim();
+            modal.classList.add('active');
+        });
+        document.getElementById('closeModalBtn').addEventListener('click', () => modal.classList.remove('active'));
+        document.getElementById('saveWishBtn').addEventListener('click', () => {
+            if (wishInput.value.trim() !== "") cardDisplay.innerText = wishInput.value;
+            modal.classList.remove('active');
+        });
+        function setPreset(text) { wishInput.value = text; }
+
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // --- Animation Render Loop ---
-        let autoTimer = 0;
-        const clock = new THREE.Clock();
-
+        // --- 主動畫迴圈 ---
         function animate() {
             requestAnimationFrame(animate);
 
-            const delta = clock.getDelta();
-            const time = clock.getElapsedTime();
+            starField.rotation.y += 0.0006;
+            starField.rotation.x += 0.0003;
 
-            cyberBg.rotation.y = time * 0.04;
+            // 旋轉與「慢慢淡出清除」3D 生成物件
+            for (let i = spawnedObjects.length - 1; i >= 0; i--) {
+                const item = spawnedObjects[i];
+                
+                // 每幀慢慢減少壽命（約 6~8 秒後完全消失）
+                item.life -= 0.003;
 
-            // Update Fireworks
-            for (let i = fireworksList.length - 1; i >= 0; i--) {
-                fireworksList[i].update(delta);
-                if (fireworksList[i].isDead) fireworksList.splice(i, 1);
+                // 物件動態旋轉與浮動
+                item.mesh.rotation.x += item.rotSpeed.x;
+                item.mesh.rotation.y += item.rotSpeed.y;
+                item.mesh.rotation.z += item.rotSpeed.z;
+                item.mesh.position.y += Math.sin(Date.now() * 0.003 + i) * 0.02;
+
+                // 逐漸降低透明度
+                item.mesh.traverse((child) => {
+                    if (child.isMesh && child.material) {
+                        child.material.opacity = Math.max(0, item.life);
+                    }
+                });
+
+                // 完全透明時從場景中移除
+                if (item.life <= 0) {
+                    scene.remove(item.mesh);
+                    item.mesh.traverse((child) => {
+                        if (child.isMesh) {
+                            child.geometry.dispose();
+                            if (child.material) child.material.dispose();
+                        }
+                    });
+                    spawnedObjects.splice(i, 1);
+                }
             }
 
-            // Update Interactive 3D Objects
-            const now = Date.now();
-            for (let i = interactiveMeshes.length - 1; i >= 0; i--) {
-                const item = interactiveMeshes[i];
-                item.rotation.x += item.userData.rotSpeedX * delta;
-                item.rotation.y += item.userData.rotSpeedY * delta;
-                item.position.y += item.userData.driftY * delta;
+            // 更新 3D 煙火粒子
+            for (let i = fireworks.length - 1; i >= 0; i--) {
+                const fw = fireworks[i];
+                fw.life -= 0.025;
+                const positions = fw.system.geometry.attributes.position.array;
 
-                const age = now - item.userData.createdTime;
-                if (age > item.userData.lifespan - 1200) {
-                    const fade = (item.userData.lifespan - age) / 1200;
-                    item.scale.setScalar(Math.max(0, fade * 2.2));
+                for (let j = 0; j < fw.velocities.length; j++) {
+                    positions[j * 3] += fw.velocities[j].x;
+                    positions[j * 3 + 1] += fw.velocities[j].y - 0.05;
+                    positions[j * 3 + 2] += fw.velocities[j].z;
                 }
+                fw.system.geometry.attributes.position.needsUpdate = true;
+                fw.system.material.opacity = fw.life;
 
-                if (age >= item.userData.lifespan) {
-                    scene.remove(item);
-                    interactiveMeshes.splice(i, 1);
+                if (fw.life <= 0) {
+                    scene.remove(fw.system);
+                    fw.system.geometry.dispose();
+                    fw.system.material.dispose();
+                    fireworks.splice(i, 1);
                 }
             }
 
-            // Auto Fireworks Mode Loop
-            if (STATE.autoFireworks) {
-                autoTimer += delta;
-                if (autoTimer > 1.2) {
-                    autoTimer = 0;
-                    const randomPos = new THREE.Vector3(
-                        (Math.random() - 0.5) * 45,
-                        (Math.random() - 0.3) * 30,
-                        (Math.random() - 0.5) * 20
-                    );
-                    const colors = [0x00f0ff, 0xffd700, 0xff0055, 0x00ff66];
-                    spawnSurpriseObject(randomPos);
+            // 更新彩帶碎片
+            for (let i = confettiParticles.length - 1; i >= 0; i--) {
+                const c = confettiParticles[i];
+                c.life -= 0.015;
+                c.mesh.position.add(c.vel);
+                c.vel.y -= 0.015;
+                c.mesh.rotation.x += c.rotVel;
+                c.mesh.rotation.y += c.rotVel;
+
+                if (c.life <= 0) {
+                    scene.remove(c.mesh);
+                    c.mesh.geometry.dispose();
+                    confettiParticles.splice(i, 1);
                 }
             }
 
             renderer.render(scene, camera);
         }
 
-        // --- Modal & UI Logic ---
-        const modal = document.getElementById('greeting-modal');
-        const modalContent = document.getElementById('modal-content');
-        const modalBtn = document.getElementById('modal-btn');
-        const closeModalBtn = document.getElementById('close-modal-btn');
-        const applyCardBtn = document.getElementById('apply-card-btn');
-        const soundBtn = document.getElementById('sound-btn');
-        const soundIcon = document.getElementById('sound-icon');
-        const autoBtn = document.getElementById('auto-btn');
-        const toast = document.getElementById('toast');
-
-        function openModal() {
-            modal.classList.remove('pointer-events-none', 'opacity-0');
-            modalContent.classList.remove('scale-95');
-            modalContent.classList.add('scale-100');
-        }
-
-        function closeModal() {
-            modal.classList.add('pointer-events-none', 'opacity-0');
-            modalContent.classList.remove('scale-100');
-            modalContent.classList.add('scale-95');
-        }
-
-        modalBtn.addEventListener('click', openModal);
-        closeModalBtn.addEventListener('click', closeModal);
-
-        document.querySelectorAll('.blessing-pill').forEach(pill => {
-            pill.addEventListener('click', (e) => {
-                const text = e.target.getAttribute('data-text');
-                document.getElementById('main-title').textContent = text;
-                showToast(`已更新王者祝賀詞：${text}`);
-                spawnFireworkBurst(new THREE.Vector3(0, 0, 0), 0xffd700);
-            });
-        });
-
-        applyCardBtn.addEventListener('click', () => {
-            const theme = document.getElementById('card-theme').value;
-            const playerName = document.getElementById('card-player-name').value;
-            const message = document.getElementById('card-message').value;
-
-            document.getElementById('main-title').textContent = theme;
-            document.getElementById('player-tag').textContent = playerName;
-            document.getElementById('sub-title').textContent = message;
-
-            closeModal();
-            showToast("🎮 王者賀卡數據已套用！");
-
-            for (let i = 0; i < 5; i++) {
-                setTimeout(() => {
-                    spawnFireworkBurst(new THREE.Vector3((Math.random() - 0.5) * 35, (Math.random() - 0.5) * 25, 0), 0x00f0ff);
-                }, i * 150);
-            }
-        });
-
-        document.getElementById('trigger-fireworks-btn').addEventListener('click', () => {
-            for (let i = 0; i < 10; i++) {
-                setTimeout(() => {
-                    spawnSurpriseObject(new THREE.Vector3((Math.random() - 0.5) * 45, (Math.random() - 0.5) * 30, 0));
-                }, i * 120);
-            }
-            showToast("💥 觸發 CHAMPION 雷射連發慶典！");
-        });
-
-        soundBtn.addEventListener('click', () => {
-            STATE.soundEnabled = !STATE.soundEnabled;
-            if (STATE.soundEnabled) {
-                audioFX.init();
-                soundIcon.className = "fa-solid fa-volume-high text-yellow-300";
-                showToast("🔊 賽博電競音效已開啟");
-                audioFX.playGoldChime();
-            } else {
-                soundIcon.className = "fa-solid fa-volume-xmark text-yellow-300/60";
-                showToast("🔇 已靜音");
-            }
-        });
-
-        autoBtn.addEventListener('click', () => {
-            STATE.autoFireworks = !STATE.autoFireworks;
-            showToast(STATE.autoFireworks ? "✨ 自動背景連爆已開啟" : "⏸️ 自動爆破已暫停");
-        });
-
-        function showToast(msg) {
-            toast.textContent = msg;
-            toast.classList.remove('opacity-0');
-            gsap.killTweensOf(toast);
-            gsap.to(toast, {
-                opacity: 1,
-                duration: 0.2,
-                onComplete: () => {
-                    gsap.to(toast, { opacity: 0, delay: 1.8, duration: 0.4 });
-                }
-            });
-        }
-
-        // Start Application on Load
-        window.onload = () => {
-            animate();
-            setTimeout(() => {
-                spawnFireworkBurst(new THREE.Vector3(-12, 6, 0), 0x00f0ff);
-                spawnFireworkBurst(new THREE.Vector3(12, 8, 0), 0xffd700);
-            }, 400);
-        };
+        animate();
     </script>
 </body>
 </html>
