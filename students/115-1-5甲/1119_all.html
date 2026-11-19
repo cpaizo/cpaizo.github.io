@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>115-1-5甲 學生 3D 創意作品集</title>
+    <!-- 載入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 載入 Google Fonts (Noto Sans TC & Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- 設定 Tailwind 深色模式策略與字體 -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans TC"', 'Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 4s ease-in-out infinite',
+                        'pulse-slow': 'pulse 6s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-8px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 自訂捲軸與背景星空微粒效果 */
+        body {
+            transition: background-color 0.4s ease, color 0.4s ease;
+        }
+        
+        /* 深色星空模式下的背景微光點 */
+        .dark .starfield {
+            background-image: 
+                radial-gradient(1.5px 1.5px at 20px 30px, #ffffff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 40px 70px, #a5f3fc, rgba(0,0,0,0)),
+                radial-gradient(1.5px 1.5px at 90px 40px, #e9d5ff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 160px 120px, #fde047, rgba(0,0,0,0)),
+                radial-gradient(1.5px 1.5px at 230px 80px, #ffffff, rgba(0,0,0,0));
+            background-repeat: repeat;
+            background-size: 260px 260px;
+        }
+
+        /* 卡片懸停光影效果 */
+        .project-card {
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+        .project-card:hover {
+            transform: translateY(-8px) scale(1.01);
+        }
+
+        /* 隱藏水平捲軸但保留滾動功能 (用於手機版標籤列) */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-sky-50 via-indigo-50 to-purple-50 dark:from-slate-950 dark:via-indigo-950 dark:to-slate-900 text-slate-800 dark:text-slate-100 starfield selection:bg-indigo-500 selection:text-white">
+
+    <!-- 頂部導覽與主視覺區 -->
+    <header class="relative overflow-hidden pt-8 pb-10 sm:pt-12 sm:pb-14">
+        <!-- 裝飾性背景光暈 -->
+        <div class="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full bg-gradient-to-r from-cyan-400/20 via-indigo-500/20 to-fuchsia-500/20 blur-3xl dark:from-cyan-500/20 dark:via-purple-600/25 dark:to-pink-500/20"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <!-- 頂部工具列：班級徽章與主題切換 -->
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-indigo-200/80 dark:border-indigo-500/30 shadow-sm">
+                    <span class="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                    <span class="text-xs sm:text-sm font-bold tracking-wider text-indigo-700 dark:text-indigo-300">
+                        3D 數位創作課程成果展
+                    </span>
+                </div>
+
+                <!-- 主題切換按鈕 -->
+                <button id="themeToggle" type="button" aria-label="切換深色或淺色模式"
+                    class="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/90 dark:bg-slate-800/90 hover:bg-white dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-95">
+                    <!-- 太陽圖示 (深色模式時顯示) -->
+                    <svg id="sunIcon" class="w-5 h-5 text-amber-400 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <!-- 月亮星星圖示 (淺色模式時顯示) -->
+                    <svg id="moonIcon" class="w-5 h-5 text-indigo-600 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                    <span id="themeText" class="text-sm font-bold text-slate-700 dark:text-slate-200">深色星空模式</span>
+                </button>
+            </div>
+
+            <!-- 主標題與副標題 -->
+            <div class="text-center max-w-3xl mx-auto">
+                <div class="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 text-white shadow-xl shadow-indigo-500/30 mb-5 animate-float">
+                    <!-- 3D 立方體 SVG 圖示 -->
+                    <svg class="w-9 h-9 sm:w-11 sm:h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
+                </div>
+                <h1 class="text-3xl sm:text-5xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-700 via-purple-700 to-pink-600 dark:from-cyan-300 dark:via-indigo-300 dark:to-fuchsia-300 pb-2">
+                    115-1-5甲 學生 3D 創意作品集
+                </h1>
+                <p class="mt-3 text-base sm:text-xl text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
+                    探索五年甲班同學的 3D 互動世界與創意設計
+                </p>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要內容區：搜尋篩選列 + 作品卡片畫廊 -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+        
+        <!-- 控制面板：搜尋框與學生作者篩選標籤 -->
+        <section aria-label="搜尋與篩選作品" class="bg-white/80 dark:bg-slate-900/75 backdrop-blur-xl rounded-3xl p-4 sm:p-6 shadow-lg shadow-indigo-950/5 dark:shadow-black/30 border border-white/60 dark:border-slate-800 mb-8">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                
+                <!-- 關鍵字搜尋框 -->
+                <div class="relative flex-1 max-w-md">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-slate-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    <input type="text" id="searchInput" placeholder="搜尋作品名稱、作者姓名或關鍵字..."
+                        class="block w-full pl-11 pr-10 py-3 rounded-2xl bg-slate-100/90 dark:bg-slate-800/90 border border-transparent focus:border-indigo-500 dark:focus:border-cyan-400 focus:bg-white dark:focus:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-sm sm:text-base transition-all outline-none shadow-inner">
+                    <button id="clearSearchBtn" type="button" title="清除搜尋"
+                        class="hidden absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- 統計顯示 -->
+                <div class="flex items-center justify-between sm:justify-end gap-3 text-sm font-semibold text-slate-500 dark:text-slate-400">
+                    <span>目前顯示：<strong id="visibleCount" class="text-indigo-600 dark:text-cyan-400 text-base">9</strong> / 9 件作品</span>
+                </div>
+            </div>
+
+            <!-- 作者快速篩選按鈕列 -->
+            <div class="mt-4 pt-4 border-t border-slate-200/70 dark:border-slate-800 flex items-center gap-2 overflow-x-auto no-scrollbar pb-1" id="authorFilters">
+                <!-- 由 JavaScript 動態產生作者篩選標籤按鈕 -->
+            </div>
+        </section>
+
+        <!-- 作品畫廊網格 (Gallery Grid) -->
+        <section aria-label="學生 3D 作品列表">
+            <div id="projectsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                <!-- 由 JavaScript 動態產生 9 張作品卡片 -->
+            </div>
+
+            <!-- 無搜尋結果提示狀態 -->
+            <div id="emptyState" class="hidden text-center py-16 px-4 bg-white/70 dark:bg-slate-900/60 backdrop-blur-md rounded-3xl border border-slate-200/70 dark:border-slate-800">
+                <div class="text-5xl mb-4">🔍</div>
+                <h3 class="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">找不到符合條件的 3D 作品</h3>
+                <p class="text-slate-500 dark:text-slate-400 mb-6">試試看輸入其他關鍵字，或點選下方按鈕顯示全部同學的作品！</p>
+                <button id="resetFilterBtn" type="button"
+                    class="px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95">
+                    顯示全部作品
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- 頁尾資訊 -->
+    <footer class="border-t border-slate-200/80 dark:border-slate-800/80 bg-white/50 dark:bg-slate-950/50 backdrop-blur-md py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-sm font-semibold text-slate-600 dark:text-slate-400">
+                115學年度 第1學期 5年甲班 ‧ 3D 創意程式與互動設計作品集
+            </p>
+            <p class="text-xs text-slate-400 dark:text-slate-500 mt-1.5">
+                建議使用電腦滑鼠或平板觸控操作 3D 視角，點擊「站內預覽」即可直接體驗！
+            </p>
+        </div>
+    </footer>
+
+    <!-- 站內互動預覽大型彈出視窗 (Modal with iframe) -->
+    <div id="previewModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"
+        class="fixed inset-0 z-50 hidden items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-950/80 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+        
+        <div id="modalContainer"
+            class="relative w-full max-w-6xl h-[88vh] sm:h-[90vh] bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 flex flex-col overflow-hidden transform scale-95 transition-transform duration-300">
+            
+            <!-- Modal 頂部控制列 -->
+            <div class="flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-3.5 bg-slate-50 dark:bg-slate-800/95 border-b border-slate-200 dark:border-slate-700">
+                <div class="flex items-center gap-3 min-w-0">
+                    <span id="modalEmoji" class="flex items-center justify-center w-10 h-10 rounded-2xl bg-indigo-100 dark:bg-indigo-900/60 text-xl shrink-0">🎮</span>
+                    <div class="min-w-0">
+                        <h2 id="modalTitle" class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white truncate">
+                            作品名稱
+                        </h2>
+                        <p id="modalAuthor" class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 truncate">
+                            作者：學生姓名
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Modal 右側按鈕群組 -->
+                <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <!-- 重新整理 iframe 按鈕 -->
+                    <button id="reloadIframeBtn" type="button" title="重新載入 3D 作品"
+                        class="p-2.5 rounded-xl bg-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 transition-colors cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    </button>
+
+                    <!-- 在新分頁開啟連結 -->
+                    <a id="modalExternalLink" href="#" target="_blank" rel="noopener noreferrer"
+                        class="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-sm transition-all active:scale-95">
+                        <span>在新分頁開啟</span>
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                    </a>
+
+                    <!-- 關閉視窗按鈕 -->
+                    <button id="closeModalBtn" type="button" aria-label="關閉預覽視窗"
+                        class="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs sm:text-sm font-bold shadow-sm transition-all cursor-pointer active:scale-95">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        <span>關閉</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- iframe 內容顯示區 -->
+            <div class="relative flex-1 bg-slate-950 w-full h-full">
+                <!-- 載入中提示動畫 -->
+                <div id="iframeLoader" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 text-white z-10 pointer-events-none transition-opacity duration-300">
+                    <div class="w-12 h-12 border-4 border-indigo-400 border-t-transparent rounded-full animate-spin mb-3"></div>
+                    <p class="text-sm font-semibold tracking-wide text-indigo-200">正在載入 3D 互動世界...</p>
+                </div>
+                
+                <iframe id="projectIframe" src="" title="學生 3D 作品預覽框架"
+                    class="w-full h-full border-0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                    allowfullscreen>
+                </iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript 互動與資料邏輯 -->
+    <script>
+        /**
+         * 115-1-5甲 學生 3D 創意作品資料清單
+         * 所有網址均透過 encodeURI() 確保中文字元與空格（如「小恐龍的家_料理 - 江昕然.html」）能正確被瀏覽器解析
+         */
+        const projectsData = [
+            {
+                id: 1,
+                title: "小恐龍吃飯",
+                author: "江昕然",
+                rawUrl: "https://cpaizo.github.io/students/115-1-5甲/小恐龍吃飯_江昕然.html",
+                tag: "可愛動物 ‧ 美食互動",
+                description: "幫可愛的小恐龍準備美味大餐，體驗趣味滿滿的 3D 餵食互動場景！",
+                emoji: "🦖",
+                gradient: "from-emerald-400 to-teal-600",
+                badgeBg: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300"
+            },
+            {
+                id: 2,
+                title: "小貓咪3D浮空跑庫塔",
+                author: "丁苡淨",
+                rawUrl: "https://cpaizo.github.io/students/115-1-5甲/小貓咪3D浮空跑庫塔_丁苡淨.html",
+                tag: "浮空跑酷 ‧ 闖關挑戰",
+                description: "操控靈巧的小貓咪跳躍在空中平台之間，挑戰高難度的 3D 浮空跑酷塔！",
+                emoji: "🐱",
+                gradient: "from-amber-400 to-orange-500",
+                badgeBg: "bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300"
+            },
+            {
+                id: 3,
+                title: "烏龜3D大冒險",
+                author: "林芛玄",
+                rawUrl: "https://cpaizo.github.io/students/115-1-5甲/烏龜3D大冒險_林芛玄.html",
+                tag: "奇幻探險 ‧ 3D 闖關",
+                description: "跟著勇敢的小烏龜踏上未知旅程，探索充滿驚喜與機關的 3D 冒險世界。",
+                emoji: "🐢",
+                gradient: "from-cyan-500 to-blue-600",
+                badgeBg: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/50 dark:text-cyan-300"
+            },
+            {
+                id: 4,
+                title: "七龍珠",
+                author: "胡祁亘",
+                rawUrl: "https://cpaizo.github.io/students/115-1-5甲/七龍珠_胡祁亘.html",
+                tag: "動漫主題 ‧ 3D 建模",
+                description: "重現經典熱血的七龍珠元素，打造充滿能量感與立體視覺的創意空間。",
+                emoji: "🔮",
+                gradient: "from-orange-500 to-red-600",
+                badgeBg: "bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300"
+            },
+            {
+                id: 5,
+                title: "3D 創意空間 (3d)",
+                author: "邱慶安",
+                rawUrl: "https://cpaizo.github.io/students/115-1-5甲/3d_邱慶安.html",
+                tag: "幾何建築 ‧ 自由探索",
+                description: "運用立體幾何與光影變化構築的專屬 3D 舞台，展現獨特的空間想像力。",
+                emoji: "🧊",
+                gradient: "from-indigo-500 to-violet-600",
+                badgeBg: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300"
+            },
+            {
+                id: 6,
+                title: "紓壓小天地",
+                author: "陳畇潔",
+                rawUrl: "https://cpaizo.github.io/students/115-1-5甲/紓壓_陳畇潔.html",
+                tag: "療癒互動 ‧ 放鬆體驗",
+                description: "專為放鬆心情設計的 3D 療癒角落，透過點擊與互動釋放學習壓力。",
+                emoji: "🫧",
+                gradient: "from-pink-400 to-rose-500",
+                badgeBg: "bg-pink-100 text-pink-800 dark:bg-pink-900/50 dark:text-pink-300"
+            },
+            {
+                id: 7,
+                title: "可愛小貓咪 (cat)",
+                author: "劉芸彤",
+                rawUrl: "https://cpaizo.github.io/students/115-1-5甲/cat_劉芸彤.html",
+                tag: "萌寵樂園 ‧ 角色設計",
+                description: "超萌的 3D 小貓咪角色登場！快來近距離觀察小貓的可愛造型與互動環境。",
+                emoji: "🐱",
+                gradient: "from-yellow-400 to-amber-600",
+                badgeBg: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300"
+            },
+            {
+                id: 8,
+                title: "小恐龍的家 - 料理",
+                author: "江昕然",
+                rawUrl: "https://cpaizo.github.io/students/115-1-5甲/小恐龍的家_料理 - 江昕然.html",
+                tag: "溫馨小屋 ‧ 廚房料理",
+                description: "歡迎來到小恐龍溫馨的家！在精緻的 3D 廚房裡一起體驗手作料理的樂趣。",
+                emoji: "🍳",
+                gradient: "from-lime-500 to-emerald-600",
+                badgeBg: "bg-lime-100 text-lime-800 dark:bg-lime-900/50 dark:text-lime-300"
+            },
+            {
+                id: 9,
+                title: "紓壓小天地 2",
+                author: "陳畇潔",
+                rawUrl: "https://cpaizo.github.io/students/115-1-5甲/紓壓2_陳畇潔.html",
+                tag: "療癒續作 ‧ 創意互動",
+                description: "紓壓小天地升級第二彈！加入更多有趣的 3D 互動機關與視覺驚喜。",
+                emoji: "✨",
+                gradient: "from-fuchsia-500 to-purple-600",
+                badgeBg: "bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900/50 dark:text-fuchsia-300"
+            }
+        ];
+
+        // 應用程式狀態管理
+        let currentAuthor = "全部";
+        let currentSearchQuery = "";
+
+        // DOM 元素參考
+        const projectsGrid = document.getElementById("projectsGrid");
+        const authorFiltersContainer = document.getElementById("authorFilters");
+        const searchInput = document.getElementById("searchInput");
+        const clearSearchBtn = document.getElementById("clearSearchBtn");
+        const visibleCountEl = document.getElementById("visibleCount");
+        const emptyState = document.getElementById("emptyState");
+        const resetFilterBtn = document.getElementById("resetFilterBtn");
+
+        // Modal 元素參考
+        const previewModal = document.getElementById("previewModal");
+        const modalContainer = document.getElementById("modalContainer");
+        const modalTitle = document.getElementById("modalTitle");
+        const modalAuthor = document.getElementById("modalAuthor");
+        const modalEmoji = document.getElementById("modalEmoji");
+        const modalExternalLink = document.getElementById("modalExternalLink");
+        const projectIframe = document.getElementById("projectIframe");
+        const iframeLoader = document.getElementById("iframeLoader");
+        const closeModalBtn = document.getElementById("closeModalBtn");
+        const reloadIframeBtn = document.getElementById("reloadIframeBtn");
+
+        /**
+         * 初始化作者篩選按鈕列
+         */
+        function initAuthorFilters() {
+            // 取得不重複的作者名單，並在最前面加上「全部」
+            const uniqueAuthors = ["全部", ...new Set(projectsData.map(item => item.author))];
+
+            authorFiltersContainer.innerHTML = uniqueAuthors.map(author => {
+                const isActive = author === currentAuthor;
+                const count = author === "全部" 
+                    ? projectsData.length 
+                    : projectsData.filter(p => p.author === author).length;
+
+                return `
+                    <button type="button" data-author="${author}"
+                        class="author-filter-btn shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer active:scale-95 ${
+                            isActive 
+                            ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30 dark:bg-cyan-500 dark:text-slate-950' 
+                            : 'bg-slate-100 hover:bg-slate-200/80 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300'
+                        }">
+                        <span>${author === "全部" ? "🌟 全部作品" : author}</span>
+                        <span class="text-xs px-1.5 py-0.5 rounded-full ${
+                            isActive 
+                            ? 'bg-white/20 text-white dark:bg-slate-950/20 dark:text-slate-950' 
+                            : 'bg-slate-200/80 text-slate-600 dark:bg-slate-700 dark:text-slate-400'
+                        }">${count}</span>
+                    </button>
+                `;
+            }).join("");
+
+            // 綁定點擊事件
+            document.querySelectorAll(".author-filter-btn").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    currentAuthor = btn.getAttribute("data-author");
+                    initAuthorFilters();
+                    renderProjects();
+                });
+            });
+        }
+
+        /**
+         * 渲染篩選後的作品卡片畫廊
+         */
+        function renderProjects() {
+            const keyword = currentSearchQuery.trim().toLowerCase();
+
+            const filteredProjects = projectsData.filter(project => {
+                const matchesAuthor = currentAuthor === "全部" || project.author === currentAuthor;
+                const matchesKeyword = !keyword || 
+                    project.title.toLowerCase().includes(keyword) ||
+                    project.author.toLowerCase().includes(keyword) ||
+                    project.tag.toLowerCase().includes(keyword) ||
+                    project.description.toLowerCase().includes(keyword);
+                return matchesAuthor && matchesKeyword;
+            });
+
+            // 更新計數器
+            visibleCountEl.textContent = filteredProjects.length;
+
+            // 處理無符合結果的畫面
+            if (filteredProjects.length === 0) {
+                projectsGrid.innerHTML = "";
+                projectsGrid.classList.add("hidden");
+                emptyState.classList.remove("hidden");
+                return;
+            }
+
+            projectsGrid.classList.remove("hidden");
+            emptyState.classList.add("hidden");
+
+            // 產生每一張作品卡片的 HTML
+            projectsGrid.innerHTML = filteredProjects.map(project => {
+                // 使用 encodeURI 妥善編碼網址中的中文字與空白符號
+                const safeUrl = encodeURI(project.rawUrl);
+
+                return `
+                    <article class="project-card group relative flex flex-col justify-between bg-white/90 dark:bg-slate-900/85 backdrop-blur-md rounded-3xl overflow-hidden border border-slate-200/80 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-cyan-400/70 shadow-md hover:shadow-2xl hover:shadow-indigo-500/15 dark:hover:shadow-cyan-500/15">
+                        
+                        <div>
+                            <!-- 卡片頂部視覺封面 Banner -->
+                            <div class="relative h-44 bg-gradient-to-br ${project.gradient} p-6 flex items-center justify-center overflow-hidden">
+                                <!-- 幾何網格裝飾線條 -->
+                                <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#ffffff 1.5px, transparent 1.5px); background-size: 16px 16px;"></div>
+                                
+                                <!-- 作品編號徽章 -->
+                                <span class="absolute top-3.5 left-3.5 px-2.5 py-1 rounded-xl bg-black/25 backdrop-blur-md text-white text-xs font-extrabold tracking-wider">
+                                    #${String(project.id).padStart(2, '0')}
+                                </span>
+
+                                <!-- 3D 互動標籤 -->
+                                <span class="absolute top-3.5 right-3.5 px-2.5 py-1 rounded-xl bg-white/25 backdrop-blur-md text-white text-xs font-bold flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                                    3D Interactive
+                                </span>
+
+                                <!-- 中心懸浮 Emoji 視覺 -->
+                                <div class="relative z-10 w-20 h-20 rounded-3xl bg-white/25 backdrop-blur-md border border-white/40 flex items-center justify-center text-5xl shadow-lg transform group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 select-none">
+                                    ${project.emoji}
+                                </div>
+                            </div>
+
+                            <!-- 卡片文字內容區 -->
+                            <div class="p-6 pb-4">
+                                <!-- 主題標籤 -->
+                                <div class="mb-2.5">
+                                    <span class="inline-block px-3 py-1 rounded-lg text-xs font-bold ${project.badgeBg}">
+                                        ${project.tag}
+                                    </span>
+                                </div>
+
+                                <!-- 作品標題 -->
+                                <h2 class="text-xl font-extrabold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-cyan-300 transition-colors line-clamp-1" title="${project.title}">
+                                    ${project.title}
+                                </h2>
+
+                                <!-- 作者資訊 -->
+                                <div class="mt-2 flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-300">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/70 text-indigo-700 dark:text-indigo-300 text-xs">
+                                        👤
+                                    </span>
+                                    <span>作者：${project.author}</span>
+                                </div>
+
+                                <!-- 作品簡介 -->
+                                <p class="mt-3 text-sm text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2">
+                                    ${project.description}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- 卡片底部雙操作按鈕區 -->
+                        <div class="px-6 pb-6 pt-2 flex flex-col sm:flex-row gap-2.5">
+                            <!-- 站內預覽 (Modal iframe) 按鈕 -->
+                            <button type="button" onclick="openPreviewModal(${project.id})"
+                                class="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 dark:from-cyan-500 dark:to-indigo-500 dark:hover:from-cyan-400 dark:hover:to-indigo-400 text-white dark:text-slate-950 text-sm font-extrabold shadow-md shadow-indigo-500/20 transition-all cursor-pointer active:scale-95">
+                                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>站內預覽</span>
+                            </button>
+
+                            <!-- 開啟 3D 作品（新分頁）按鈕 -->
+                            <a href="${safeUrl}" target="_blank" rel="noopener noreferrer"
+                                class="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-bold border border-slate-200/80 dark:border-slate-700 transition-all active:scale-95">
+                                <span>開啟 3D 作品</span>
+                                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                            </a>
+                        </div>
+                    </article>
+                `;
+            }).join("");
+        }
+
+        /**
+         * 開啟站內預覽 Modal 並載入指定作品的 iframe
+         */
+        window.openPreviewModal = function(projectId) {
+            const project = projectsData.find(p => p.id === projectId);
+            if (!project) return;
+
+            const safeUrl = encodeURI(project.rawUrl);
+
+            // 更新 Modal 標題與資訊
+            modalTitle.textContent = project.title;
+            modalAuthor.textContent = `作者：${project.author} ｜ ${project.tag}`;
+            modalEmoji.textContent = project.emoji;
+            modalExternalLink.href = safeUrl;
+
+            // 顯示載入中遮罩並設定 iframe 網址
+            iframeLoader.style.opacity = "1";
+            iframeLoader.style.display = "flex";
+            projectIframe.src = safeUrl;
+
+            // 顯示 Modal 動畫
+            previewModal.classList.remove("hidden");
+            previewModal.classList.add("flex");
+            document.body.style.overflow = "hidden"; // 鎖定背景捲動
+
+            requestAnimationFrame(() => {
+                previewModal.classList.remove("opacity-0");
+                modalContainer.classList.remove("scale-95");
+                modalContainer.classList.add("scale-100");
+            });
+        };
+
+        /**
+         * 關閉站內預覽 Modal 並釋放 iframe 資源
+         */
+        function closePreviewModal() {
+            previewModal.classList.add("opacity-0");
+            modalContainer.classList.remove("scale-100");
+            modalContainer.classList.add("scale-95");
+
+            setTimeout(() => {
+                previewModal.classList.add("hidden");
+                previewModal.classList.remove("flex");
+                projectIframe.src = "about:blank"; // 清空 iframe 停止背景 3D 運算耗能
+                document.body.style.overflow = "";
+            }, 250);
+        }
+
+        // 當 iframe 載入完成時隱藏載入動畫
+        projectIframe.addEventListener("load", () => {
+            if (projectIframe.src && projectIframe.src !== "about:blank") {
+                iframeLoader.style.opacity = "0";
+                setTimeout(() => {
+                    iframeLoader.style.display = "none";
+                }, 300);
+            }
+        });
+
+        // 重新整理 iframe 按鈕事件
+        reloadIframeBtn.addEventListener("click", () => {
+            if (projectIframe.src && projectIframe.src !== "about:blank") {
+                iframeLoader.style.display = "flex";
+                iframeLoader.style.opacity = "1";
+                const currentSrc = projectIframe.src;
+                projectIframe.src = "";
+                setTimeout(() => {
+                    projectIframe.src = currentSrc;
+                }, 50);
+            }
+        });
+
+        // 關閉 Modal 按鈕與背景點擊事件
+        closeModalBtn.addEventListener("click", closePreviewModal);
+        previewModal.addEventListener("click", (e) => {
+            if (e.target === previewModal) {
+                closePreviewModal();
+            }
+        });
+
+        // 按下 ESC 鍵關閉預覽視窗
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && !previewModal.classList.contains("hidden")) {
+                closePreviewModal();
+            }
+        });
+
+        // 搜尋框即時篩選事件
+        searchInput.addEventListener("input", (e) => {
+            currentSearchQuery = e.target.value;
+            if (currentSearchQuery.length > 0) {
+                clearSearchBtn.classList.remove("hidden");
+            } else {
+                clearSearchBtn.classList.add("hidden");
+            }
+            renderProjects();
+        });
+
+        // 清除搜尋按鈕事件
+        clearSearchBtn.addEventListener("click", () => {
+            searchInput.value = "";
+            currentSearchQuery = "";
+            clearSearchBtn.classList.add("hidden");
+            renderProjects();
+            searchInput.focus();
+        });
+
+        // 重設所有篩選條件按鈕
+        resetFilterBtn.addEventListener("click", () => {
+            currentAuthor = "全部";
+            currentSearchQuery = "";
+            searchInput.value = "";
+            clearSearchBtn.classList.add("hidden");
+            initAuthorFilters();
+            renderProjects();
+        });
+
+        /**
+         * 深色星空模式 / 淺色模式切換邏輯
+         */
+        const themeToggleBtn = document.getElementById("themeToggle");
+        const themeText = document.getElementById("themeText");
+        const htmlEl = document.documentElement;
+
+        function updateThemeUI(isDark) {
+            if (isDark) {
+                htmlEl.classList.add("dark");
+                themeText.textContent = "淺色活力模式";
+            } else {
+                htmlEl.classList.remove("dark");
+                themeText.textContent = "深色星空模式";
+            }
+        }
+
+        // 讀取先前儲存的主題偏好或系統設定
+        try {
+            const savedTheme = localStorage.getItem("115_1_5a_theme");
+            if (savedTheme === "dark") {
+                updateThemeUI(true);
+            } else if (savedTheme === "light") {
+                updateThemeUI(false);
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                updateThemeUI(true);
+            }
+        } catch (err) {
+            // 忽略 iFrame 內可能發生的 localStorage 存取限制
+        }
+
+        themeToggleBtn.addEventListener("click", () => {
+            const isCurrentlyDark = htmlEl.classList.contains("dark");
+            const nextDarkState = !isCurrentlyDark;
+            updateThemeUI(nextDarkState);
+            try {
+                localStorage.setItem("115_1_5a_theme", nextDarkState ? "dark" : "light");
+            } catch (err) {}
+        });
+
+        // 頁面載入後初始化介面
+        window.addEventListener("DOMContentLoaded", () => {
+            initAuthorFilters();
+            renderProjects();
+        });
+    </script>
+</body>
+</html>
