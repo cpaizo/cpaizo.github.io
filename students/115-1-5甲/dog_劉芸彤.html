@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>3D 小橘貓美食大作戰</title>
+  <style>
+    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+    body { margin: 0; overflow: hidden; background-color: #9ee0ff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    
+    /* 頂部狀態列 */
+    #ui-layer {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; display: flex; flex-direction: column; justify-content: space-between;
+      padding: 20px;
+    }
+    .top-bar { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .hud-box {
+      background: rgba(255, 255, 255, 0.9); padding: 10px 20px; border-radius: 25px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12); font-size: 20px; font-weight: bold; color: #ff7b00;
+      display: flex; align-items: center; gap: 15px;
+    }
+    .timer { color: #e63946; }
+    .controls-hint {
+      background: rgba(0, 0, 0, 0.55); color: white; padding: 10px 16px;
+      border-radius: 15px; font-size: 13px; line-height: 1.5; text-align: right;
+    }
+
+    /* 漂浮得分提示 */
+    #floating-text {
+      position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%);
+      font-size: 28px; font-weight: bold; color: #ff9f1c; text-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none;
+    }
+
+    /* 螢幕觸控按鈕 */
+    .action-buttons {
+      display: flex; justify-content: flex-end; gap: 15px; pointer-events: auto;
+    }
+    .btn {
+      width: 66px; height: 66px; border-radius: 50%; border: none;
+      font-size: 17px; font-weight: bold; color: white; cursor: pointer;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2); transition: transform 0.1s;
+    }
+    .btn:active { transform: scale(0.9); }
+    #btn-meow { background: #ff8da1; }
+    #btn-jump { background: #ffa040; }
+
+    /* 遊戲結束結算視窗 */
+    #game-over {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.6); display: none; justify-content: center; align-items: center;
+      pointer-events: auto;
+    }
+    .modal {
+      background: white; padding: 35px 45px; border-radius: 30px; text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-width: 90%;
+    }
+    .modal h2 { margin: 0 0 10px; color: #ff7b00; font-size: 30px; }
+    .modal p { font-size: 20px; color: #444; margin: 10px 0 25px; }
+    .restart-btn {
+      background: #ff7b00; color: white; border: none; padding: 14px 32px;
+      font-size: 20px; font-weight: bold; border-radius: 25px; cursor: pointer;
+      box-shadow: 0 4px 12px rgba(255, 123, 0, 0.4);
+    }
+    .restart-btn:hover { background: #ff9500; }
+  </style>
+</head>
+<body>
+
+  <div id="ui-layer">
+    <div class="top-bar">
+      <div class="hud-box">
+        <span>🍽️ 飽食分數: <span id="score">0</span></span>
+        <span class="timer">⏳ <span id="time">45</span>s</span>
+      </div>
+      <div class="controls-hint">
+        <b>WASD / 方向鍵</b> 移動 | <b>空白鍵</b> 跳躍<br>
+        <b>點擊草地</b> 跑過去吃美食！
+      </div>
+    </div>
+
+    <div id="floating-text">+10 好吃！</div>
+
+    <div class="action-buttons">
+      <button id="btn-meow" class="btn">喵～</button>
+      <button id="btn-jump" class="btn">跳躍</button>
+    </div>
+  </div>
+
+  <div id="game-over">
+    <div class="modal">
+      <h2>🐱 吃飽喝足啦！</h2>
+      <p>小橘貓總共獲得了 <b id="final-score" style="color:#ff7b00; font-size:26px;">0</b> 分！</p>
+      <button class="restart-btn" id="btn-restart">再吃一輪</button>
+    </div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+
+    // --- 1. 內建 Web Audio 合成音效 ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound(type) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      const now = audioCtx.currentTime;
+
+      if (type === 'meow') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(520, now);
+        osc.frequency.exponentialRampToValueAtTime(780, now + 0.12);
+        osc.frequency.exponentialRampToValueAtTime(420, now + 0.35);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+        osc.start(now); osc.stop(now + 0.35);
+      } else if (type === 'eat') {
+        // 咀嚼與吞嚥音效
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.setValueAtTime(600, now + 0.06);
+        osc.frequency.setValueAtTime(900, now + 0.12);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.22);
+        osc.start(now); osc.stop(now + 0.22);
+      } else if (type === 'jump') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(250, now);
+        osc.frequency.exponentialRampToValueAtTime(520, now + 0.18);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+        osc.start(now); osc.stop(now + 0.18);
+      }
+    }
+
+    // --- 2. 場景、相機與燈光 ---
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x9ee0ff);
+    scene.fog = new THREE.Fog(0x9ee0ff, 22, 55);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    document.body.appendChild(renderer.domElement);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.1);
+    dirLight.position.set(12, 22, 10);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.set(1024, 1024);
+    const d = 18;
+    dirLight.shadow.camera.left = -d; dirLight.shadow.camera.right = d;
+    dirLight.shadow.camera.top = d; dirLight.shadow.camera.bottom = -d;
+    scene.add(dirLight);
+
+    // 圓形野餐草地
+    const ARENA_RADIUS = 15;
+    const floor = new THREE.Mesh(
+      new THREE.CylinderGeometry(ARENA_RADIUS, ARENA_RADIUS, 1, 48),
+      new THREE.MeshStandardMaterial({ color: 0x82d156, roughness: 0.8 })
+    );
+    floor.position.y = -0.5;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    // 野餐墊裝飾
+    const mat = new THREE.Mesh(
+      new THREE.PlaneGeometry(7, 7),
+      new THREE.MeshStandardMaterial({ color: 0xff6b6b, roughness: 0.9 })
+    );
+    mat.rotation.x = -Math.PI / 2;
+    mat.position.y = 0.01;
+    scene.add(mat);
+
+    // --- 3. 建立 3D 小橘貓 ---
+    const orangeMat = new THREE.MeshStandardMaterial({ color: 0xff9f38, roughness: 0.6 });
+    const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6 });
+    const pinkMat = new THREE.MeshStandardMaterial({ color: 0xff8da1, roughness: 0.4 });
+    const blackMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.2 });
+
+    const cat = new THREE.Group();
+
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.9, 24, 24), orangeMat);
+    body.scale.set(0.85, 1.0, 1.15);
+    body.position.y = 0.95;
+    body.castShadow = true;
+    cat.add(body);
+
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.78, 24, 24), orangeMat);
+    head.position.set(0, 1.95, 0.65);
+    head.castShadow = true;
+    cat.add(head);
+
+    const muzzle = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 16), whiteMat);
+    muzzle.scale.set(1.2, 0.8, 0.8);
+    muzzle.position.set(0, 1.78, 1.28);
+    cat.add(muzzle);
+
+    const nose = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 12), pinkMat);
+    nose.position.set(0, 1.88, 1.5);
+    cat.add(nose);
+
+    const eyeGeo = new THREE.SphereGeometry(0.1, 12, 12);
+    const leftEye = new THREE.Mesh(eyeGeo, blackMat); leftEye.position.set(-0.28, 2.08, 1.3);
+    const rightEye = new THREE.Mesh(eyeGeo, blackMat); rightEye.position.set(0.28, 2.08, 1.3);
+    cat.add(leftEye, rightEye);
+
+    const earGeo = new THREE.ConeGeometry(0.28, 0.55, 16);
+    const leftEar = new THREE.Mesh(earGeo, orangeMat);
+    leftEar.position.set(-0.45, 2.62, 0.6); leftEar.rotation.z = 0.25;
+    const rightEar = new THREE.Mesh(earGeo, orangeMat);
+    rightEar.position.set(0.45, 2.62, 0.6); rightEar.rotation.z = -0.25;
+    cat.add(leftEar, rightEar);
+
+    const paws = [];
+    const pawGeo = new THREE.CylinderGeometry(0.2, 0.22, 0.6, 12);
+    [[-0.4, 0.3, 0.55], [0.4, 0.3, 0.55], [-0.45, 0.3, -0.55], [0.45, 0.3, -0.55]].forEach(pos => {
+      const paw = new THREE.Mesh(pawGeo, whiteMat);
+      paw.position.set(...pos);
+      paw.castShadow = true;
+      cat.add(paw);
+      paws.push(paw);
+    });
+
+    const tailPivot = new THREE.Group();
+    tailPivot.position.set(0, 1.05, -0.9);
+    const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, 1.1, 12), orangeMat);
+    tail.position.set(0, 0.45, -0.2);
+    tail.rotation.x = -0.5;
+    tailPivot.add(tail);
+    cat.add(tailPivot);
+
+    scene.add(cat);
+
+    // --- 4. 美食生成系統 (小魚乾 / 起司 / 草莓蛋糕) ---
+    const foods = [];
+    const fishMat = new THREE.MeshStandardMaterial({ color: 0xffc300, roughness: 0.3 });
+    const cheeseMat = new THREE.MeshStandardMaterial({ color: 0xffe66d, roughness: 0.5 });
+    const cakeMat = new THREE.MeshStandardMaterial({ color: 0xfff0f3, roughness: 0.6 });
+    const berryMat = new THREE.MeshStandardMaterial({ color: 0xff2a55, roughness: 0.3 });
+
+    function spawnFood() {
+      const group = new THREE.Group();
+      const rand = Math.random();
+      let points = 10;
+      let label = '+10 鮮美小魚乾!';
+
+      if (rand < 0.55) {
+        // 1. 黃金小魚乾 (10分)
+        const fishBody = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.85, 8), fishMat);
+        fishBody.rotation.z = Math.PI / 2;
+        const fishTail = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.38, 8), fishMat);
+        fishTail.rotation.z = -Math.PI / 2;
+        fishTail.position.x = -0.5;
+        group.add(fishBody, fishTail);
+      } else if (rand < 0.85) {
+        // 2. 香濃起司塊 (20分)
+        points = 20;
+        label = '+20 香濃起司!';
+        const cheese = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.35, 3), cheeseMat);
+        group.add(cheese);
+      } else {
+        // 3. 草莓奶油蛋糕 (35分)
+        points = 35;
+        label = '+35 豪華草莓蛋糕!';
+        const base = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.4, 16), cakeMat);
+        const berry = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 12), berryMat);
+        berry.position.y = 0.25;
+        group.add(base, berry);
+      }
+
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 1.5 + Math.random() * (ARENA_RADIUS - 2.8);
+      group.position.set(Math.cos(angle) * dist, 0.75, Math.sin(angle) * dist);
+      group.userData = { points, label, phase: Math.random() * Math.PI * 2 };
+      scene.add(group);
+      foods.push(group);
+    }
+
+    // --- 5. 遊戲狀態與控制 ---
+    const keys = {};
+    let score = 0;
+    let timeLeft = 45;
+    let isGameOver = false;
+    let velocityY = 0;
+    let isGrounded = true;
+    let eatAnimTimer = 0;
+    let fatScale = 1.0; // 吃越多肚子越圓
+    let clickTarget = null;
+
+    const scoreEl = document.getElementById('score');
+    const timeEl = document.getElementById('time');
+    const floatText = document.getElementById('floating-text');
+    const gameOverModal = document.getElementById('game-over');
+    const finalScoreEl = document.getElementById('final-score');
+
+    function showFloatText(text) {
+      floatText.textContent = text;
+      floatText.style.opacity = '1';
+      floatText.style.transform = 'translate(-50%, -80%)';
+      setTimeout(() => {
+        floatText.style.opacity = '0';
+        floatText.style.transform = 'translate(-50%, -50%)';
+      }, 600);
+    }
+
+    function initGame() {
+      score = 0;
+      timeLeft = 45;
+      isGameOver = false;
+      fatScale = 1.0;
+      cat.position.set(0, 0, 0);
+      body.scale.set(0.85, 1.0, 1.15);
+      scoreEl.textContent = score;
+      timeEl.textContent = timeLeft;
+      gameOverModal.style.display = 'none';
+      clickTarget = null;
+
+      foods.forEach(f => scene.remove(f));
+      foods.length = 0;
+      for (let i = 0; i < 7; i++) spawnFood();
+    }
+
+    // 倒數計時器
+    setInterval(() => {
+      if (!isGameOver) {
+        timeLeft--;
+        timeEl.textContent = timeLeft;
+        if (timeLeft <= 0) {
+          isGameOver = true;
+          finalScoreEl.textContent = score;
+          gameOverModal.style.display = 'flex';
+          playSound('meow');
+        }
+      }
+    }, 1000);
+
+    function triggerJump() {
+      if (!isGameOver && isGrounded) {
+        velocityY = 9.0;
+        isGrounded = false;
+        playSound('jump');
+      }
+    }
+
+    function triggerMeow() {
+      if (!isGameOver) {
+        playSound('meow');
+        if (isGrounded) { velocityY = 4.5; isGrounded = false; }
+      }
+    }
+
+    window.addEventListener('keydown', e => {
+      keys[e.code] = true;
+      clickTarget = null;
+      if (e.code === 'Space') triggerJump();
+    });
+    window.addEventListener('keyup', e => keys[e.code] = false);
+    document.getElementById('btn-jump').addEventListener('click', triggerJump);
+    document.getElementById('btn-meow').addEventListener('click', triggerMeow);
+    document.getElementById('btn-restart').addEventListener('click', initGame);
+
+    // 點擊草地移動
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    window.addEventListener('pointerdown', e => {
+      if (isGameOver || e.target.tagName === 'BUTTON') return;
+      pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+      pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObject(floor);
+      if (hits.length > 0) {
+        clickTarget = hits[0].point.clone();
+        clickTarget.y = 0;
+      }
+    });
+
+    // --- 6. 主遊戲迴圈 ---
+    initGame();
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.05);
+      const elapsed = clock.getElapsedTime();
+
+      if (!isGameOver) {
+        let moveX = 0, moveZ = 0;
+        if (keys['KeyW'] || keys['ArrowUp']) moveZ -= 1;
+        if (keys['KeyS'] || keys['ArrowDown']) moveZ += 1;
+        if (keys['KeyA'] || keys['ArrowLeft']) moveX -= 1;
+        if (keys['KeyD'] || keys['ArrowRight']) moveX += 1;
+
+        if (moveX === 0 && moveZ === 0 && clickTarget) {
+          const dx = clickTarget.x - cat.position.x;
+          const dz = clickTarget.z - cat.position.z;
+          if (Math.hypot(dx, dz) > 0.3) {
+            moveX = dx; moveZ = dz;
+          } else {
+            clickTarget = null;
+          }
+        }
+
+        const isMoving = moveX !== 0 || moveZ !== 0;
+        const speed = 7.5;
+
+        if (isMoving) {
+          const len = Math.hypot(moveX, moveZ);
+          moveX /= len; moveZ /= len;
+          cat.position.x += moveX * speed * dt;
+          cat.position.z += moveZ * speed * dt;
+
+          const distFromCenter = Math.hypot(cat.position.x, cat.position.z);
+          if (distFromCenter > ARENA_RADIUS - 1) {
+            cat.position.x *= (ARENA_RADIUS - 1) / distFromCenter;
+            cat.position.z *= (ARENA_RADIUS - 1) / distFromCenter;
+          }
+
+          const targetRot = Math.atan2(moveX, moveZ);
+          let diff = targetRot - cat.rotation.y;
+          while (diff < -Math.PI) diff += Math.PI * 2;
+          while (diff > Math.PI) diff -= Math.PI * 2;
+          cat.rotation.y += diff * 12 * dt;
+
+          paws[0].position.z = 0.55 + Math.sin(elapsed * 16) * 0.25;
+          paws[1].position.z = 0.55 - Math.sin(elapsed * 16) * 0.25;
+          paws[2].position.z = -0.55 - Math.sin(elapsed * 16) * 0.25;
+          paws[3].position.z = -0.55 + Math.sin(elapsed * 16) * 0.25;
+        } else {
+          paws.forEach((p, idx) => p.position.z = idx < 2 ? 0.55 : -0.55);
+        }
+
+        // 跳躍重力
+        if (!isGrounded) {
+          cat.position.y += velocityY * dt;
+          velocityY -= 24 * dt;
+          if (cat.position.y <= 0) {
+            cat.position.y = 0;
+            velocityY = 0;
+            isGrounded = true;
+          }
+        }
+
+        // 吃東西點頭咀嚼動畫
+        if (eatAnimTimer > 0) {
+          eatAnimTimer -= dt;
+          head.rotation.x = Math.sin(eatAnimTimer * 35) * 0.35;
+        } else {
+          head.rotation.x = 0;
+        }
+
+        tailPivot.rotation.z = Math.sin(elapsed * (isMoving ? 10 : 4)) * 0.45;
+
+        // 美食旋轉與吃掉判定
+        for (let i = foods.length - 1; i >= 0; i--) {
+          const food = foods[i];
+          food.rotation.y += 2.2 * dt;
+          food.position.y = 0.75 + Math.sin(elapsed * 4 + food.userData.phase) * 0.12;
+
+          // 判斷小貓嘴巴位置是否碰到食物
+          const mouthX = cat.position.x + Math.sin(cat.rotation.y) * 0.9;
+          const mouthZ = cat.position.z + Math.cos(cat.rotation.y) * 0.9;
+          const dist = Math.hypot(mouthX - food.position.x, mouthZ - food.position.z);
+
+          if (dist < 1.3 && cat.position.y < 1.6) {
+            score += food.userData.points;
+            scoreEl.textContent = score;
+            showFloatText(food.userData.label);
+            eatAnimTimer = 0.35;
+            playSound('eat');
+
+            // 每吃一口肚子變圓一點 (上限 1.45 倍)
+            fatScale = Math.min(1.45, fatScale + 0.02);
+            body.scale.set(0.85 * fatScale, 1.0 + (fatScale - 1) * 0.3, 1.15 * fatScale);
+
+            scene.remove(food);
+            foods.splice(i, 1);
+            spawnFood();
+          }
+        }
+      }
+
+      // 相機平滑跟隨
+      const desiredCamPos = new THREE.Vector3(cat.position.x, cat.position.y + 7, cat.position.z + 11);
+      camera.position.lerp(desiredCamPos, 6 * dt);
+      camera.lookAt(cat.position.x, cat.position.y + 1.2, cat.position.z);
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>

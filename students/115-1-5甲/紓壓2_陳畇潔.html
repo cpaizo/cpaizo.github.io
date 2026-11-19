@@ -1,0 +1,2449 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>黑藍霓虹星海 · 深海微光紓壓空間</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Noto Sans TC', 'Inter', sans-serif;
+      color: #ffffff;
+      /* 黑到深藍動態流動漸層背景 */
+      background: linear-gradient(-45deg, #000000, #050a1f, #0a1931, #001f4d, #020617);
+      background-size: 400% 400%;
+      animation: deepBlueFlow 18s ease infinite;
+    }
+
+    @keyframes deepBlueFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* 純白文字搭配柔和深藍外發光 */
+    .neon-text {
+      color: #ffffff;
+      text-shadow:
+        0 0 8px rgba(0, 170, 255, 0.85),
+        0 0 18px rgba(0, 85, 255, 0.75),
+        0 0 32px rgba(0, 40, 160, 0.6);
+    }
+
+    .neon-text-subtle {
+      color: rgba(255, 255, 255, 0.92);
+      text-shadow:
+        0 0 6px rgba(0, 170, 255, 0.65),
+        0 0 14px rgba(0, 85, 255, 0.5);
+    }
+
+    /* 透明玻璃膠囊與深藍光暈邊框 */
+    .glass-pill {
+      background: rgba(5, 15, 38, 0.5);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(56, 189, 248, 0.28);
+      box-shadow:
+        0 0 20px rgba(0, 85, 255, 0.22),
+        inset 0 0 12px rgba(0, 170, 255, 0.08);
+      transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .glass-pill:hover {
+      border-color: rgba(56, 189, 248, 0.6);
+      box-shadow:
+        0 0 25px rgba(0, 140, 255, 0.42),
+        inset 0 0 15px rgba(0, 170, 255, 0.18);
+    }
+
+    .glass-pill:active {
+      transform: scale(0.96);
+    }
+
+    .mode-btn.active, .tool-btn.active {
+      background: rgba(0, 102, 255, 0.42);
+      border-color: rgba(125, 211, 252, 0.88);
+      box-shadow:
+        0 0 16px rgba(0, 170, 255, 0.7),
+        inset 0 0 10px rgba(125, 211, 252, 0.38);
+    }
+
+    #zen-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 1;
+      touch-action: none;
+    }
+
+    .ui-layer {
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .ui-hidden {
+      opacity: 0;
+      pointer-events: none !important;
+      transform: translateY(-8px);
+    }
+
+    /* 隱藏水平捲軸但保留平滑滑動 */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 全螢幕互動 Canvas -->
+  <canvas id="zen-canvas"></canvas>
+
+  <!-- 頂部極簡控制列 -->
+  <header id="top-ui" class="ui-layer fixed top-0 left-0 right-0 z-20 p-3 sm:p-5 flex items-center justify-between gap-2 pointer-events-none">
+    <!-- 左側標題 -->
+    <div class="pointer-events-auto flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-pill">
+      <span class="inline-block w-2.5 h-2.5 rounded-full bg-sky-300 shadow-[0_0_10px_#38bdf8] animate-pulse"></span>
+      <h1 class="text-xs sm:text-base font-medium tracking-wider neon-text">黑藍霓虹星海</h1>
+    </div>
+
+    <!-- 右側音效與沉浸模式開關 -->
+    <div class="pointer-events-auto flex items-center gap-2">
+      <button id="btn-ambient" class="glass-pill px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full text-xs sm:text-sm neon-text-subtle flex items-center gap-1.5 cursor-pointer" title="切換深海環境音與療癒音效">
+        <span id="ambient-icon">🔊</span>
+        <span>深海環境音</span>
+      </button>
+
+      <button id="btn-hide-ui" class="glass-pill px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full text-xs sm:text-sm neon-text-subtle cursor-pointer" title="隱藏介面進入純粹放空模式">
+        👁️ <span class="hidden sm:inline">純粹模式</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- 恢復 UI 浮動小按鈕 -->
+  <button id="btn-show-ui" class="hidden fixed top-4 right-4 z-30 glass-pill px-3.5 py-2 rounded-full text-xs neon-text-subtle opacity-75 hover:opacity-100 transition cursor-pointer">
+    ✨ 顯示選單
+  </button>
+
+  <!-- 模式專屬上方狀態提示膠囊 -->
+  <div id="sub-status-bar" class="ui-layer fixed top-14 sm:top-16 left-1/2 -translate-x-1/2 z-20 flex flex-wrap justify-center items-center gap-2 pointer-events-none w-full px-3">
+    <!-- 史萊姆狀態列 -->
+    <div id="slime-status" class="pointer-events-auto flex items-center gap-2.5 glass-pill px-3.5 py-1.5 rounded-full text-xs neon-text-subtle">
+      <span>起泡度：<strong id="slime-foam-pct" class="text-sky-200 neon-text">0%</strong></span>
+      <span class="opacity-40">|</span>
+      <span>脆皮完整度：<strong id="slime-glaze-pct" class="text-sky-200 neon-text">100%</strong></span>
+    </div>
+
+    <!-- 氣泡模式計數 -->
+    <div id="bubble-status" class="hidden pointer-events-auto glass-pill px-4 py-1.5 rounded-full text-xs neon-text-subtle">
+      已釋放壓力：<strong id="pop-counter" class="text-sky-200 neon-text">0</strong> 顆氣泡
+    </div>
+  </div>
+
+  <!-- 呼吸模式專屬：中央溫柔引導文字 -->
+  <div id="breath-guide" class="ui-layer hidden fixed inset-0 z-10 pointer-events-none flex flex-col items-center justify-center text-center px-6">
+    <div id="breath-phase-text" class="text-2xl sm:text-4xl font-light tracking-[0.2em] neon-text mb-2 transition-all duration-700">
+      準備放鬆身心
+    </div>
+    <div id="breath-sub-text" class="text-xs sm:text-base font-light tracking-widest text-sky-200/85 neon-text-subtle">
+      跟隨深藍光環的節奏，慢慢調整呼吸
+    </div>
+    <div id="breath-timer-text" class="mt-3 text-lg sm:text-xl font-mono text-sky-300 neon-text-subtle">
+      4 · 7 · 8
+    </div>
+  </div>
+
+  <!-- 底部互動工具列 + 七大模式玻璃膠囊導航 -->
+  <div id="bottom-ui" class="ui-layer fixed bottom-3 sm:bottom-5 left-0 right-0 z-20 flex flex-col items-center gap-2 px-2 pointer-events-none">
+
+    <!-- 1. 史萊姆專屬工具列 -->
+    <div id="tools-slime" class="pointer-events-auto flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-full px-2 py-1">
+      <button id="btn-slime-glaze" class="tool-btn glass-pill px-3 py-1.5 rounded-full text-xs neon-text-subtle whitespace-nowrap cursor-pointer">
+        ❄️ 淋上脆皮
+      </button>
+      <button id="btn-slime-popfoam" class="tool-btn glass-pill px-3 py-1.5 rounded-full text-xs neon-text-subtle whitespace-nowrap cursor-pointer">
+        🫧 一鍵壓泡爆破
+      </button>
+      <button id="btn-slime-spatula" class="tool-btn glass-pill px-3 py-1.5 rounded-full text-xs neon-text-subtle whitespace-nowrap cursor-pointer">
+        🥄 舒壓刮刀抹平
+      </button>
+      <button id="btn-slime-jelly" class="tool-btn glass-pill px-3 py-1.5 rounded-full text-xs neon-text-subtle whitespace-nowrap cursor-pointer">
+        🍓 放上果凍配料
+      </button>
+      <button id="btn-slime-glitter" class="tool-btn glass-pill px-3 py-1.5 rounded-full text-xs neon-text-subtle whitespace-nowrap cursor-pointer">
+        ✨ 撒入亮片
+      </button>
+      <button id="btn-slime-beads" class="tool-btn glass-pill px-3 py-1.5 rounded-full text-xs neon-text-subtle whitespace-nowrap cursor-pointer">
+        🍬 撒入糖果珠
+      </button>
+      <button id="btn-slime-stamp" class="tool-btn glass-pill px-3 py-1.5 rounded-full text-xs neon-text-subtle whitespace-nowrap cursor-pointer">
+        💖 蓋療癒印章
+      </button>
+      <button id="btn-slime-texture" class="tool-btn glass-pill px-3 py-1.5 rounded-full text-xs neon-text-subtle whitespace-nowrap cursor-pointer">
+        🍮 Q彈果凍
+      </button>
+    </div>
+
+    <!-- 2. 水母模式專屬工具列 -->
+    <div id="tools-jellyfish" class="hidden pointer-events-auto flex items-center gap-2">
+      <button id="btn-spawn-jelly" class="glass-pill px-3.5 py-1.5 rounded-full text-xs neon-text-subtle cursor-pointer">
+        ✨ 召喚水母
+      </button>
+      <button id="btn-jelly-bubbles" class="glass-pill px-3.5 py-1.5 rounded-full text-xs neon-text-subtle cursor-pointer">
+        🫧 釋放氣泡流
+      </button>
+    </div>
+
+    <!-- 3. 氣泡模式專屬工具列 -->
+    <div id="tools-bubbles" class="hidden pointer-events-auto flex items-center gap-2">
+      <button id="btn-pop-all" class="glass-pill px-4 py-1.5 rounded-full text-xs font-medium neon-text cursor-pointer">
+        💥 一鍵全部戳破
+      </button>
+    </div>
+
+    <!-- 4. 深海風鈴專屬工具列 -->
+    <div id="tools-chimes" class="hidden pointer-events-auto flex items-center gap-2">
+      <button id="btn-chime-breeze" class="glass-pill px-3.5 py-1.5 rounded-full text-xs neon-text-subtle cursor-pointer">
+        🍃 微風輕拂風鈴
+      </button>
+      <button id="btn-chime-lantern" class="glass-pill px-3.5 py-1.5 rounded-full text-xs neon-text-subtle cursor-pointer">
+        🏮 放飛祈願水燈
+      </button>
+    </div>
+
+    <!-- 5. 星光流沙專屬工具列 -->
+    <div id="tools-sand" class="hidden pointer-events-auto flex items-center gap-2">
+      <button id="btn-sand-wave" class="glass-pill px-3.5 py-1.5 rounded-full text-xs neon-text-subtle cursor-pointer">
+        🌊 海浪撫平沙丘
+      </button>
+      <button id="btn-sand-sprinkle" class="glass-pill px-3.5 py-1.5 rounded-full text-xs neon-text-subtle cursor-pointer">
+        ✨ 灑落星光流沙
+      </button>
+    </div>
+
+    <!-- 底部簡短溫柔提示 -->
+    <p id="hint-text" class="text-[11px] sm:text-xs font-light tracking-wider text-sky-100/80 neon-text-subtle text-center px-2">
+      史萊姆已穩穩固定在中央 · 先戳破深藍冰晶脆皮，再盡情揉捏起泡吧！
+    </p>
+
+    <!-- 七大療癒模式玻璃膠囊導航 -->
+    <nav class="pointer-events-auto flex items-center gap-1 p-1.5 rounded-full glass-pill overflow-x-auto no-scrollbar max-w-full">
+      <button data-mode="slime" class="mode-btn active px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium neon-text-subtle whitespace-nowrap cursor-pointer">
+        🍮 起泡史萊姆
+      </button>
+      <button data-mode="nebula" class="mode-btn px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium neon-text-subtle whitespace-nowrap cursor-pointer">
+        ✨ 星塵引力
+      </button>
+      <button data-mode="jellyfish" class="mode-btn px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium neon-text-subtle whitespace-nowrap cursor-pointer">
+        🪼 發光水母
+      </button>
+      <button data-mode="chimes" class="mode-btn px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium neon-text-subtle whitespace-nowrap cursor-pointer">
+        🎐 深海風鈴
+      </button>
+      <button data-mode="sand" class="mode-btn px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium neon-text-subtle whitespace-nowrap cursor-pointer">
+        🏖️ 星光流沙
+      </button>
+      <button data-mode="bubbles" class="mode-btn px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium neon-text-subtle whitespace-nowrap cursor-pointer">
+        🫧 氣泡捏捏樂
+      </button>
+      <button data-mode="breath" class="mode-btn px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium neon-text-subtle whitespace-nowrap cursor-pointer">
+        🌊 4-7-8 呼吸
+      </button>
+    </nav>
+  </div>
+
+  <script>
+    /**
+     * ============================================================================
+     * 1. 安全穩定的 Web Audio API 療癒 ASMR 與深海環境音合成器
+     * ============================================================================
+     */
+    class ZenAudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.soundEnabled = true;
+        this.ambientEnabled = false;
+        this.ambientNodes = null;
+        this.lastChimeTime = 0;
+        this.lastSquishTime = 0;
+
+        // C 大調五聲音階 (和諧療癒、不刺耳)
+        this.pentatonic = [
+          261.63, 293.66, 329.63, 392.00, 440.00,
+          523.25, 587.33, 659.25, 783.99, 880.00,
+          1046.50, 1174.66
+        ];
+      }
+
+      unlock() {
+        try {
+          if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) this.ctx = new AudioCtx();
+          }
+          if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
+          }
+        } catch (e) {}
+      }
+
+      toggleAmbient() {
+        this.unlock();
+        this.ambientEnabled = !this.ambientEnabled;
+        if (this.ambientEnabled) {
+          this.soundEnabled = true;
+          this.startAmbient();
+        } else {
+          this.stopAmbient();
+        }
+        return this.ambientEnabled;
+      }
+
+      startAmbient() {
+        if (!this.ctx || this.ambientNodes) return;
+        try {
+          const now = this.ctx.currentTime;
+          const bufferSize = this.ctx.sampleRate * 3;
+          const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+          const output = noiseBuffer.getChannelData(0);
+          let lastOut = 0.0;
+          for (let i = 0; i < bufferSize; i++) {
+            const white = Math.random() * 2 - 1;
+            output[i] = (lastOut + 0.02 * white) / 1.02;
+            lastOut = output[i];
+            output[i] *= 2.4;
+          }
+
+          const whiteNoise = this.ctx.createBufferSource();
+          whiteNoise.buffer = noiseBuffer;
+          whiteNoise.loop = true;
+
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(210, now);
+
+          const noiseGain = this.ctx.createGain();
+          noiseGain.gain.setValueAtTime(0.001, now);
+          noiseGain.gain.linearRampToValueAtTime(0.11, now + 2.0);
+
+          whiteNoise.connect(filter);
+          filter.connect(noiseGain);
+          noiseGain.connect(this.ctx.destination);
+          whiteNoise.start(now);
+
+          const padFreqs = [65.41, 98.00, 164.81];
+          const oscs = padFreqs.map(freq => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now);
+            gain.gain.setValueAtTime(0.0001, now);
+            gain.gain.linearRampToValueAtTime(0.026, now + 2.5);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            return { osc, gain };
+          });
+
+          this.ambientNodes = { whiteNoise, noiseGain, oscs };
+        } catch (e) {}
+      }
+
+      stopAmbient() {
+        if (!this.ambientNodes || !this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          const { whiteNoise, noiseGain, oscs } = this.ambientNodes;
+          noiseGain.gain.setTargetAtTime(0.0001, now, 0.35);
+          oscs.forEach(({ gain }) => gain.gain.setTargetAtTime(0.0001, now, 0.35));
+          setTimeout(() => {
+            try {
+              whiteNoise.stop();
+              oscs.forEach(({ osc }) => osc.stop());
+            } catch (e) {}
+          }, 1000);
+        } catch (e) {}
+        this.ambientNodes = null;
+      }
+
+      // 冰晶脆皮碎裂 ASMR：「喀啦、喀嚓」清脆高頻碎裂聲
+      playGlazeCrack() {
+        if (!this.soundEnabled) return;
+        this.unlock();
+        if (!this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          const burstCount = 3;
+          for (let b = 0; b < burstCount; b++) {
+            const offset = b * 0.022;
+            const dur = 0.045;
+            const bufLen = Math.floor(this.ctx.sampleRate * dur);
+            const buf = this.ctx.createBuffer(1, bufLen, this.ctx.sampleRate);
+            const data = buf.getChannelData(0);
+            for (let i = 0; i < bufLen; i++) {
+              data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufLen * 0.35));
+            }
+            const src = this.ctx.createBufferSource();
+            src.buffer = buf;
+
+            const bp = this.ctx.createBiquadFilter();
+            bp.type = 'bandpass';
+            bp.frequency.setValueAtTime(2400 + Math.random() * 1800, now + offset);
+            bp.Q.setValueAtTime(2.5, now + offset);
+
+            const gain = this.ctx.createGain();
+            gain.gain.setValueAtTime(0.22, now + offset);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + offset + dur);
+
+            src.connect(bp);
+            bp.connect(gain);
+            gain.connect(this.ctx.destination);
+            src.start(now + offset);
+          }
+        } catch (e) {}
+      }
+
+      // 史萊姆 Q 彈揉捏 / 噗啾音效
+      playSlimeSquish(foamRatio = 0) {
+        if (!this.soundEnabled) return;
+        this.unlock();
+        if (!this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          if (now - this.lastSquishTime < 0.08) return;
+          this.lastSquishTime = now;
+
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          const base = 140 + foamRatio * 90 + Math.random() * 45;
+          osc.frequency.setValueAtTime(base, now);
+          osc.frequency.exponentialRampToValueAtTime(base * 1.85, now + 0.06);
+          osc.frequency.exponentialRampToValueAtTime(base * 0.85, now + 0.14);
+
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.linearRampToValueAtTime(0.11, now + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.16);
+        } catch (e) {}
+      }
+
+      // 刮刀抹平絲滑 ASMR 奶油刷聲
+      playSpatulaSmooth() {
+        if (!this.soundEnabled) return;
+        this.unlock();
+        if (!this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          if (now - this.lastSquishTime < 0.11) return;
+          this.lastSquishTime = now;
+
+          const dur = 0.16;
+          const len = Math.floor(this.ctx.sampleRate * dur);
+          const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+          const data = buf.getChannelData(0);
+          for (let i = 0; i < len; i++) {
+            data[i] = (Math.random() * 2 - 1) * Math.sin((i / len) * Math.PI);
+          }
+          const src = this.ctx.createBufferSource();
+          src.buffer = buf;
+
+          const lp = this.ctx.createBiquadFilter();
+          lp.type = 'bandpass';
+          lp.frequency.setValueAtTime(680, now);
+          lp.frequency.linearRampToValueAtTime(980, now + dur);
+          lp.Q.setValueAtTime(1.8, now);
+
+          const gain = this.ctx.createGain();
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+          src.connect(lp);
+          lp.connect(gain);
+          gain.connect(this.ctx.destination);
+          src.start(now);
+        } catch (e) {}
+      }
+
+      // 氣泡破裂：清脆水滴 / 噼啪泡泡音
+      playBubblePop(pitchBoost = 1) {
+        if (!this.soundEnabled) return;
+        this.unlock();
+        if (!this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          const baseFreq = this.pentatonic[Math.floor(Math.random() * this.pentatonic.length)] * pitchBoost;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(baseFreq * 0.72, now);
+          osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.48, now + 0.08);
+
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.linearRampToValueAtTime(0.13, now + 0.012);
+          gain.gain.exponentialRampToValueAtTime(0.0008, now + 0.21);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.23);
+        } catch (e) {}
+      }
+
+      // 星塵 / 水母 / 風鈴空靈水晶泛音
+      playCrystalBell(noteIndex = null, duration = 1.4) {
+        if (!this.soundEnabled) return;
+        this.unlock();
+        if (!this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          const idx = noteIndex !== null
+            ? (noteIndex % this.pentatonic.length)
+            : Math.floor(Math.random() * this.pentatonic.length);
+          const freq = this.pentatonic[idx];
+
+          const osc = this.ctx.createOscillator();
+          const overtone = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const overGain = this.ctx.createGain();
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now);
+
+          overtone.type = 'triangle';
+          overtone.frequency.setValueAtTime(freq * 2, now);
+          overGain.gain.setValueAtTime(0.16, now);
+
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.linearRampToValueAtTime(0.075, now + 0.025);
+          gain.gain.exponentialRampToValueAtTime(0.0005, now + duration);
+
+          osc.connect(gain);
+          overtone.connect(overGain);
+          overGain.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start(now);
+          overtone.start(now);
+          osc.stop(now + duration + 0.05);
+          overtone.stop(now + duration + 0.05);
+        } catch (e) {}
+      }
+
+      playStarChime(speedRatio = 0.5) {
+        if (!this.ctx) this.unlock();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        if (now - this.lastChimeTime < 0.095) return;
+        this.lastChimeTime = now;
+        const idx = Math.min(this.pentatonic.length - 1, Math.floor(Math.random() * 6 + speedRatio * 5));
+        this.playCrystalBell(idx, 1.15);
+      }
+
+      // 海浪撫平沙丘柔浪音效
+      playSoftWave() {
+        if (!this.soundEnabled) return;
+        this.unlock();
+        if (!this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          const dur = 1.4;
+          const len = Math.floor(this.ctx.sampleRate * dur);
+          const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+          const data = buf.getChannelData(0);
+          for (let i = 0; i < len; i++) {
+            const env = Math.sin((i / len) * Math.PI);
+            data[i] = (Math.random() * 2 - 1) * env;
+          }
+          const src = this.ctx.createBufferSource();
+          src.buffer = buf;
+
+          const lp = this.ctx.createBiquadFilter();
+          lp.type = 'lowpass';
+          lp.frequency.setValueAtTime(360, now);
+
+          const gain = this.ctx.createGain();
+          gain.gain.setValueAtTime(0.14, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+          src.connect(lp);
+          lp.connect(gain);
+          gain.connect(this.ctx.destination);
+          src.start(now);
+        } catch (e) {}
+      }
+
+      playBreathBell(freq = 392.0) {
+        if (!this.soundEnabled) return;
+        this.unlock();
+        if (!this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now);
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.linearRampToValueAtTime(0.06, now + 0.25);
+          gain.gain.exponentialRampToValueAtTime(0.0005, now + 2.3);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 2.4);
+        } catch (e) {}
+      }
+    }
+
+    const audio = new ZenAudioEngine();
+
+    /**
+     * ============================================================================
+     * 2. 全螢幕 Canvas 與安全尺寸防護
+     * ============================================================================
+     */
+    const canvas = document.getElementById('zen-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let width = Math.max(300, window.innerWidth || 800);
+    let height = Math.max(300, window.innerHeight || 600);
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    const pointers = new Map();
+
+    // 背景深海星空微光粒子
+    const bgStars = [];
+    function initBgStars() {
+      bgStars.length = 0;
+      for (let i = 0; i < 95; i++) {
+        bgStars.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          r: Math.random() * 1.7 + 0.4,
+          phase: Math.random() * Math.PI * 2,
+          speed: 0.5 + Math.random() * 1.4,
+          driftY: -0.06 - Math.random() * 0.14,
+          hue: Math.random() > 0.3 ? 205 : 220
+        });
+      }
+    }
+
+    function updateAndDrawBgStars(time) {
+      for (let i = 0; i < bgStars.length; i++) {
+        const s = bgStars[i];
+        s.y += s.driftY;
+        if (s.y < -5) {
+          s.y = height + 5;
+          s.x = Math.random() * width;
+        }
+        const alpha = 0.22 + 0.52 * (0.5 + 0.5 * Math.sin(time * s.speed + s.phase));
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${s.hue}, 100%, 84%, ${alpha})`;
+        ctx.fill();
+      }
+    }
+
+    /**
+     * ============================================================================
+     * 3. 模式一：【起泡史萊姆 · 穩固居中 + 冰晶脆皮 + 果凍配料 + 舒壓刮刀】
+     * ============================================================================
+     */
+    const SLIME_POINTS = 56;
+    const slime = {
+      cx: width / 2,
+      cy: height / 2 - 12,
+      baseRadius: Math.min(width, height) * 0.25,
+      vertices: [],
+      foamLevel: 0,        // 0 ~ 100 起泡度
+      textureMode: 'jelly', // 'jelly' (Q彈果凍) | 'cloud' (綿密雲朵)
+      spatulaMode: false,  // 是否啟用「舒壓刮刀抹平」工具
+      glazeTiles: [],      // 冰晶脆皮網格磚塊
+      iceShards: [],       // 敲碎飛濺的冰晶碎片
+      foamBubbles: [],     // 揉捏產生的發光氣泡
+      popRings: [],        // 壓破氣泡的水波環
+      glitters: [],        // 撒入的星光亮片
+      beads: [],           // 撒入的發光糖果珠
+      jellies: [],         // 放上的可愛果凍配料 (草莓果凍/珍珠星/小貝殼)
+      stamps: [],          // 蓋上的療癒印章
+      swirlTrails: [],     // 刮刀抹平留下的絲滑奶油光軌
+      squishScaleY: 1,     // 一鍵壓泡時的短暫垂直壓扁回彈
+      squishVelY: 0,
+      lastPointerPos: null
+    };
+
+    const slimeFoamPctEl = document.getElementById('slime-foam-pct');
+    const slimeGlazePctEl = document.getElementById('slime-glaze-pct');
+
+    function updateSlimeHUD() {
+      slimeFoamPctEl.textContent = `${Math.round(slime.foamLevel)}%`;
+      const intact = slime.glazeTiles.filter(t => !t.broken).length;
+      const total = Math.max(1, slime.glazeTiles.length);
+      slimeGlazePctEl.textContent = `${Math.round((intact / total) * 100)}%`;
+    }
+
+    // 初始化冰晶脆皮覆蓋層 (100% 完整覆蓋史萊姆表面)
+    function applyCrunchyGlaze() {
+      slime.glazeTiles.length = 0;
+      const rings = 4;
+      for (let r = 0; r < rings; r++) {
+        const innerR = (r / rings) * 0.96;
+        const outerR = ((r + 1) / rings) * 0.96;
+        const sectors = r === 0 ? 6 : 10 + r * 4;
+        for (let s = 0; s < sectors; s++) {
+          const a0 = (s / sectors) * Math.PI * 2;
+          const a1 = ((s + 1) / sectors) * Math.PI * 2;
+          const midA = (a0 + a1) * 0.5;
+          const midR = (innerR + outerR) * 0.5;
+          slime.glazeTiles.push({
+            a0, a1, innerR, outerR, midA, midR,
+            broken: false,
+            hue: 196 + Math.random() * 18
+          });
+        }
+      }
+      updateSlimeHUD();
+    }
+
+    function initSlime() {
+      slime.cx = width / 2;
+      slime.cy = height / 2 - 14;
+      slime.baseRadius = Math.max(105, Math.min(width, height) * 0.255);
+      slime.vertices.length = 0;
+      for (let i = 0; i < SLIME_POINTS; i++) {
+        const angle = (i / SLIME_POINTS) * Math.PI * 2;
+        slime.vertices.push({
+          angle,
+          offset: 0, // 僅在互動時產生形變，靜止時嚴格收斂為 0
+          vel: 0
+        });
+      }
+      applyCrunchyGlaze();
+
+      // 預設幾顆微光氣泡與星光亮片
+      if (slime.glitters.length === 0) {
+        sprinkleGlitter(18);
+      }
+    }
+
+    function sprinkleGlitter(count = 22) {
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const distRatio = Math.sqrt(Math.random()) * 0.84;
+        slime.glitters.push({
+          angle,
+          distRatio,
+          size: 1.5 + Math.random() * 2.4,
+          phase: Math.random() * Math.PI * 2,
+          isStar: Math.random() > 0.45
+        });
+      }
+    }
+
+    function sprinkleCandyBeads(count = 14) {
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const distRatio = Math.sqrt(Math.random()) * 0.78;
+        slime.beads.push({
+          angle,
+          distRatio,
+          r: 5.5 + Math.random() * 3.5,
+          hue: [195, 210, 275, 325][Math.floor(Math.random() * 4)],
+          wobble: 0
+        });
+      }
+    }
+
+    // 新增：放上果凍配料 (translucent glowing jellies, pearl stars, tiny shells)
+    function addJellyToppings(count = 6) {
+      const types = ['jellyCube', 'pearlStar', 'seaShell'];
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const distRatio = 0.15 + Math.random() * 0.65;
+        slime.jellies.push({
+          type: types[Math.floor(Math.random() * types.length)],
+          angle,
+          distRatio,
+          rot: Math.random() * Math.PI * 2,
+          scale: 0.9 + Math.random() * 0.35,
+          jiggle: 0,
+          jiggleVel: 0,
+          hue: [198, 212, 330, 185][Math.floor(Math.random() * 4)]
+        });
+      }
+    }
+
+    // 蓋上療癒印章
+    function addCuteStamp() {
+      const icons = ['💖', '😊', '🐱', '⭐', '🌸'];
+      const angle = Math.random() * Math.PI * 2;
+      const distRatio = Math.random() * 0.58;
+      slime.stamps.push({
+        icon: icons[Math.floor(Math.random() * icons.length)],
+        angle,
+        distRatio,
+        alpha: 0.95,
+        scale: 1.15
+      });
+    }
+
+    // 計算史萊姆當前穩定半徑 (隨起泡度膨脹，但不做無故漂移)
+    function getSlimeCurrentRadius() {
+      return slime.baseRadius * (1 + (slime.foamLevel / 100) * 0.24);
+    }
+
+    // 檢查並敲碎指定座標附近的冰晶脆皮
+    function crackGlazeAt(px, py, radiusPx = 46) {
+      const curR = getSlimeCurrentRadius();
+      let crackedAny = false;
+
+      for (let i = 0; i < slime.glazeTiles.length; i++) {
+        const t = slime.glazeTiles[i];
+        if (t.broken) continue;
+        const tx = slime.cx + Math.cos(t.midA) * (t.midR * curR);
+        const ty = slime.cy + Math.sin(t.midA) * (t.midR * curR) * slime.squishScaleY;
+        if (Math.hypot(px - tx, py - ty) <= radiusPx) {
+          t.broken = true;
+          crackedAny = true;
+
+          // 噴出 3 片發光冰晶碎片
+          for (let s = 0; s < 3; s++) {
+            const ang = t.midA + (Math.random() - 0.5) * 0.9;
+            const spd = 2.8 + Math.random() * 4.8;
+            slime.iceShards.push({
+              x: tx,
+              y: ty,
+              vx: Math.cos(ang) * spd,
+              vy: Math.sin(ang) * spd - 1.5,
+              rot: Math.random() * Math.PI * 2,
+              vRot: (Math.random() - 0.5) * 0.25,
+              size: 5 + Math.random() * 6,
+              life: 1.0,
+              hue: t.hue
+            });
+          }
+        }
+      }
+
+      if (crackedAny) {
+        audio.playGlazeCrack();
+        updateSlimeHUD();
+      }
+      return crackedAny;
+    }
+
+    // 產生起泡微氣泡
+    function spawnFoamBubble(px, py) {
+      if (slime.foamBubbles.length > 65) return;
+      const curR = getSlimeCurrentRadius();
+      const dx = px - slime.cx;
+      const dy = py - slime.cy;
+      const dist = Math.hypot(dx, dy);
+      if (dist < curR * 0.88) {
+        slime.foamBubbles.push({
+          angle: Math.atan2(dy, dx),
+          distRatio: Math.min(0.84, dist / curR),
+          r: 4 + Math.random() * 7.5,
+          popped: false
+        });
+      }
+    }
+
+    // 一鍵壓泡爆破所有起泡
+    function popAllSlimeFoam() {
+      if (slime.foamLevel <= 0 && slime.foamBubbles.length === 0) return;
+      slime.squishScaleY = 0.76;
+      slime.squishVelY = 0;
+
+      const count = Math.max(8, slime.foamBubbles.length);
+      for (let i = 0; i < Math.min(14, count); i++) {
+        setTimeout(() => {
+          audio.playBubblePop(1.05 + Math.random() * 0.25);
+        }, i * 28);
+      }
+
+      const curR = getSlimeCurrentRadius();
+      slime.foamBubbles.forEach(b => {
+        const bx = slime.cx + Math.cos(b.angle) * (b.distRatio * curR);
+        const by = slime.cy + Math.sin(b.angle) * (b.distRatio * curR);
+        slime.popRings.push({ x: bx, y: by, r: b.r, alpha: 0.9 });
+      });
+
+      slime.foamBubbles.length = 0;
+      slime.foamLevel = 0;
+      updateSlimeHUD();
+    }
+
+    // 使用者觸碰/拖曳史萊姆互動
+    function interactWithSlime(px, py, isMove = false, prevPos = null) {
+      const curR = getSlimeCurrentRadius();
+      const dx = px - slime.cx;
+      const dy = py - slime.cy;
+      const dist = Math.hypot(dx, dy);
+
+      if (dist > curR * 1.32) return;
+
+      // 1. 優先檢查是否敲碎冰晶脆皮
+      const cracked = crackGlazeAt(px, py, isMove ? 42 : 52);
+
+      // 2. 檢查是否點破單顆起泡
+      if (!isMove) {
+        for (let i = slime.foamBubbles.length - 1; i >= 0; i--) {
+          const b = slime.foamBubbles[i];
+          const bx = slime.cx + Math.cos(b.angle) * (b.distRatio * curR);
+          const by = slime.cy + Math.sin(b.angle) * (b.distRatio * curR) * slime.squishScaleY;
+          if (Math.hypot(px - bx, py - by) <= b.r + 12) {
+            slime.popRings.push({ x: bx, y: by, r: b.r, alpha: 0.95 });
+            slime.foamBubbles.splice(i, 1);
+            slime.foamLevel = Math.max(0, slime.foamLevel - 2.5);
+            audio.playBubblePop(1.15);
+            updateSlimeHUD();
+            break;
+          }
+        }
+      }
+
+      // 3. 若開啟「舒壓刮刀抹平」工具
+      if (slime.spatulaMode && dist <= curR * 1.05) {
+        audio.playSpatulaSmooth();
+        if (prevPos) {
+          slime.swirlTrails.push({
+            x1: prevPos.x,
+            y1: prevPos.y,
+            x2: px,
+            y2: py,
+            alpha: 0.85
+          });
+        }
+        // 刮刀撫平局部突起的彈簧頂點，並稍微撫平過度膨脹
+        const touchAngle = Math.atan2(dy, dx);
+        for (let i = 0; i < SLIME_POINTS; i++) {
+          const v = slime.vertices[i];
+          let diff = Math.atan2(Math.sin(v.angle - touchAngle), Math.cos(v.angle - touchAngle));
+          if (Math.abs(diff) < 0.55) {
+            v.offset *= 0.65;
+            v.vel *= 0.5;
+          }
+        }
+        return;
+      }
+
+      // 4. 軟體彈簧形變（僅在指尖處產生局部凹陷或拉扯，不會整顆亂跑）
+      const touchAngle = Math.atan2(dy, dx);
+      const isPullingOutward = isMove && dist > curR * 0.78;
+      const forceSign = isPullingOutward ? 1 : -1;
+      const strength = slime.textureMode === 'jelly' ? 14 : 18;
+
+      for (let i = 0; i < SLIME_POINTS; i++) {
+        const v = slime.vertices[i];
+        const diff = Math.atan2(Math.sin(v.angle - touchAngle), Math.cos(v.angle - touchAngle));
+        const influence = Math.exp(-(diff * diff) / 0.16);
+        if (influence > 0.04) {
+          v.vel += forceSign * strength * influence * (isMove ? 0.42 : 1.0);
+        }
+      }
+
+      // 晃動附近的果凍配料
+      slime.jellies.forEach(j => {
+        const jx = slime.cx + Math.cos(j.angle) * (j.distRatio * curR);
+        const jy = slime.cy + Math.sin(j.angle) * (j.distRatio * curR);
+        if (Math.hypot(px - jx, py - jy) < 55) {
+          j.jiggleVel += (Math.random() - 0.5) * 0.45;
+        }
+      });
+
+      // 5. 揉捏起泡累積（脆皮破掉越多，越容易把空氣揉進去起泡）
+      const intactRatio = slime.glazeTiles.filter(t => !t.broken).length / Math.max(1, slime.glazeTiles.length);
+      if (intactRatio < 0.85) {
+        const gain = isMove ? 0.65 : 1.8;
+        slime.foamLevel = Math.min(100, slime.foamLevel + gain);
+        if (Math.random() < (isMove ? 0.25 : 0.65)) {
+          spawnFoamBubble(px, py);
+        }
+        // 印章隨揉捏慢慢融入泥體
+        slime.stamps.forEach(st => { st.alpha = Math.max(0, st.alpha - 0.008); });
+        slime.stamps = slime.stamps.filter(st => st.alpha > 0.05);
+        updateSlimeHUD();
+      }
+
+      if (!cracked) {
+        audio.playSlimeSquish(slime.foamLevel / 100);
+      }
+    }
+
+    function updateAndDrawSlime(time, dt) {
+      // 嚴格保持中心錨點不漂移
+      slime.cx = width / 2;
+      slime.cy = height / 2 - 14;
+
+      // 高阻尼彈簧物理：互動後快速、Q彈地恢復完全靜止，絕不自己亂動！
+      const stiffness = slime.textureMode === 'jelly' ? 165 : 115;
+      const damping = slime.textureMode === 'jelly' ? 14 : 16; // 高阻尼消除餘震亂動
+      const neighborPull = 28;
+
+      for (let i = 0; i < SLIME_POINTS; i++) {
+        const v = slime.vertices[i];
+        const prev = slime.vertices[(i - 1 + SLIME_POINTS) % SLIME_POINTS];
+        const next = slime.vertices[(i + 1) % SLIME_POINTS];
+
+        const springForce = -stiffness * v.offset;
+        const smoothForce = neighborPull * ((prev.offset - v.offset) + (next.offset - v.offset));
+        const dampingForce = -damping * v.vel;
+
+        v.vel += (springForce + smoothForce + dampingForce) * dt;
+        v.offset += v.vel * dt;
+
+        // 限制最大形變幅度並對極小微震直接歸零，保證完全靜止
+        v.offset = Math.max(-42, Math.min(48, v.offset));
+        if (Math.abs(v.offset) < 0.04 && Math.abs(v.vel) < 0.04) {
+          v.offset = 0;
+          v.vel = 0;
+        }
+      }
+
+      // 一鍵壓泡時的垂直回彈動畫
+      const sqForce = -180 * (slime.squishScaleY - 1) - 15 * slime.squishVelY;
+      slime.squishVelY += sqForce * dt;
+      slime.squishScaleY += slime.squishVelY * dt;
+      if (Math.abs(slime.squishScaleY - 1) < 0.002 && Math.abs(slime.squishVelY) < 0.002) {
+        slime.squishScaleY = 1;
+        slime.squishVelY = 0;
+      }
+
+      const curR = getSlimeCurrentRadius();
+      const foamRatio = slime.foamLevel / 100;
+
+      // 計算史萊姆平滑外輪廓座標
+      const pts = [];
+      for (let i = 0; i < SLIME_POINTS; i++) {
+        const v = slime.vertices[i];
+        const r = Math.max(40, curR + v.offset);
+        pts.push({
+          x: slime.cx + Math.cos(v.angle) * r,
+          y: slime.cy + Math.sin(v.angle) * r * slime.squishScaleY
+        });
+      }
+
+      function traceSlimePath() {
+        ctx.beginPath();
+        for (let i = 0; i < SLIME_POINTS; i++) {
+          const p0 = pts[i];
+          const p1 = pts[(i + 1) % SLIME_POINTS];
+          const midX = (p0.x + p1.x) * 0.5;
+          const midY = (p0.y + p1.y) * 0.5;
+          if (i === 0) {
+            const prev = pts[SLIME_POINTS - 1];
+            ctx.moveTo((prev.x + p0.x) * 0.5, (prev.y + p0.y) * 0.5);
+          }
+          ctx.quadraticCurveTo(p0.x, p0.y, midX, midY);
+        }
+        ctx.closePath();
+      }
+
+      ctx.save();
+
+      // 1. 史萊姆底部深藍發光底座光暈
+      const outerGlow = ctx.createRadialGradient(slime.cx, slime.cy, curR * 0.4, slime.cx, slime.cy, curR * 1.45);
+      outerGlow.addColorStop(0, 'rgba(0, 120, 255, 0.25)');
+      outerGlow.addColorStop(1, 'rgba(0, 40, 150, 0)');
+      ctx.fillStyle = outerGlow;
+      ctx.beginPath();
+      ctx.arc(slime.cx, slime.cy, curR * 1.45, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 2. 繪製史萊姆本體 (隨起泡度由透明電光深藍轉變為綿密冰藍珍珠慕斯色)
+      traceSlimePath();
+      const bodyGrad = ctx.createRadialGradient(
+        slime.cx - curR * 0.28, slime.cy - curR * 0.28, curR * 0.1,
+        slime.cx, slime.cy, curR * 1.08
+      );
+      if (slime.textureMode === 'cloud') {
+        bodyGrad.addColorStop(0, `rgba(224, 242, 254, ${0.72 + foamRatio * 0.2})`);
+        bodyGrad.addColorStop(0.55, `rgba(56, 189, 248, ${0.58 + foamRatio * 0.25})`);
+        bodyGrad.addColorStop(1, 'rgba(3, 105, 161, 0.85)');
+      } else {
+        // Q彈果凍 -> 起泡後變冰藍奶霜
+        const rTop = Math.round(125 + foamRatio * 115);
+        const gTop = Math.round(211 + foamRatio * 38);
+        bodyGrad.addColorStop(0, `rgba(${rTop}, ${gTop}, 255, ${0.52 + foamRatio * 0.38})`);
+        bodyGrad.addColorStop(0.55, `rgba(${Math.round(14 + foamRatio * 140)}, ${Math.round(116 + foamRatio * 105)}, 245, ${0.46 + foamRatio * 0.36})`);
+        bodyGrad.addColorStop(1, 'rgba(0, 48, 145, 0.82)');
+      }
+      ctx.fillStyle = bodyGrad;
+      ctx.fill();
+
+      ctx.strokeStyle = `rgba(186, 230, 253, ${0.65 + foamRatio * 0.3})`;
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      // 裁切至史萊姆內部繪製所有內嵌配料與脆皮
+      ctx.save();
+      traceSlimePath();
+      ctx.clip();
+
+      // 3. 繪製內部星光亮片
+      for (let i = 0; i < slime.glitters.length; i++) {
+        const g = slime.glitters[i];
+        const gx = slime.cx + Math.cos(g.angle) * (g.distRatio * curR);
+        const gy = slime.cy + Math.sin(g.angle) * (g.distRatio * curR) * slime.squishScaleY;
+        const alpha = 0.45 + 0.55 * Math.sin(time * 3 + g.phase);
+        ctx.fillStyle = `rgba(224, 242, 254, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(gx, gy, g.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // 4. 繪製發光糖果珠
+      for (let i = 0; i < slime.beads.length; i++) {
+        const b = slime.beads[i];
+        const bx = slime.cx + Math.cos(b.angle) * (b.distRatio * curR);
+        const by = slime.cy + Math.sin(b.angle) * (b.distRatio * curR) * slime.squishScaleY;
+        const bGrad = ctx.createRadialGradient(bx - b.r * 0.3, by - b.r * 0.3, 1, bx, by, b.r);
+        bGrad.addColorStop(0, '#ffffff');
+        bGrad.addColorStop(0.5, `hsla(${b.hue}, 95%, 70%, 0.85)`);
+        bGrad.addColorStop(1, `hsla(${b.hue}, 90%, 45%, 0.9)`);
+        ctx.beginPath();
+        ctx.arc(bx, by, b.r, 0, Math.PI * 2);
+        ctx.fillStyle = bGrad;
+        ctx.fill();
+      }
+
+      // 5. 繪製起泡發光微氣泡
+      for (let i = 0; i < slime.foamBubbles.length; i++) {
+        const fb = slime.foamBubbles[i];
+        const bx = slime.cx + Math.cos(fb.angle) * (fb.distRatio * curR);
+        const by = slime.cy + Math.sin(fb.angle) * (fb.distRatio * curR) * slime.squishScaleY;
+        ctx.beginPath();
+        ctx.arc(bx, by, fb.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(224, 242, 254, 0.35)';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.78)';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(bx - fb.r * 0.32, by - fb.r * 0.32, fb.r * 0.25, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.fill();
+      }
+
+      // 6. 繪製刮刀抹平留下的絲滑奶油光軌
+      for (let i = slime.swirlTrails.length - 1; i >= 0; i--) {
+        const tr = slime.swirlTrails[i];
+        tr.alpha -= dt * 0.45;
+        if (tr.alpha <= 0) {
+          slime.swirlTrails.splice(i, 1);
+          continue;
+        }
+        ctx.beginPath();
+        ctx.moveTo(tr.x1, tr.y1);
+        ctx.lineTo(tr.x2, tr.y2);
+        ctx.strokeStyle = `rgba(224, 242, 254, ${tr.alpha * 0.65})`;
+        ctx.lineWidth = 16;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+      }
+
+      // 7. 繪製可愛果凍配料 (果凍方塊 / 珍珠星 / 小貝殼)
+      for (let i = 0; i < slime.jellies.length; i++) {
+        const j = slime.jellies[i];
+        j.jiggleVel += (-90 * j.jiggle - 9 * j.jiggleVel) * dt;
+        j.jiggle += j.jiggleVel * dt;
+
+        const jx = slime.cx + Math.cos(j.angle) * (j.distRatio * curR);
+        const jy = slime.cy + Math.sin(j.angle) * (j.distRatio * curR) * slime.squishScaleY;
+
+        ctx.save();
+        ctx.translate(jx, jy);
+        ctx.rotate(j.rot + j.jiggle);
+        ctx.scale(j.scale * (1 + j.jiggle * 0.25), j.scale * (1 - j.jiggle * 0.25));
+
+        if (j.type === 'jellyCube') {
+          ctx.fillStyle = `hsla(${j.hue}, 95%, 72%, 0.72)`;
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+          ctx.lineWidth = 1.4;
+          ctx.beginPath();
+          ctx.roundRect(-10, -10, 20, 20, 6);
+          ctx.fill();
+          ctx.stroke();
+        } else if (j.type === 'pearlStar') {
+          ctx.fillStyle = 'rgba(224, 242, 254, 0.88)';
+          ctx.beginPath();
+          for (let p = 0; p < 5; p++) {
+            const aOuter = (p * 2 * Math.PI) / 5 - Math.PI / 2;
+            const aInner = aOuter + Math.PI / 5;
+            ctx.lineTo(Math.cos(aOuter) * 11, Math.sin(aOuter) * 11);
+            ctx.lineTo(Math.cos(aInner) * 5, Math.sin(aInner) * 5);
+          }
+          ctx.closePath();
+          ctx.fill();
+        } else {
+          // 貝殼
+          ctx.fillStyle = `hsla(${j.hue}, 90%, 80%, 0.82)`;
+          ctx.beginPath();
+          ctx.arc(0, 2, 10, Math.PI, 0);
+          ctx.lineTo(0, 10);
+          ctx.closePath();
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      // 8. 繪製療癒印章
+      ctx.font = '24px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      for (let i = 0; i < slime.stamps.length; i++) {
+        const st = slime.stamps[i];
+        const sx = slime.cx + Math.cos(st.angle) * (st.distRatio * curR);
+        const sy = slime.cy + Math.sin(st.angle) * (st.distRatio * curR) * slime.squishScaleY;
+        ctx.globalAlpha = st.alpha;
+        ctx.fillText(st.icon, sx, sy);
+      }
+      ctx.globalAlpha = 1;
+
+      // 9. 繪製「❄️ 深藍寶石冰晶脆皮」覆蓋磚塊
+      for (let i = 0; i < slime.glazeTiles.length; i++) {
+        const t = slime.glazeTiles[i];
+        if (t.broken) continue;
+        const rIn = t.innerR * curR;
+        const rOut = t.outerR * curR;
+        ctx.beginPath();
+        ctx.arc(slime.cx, slime.cy, rOut, t.a0, t.a1);
+        ctx.arc(slime.cx, slime.cy, rIn, t.a1, t.a0, true);
+        ctx.closePath();
+
+        ctx.fillStyle = `hsla(${t.hue}, 100%, 72%, 0.32)`;
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(224, 242, 254, 0.72)';
+        ctx.lineWidth = 1.4;
+        ctx.stroke();
+      }
+
+      // 左上角水潤高光反光弧線
+      ctx.beginPath();
+      ctx.ellipse(
+        slime.cx - curR * 0.36,
+        slime.cy - curR * 0.36 * slime.squishScaleY,
+        curR * 0.24,
+        curR * 0.1,
+        -Math.PI / 4,
+        0,
+        Math.PI * 2
+      );
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+      ctx.fill();
+
+      ctx.restore(); // 結束內部裁切
+
+      // 10. 繪製可愛靜態療癒臉蛋 (不亂飄，僅溫柔眨眼)
+      const isBlinking = Math.sin(time * 0.9) > 0.985;
+      const eyeOffsetX = curR * 0.22;
+      const eyeY = slime.cy - curR * 0.04 * slime.squishScaleY;
+
+      ctx.strokeStyle = '#ffffff';
+      ctx.fillStyle = '#ffffff';
+      ctx.lineWidth = 2.6;
+      ctx.lineCap = 'round';
+
+      [-1, 1].forEach(side => {
+        const ex = slime.cx + side * eyeOffsetX;
+        if (isBlinking || pointers.size > 0) {
+          // 開心彎月笑眼 ^ ^
+          ctx.beginPath();
+          ctx.arc(ex, eyeY + 2, 7, Math.PI * 1.15, Math.PI * 1.85);
+          ctx.stroke();
+        } else {
+          ctx.beginPath();
+          ctx.arc(ex, eyeY, 5.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+
+      // 可愛小微笑與淡藍腮紅
+      ctx.beginPath();
+      ctx.arc(slime.cx, eyeY + 10, 7, 0.15 * Math.PI, 0.85 * Math.PI);
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(125, 211, 252, 0.35)';
+      ctx.beginPath();
+      ctx.ellipse(slime.cx - eyeOffsetX * 1.35, eyeY + 9, 8, 4.5, 0, 0, Math.PI * 2);
+      ctx.ellipse(slime.cx + eyeOffsetX * 1.35, eyeY + 9, 8, 4.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 11. 繪製飛濺的冰晶脆皮碎片與壓泡水波環
+      for (let i = slime.iceShards.length - 1; i >= 0; i--) {
+        const sh = slime.iceShards[i];
+        sh.x += sh.vx;
+        sh.y += sh.vy;
+        sh.vy += 0.22;
+        sh.rot += sh.vRot;
+        sh.life -= dt * 1.5;
+        if (sh.life <= 0) {
+          slime.iceShards.splice(i, 1);
+          continue;
+        }
+        ctx.save();
+        ctx.translate(sh.x, sh.y);
+        ctx.rotate(sh.rot);
+        ctx.fillStyle = `hsla(${sh.hue}, 100%, 82%, ${sh.life})`;
+        ctx.beginPath();
+        ctx.moveTo(0, -sh.size);
+        ctx.lineTo(sh.size * 0.7, 0);
+        ctx.lineTo(0, sh.size);
+        ctx.lineTo(-sh.size * 0.7, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+
+      for (let i = slime.popRings.length - 1; i >= 0; i--) {
+        const pr = slime.popRings[i];
+        pr.r += 2.2;
+        pr.alpha -= dt * 2.2;
+        if (pr.alpha <= 0) {
+          slime.popRings.splice(i, 1);
+          continue;
+        }
+        ctx.beginPath();
+        ctx.arc(pr.x, pr.y, pr.r, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(186, 230, 253, ${pr.alpha})`;
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
+    /**
+     * ============================================================================
+     * 4. 模式二：【星塵流體引力 (保留不變)】
+     * ============================================================================
+     */
+    const stardust = [];
+    const ripples = [];
+    const shootingStars = [];
+    const palette = [
+      { h: 215, s: 100, l: 62 },
+      { h: 198, s: 100, l: 68 },
+      { h: 188, s: 95,  l: 78 },
+      { h: 210, s: 40,  l: 95 }
+    ];
+
+    function initStardust() {
+      stardust.length = 0;
+      for (let i = 0; i < 240; i++) {
+        const col = palette[i % palette.length];
+        stardust.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: (Math.random() - 0.5) * 0.7,
+          vy: (Math.random() - 0.5) * 0.7,
+          size: Math.random() * 2.3 + 1.1,
+          color: col,
+          orbitAngle: Math.random() * Math.PI * 2,
+          orbitRadius: 25 + Math.random() * 105,
+          history: []
+        });
+      }
+    }
+
+    function scatterStardust(originX, originY) {
+      ripples.push({ x: originX, y: originY, r: 6, alpha: 0.8, double: true });
+      for (let i = 0; i < stardust.length; i++) {
+        const p = stardust[i];
+        const dx = p.x - originX;
+        const dy = p.y - originY;
+        const dist = Math.hypot(dx, dy) || 1;
+        if (dist < 310) {
+          const force = (1 - dist / 310) * (4.5 + Math.random() * 5.0);
+          const angle = Math.atan2(dy, dx) + (Math.random() - 0.5) * 0.4;
+          p.vx += Math.cos(angle) * force;
+          p.vy += Math.sin(angle) * force;
+        }
+      }
+      audio.playStarChime(0.95);
+    }
+
+    function updateAndDrawNebula(time, dt) {
+      const activePts = Array.from(pointers.values());
+      const isInteracting = activePts.length > 0;
+
+      // 靜謐流星
+      if (Math.random() < 0.012 && shootingStars.length < 3) {
+        shootingStars.push({
+          x: Math.random() * width * 0.85,
+          y: Math.random() * height * 0.35,
+          vx: 5.5 + Math.random() * 3.5,
+          vy: 2.5 + Math.random() * 2.0,
+          life: 1.0
+        });
+      }
+      for (let i = shootingStars.length - 1; i >= 0; i--) {
+        const ss = shootingStars[i];
+        ss.x += ss.vx;
+        ss.y += ss.vy;
+        ss.life -= dt * 0.9;
+        if (ss.life <= 0) {
+          shootingStars.splice(i, 1);
+          continue;
+        }
+        const grad = ctx.createLinearGradient(ss.x, ss.y, ss.x - ss.vx * 14, ss.y - ss.vy * 14);
+        grad.addColorStop(0, `rgba(224, 242, 254, ${ss.life})`);
+        grad.addColorStop(1, 'rgba(56, 189, 248, 0)');
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(ss.x, ss.y);
+        ctx.lineTo(ss.x - ss.vx * 14, ss.y - ss.vy * 14);
+        ctx.stroke();
+      }
+
+      // 雙層同心水波紋
+      for (let i = ripples.length - 1; i >= 0; i--) {
+        const rp = ripples[i];
+        rp.r += 3.8;
+        rp.alpha *= 0.95;
+        ctx.beginPath();
+        ctx.arc(rp.x, rp.y, rp.r, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(56, 189, 248, ${rp.alpha})`;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        if (rp.double && rp.r > 18) {
+          ctx.beginPath();
+          ctx.arc(rp.x, rp.y, rp.r * 0.65, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(186, 230, 253, ${rp.alpha * 0.6})`;
+          ctx.stroke();
+        }
+        if (rp.alpha < 0.02) ripples.splice(i, 1);
+      }
+
+      if (isInteracting) {
+        activePts.forEach(pt => {
+          const grad = ctx.createRadialGradient(pt.x, pt.y, 2, pt.x, pt.y, 105);
+          grad.addColorStop(0, 'rgba(125, 211, 252, 0.34)');
+          grad.addColorStop(0.5, 'rgba(0, 102, 255, 0.14)');
+          grad.addColorStop(1, 'rgba(0, 30, 100, 0)');
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, 105, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+
+      for (let i = 0; i < stardust.length; i++) {
+        const p = stardust[i];
+        if (isInteracting) {
+          let target = activePts[0];
+          p.orbitAngle += 0.032;
+          const swirlX = target.x + Math.cos(p.orbitAngle) * p.orbitRadius * 0.55;
+          const swirlY = target.y + Math.sin(p.orbitAngle) * p.orbitRadius * 0.55;
+          const dx = swirlX - p.x;
+          const dy = swirlY - p.y;
+          const dist = Math.hypot(dx, dy) || 1;
+          const pull = Math.min(1.4, 180 / (dist + 40)) * 0.28;
+          p.vx += (dx / dist) * pull - (dy / dist) * 0.14;
+          p.vy += (dy / dist) * pull + (dx / dist) * 0.14;
+          p.vx *= 0.91;
+          p.vy *= 0.91;
+        } else {
+          p.orbitAngle += 0.01;
+          p.vx += Math.cos(time * 0.6 + i) * 0.014;
+          p.vy += Math.sin(time * 0.5 + i) * 0.014 - 0.007;
+          p.vx *= 0.975;
+          p.vy *= 0.975;
+        }
+
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < -30) { p.x = width + 30; p.history.length = 0; }
+        if (p.x > width + 30) { p.x = -30; p.history.length = 0; }
+        if (p.y < -30) { p.y = height + 30; p.history.length = 0; }
+        if (p.y > height + 30) { p.y = -30; p.history.length = 0; }
+
+        p.history.push({ x: p.x, y: p.y });
+        const maxTrail = isInteracting ? 12 : 7;
+        if (p.history.length > maxTrail) p.history.shift();
+
+        if (p.history.length > 1) {
+          ctx.beginPath();
+          ctx.moveTo(p.history[0].x, p.history[0].y);
+          for (let j = 1; j < p.history.length; j++) {
+            ctx.lineTo(p.history[j].x, p.history[j].y);
+          }
+          ctx.strokeStyle = `hsla(${p.color.h}, ${p.color.s}%, ${p.color.l}%, 0.28)`;
+          ctx.lineWidth = p.size * 0.85;
+          ctx.lineCap = 'round';
+          ctx.stroke();
+        }
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${p.color.h}, ${p.color.s}%, ${p.color.l}%, 0.9)`;
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    /**
+     * ============================================================================
+     * 5. 模式三：【發光水母 (保留不變)】
+     * ============================================================================
+     */
+    const jellies = [];
+    const jellyBubbles = [];
+
+    function createJellyfish(x, y) {
+      return {
+        x: x ?? (width * 0.2 + Math.random() * width * 0.6),
+        y: y ?? (height * 0.25 + Math.random() * height * 0.5),
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: -0.25 - Math.random() * 0.35,
+        radius: 26 + Math.random() * 16,
+        phase: Math.random() * Math.PI * 2,
+        hue: 195 + Math.random() * 24,
+        glowBoost: 0
+      };
+    }
+
+    function initJellyfish() {
+      jellies.length = 0;
+      for (let i = 0; i < 7; i++) {
+        jellies.push(createJellyfish());
+      }
+    }
+
+    function spawnJellyBubbles(x, y, count = 6, withHearts = false) {
+      for (let i = 0; i < count; i++) {
+        jellyBubbles.push({
+          x: x + (Math.random() - 0.5) * 36,
+          y: y + (Math.random() - 0.5) * 20,
+          vy: -1.1 - Math.random() * 1.4,
+          r: 3 + Math.random() * 4.5,
+          phase: Math.random() * Math.PI * 2,
+          isHeart: withHearts && i % 2 === 0,
+          life: 1.0
+        });
+      }
+    }
+
+    function checkJellyfishTap(px, py) {
+      for (let i = 0; i < jellies.length; i++) {
+        const jf = jellies[i];
+        if (Math.hypot(px - jf.x, py - jf.y) <= jf.radius * 1.45) {
+          jf.glowBoost = 1.0;
+          jf.vy -= 1.4;
+          spawnJellyBubbles(jf.x, jf.y, 7, true);
+          audio.playCrystalBell(i * 2, 1.6);
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function updateAndDrawJellyfish(time, dt) {
+      const activePts = Array.from(pointers.values());
+
+      for (let i = 0; i < jellies.length; i++) {
+        const jf = jellies[i];
+        jf.phase += dt * 2.6;
+        jf.glowBoost = Math.max(0, jf.glowBoost - dt * 1.1);
+
+        if (activePts.length > 0) {
+          const target = activePts[0];
+          const dx = target.x - jf.x;
+          const dy = target.y - jf.y;
+          const dist = Math.hypot(dx, dy) || 1;
+          jf.vx += (dx / dist) * 0.025;
+          jf.vy += (dy / dist) * 0.025;
+        } else {
+          const pulse = Math.sin(jf.phase);
+          if (pulse > 0.75) {
+            jf.vy -= 0.018;
+          }
+          jf.vx += Math.cos(time * 0.4 + i) * 0.008;
+          jf.vy += -0.004;
+        }
+
+        jf.vx *= 0.97;
+        jf.vy *= 0.97;
+        jf.x += jf.vx;
+        jf.y += jf.vy;
+
+        if (jf.x < 40) jf.vx += 0.05;
+        if (jf.x > width - 40) jf.vx -= 0.05;
+        if (jf.y < 70) jf.y = height - 80;
+        if (jf.y > height - 60) jf.vy -= 0.06;
+
+        const squeeze = 1 + Math.sin(jf.phase) * 0.12;
+        const rx = jf.radius * squeeze;
+        const ry = jf.radius * 0.78 / squeeze;
+
+        ctx.save();
+        ctx.translate(jf.x, jf.y);
+
+        // 觸鬚
+        for (let t = -2; t <= 2; t++) {
+          ctx.beginPath();
+          const startX = t * (rx * 0.32);
+          ctx.moveTo(startX, 0);
+          for (let seg = 1; seg <= 5; seg++) {
+            const sy = seg * (jf.radius * 0.38);
+            const sx = startX + Math.sin(jf.phase - seg * 0.65 + t) * 7;
+            ctx.lineTo(sx, sy);
+          }
+          ctx.strokeStyle = `hsla(${jf.hue}, 100%, 75%, ${0.42 + jf.glowBoost * 0.4})`;
+          ctx.lineWidth = 1.6;
+          ctx.stroke();
+        }
+
+        // 水母傘蓋
+        const bellGrad = ctx.createRadialGradient(0, -ry * 0.3, 2, 0, 0, rx * 1.15);
+        bellGrad.addColorStop(0, `hsla(${jf.hue}, 100%, 88%, ${0.7 + jf.glowBoost * 0.25})`);
+        bellGrad.addColorStop(0.6, `hsla(${jf.hue}, 100%, 58%, 0.42)`);
+        bellGrad.addColorStop(1, `hsla(${jf.hue + 15}, 100%, 45%, 0.15)`);
+
+        ctx.beginPath();
+        ctx.ellipse(0, 0, rx, ry, 0, Math.PI, 0);
+        ctx.quadraticCurveTo(rx * 0.5, ry * 0.28, 0, ry * 0.12);
+        ctx.quadraticCurveTo(-rx * 0.5, ry * 0.28, -rx, 0);
+        ctx.fillStyle = bellGrad;
+        ctx.fill();
+        ctx.strokeStyle = `hsla(${jf.hue}, 100%, 82%, 0.75)`;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      // 上升微光與愛心氣泡
+      for (let i = jellyBubbles.length - 1; i >= 0; i--) {
+        const b = jellyBubbles[i];
+        b.y += b.vy;
+        b.x += Math.sin(time * 3 + b.phase) * 0.6;
+        b.life -= dt * 0.38;
+        if (b.life <= 0 || b.y < 30) {
+          jellyBubbles.splice(i, 1);
+          continue;
+        }
+        ctx.save();
+        ctx.globalAlpha = b.life;
+        if (b.isHeart) {
+          ctx.fillStyle = '#7dd3fc';
+          ctx.font = `${Math.round(b.r * 2.6)}px sans-serif`;
+          ctx.fillText('💙', b.x, b.y);
+        } else {
+          ctx.beginPath();
+          ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(186, 230, 253, 0.85)';
+          ctx.lineWidth = 1.3;
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+    }
+
+    /**
+     * ============================================================================
+     * 6. 模式四：【🎐 深海風鈴 (全新療癒模式)】
+     * ============================================================================
+     */
+    const windChimes = [];
+    const chimeRings = [];
+    const waterLanterns = [];
+
+    function initWindChimes() {
+      windChimes.length = 0;
+      const count = width < 640 ? 5 : 7;
+      const spacing = width / (count + 1);
+      for (let i = 0; i < count; i++) {
+        const cordLen = 95 + (i % 3) * 32 + Math.sin(i * 1.2) * 20;
+        windChimes.push({
+          anchorX: spacing * (i + 1),
+          anchorY: 56,
+          cordLen,
+          angle: 0,
+          angVel: 0,
+          noteIndex: i * 2,
+          hue: 196 + i * 4,
+          glow: 0
+        });
+      }
+    }
+
+    function spawnWaterLantern() {
+      waterLanterns.push({
+        x: width * 0.15 + Math.random() * width * 0.7,
+        y: height - 95,
+        vy: -0.45 - Math.random() * 0.35,
+        phase: Math.random() * Math.PI * 2,
+        size: 16 + Math.random() * 8,
+        life: 1.0
+      });
+    }
+
+    function ringWindChime(chime, impulse = 0.24) {
+      chime.angVel += impulse;
+      chime.glow = 1.0;
+      const bobX = chime.anchorX + Math.sin(chime.angle) * chime.cordLen;
+      const bobY = chime.anchorY + Math.cos(chime.angle) * chime.cordLen;
+      chimeRings.push({ x: bobX, y: bobY, r: 14, alpha: 0.9, hue: chime.hue });
+      audio.playCrystalBell(chime.noteIndex, 1.9);
+    }
+
+    function triggerChimeBreeze() {
+      windChimes.forEach((c, idx) => {
+        setTimeout(() => {
+          ringWindChime(c, 0.22 + Math.random() * 0.12);
+        }, idx * 140);
+      });
+    }
+
+    function checkChimeInteraction(px, py, vx = 0) {
+      for (let i = 0; i < windChimes.length; i++) {
+        const c = windChimes[i];
+        const bobX = c.anchorX + Math.sin(c.angle) * c.cordLen;
+        const bobY = c.anchorY + Math.cos(c.angle) * c.cordLen;
+        if (Math.hypot(px - bobX, py - bobY) < 48) {
+          const impulse = vx !== 0 ? Math.max(-0.35, Math.min(0.35, vx * 0.015)) : 0.26;
+          if (Math.abs(c.angVel) < 0.15) {
+            ringWindChime(c, impulse);
+          }
+        }
+      }
+    }
+
+    function updateAndDrawWindChimes(time, dt) {
+      // 繪製漂浮祈願水燈
+      for (let i = waterLanterns.length - 1; i >= 0; i--) {
+        const lt = waterLanterns[i];
+        lt.y += lt.vy;
+        lt.x += Math.sin(time * 1.4 + lt.phase) * 0.45;
+        if (lt.y < 75) lt.life -= dt * 0.5;
+        if (lt.life <= 0) {
+          waterLanterns.splice(i, 1);
+          continue;
+        }
+        ctx.save();
+        ctx.globalAlpha = lt.life;
+        const glow = ctx.createRadialGradient(lt.x, lt.y, 2, lt.x, lt.y, lt.size * 2.2);
+        glow.addColorStop(0, 'rgba(186, 230, 253, 0.7)');
+        glow.addColorStop(0.5, 'rgba(0, 120, 255, 0.25)');
+        glow.addColorStop(1, 'rgba(0, 40, 150, 0)');
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(lt.x, lt.y, lt.size * 2.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = 'rgba(224, 242, 254, 0.85)';
+        ctx.beginPath();
+        ctx.roundRect(lt.x - lt.size * 0.55, lt.y - lt.size * 0.65, lt.size * 1.1, lt.size * 1.3, 6);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // 繪製擴散聲波光環
+      for (let i = chimeRings.length - 1; i >= 0; i--) {
+        const cr = chimeRings[i];
+        cr.r += 2.6;
+        cr.alpha -= dt * 0.85;
+        if (cr.alpha <= 0) {
+          chimeRings.splice(i, 1);
+          continue;
+        }
+        ctx.beginPath();
+        ctx.arc(cr.x, cr.y, cr.r, 0, Math.PI * 2);
+        ctx.strokeStyle = `hsla(${cr.hue}, 100%, 78%, ${cr.alpha})`;
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+      }
+
+      // 繪製水晶風鈴單擺物理
+      for (let i = 0; i < windChimes.length; i++) {
+        const c = windChimes[i];
+        const gravityTorque = -6.5 * Math.sin(c.angle);
+        const breeze = Math.sin(time * 1.1 + i) * 0.08;
+        c.angVel += (gravityTorque + breeze - 1.15 * c.angVel) * dt;
+        c.angle += c.angVel * dt;
+        c.glow = Math.max(0, c.glow - dt * 0.9);
+
+        const bobX = c.anchorX + Math.sin(c.angle) * c.cordLen;
+        const bobY = c.anchorY + Math.cos(c.angle) * c.cordLen;
+
+        // 懸掛細絲
+        ctx.beginPath();
+        ctx.moveTo(c.anchorX, c.anchorY);
+        ctx.lineTo(bobX, bobY);
+        ctx.strokeStyle = 'rgba(125, 211, 252, 0.35)';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        // 水晶風鈴鐘罩
+        ctx.save();
+        ctx.translate(bobX, bobY);
+        ctx.rotate(-c.angle);
+
+        const bellGrad = ctx.createRadialGradient(0, -6, 2, 0, 4, 24);
+        bellGrad.addColorStop(0, `hsla(${c.hue}, 100%, 90%, ${0.75 + c.glow * 0.25})`);
+        bellGrad.addColorStop(0.65, `hsla(${c.hue}, 100%, 58%, ${0.38 + c.glow * 0.35})`);
+        bellGrad.addColorStop(1, 'rgba(0, 60, 180, 0.7)');
+
+        ctx.beginPath();
+        ctx.arc(0, 2, 16, Math.PI, 0);
+        ctx.lineTo(19, 14);
+        ctx.lineTo(-19, 14);
+        ctx.closePath();
+        ctx.fillStyle = bellGrad;
+        ctx.fill();
+        ctx.strokeStyle = `hsla(${c.hue}, 100%, 84%, 0.85)`;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // 垂吊祈願短冊
+        ctx.beginPath();
+        ctx.moveTo(0, 14);
+        ctx.lineTo(0, 42);
+        ctx.strokeStyle = 'rgba(186, 230, 253, 0.65)';
+        ctx.stroke();
+
+        ctx.fillStyle = 'rgba(14, 116, 245, 0.45)';
+        ctx.strokeStyle = 'rgba(125, 211, 252, 0.6)';
+        ctx.fillRect(-5, 42, 10, 28);
+        ctx.strokeRect(-5, 42, 10, 28);
+
+        ctx.restore();
+      }
+    }
+
+    /**
+     * ============================================================================
+     * 7. 模式五：【🏖️ 星光流沙 (全新療癒模式)】
+     * ============================================================================
+     */
+    const SAND_COLS = 96;
+    const sandHeights = new Float32Array(SAND_COLS);
+    const fallingGrains = [];
+
+    function initStarSand() {
+      for (let i = 0; i < SAND_COLS; i++) {
+        sandHeights[i] = 48 + Math.sin(i * 0.14) * 18 + Math.cos(i * 0.06) * 14;
+      }
+      fallingGrains.length = 0;
+    }
+
+    function pourSandAt(px, py, amount = 10) {
+      for (let i = 0; i < amount; i++) {
+        fallingGrains.push({
+          x: px + (Math.random() - 0.5) * 26,
+          y: py + (Math.random() - 0.5) * 14,
+          vy: 1.5 + Math.random() * 2.5,
+          r: 1.5 + Math.random() * 1.8,
+          hue: Math.random() > 0.25 ? 202 : 218
+        });
+      }
+      audio.playStarChime(0.4);
+    }
+
+    function smoothSandWithWave() {
+      audio.playSoftWave();
+      const targetH = 55;
+      for (let i = 0; i < SAND_COLS; i++) {
+        sandHeights[i] = sandHeights[i] * 0.35 + targetH * 0.65 + Math.sin(i * 0.18) * 5;
+      }
+      ripples.push({ x: width / 2, y: height - 90, r: 20, alpha: 0.85, double: true });
+    }
+
+    function updateAndDrawStarSand(time, dt) {
+      // 若手指正在按住，持續灑落星光流沙
+      pointers.forEach(pt => {
+        pourSandAt(pt.x, pt.y, 4);
+      });
+
+      const colW = width / (SAND_COLS - 1);
+
+      // 更新下落沙粒並堆積到對應沙丘列
+      for (let i = fallingGrains.length - 1; i >= 0; i--) {
+        const g = fallingGrains[i];
+        g.vy += 0.18;
+        g.y += g.vy;
+
+        const col = Math.max(0, Math.min(SAND_COLS - 1, Math.round(g.x / colW)));
+        const surfaceY = height - sandHeights[col];
+
+        if (g.y >= surfaceY) {
+          sandHeights[col] = Math.min(height * 0.58, sandHeights[col] + 1.35);
+          // 自然向左右滑落形成平滑沙丘坡度
+          if (col > 0) sandHeights[col - 1] += 0.45;
+          if (col < SAND_COLS - 1) sandHeights[col + 1] += 0.45;
+          fallingGrains.splice(i, 1);
+          continue;
+        }
+
+        ctx.beginPath();
+        ctx.arc(g.x, g.y, g.r, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${g.hue}, 100%, 82%, 0.9)`;
+        ctx.fill();
+      }
+
+      // 沙丘自然平滑鬆弛
+      for (let i = 1; i < SAND_COLS - 1; i++) {
+        const avg = (sandHeights[i - 1] + sandHeights[i] + sandHeights[i + 1]) / 3;
+        sandHeights[i] += (avg - sandHeights[i]) * 0.08;
+      }
+
+      // 繪製深藍發光流沙山丘
+      ctx.beginPath();
+      ctx.moveTo(0, height);
+      for (let i = 0; i < SAND_COLS; i++) {
+        ctx.lineTo(i * colW, height - sandHeights[i]);
+      }
+      ctx.lineTo(width, height);
+      ctx.closePath();
+
+      const sandGrad = ctx.createLinearGradient(0, height - 220, 0, height);
+      sandGrad.addColorStop(0, 'rgba(56, 189, 248, 0.75)');
+      sandGrad.addColorStop(0.45, 'rgba(3, 105, 161, 0.85)');
+      sandGrad.addColorStop(1, 'rgba(2, 18, 56, 0.98)');
+      ctx.fillStyle = sandGrad;
+      ctx.fill();
+
+      // 沙丘頂部發光星砂線條
+      ctx.beginPath();
+      for (let i = 0; i < SAND_COLS; i++) {
+        const sx = i * colW;
+        const sy = height - sandHeights[i];
+        if (i === 0) ctx.moveTo(sx, sy);
+        else ctx.lineTo(sx, sy);
+      }
+      ctx.strokeStyle = 'rgba(186, 230, 253, 0.9)';
+      ctx.lineWidth = 2.2;
+      ctx.stroke();
+    }
+
+    /**
+     * ============================================================================
+     * 8. 模式六：【🫧 氣泡捏捏樂 (保留不變)】
+     * ============================================================================
+     */
+    const bubbles = [];
+    const popParticles = [];
+    let poppedCount = 0;
+    const popCounterEl = document.getElementById('pop-counter');
+
+    function initBubbles() {
+      bubbles.length = 0;
+      const isMobile = width < 640;
+      const radius = isMobile ? 24 : 30;
+      const gap = isMobile ? 11 : 15;
+      const step = radius * 2 + gap;
+
+      const topMargin = 105;
+      const bottomMargin = 115;
+      const usableW = Math.max(120, width - 36);
+      const usableH = Math.max(160, height - topMargin - bottomMargin);
+
+      const cols = Math.max(4, Math.floor(usableW / step));
+      const rows = Math.max(4, Math.floor(usableH / step));
+
+      const offsetX = (width - (cols * step - gap)) / 2 + radius;
+      const offsetY = topMargin + (usableH - (rows * step - gap)) / 2 + radius;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const stagger = (r % 2 === 1) ? step * 0.2 : -step * 0.2;
+          const bx = offsetX + c * step + stagger;
+          const by = offsetY + r * step;
+          if (bx > radius + 6 && bx < width - radius - 6) {
+            bubbles.push({
+              x: bx, y: by, maxR: radius, currentR: radius,
+              popped: false, respawnTimer: 0,
+              phase: Math.random() * Math.PI * 2,
+              hue: 198 + Math.random() * 22
+            });
+          }
+        }
+      }
+    }
+
+    function popSingleBubble(b, playAudio = true) {
+      if (b.popped) return;
+      b.popped = true;
+      b.currentR = 0;
+      b.respawnTimer = 2.5 + Math.random() * 1.5;
+      poppedCount++;
+      popCounterEl.textContent = poppedCount;
+      if (playAudio) audio.playBubblePop(1);
+
+      for (let i = 0; i < 10; i++) {
+        const angle = (i / 10) * Math.PI * 2;
+        const speed = 2.0 + Math.random() * 4.0;
+        popParticles.push({
+          x: b.x, y: b.y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          r: 1.5 + Math.random() * 2.2,
+          life: 1.0,
+          hue: b.hue
+        });
+      }
+    }
+
+    function checkBubbleHit(px, py) {
+      for (let i = 0; i < bubbles.length; i++) {
+        const b = bubbles[i];
+        if (!b.popped && b.currentR > b.maxR * 0.55) {
+          if (Math.hypot(px - b.x, py - b.y) <= b.currentR * 1.12) {
+            popSingleBubble(b, true);
+          }
+        }
+      }
+    }
+
+    function popAllBubbles() {
+      const unpopped = bubbles.filter(b => !b.popped);
+      unpopped.sort((a, b) => (a.x + a.y * 0.5) - (b.x + b.y * 0.5));
+      unpopped.forEach((b, idx) => {
+        setTimeout(() => popSingleBubble(b, idx % 3 === 0), Math.min(420, idx * 8));
+      });
+    }
+
+    function updateAndDrawBubbles(time, dt) {
+      for (let i = 0; i < bubbles.length; i++) {
+        const b = bubbles[i];
+        if (b.popped) {
+          b.respawnTimer -= dt;
+          if (b.respawnTimer <= 0) {
+            b.currentR += (b.maxR - b.currentR) * Math.min(1, dt * 5.5);
+            if (b.maxR - b.currentR < 0.4) {
+              b.currentR = b.maxR;
+              b.popped = false;
+            }
+          } else {
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.maxR * 0.7, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.12)';
+            ctx.stroke();
+            continue;
+          }
+        }
+
+        const breath = b.popped ? 0 : Math.sin(time * 2.2 + b.phase) * 1.4;
+        const r = Math.max(0.1, b.currentR + breath);
+
+        const grad = ctx.createRadialGradient(b.x - r * 0.3, b.y - r * 0.3, r * 0.08, b.x, b.y, r);
+        grad.addColorStop(0, 'rgba(224, 242, 254, 0.55)');
+        grad.addColorStop(0.4, `hsla(${b.hue}, 100%, 58%, 0.25)`);
+        grad.addColorStop(1, 'rgba(56, 189, 248, 0.72)');
+
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, r, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(125, 211, 252, 0.55)';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(b.x - r * 0.32, b.y - r * 0.32, r * 0.18, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+        ctx.fill();
+      }
+
+      for (let i = popParticles.length - 1; i >= 0; i--) {
+        const p = popParticles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= dt * 2.4;
+        if (p.life <= 0) {
+          popParticles.splice(i, 1);
+          continue;
+        }
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${p.hue}, 100%, 75%, ${p.life})`;
+        ctx.fill();
+      }
+    }
+
+    /**
+     * ============================================================================
+     * 9. 模式七：【🌊 4-7-8 深藍呼吸 (保留不變)】
+     * ============================================================================
+     */
+    const breathPhaseEl = document.getElementById('breath-phase-text');
+    const breathSubEl = document.getElementById('breath-sub-text');
+    const breathTimerEl = document.getElementById('breath-timer-text');
+    let breathElapsed = 0;
+    let lastBreathPhase = '';
+
+    function updateAndDrawBreath(dt) {
+      breathElapsed = (breathElapsed + dt) % 19;
+      let phaseName = '', subText = '', remaining = 0, scale = 0.45;
+
+      if (breathElapsed < 4) {
+        const t = breathElapsed / 4;
+        scale = 0.45 + (0.5 - 0.5 * Math.cos(t * Math.PI)) * 0.55;
+        phaseName = '深深吸氣';
+        subText = '用鼻子緩慢吸入寧靜的深海微光';
+        remaining = Math.ceil(4 - breathElapsed);
+      } else if (breathElapsed < 11) {
+        scale = 1.0 + Math.sin((breathElapsed - 4) * 2.5) * 0.015;
+        phaseName = '輕柔屏息';
+        subText = '讓平靜與氧氣在身體裡停留片刻';
+        remaining = Math.ceil(11 - breathElapsed);
+      } else {
+        const t = (breathElapsed - 11) / 8;
+        scale = 1.0 - (0.5 - 0.5 * Math.cos(t * Math.PI)) * 0.55;
+        phaseName = '緩緩吐氣';
+        subText = '把所有疲憊與緊繃隨氣息一起釋放';
+        remaining = Math.ceil(19 - breathElapsed);
+      }
+
+      if (phaseName !== lastBreathPhase) {
+        lastBreathPhase = phaseName;
+        breathPhaseEl.textContent = phaseName;
+        breathSubEl.textContent = subText;
+        audio.playBreathBell(phaseName === '深深吸氣' ? 392.0 : (phaseName === '輕柔屏息' ? 440.0 : 261.63));
+      }
+      breathTimerEl.textContent = `${remaining} 秒`;
+
+      const cx = width / 2;
+      const cy = height / 2 - 15;
+      const r = Math.min(width, height) * 0.31 * scale;
+
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const grad = ctx.createRadialGradient(cx, cy, r * 0.25, cx, cy, r * 1.15);
+      grad.addColorStop(0, 'rgba(0, 85, 255, 0.06)');
+      grad.addColorStop(0.7, 'rgba(0, 140, 255, 0.18)');
+      grad.addColorStop(1, 'rgba(56, 189, 248, 0)');
+      ctx.beginPath();
+      ctx.arc(cx, cy, r * 1.15, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(125, 211, 252, 0.85)';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    /**
+     * ============================================================================
+     * 10. 模式切換與按鈕事件綁定
+     * ============================================================================
+     */
+    let currentMode = 'slime';
+    const modeButtons = document.querySelectorAll('.mode-btn');
+    const hintText = document.getElementById('hint-text');
+
+    const modeHints = {
+      slime: '史萊姆已穩穩固定在中央 · 先戳破深藍冰晶脆皮，再盡情揉捏起泡吧！',
+      nebula: '在夜空中滑動或長按，凝聚發光星塵與深海微光 · 放開後如煙火溫柔綻放',
+      jellyfish: '輕點發光水母聆聽水晶豎琴音，或按住螢幕吸引水母群圍繞指尖共舞',
+      chimes: '輕觸或滑過深海水晶風鈴，聆聽清脆療癒的五聲音階旋律',
+      sand: '按住或滑動指尖灑落發光星砂堆疊沙丘，隨時點擊「海浪撫平」重置',
+      bubbles: '點擊或滑過發光深藍氣泡，「啵」一聲釋放壓力 · 氣泡稍後會自動恢復',
+      breath: '跟隨中央深藍光環進行 4-7-8 呼吸練習，享受無壓力的寧靜時刻'
+    };
+
+    function switchMode(mode) {
+      currentMode = mode;
+      modeButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
+
+      document.getElementById('slime-status').classList.toggle('hidden', mode !== 'slime');
+      document.getElementById('bubble-status').classList.toggle('hidden', mode !== 'bubbles');
+      document.getElementById('breath-guide').classList.toggle('hidden', mode !== 'breath');
+
+      document.getElementById('tools-slime').classList.toggle('hidden', mode !== 'slime');
+      document.getElementById('tools-jellyfish').classList.toggle('hidden', mode !== 'jellyfish');
+      document.getElementById('tools-bubbles').classList.toggle('hidden', mode !== 'bubbles');
+      document.getElementById('tools-chimes').classList.toggle('hidden', mode !== 'chimes');
+      document.getElementById('tools-sand').classList.toggle('hidden', mode !== 'sand');
+
+      hintText.textContent = modeHints[mode] || '';
+
+      if (mode === 'bubbles' && bubbles.length === 0) initBubbles();
+      if (mode === 'chimes' && windChimes.length === 0) initWindChimes();
+      if (mode === 'breath') {
+        breathElapsed = 0;
+        lastBreathPhase = '';
+      }
+    }
+
+    modeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        audio.unlock();
+        switchMode(btn.dataset.mode);
+      });
+    });
+
+    // 史萊姆工具按鈕綁定
+    document.getElementById('btn-slime-glaze').addEventListener('click', () => {
+      audio.unlock();
+      applyCrunchyGlaze();
+      audio.playCrystalBell(7, 0.9);
+    });
+
+    document.getElementById('btn-slime-popfoam').addEventListener('click', () => {
+      audio.unlock();
+      popAllSlimeFoam();
+    });
+
+    const btnSpatula = document.getElementById('btn-slime-spatula');
+    btnSpatula.addEventListener('click', () => {
+      audio.unlock();
+      slime.spatulaMode = !slime.spatulaMode;
+      btnSpatula.classList.toggle('active', slime.spatulaMode);
+      hintText.textContent = slime.spatulaMode
+        ? '🥄 刮刀模式開啟：在史萊姆上滑動即可絲滑抹平並留下奶油光軌！'
+        : modeHints.slime;
+    });
+
+    document.getElementById('btn-slime-jelly').addEventListener('click', () => {
+      audio.unlock();
+      addJellyToppings(6);
+      audio.playBubblePop(1.2);
+    });
+
+    document.getElementById('btn-slime-glitter').addEventListener('click', () => {
+      audio.unlock();
+      sprinkleGlitter(24);
+      audio.playCrystalBell(9, 0.8);
+    });
+
+    document.getElementById('btn-slime-beads').addEventListener('click', () => {
+      audio.unlock();
+      sprinkleCandyBeads(14);
+      audio.playBubblePop(1.1);
+    });
+
+    document.getElementById('btn-slime-stamp').addEventListener('click', () => {
+      audio.unlock();
+      addCuteStamp();
+      audio.playSlimeSquish(0.4);
+    });
+
+    const btnTexture = document.getElementById('btn-slime-texture');
+    btnTexture.addEventListener('click', () => {
+      audio.unlock();
+      slime.textureMode = slime.textureMode === 'jelly' ? 'cloud' : 'jelly';
+      btnTexture.textContent = slime.textureMode === 'jelly' ? '🍮 Q彈果凍' : '☁️ 綿密雲朵';
+      audio.playSlimeSquish(0.5);
+    });
+
+    // 水母按鈕
+    document.getElementById('btn-spawn-jelly').addEventListener('click', () => {
+      audio.unlock();
+      if (jellies.length < 12) {
+        jellies.push(createJellyfish());
+        audio.playCrystalBell(5, 1.2);
+      }
+    });
+    document.getElementById('btn-jelly-bubbles').addEventListener('click', () => {
+      audio.unlock();
+      spawnJellyBubbles(width / 2, height - 110, 18, true);
+      audio.playBubblePop(1.1);
+    });
+
+    // 氣泡按鈕
+    document.getElementById('btn-pop-all').addEventListener('click', () => {
+      audio.unlock();
+      popAllBubbles();
+    });
+
+    // 風鈴按鈕
+    document.getElementById('btn-chime-breeze').addEventListener('click', () => {
+      audio.unlock();
+      triggerChimeBreeze();
+    });
+    document.getElementById('btn-chime-lantern').addEventListener('click', () => {
+      audio.unlock();
+      spawnWaterLantern();
+      audio.playCrystalBell(3, 1.4);
+    });
+
+    // 流沙按鈕
+    document.getElementById('btn-sand-wave').addEventListener('click', () => {
+      audio.unlock();
+      smoothSandWithWave();
+    });
+    document.getElementById('btn-sand-sprinkle').addEventListener('click', () => {
+      audio.unlock();
+      for (let i = 0; i < 6; i++) {
+        pourSandAt(width * (0.2 + i * 0.12), 110, 14);
+      }
+    });
+
+    // 深海環境音與純粹模式
+    const btnAmbient = document.getElementById('btn-ambient');
+    const ambientIcon = document.getElementById('ambient-icon');
+    btnAmbient.addEventListener('click', () => {
+      const active = audio.toggleAmbient();
+      btnAmbient.classList.toggle('active', active);
+      ambientIcon.textContent = active ? '🌌' : '🔊';
+    });
+
+    const btnHideUi = document.getElementById('btn-hide-ui');
+    const btnShowUi = document.getElementById('btn-show-ui');
+    const uiLayers = document.querySelectorAll('.ui-layer');
+    btnHideUi.addEventListener('click', () => {
+      uiLayers.forEach(el => el.classList.add('ui-hidden'));
+      btnShowUi.classList.remove('hidden');
+    });
+    btnShowUi.addEventListener('click', () => {
+      uiLayers.forEach(el => el.classList.remove('ui-hidden'));
+      btnShowUi.classList.add('hidden');
+    });
+
+    // Canvas 統一 Pointer 事件
+    canvas.addEventListener('pointerdown', (e) => {
+      audio.unlock();
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if (currentMode === 'slime') {
+        interactWithSlime(e.clientX, e.clientY, false, null);
+      } else if (currentMode === 'nebula') {
+        ripples.push({ x: e.clientX, y: e.clientY, r: 5, alpha: 0.7, double: true });
+        audio.playStarChime(0.4);
+      } else if (currentMode === 'jellyfish') {
+        if (!checkJellyfishTap(e.clientX, e.clientY)) {
+          spawnJellyBubbles(e.clientX, e.clientY, 5, false);
+          audio.playBubblePop(1.0);
+        }
+      } else if (currentMode === 'chimes') {
+        checkChimeInteraction(e.clientX, e.clientY, 0);
+      } else if (currentMode === 'sand') {
+        pourSandAt(e.clientX, e.clientY, 12);
+      } else if (currentMode === 'bubbles') {
+        checkBubbleHit(e.clientX, e.clientY);
+      }
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+      if (!pointers.has(e.pointerId)) return;
+      const prev = pointers.get(e.pointerId);
+      const vx = e.clientX - prev.x;
+      const vy = e.clientY - prev.y;
+      const speed = Math.hypot(vx, vy);
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if (currentMode === 'slime') {
+        interactWithSlime(e.clientX, e.clientY, true, prev);
+      } else if (currentMode === 'nebula' && speed > 3) {
+        audio.playStarChime(Math.min(1, speed / 35));
+      } else if (currentMode === 'chimes') {
+        checkChimeInteraction(e.clientX, e.clientY, vx);
+      } else if (currentMode === 'bubbles') {
+        checkBubbleHit(e.clientX, e.clientY);
+      }
+    });
+
+    function handlePointerUp(e) {
+      if (!pointers.has(e.pointerId)) return;
+      const pt = pointers.get(e.pointerId);
+      pointers.delete(e.pointerId);
+      if (currentMode === 'nebula') {
+        scatterStardust(pt.x, pt.y);
+      }
+    }
+
+    canvas.addEventListener('pointerup', handlePointerUp);
+    canvas.addEventListener('pointercancel', handlePointerUp);
+
+    /**
+     * ============================================================================
+     * 11. 視窗自適應與主動畫迴圈
+     * ============================================================================
+     */
+    function resizeCanvas() {
+      width = Math.max(300, window.innerWidth || 800);
+      height = Math.max(300, window.innerHeight || 600);
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      initBgStars();
+      slime.cx = width / 2;
+      slime.cy = height / 2 - 14;
+      slime.baseRadius = Math.max(105, Math.min(width, height) * 0.255);
+
+      if (currentMode === 'bubbles') initBubbles();
+      if (currentMode === 'chimes') initWindChimes();
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+
+    let lastTimestamp = 0;
+    function animate(timestamp) {
+      const dt = Math.min(0.05, (timestamp - lastTimestamp) / 1000 || 0.016);
+      lastTimestamp = timestamp;
+      const time = timestamp / 1000;
+
+      ctx.clearRect(0, 0, width, height);
+      updateAndDrawBgStars(time);
+
+      if (currentMode === 'slime') {
+        updateAndDrawSlime(time, dt);
+      } else if (currentMode === 'nebula') {
+        updateAndDrawNebula(time, dt);
+      } else if (currentMode === 'jellyfish') {
+        updateAndDrawJellyfish(time, dt);
+      } else if (currentMode === 'chimes') {
+        updateAndDrawWindChimes(time, dt);
+      } else if (currentMode === 'sand') {
+        updateAndDrawStarSand(time, dt);
+      } else if (currentMode === 'bubbles') {
+        updateAndDrawBubbles(time, dt);
+      } else if (currentMode === 'breath') {
+        updateAndDrawBreath(dt);
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    window.onload = function () {
+      resizeCanvas();
+      initSlime();
+      initStardust();
+      initJellyfish();
+      initWindChimes();
+      initStarSand();
+      initBubbles();
+      switchMode('slime');
+      requestAnimationFrame(animate);
+    };
+  </script>
+</body>
+</html>

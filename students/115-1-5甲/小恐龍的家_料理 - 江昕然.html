@@ -1,0 +1,2109 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>黃金小恐龍夢幻家園</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      margin: 0;
+      padding: 8px;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      color: #4A3500;
+      /* 黃金色金屬漸層背景 */
+      background: linear-gradient(135deg, #BF953F 0%, #FCF6BA 45%, #B38728 70%, #FBF5B7 100%);
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 420px;
+      height: calc(100dvh - 16px);
+      max-height: 820px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .status-card {
+      background: rgba(255, 253, 240, 0.9);
+      border: 2px solid #D4AF37;
+      border-radius: 20px;
+      padding: 6px 10px;
+      box-shadow: 0 4px 12px rgba(74, 53, 0, 0.15);
+      backdrop-filter: blur(6px);
+    }
+
+    .stage-box {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      border-radius: 28px;
+      border: 3px solid rgba(255, 255, 255, 0.92);
+      box-shadow:
+        inset 0 4px 16px rgba(179, 135, 40, 0.25),
+        0 12px 28px rgba(74, 53, 0, 0.25);
+      overflow: hidden;
+      background: #FFFDF5;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+    }
+
+    .btn-gold {
+      background: linear-gradient(180deg, #FFFDF0 0%, #F5E298 100%);
+      border: 2px solid #B38728;
+      box-shadow: 0 3px 0 #8C6614, 0 5px 10px rgba(74, 53, 0, 0.18);
+      color: #4A3500;
+      transition: transform 0.08s, background 0.15s;
+      touch-action: manipulation;
+    }
+
+    .btn-gold:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #8C6614;
+    }
+
+    .btn-gold.active {
+      background: linear-gradient(180deg, #5C4300 0%, #3A2900 100%);
+      border-color: #FCF6BA;
+      color: #FCF6BA;
+      box-shadow: 0 3px 0 #241900;
+    }
+
+    .bubble-item {
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #FFFFFF 0%, #FCF6BA 45%, #D4AF37 90%, #996515 100%);
+      box-shadow: 0 4px 8px rgba(74, 53, 0, 0.28), inset 0 -3px 6px rgba(153, 101, 21, 0.4);
+      cursor: pointer;
+      transition: transform 0.08s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .bubble-item:active {
+      transform: scale(0.9);
+    }
+
+    .bubble-item.popped {
+      background: rgba(179, 135, 40, 0.2);
+      box-shadow: inset 0 3px 6px rgba(74, 53, 0, 0.25);
+      transform: scale(0.92);
+      cursor: default;
+    }
+
+    /* 自訂捲動條讓 16 道冰箱清單好滑動 */
+    .nice-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .nice-scroll::-webkit-scrollbar-track {
+      background: rgba(252, 246, 186, 0.4);
+      border-radius: 8px;
+    }
+    .nice-scroll::-webkit-scrollbar-thumb {
+      background: #D4AF37;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-shell">
+    <!-- 1. 頂部標題與五項養成數值 -->
+    <header class="status-card shrink-0">
+      <div class="flex items-center justify-between mb-1">
+        <h1 class="text-lg sm:text-xl font-black tracking-wide text-[#4A3500]">
+          🦖 黃金小恐龍夢幻家園
+        </h1>
+        <div class="flex items-center gap-1.5 bg-[#FFF3C4] border border-[#D4AF37] px-2.5 py-0.5 rounded-full">
+          <span class="text-base">🪙</span>
+          <span id="stat-coins" class="text-base font-black text-[#8C5800]">150</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-4 gap-1.5 text-xs font-bold">
+        <div class="bg-white/85 rounded-xl p-1 border border-[#E6C875]">
+          <div class="flex justify-between mb-0.5">
+            <span>🍔飽足</span>
+            <span id="val-hunger">80%</span>
+          </div>
+          <div class="w-full h-1.5 bg-[#EFE2B8] rounded-full overflow-hidden">
+            <div id="bar-hunger" class="h-full bg-amber-500 transition-all duration-300" style="width: 80%"></div>
+          </div>
+        </div>
+
+        <div class="bg-white/85 rounded-xl p-1 border border-[#E6C875]">
+          <div class="flex justify-between mb-0.5">
+            <span>🛁清潔</span>
+            <span id="val-clean">85%</span>
+          </div>
+          <div class="w-full h-1.5 bg-[#EFE2B8] rounded-full overflow-hidden">
+            <div id="bar-clean" class="h-full bg-sky-500 transition-all duration-300" style="width: 85%"></div>
+          </div>
+        </div>
+
+        <div class="bg-white/85 rounded-xl p-1 border border-[#E6C875]">
+          <div class="flex justify-between mb-0.5">
+            <span>⚡能量</span>
+            <span id="val-energy">90%</span>
+          </div>
+          <div class="w-full h-1.5 bg-[#EFE2B8] rounded-full overflow-hidden">
+            <div id="bar-energy" class="h-full bg-emerald-500 transition-all duration-300" style="width: 90%"></div>
+          </div>
+        </div>
+
+        <div class="bg-white/85 rounded-xl p-1 border border-[#E6C875]">
+          <div class="flex justify-between mb-0.5">
+            <span>💖心情</span>
+            <span id="val-happy">95%</span>
+          </div>
+          <div class="w-full h-1.5 bg-[#EFE2B8] rounded-full overflow-hidden">
+            <div id="bar-happy" class="h-full bg-pink-500 transition-all duration-300" style="width: 95%"></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- 2. 中央互動主舞台 -->
+    <main id="stage" class="stage-box">
+      <canvas id="gameCanvas"></canvas>
+
+      <!-- 頂部場景提示膠囊 -->
+      <div id="room-hint" class="absolute top-2.5 left-3 right-14 bg-white/90 backdrop-blur-sm border border-[#D4AF37] px-3 py-1 rounded-full text-sm font-black text-[#5C4300] shadow-sm truncate pointer-events-none">
+        🍽️ 點冰箱拿16道美食，或點料理台翻炒現做！
+      </div>
+
+      <!-- 右上角聊天按鈕 -->
+      <button onclick="toggleChat(true)" class="btn-gold absolute top-2 right-2.5 w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-md z-10" title="跟小恐龍聊天">
+        💬
+      </button>
+
+      <!-- 雙門大冰箱 16 道指定料理選單覆蓋層 -->
+      <div id="fridge-modal" class="hidden absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center p-3 z-20">
+        <div class="bg-[#FFFDF5] border-4 border-[#38BDF8] rounded-3xl w-full max-w-[360px] max-h-[88%] flex flex-col p-3.5 shadow-2xl">
+          <div class="flex items-center justify-between pb-2 border-b-2 border-[#BAE6FD]">
+            <div class="flex items-center gap-1.5">
+              <span class="text-2xl">❄️</span>
+              <h2 class="text-lg font-black text-[#0369A1]">雙門大冰箱（16道美食）</h2>
+            </div>
+            <button onclick="toggleFridgeModal(false)" class="w-8 h-8 rounded-full bg-[#E0F2FE] font-black text-[#0369A1] flex items-center justify-center">✕</button>
+          </div>
+          <p class="text-xs font-bold text-[#0284C7] my-1.5">點擊「拿取」直接上桌，或點「🔥現炒」到平底鍋料理！</p>
+          <div id="fridge-grid" class="nice-scroll flex-1 overflow-y-auto grid grid-cols-2 gap-2 pr-1">
+            <!-- 由 JS 動態填入全部 16 道指定料理 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 互動平底鍋料理台選擇菜單覆蓋層 -->
+      <div id="cook-select-modal" class="hidden absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center p-3 z-20">
+        <div class="bg-[#FFFDF5] border-4 border-[#F59E0B] rounded-3xl w-full max-w-[360px] max-h-[88%] flex flex-col p-3.5 shadow-2xl">
+          <div class="flex items-center justify-between pb-2 border-b-2 border-[#FDE68A]">
+            <div class="flex items-center gap-1.5">
+              <span class="text-2xl">🍳</span>
+              <h2 class="text-lg font-black text-[#92400E]">互動平底鍋料理台</h2>
+            </div>
+            <button onclick="toggleCookSelectModal(false)" class="w-8 h-8 rounded-full bg-[#FEF3C7] font-black text-[#92400E] flex items-center justify-center">✕</button>
+          </div>
+          <p class="text-xs font-bold text-[#B45309] my-1.5">選擇要下鍋的料理，在平底鍋上來回滑動翻炒出爐！</p>
+          <div id="cook-select-grid" class="nice-scroll flex-1 overflow-y-auto grid grid-cols-2 gap-2 pr-1">
+            <!-- 由 JS 動態填入全部 16 道指定料理 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 夢幻泡泡紙覆蓋層 -->
+      <div id="bubble-wrap-overlay" class="hidden absolute inset-0 bg-gradient-to-b from-[#FFFDF2] to-[#F7E59E] flex flex-col items-center justify-between p-4 z-10">
+        <div class="text-center mt-8">
+          <h2 class="text-2xl font-black text-[#4A3500]">🫧 夢幻黃金泡泡紙</h2>
+          <p class="text-base font-bold text-[#7A5600] mt-0.5">每捏破 5 顆獲得 🪙 +2 金幣！（已捏破 <span id="pop-count">0</span> 顆）</p>
+        </div>
+
+        <div id="bubble-grid" class="grid grid-cols-4 gap-3 w-full max-w-[290px] p-4 bg-white/60 rounded-3xl border-2 border-[#D4AF37] shadow-inner">
+          <!-- JS 動態生成 20 顆泡泡 -->
+        </div>
+
+        <button onclick="resetBubbleWrap()" class="btn-gold px-6 py-2.5 rounded-2xl text-lg font-black mb-1">
+          ✨ 換一張新的泡泡紙
+        </button>
+      </div>
+
+      <!-- 聊天互動抽屜視窗 -->
+      <div id="chat-modal" class="hidden absolute inset-0 bg-black/35 backdrop-blur-[2px] flex flex-col justify-end z-20">
+        <div class="bg-[#FFFDF5] border-t-4 border-[#D4AF37] rounded-t-3xl p-4 shadow-2xl flex flex-col max-h-[82%]">
+          <div class="flex items-center justify-between pb-2 border-b border-[#EAD28A]">
+            <div class="flex items-center gap-2">
+              <span class="text-2xl">🦖</span>
+              <span class="text-lg font-black text-[#4A3500]">和小恐龍聊天中</span>
+            </div>
+            <button onclick="toggleChat(false)" class="w-8 h-8 rounded-full bg-[#F5E298] font-black text-[#4A3500] flex items-center justify-center">✕</button>
+          </div>
+
+          <div id="chat-messages" class="nice-scroll flex-1 overflow-y-auto py-3 space-y-2.5 min-h-[140px] max-h-[210px] text-base">
+            <div class="flex items-start gap-2">
+              <span class="text-xl">🦖</span>
+              <div class="bg-[#FCF6BA] border border-[#D4AF37] rounded-2xl rounded-tl-none px-3 py-2 font-bold text-[#4A3500]">
+                嗷嗚～你來陪我玩啦！冰箱裡有 16 道美食，還可以去平底鍋現炒給我吃喔！💖
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-1.5 my-2">
+            <button onclick="sendQuickChat('praise')" class="btn-gold py-1.5 px-2 rounded-xl text-sm font-black">🥰 誇她超級可愛</button>
+            <button onclick="sendQuickChat('food')" class="btn-gold py-1.5 px-2 rounded-xl text-sm font-black">🍳 問她想吃什麼</button>
+            <button onclick="sendQuickChat('joke')" class="btn-gold py-1.5 px-2 rounded-xl text-sm font-black">😆 講個冷笑話</button>
+            <button onclick="sendQuickChat('sleep')" class="btn-gold py-1.5 px-2 rounded-xl text-sm font-black">🌙 跟她說晚安</button>
+          </div>
+
+          <form onsubmit="handleCustomChat(event)" class="flex gap-2 mt-1">
+            <input id="chat-input" type="text" placeholder="輸入想對小恐龍說的話..." class="flex-1 bg-white border-2 border-[#D4AF37] rounded-xl px-3 py-2 text-base font-bold text-[#4A3500] focus:outline-none">
+            <button type="submit" class="btn-gold px-4 py-2 rounded-xl font-black text-base">送出</button>
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <!-- 3. 底部場景與小遊戲切換導覽列 -->
+    <nav class="grid grid-cols-6 gap-1 shrink-0 pb-0.5">
+      <button id="nav-dining" class="btn-gold active rounded-2xl py-2 px-0.5 flex flex-col items-center justify-center" onclick="switchScene('dining')">
+        <span class="text-xl">🍽️</span>
+        <span class="text-xs sm:text-sm font-black mt-0.5">餐廳</span>
+      </button>
+      <button id="nav-bathroom" class="btn-gold rounded-2xl py-2 px-0.5 flex flex-col items-center justify-center" onclick="switchScene('bathroom')">
+        <span class="text-xl">🛁</span>
+        <span class="text-xs sm:text-sm font-black mt-0.5">浴室</span>
+      </button>
+      <button id="nav-garden" class="btn-gold rounded-2xl py-2 px-0.5 flex flex-col items-center justify-center" onclick="switchScene('garden')">
+        <span class="text-xl">🌻</span>
+        <span class="text-xs sm:text-sm font-black mt-0.5">花園</span>
+      </button>
+      <button id="nav-bedroom" class="btn-gold rounded-2xl py-2 px-0.5 flex flex-col items-center justify-center" onclick="switchScene('bedroom')">
+        <span class="text-xl">🛏️</span>
+        <span class="text-xs sm:text-sm font-black mt-0.5">房間</span>
+      </button>
+      <button id="nav-slime" class="btn-gold rounded-2xl py-2 px-0.5 flex flex-col items-center justify-center" onclick="switchScene('slime')">
+        <span class="text-xl">✨</span>
+        <span class="text-xs sm:text-sm font-black mt-0.5">史萊姆</span>
+      </button>
+      <button id="nav-bubbles" class="btn-gold rounded-2xl py-2 px-0.5 flex flex-col items-center justify-center" onclick="switchScene('bubbles')">
+        <span class="text-xl">🫧</span>
+        <span class="text-xs sm:text-sm font-black mt-0.5">泡泡紙</span>
+      </button>
+    </nav>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const stage = document.getElementById('stage');
+
+    let width = 0;
+    let height = 0;
+    let dpr = window.devicePixelRatio || 1;
+
+    // 全部 16 道指定料理清單（完整收錄）
+    const ALL_16_DISHES = [
+      { id: 'tomato_egg', name: '番茄炒蛋', emoji: '🍅', sub: '🥚', desc: '酸甜滑嫩家常菜' },
+      { id: 'fried_rice', name: '蛋炒飯', emoji: '🍚', sub: '🍳', desc: '粒粒分明黃金炒飯' },
+      { id: 'sweet_potato_leaves', name: '地瓜葉', emoji: '🥬', sub: '🧄', desc: '翠綠爽口蒜香青菜' },
+      { id: 'udon', name: '烏龍麵', emoji: '🍜', sub: '🍥', desc: 'Q彈暖呼呼湯麵' },
+      { id: 'fried_egg', name: '荷包蛋', emoji: '🍳', sub: '✨', desc: '焦香金黃太陽蛋' },
+      { id: 'omurice', name: '蛋包飯', emoji: '🍛', sub: '🥚', desc: '滑蛋蓋飯配番茄醬' },
+      { id: 'egg_pancake', name: '蛋餅', emoji: '🌯', sub: '🥚', desc: '外酥內嫩早餐蛋餅' },
+      { id: 'apple_juice', name: '蘋果汁', emoji: '🧃', sub: '🍎', desc: '現榨清甜蘋果汁' },
+      { id: 'tempura', name: '天婦羅', emoji: '🍤', sub: '🥢', desc: '金黃酥脆炸蝦天婦羅' },
+      { id: 'french_fries', name: '炸薯條', emoji: '🍟', sub: '🧂', desc: '香脆金黃現炸薯條' },
+      { id: 'pancakes', name: '鬆餅', emoji: '🥞', sub: '🍯', desc: '蜂蜜奶油厚鬆餅' },
+      { id: 'meatball_soup', name: '貢丸湯', emoji: '🥣', sub: '🍡', desc: '彈牙多汁貢丸清湯' },
+      { id: 'corn_soup', name: '玉米濃湯', emoji: '🌽', sub: '🥣', desc: '香濃奶香玉米濃湯' },
+      { id: 'steamed_rice', name: '白米飯', emoji: '🍚', sub: '✨', desc: '熱騰騰香Q白米飯' },
+      { id: 'scrambled_eggs', name: '炒蛋', emoji: '🥚', sub: '🧈', desc: '奶油滑嫩美式炒蛋' },
+      { id: 'braised_egg', name: '滷蛋', emoji: '🟤', sub: '🥚', desc: '入味鹹香古早味滷蛋' }
+    ];
+
+    // 遊戲全域養成數值
+    const state = {
+      scene: 'dining',
+      hunger: 80,
+      clean: 85,
+      energy: 90,
+      happy: 95,
+      coins: 150
+    };
+
+    // 小恐龍角色狀態
+    const dino = {
+      x: 200,
+      y: 250,
+      mouthOpen: 0,
+      chewTimer: 0,
+      happyTimer: 0,
+      bounceOffset: 0,
+      bounceVel: 0,
+      eyeLookX: 0,
+      eyeLookY: 0,
+      soapBubbles: [],
+      wetDrops: [],
+      isSleeping: false,
+      blanketOn: false,
+      desiredDish: ALL_16_DISHES[0],
+      speechText: '我想吃 🍅 番茄炒蛋！'
+    };
+
+    let particles = [];
+    let floatTexts = [];
+    const pointer = { x: 0, y: 0, prevX: 0, prevY: 0, down: false };
+
+    // ==================== 1. 安全音效合成器 ====================
+    let audioCtx = null;
+    function playSound(type, f1, f2, dur, vol = 0.22) {
+      try {
+        if (!audioCtx) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) audioCtx = new AC();
+        }
+        if (!audioCtx) return;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(f1, now);
+        if (f2) osc.frequency.exponentialRampToValueAtTime(f2, now + dur);
+
+        gain.gain.setValueAtTime(vol, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + dur + 0.01);
+      } catch (e) {}
+    }
+
+    function updateStatsUI() {
+      state.hunger = Math.max(0, Math.min(100, Math.round(state.hunger)));
+      state.clean = Math.max(0, Math.min(100, Math.round(state.clean)));
+      state.energy = Math.max(0, Math.min(100, Math.round(state.energy)));
+      state.happy = Math.max(0, Math.min(100, Math.round(state.happy)));
+
+      document.getElementById('stat-coins').textContent = state.coins;
+      document.getElementById('val-hunger').textContent = state.hunger + '%';
+      document.getElementById('bar-hunger').style.width = state.hunger + '%';
+      document.getElementById('val-clean').textContent = state.clean + '%';
+      document.getElementById('bar-clean').style.width = state.clean + '%';
+      document.getElementById('val-energy').textContent = state.energy + '%';
+      document.getElementById('bar-energy').style.width = state.energy + '%';
+      document.getElementById('val-happy').textContent = state.happy + '%';
+      document.getElementById('bar-happy').style.width = state.happy + '%';
+    }
+
+    function spawnParticles(x, y, icons = ['❤️', '✨'], count = 6) {
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: x + (Math.random() - 0.5) * 40,
+          y: y + (Math.random() - 0.5) * 20,
+          vx: (Math.random() - 0.5) * 4,
+          vy: -Math.random() * 3.5 - 1.2,
+          icon: icons[Math.floor(Math.random() * icons.length)],
+          size: Math.random() * 10 + 16,
+          life: 1.0
+        });
+      }
+    }
+
+    function addFloatText(x, y, text) {
+      floatTexts.push({ x, y, text, life: 1.0 });
+    }
+
+    // ==================== 2. 餐廳、冰箱、平底鍋與洗碗系統 ====================
+    const dining = {
+      fridgeRect: { x: 14, y: 56, w: 82, h: 112 },
+      stoveRect: { x: 14, y: 184, w: 82, h: 86 },
+      sinkRect: { x: 260, y: 265, w: 108, h: 74 },
+      sponge: { x: 0, y: 0, homeX: 0, homeY: 0, dragging: false },
+      tableFoods: [],
+      dirtyPlates: [],
+      dragItem: null, // { type: 'food' | 'plate', ref: obj }
+      // 互動平底鍋狀態
+      cooking: {
+        active: false,
+        dish: null,
+        progress: 0, // 0 ~ 100
+        panX: 0,
+        panY: 0,
+        foodAngle: 0,
+        sizzleTimer: 0
+      }
+    };
+
+    // 初始化冰箱與料理台的 16 道料理按鈕列表
+    function buildDishModals() {
+      const fridgeGrid = document.getElementById('fridge-grid');
+      const cookGrid = document.getElementById('cook-select-grid');
+      fridgeGrid.innerHTML = '';
+      cookGrid.innerHTML = '';
+
+      ALL_16_DISHES.forEach(dish => {
+        // 冰箱卡片
+        const card = document.createElement('div');
+        card.className = 'bg-white border-2 border-[#BAE6FD] rounded-2xl p-2 flex flex-col items-center justify-between shadow-sm';
+        card.innerHTML = `
+          <div class="text-2xl leading-none">${dish.emoji}<span class="text-sm">${dish.sub}</span></div>
+          <div class="text-sm font-black text-[#0F172A] mt-1">${dish.name}</div>
+          <div class="flex gap-1 w-full mt-1.5">
+            <button class="flex-1 bg-[#E0F2FE] hover:bg-[#BAE6FD] text-[#0369A1] font-black text-xs py-1 rounded-lg">拿取</button>
+            <button class="flex-1 bg-[#FEF3C7] hover:bg-[#FDE68A] text-[#92400E] font-black text-xs py-1 rounded-lg">🔥現炒</button>
+          </div>
+        `;
+        const btns = card.querySelectorAll('button');
+        btns[0].onclick = () => {
+          toggleFridgeModal(false);
+          placeDishOnTable(dish, false);
+        };
+        btns[1].onclick = () => {
+          toggleFridgeModal(false);
+          startCookingDish(dish);
+        };
+        fridgeGrid.appendChild(card);
+
+        // 料理台選擇卡片
+        const cookBtn = document.createElement('button');
+        cookBtn.className = 'btn-gold rounded-2xl p-2 flex flex-col items-center justify-center text-center';
+        cookBtn.innerHTML = `
+          <div class="text-2xl">${dish.emoji}<span class="text-sm">${dish.sub}</span></div>
+          <div class="text-sm font-black text-[#4A3500] mt-0.5">${dish.name}</div>
+          <div class="text-[11px] font-bold text-[#78350F]">${dish.desc}</div>
+        `;
+        cookBtn.onclick = () => {
+          toggleCookSelectModal(false);
+          startCookingDish(dish);
+        };
+        cookGrid.appendChild(cookBtn);
+      });
+    }
+
+    function toggleFridgeModal(show) {
+      const el = document.getElementById('fridge-modal');
+      if (show) {
+        el.classList.remove('hidden');
+        playSound('triangle', 340, 520, 0.1, 0.2);
+      } else {
+        el.classList.add('hidden');
+      }
+    }
+
+    function toggleCookSelectModal(show) {
+      const el = document.getElementById('cook-select-modal');
+      if (show) {
+        el.classList.remove('hidden');
+        playSound('triangle', 380, 580, 0.1, 0.2);
+      } else {
+        el.classList.add('hidden');
+      }
+    }
+
+    // 將料理放到餐桌上
+    function placeDishOnTable(dish, isFreshCooked = false) {
+      if (dining.tableFoods.length >= 3) {
+        dining.tableFoods.shift();
+      }
+      const slots = [width * 0.30, width * 0.46, width * 0.62];
+      const slotIdx = dining.tableFoods.length % slots.length;
+      const sx = slots[slotIdx];
+      const sy = height * 0.785;
+
+      dining.tableFoods.push({
+        id: dish.id,
+        name: dish.name,
+        emoji: dish.emoji,
+        sub: dish.sub,
+        isFreshCooked,
+        x: sx,
+        y: sy,
+        homeX: sx,
+        homeY: sy
+      });
+
+      playSound('sine', 540, 780, 0.08, 0.2);
+      addFloatText(sx, sy - 34, isFreshCooked ? `🔥 現炒${dish.name}上桌！` : `拿出 ${dish.name}！`);
+    }
+
+    // 開始互動平底鍋料理
+    function startCookingDish(dish) {
+      dining.cooking.active = true;
+      dining.cooking.dish = dish;
+      dining.cooking.progress = 0;
+      dining.cooking.panX = width * 0.5;
+      dining.cooking.panY = height * 0.54;
+      dining.cooking.foodAngle = 0;
+      playSound('triangle', 420, 660, 0.14, 0.22);
+      document.getElementById('room-hint').textContent = `🍳 用手指在平底鍋上來回滑動翻炒「${dish.name}」！`;
+    }
+
+    function pickNewCraving() {
+      const chosen = ALL_16_DISHES[Math.floor(Math.random() * ALL_16_DISHES.length)];
+      dino.desiredDish = chosen;
+      dino.speechText = `我想吃 ${chosen.emoji} ${chosen.name}！`;
+    }
+
+    function initDiningFoods() {
+      dining.tableFoods = [];
+      placeDishOnTable(ALL_16_DISHES[0], false); // 番茄炒蛋
+      placeDishOnTable(ALL_16_DISHES[1], false); // 蛋炒飯
+      pickNewCraving();
+    }
+
+    // ==================== 3. 浴室、花園、房間、小遊戲狀態 ====================
+    const bathroom = {
+      soap: { x: 65, y: 380, homeX: 65, homeY: 380, dragging: false },
+      shower: { x: 300, y: 120, homeX: 300, homeY: 120, dragging: false },
+      dryer: { x: 300, y: 380, homeX: 300, homeY: 380, dragging: false },
+      waterDrops: []
+    };
+
+    const garden = {
+      plots: [
+        { stage: 0, water: 0, flower: '🌷', x: 0, y: 0 },
+        { stage: 1, water: 1, flower: '🌻', x: 0, y: 0 },
+        { stage: 2, water: 2, flower: '🌹', x: 0, y: 0 }
+      ],
+      can: { x: 300, y: 140, homeX: 300, homeY: 140, dragging: false },
+      butterflies: [
+        { x: 100, y: 150, phase: 0 },
+        { x: 260, y: 190, phase: 2.1 }
+      ]
+    };
+
+    const bedroom = {
+      lightsOn: true,
+      lampRect: { x: 275, y: 155, w: 72, h: 90 },
+      blanket: { x: 110, y: 340, homeX: 110, homeY: 340, w: 164, h: 86, dragging: false }
+    };
+
+    const slimeGame = {
+      numPoints: 36,
+      points: [],
+      innerBubbles: [],
+      dragging: false
+    };
+
+    let totalPopped = 0;
+
+    function initSlimePoints() {
+      const r = Math.min(width, height) * 0.28;
+      slimeGame.points = [];
+      for (let i = 0; i < slimeGame.numPoints; i++) {
+        slimeGame.points.push({
+          angle: (i / slimeGame.numPoints) * Math.PI * 2,
+          radius: r,
+          targetRadius: r,
+          velocity: 0
+        });
+      }
+    }
+
+    function switchScene(sceneName) {
+      state.scene = sceneName;
+      dining.cooking.active = false;
+      playSound('sine', 520, 680, 0.08, 0.16);
+
+      document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById('nav-' + sceneName);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const hints = {
+        dining: '🍽️ 點冰箱拿16道美食，或點料理台翻炒現做！',
+        bathroom: '🛁 拖曳肥皂搓泡泡、蓮蓬頭沖水、吹風機吹乾！',
+        garden: '🌻 點擊土壤種花，拖曳澆水壺澆水讓花朵綻放！',
+        bedroom: '🛏️ 點小夜燈關燈，拖曳暖被子蓋在小恐龍身上睡覺！',
+        slime: '✨ 按住揉捏 Q 彈黃金史萊姆，點破氣泡賺金幣！',
+        bubbles: '🫧 盡情戳破金色泡泡紙，享受清脆解壓音效！'
+      };
+      document.getElementById('room-hint').textContent = hints[sceneName] || '';
+
+      const bubbleOverlay = document.getElementById('bubble-wrap-overlay');
+      if (sceneName === 'bubbles') {
+        bubbleOverlay.classList.remove('hidden');
+        if (document.getElementById('bubble-grid').children.length === 0) {
+          resetBubbleWrap();
+        }
+      } else {
+        bubbleOverlay.classList.add('hidden');
+      }
+
+      if (sceneName === 'bedroom' && !bedroom.lightsOn && dino.blanketOn) {
+        dino.isSleeping = true;
+      } else if (sceneName !== 'bedroom') {
+        dino.isSleeping = false;
+      }
+    }
+
+    function resetBubbleWrap() {
+      const grid = document.getElementById('bubble-grid');
+      grid.innerHTML = '';
+      for (let i = 0; i < 20; i++) {
+        const b = document.createElement('div');
+        b.className = 'bubble-item';
+        b.onclick = () => {
+          if (!b.classList.contains('popped')) {
+            b.classList.add('popped');
+            totalPopped++;
+            document.getElementById('pop-count').textContent = totalPopped;
+            playSound('sine', 460, 120, 0.08, 0.35);
+            state.happy = Math.min(100, state.happy + 1);
+            if (totalPopped % 5 === 0) {
+              state.coins += 2;
+              playSound('triangle', 660, 990, 0.14, 0.25);
+            }
+            updateStatsUI();
+          }
+        };
+        grid.appendChild(b);
+      }
+      playSound('sine', 400, 620, 0.12, 0.2);
+    }
+
+    // ==================== 4. 聊天互動系統 ====================
+    function toggleChat(show) {
+      const modal = document.getElementById('chat-modal');
+      if (show) {
+        modal.classList.remove('hidden');
+        playSound('sine', 520, 740, 0.1, 0.18);
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
+
+    function appendChatMsg(sender, text) {
+      const box = document.getElementById('chat-messages');
+      const row = document.createElement('div');
+      if (sender === 'user') {
+        row.className = 'flex justify-end';
+        row.innerHTML = `<div class="bg-[#4A3500] text-[#FCF6BA] rounded-2xl rounded-tr-none px-3 py-1.5 font-bold max-w-[80%]">${text}</div>`;
+      } else {
+        row.className = 'flex items-start gap-2';
+        row.innerHTML = `<span class="text-xl">🦖</span><div class="bg-[#FCF6BA] border border-[#D4AF37] rounded-2xl rounded-tl-none px-3 py-1.5 font-bold text-[#4A3500] max-w-[82%]">${text}</div>`;
+      }
+      box.appendChild(row);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function sendQuickChat(topic) {
+      const d = dino.desiredDish;
+      const map = {
+        praise: {
+          q: '你今天看起來超級可愛！🥰',
+          a: '嘿嘿～被你誇獎我臉都紅了！最喜歡你啦 💖 (+5 心情)'
+        },
+        food: {
+          q: '小恐龍現在肚子餓嗎？想吃什麼？',
+          a: `我現在最想吃 ${d.emoji} ${d.name} ！幫我現炒或從冰箱拿出來好不好 😋`
+        },
+        joke: {
+          q: '講個小恐龍笑話給我聽！😆',
+          a: '為什麼暴龍不能拍手？因為……牠們的手太短啦！嗷嗚哈哈哈 🤣'
+        },
+        sleep: {
+          q: '玩累了嗎？跟妳說聲晚安喔 🌙',
+          a: '晚安～記得去房間幫我關掉小夜燈、把暖暖被子拉上來蓋好喔 💤'
+        }
+      };
+      const item = map[topic];
+      if (!item) return;
+      appendChatMsg('user', item.q);
+      setTimeout(() => {
+        appendChatMsg('dino', item.a);
+        state.happy = Math.min(100, state.happy + 5);
+        dino.happyTimer = 50;
+        dino.bounceVel = -8;
+        updateStatsUI();
+        playSound('triangle', 480, 780, 0.15, 0.22);
+        spawnParticles(dino.x, dino.y - 40, ['❤️', '💖', '✨'], 7);
+      }, 300);
+    }
+
+    function handleCustomChat(e) {
+      e.preventDefault();
+      const input = document.getElementById('chat-input');
+      const txt = input.value.trim();
+      if (!txt) return;
+      input.value = '';
+      appendChatMsg('user', txt);
+
+      const d = dino.desiredDish;
+      setTimeout(() => {
+        let reply = '嗷嗚～你說得真好！跟你在一起每天都好開心 ✨';
+        if (txt.includes('吃') || txt.includes('餓') || txt.includes('炒')) {
+          reply = `聽到吃的我就流口水了！我現在想吃 ${d.emoji} ${d.name} 喔 😋`;
+        } else if (txt.includes('愛') || txt.includes('可愛') || txt.includes('乖')) {
+          reply = '我也最愛你了！摸摸頭～ 💖';
+        } else if (txt.includes('睡') || txt.includes('晚安')) {
+          reply = '哈欠～我也想睡覺了，去房間幫我關燈蓋被子吧 🌙';
+        } else if (txt.includes('洗') || txt.includes('髒')) {
+          reply = '去浴室幫我搓滿香香的肥皂泡泡、沖水吹乾吧 🛁';
+        }
+        appendChatMsg('dino', reply);
+        state.happy = Math.min(100, state.happy + 4);
+        dino.happyTimer = 40;
+        updateStatsUI();
+        playSound('sine', 520, 760, 0.12, 0.2);
+      }, 320);
+    }
+
+    // ==================== 5. 畫布尺寸與指標輸入互動 ====================
+    function resize() {
+      const rect = stage.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
+      dpr = window.devicePixelRatio || 1;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      dino.x = width * 0.5;
+      dino.y = height * 0.52;
+
+      dining.fridgeRect = { x: 12, y: 54, w: 78, h: 105 };
+      dining.stoveRect = { x: 12, y: 174, w: 78, h: 82 };
+      dining.sinkRect = { x: width - 110, y: height * 0.56, w: 98, h: 72 };
+      dining.sponge.homeX = width - 36;
+      dining.sponge.homeY = height * 0.56 + 18;
+      if (!dining.sponge.dragging) {
+        dining.sponge.x = dining.sponge.homeX;
+        dining.sponge.y = dining.sponge.homeY;
+      }
+
+      if (dining.tableFoods.length === 0) initDiningFoods();
+
+      bathroom.soap.homeX = 62;
+      bathroom.soap.homeY = height * 0.80;
+      if (!bathroom.soap.dragging) {
+        bathroom.soap.x = bathroom.soap.homeX;
+        bathroom.soap.y = bathroom.soap.homeY;
+      }
+
+      bathroom.shower.homeX = width - 62;
+      bathroom.shower.homeY = height * 0.28;
+      if (!bathroom.shower.dragging) {
+        bathroom.shower.x = bathroom.shower.homeX;
+        bathroom.shower.y = bathroom.shower.homeY;
+      }
+
+      bathroom.dryer.homeX = width - 62;
+      bathroom.dryer.homeY = height * 0.80;
+      if (!bathroom.dryer.dragging) {
+        bathroom.dryer.x = bathroom.dryer.homeX;
+        bathroom.dryer.y = bathroom.dryer.homeY;
+      }
+
+      garden.plots.forEach((p, idx) => {
+        p.x = width * (0.22 + idx * 0.28);
+        p.y = height * 0.78;
+      });
+      garden.can.homeX = width - 66;
+      garden.can.homeY = height * 0.28;
+      if (!garden.can.dragging) {
+        garden.can.x = garden.can.homeX;
+        garden.can.y = garden.can.homeY;
+      }
+
+      bedroom.lampRect = { x: width - 88, y: height * 0.32, w: 70, h: 88 };
+      bedroom.blanket.w = 166;
+      bedroom.blanket.h = 84;
+      bedroom.blanket.homeX = width * 0.5 - bedroom.blanket.w / 2;
+      bedroom.blanket.homeY = dino.blanketOn ? (dino.y - 12) : (height * 0.68);
+      if (!bedroom.blanket.dragging) {
+        bedroom.blanket.x = bedroom.blanket.homeX;
+        bedroom.blanket.y = bedroom.blanket.homeY;
+      }
+
+      initSlimePoints();
+    }
+
+    function getPos(clientX, clientY) {
+      const rect = canvas.getBoundingClientRect();
+      return { x: clientX - rect.left, y: clientY - rect.top };
+    }
+
+    function inRect(px, py, r) {
+      return px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h;
+    }
+
+    function handleStart(clientX, clientY) {
+      const pos = getPos(clientX, clientY);
+      pointer.down = true;
+      pointer.x = pos.x;
+      pointer.y = pos.y;
+      pointer.prevX = pos.x;
+      pointer.prevY = pos.y;
+
+      // --- 餐廳互動 ---
+      if (state.scene === 'dining') {
+        // 如果正在使用互動平底鍋料理台
+        if (dining.cooking.active) {
+          // 點擊右上角取消料理按鈕
+          const closeBtn = { x: width * 0.5 + 95, y: height * 0.34, w: 36, h: 36 };
+          if (inRect(pos.x, pos.y, closeBtn)) {
+            dining.cooking.active = false;
+            document.getElementById('room-hint').textContent = '🍽️ 點冰箱拿16道美食，或點料理台翻炒現做！';
+            return;
+          }
+          return;
+        }
+
+        // 1. 點擊雙門大冰箱開啟 16 道料理選單
+        if (inRect(pos.x, pos.y, dining.fridgeRect)) {
+          toggleFridgeModal(true);
+          return;
+        }
+
+        // 2. 點擊互動平底鍋料理台開啟料理選單
+        if (inRect(pos.x, pos.y, dining.stoveRect)) {
+          toggleCookSelectModal(true);
+          return;
+        }
+
+        // 3. 抓起水槽海綿搓泡泡洗碗
+        if (Math.hypot(pos.x - dining.sponge.x, pos.y - dining.sponge.y) < 32) {
+          dining.sponge.dragging = true;
+          playSound('sine', 450, 620, 0.06, 0.16);
+          return;
+        }
+
+        // 4. 抓起餐桌上的食物餵小恐龍
+        for (let i = dining.tableFoods.length - 1; i >= 0; i--) {
+          const f = dining.tableFoods[i];
+          if (Math.hypot(pos.x - f.x, pos.y - f.y) < 36) {
+            dining.dragItem = { type: 'food', ref: f };
+            playSound('sine', 480, 620, 0.06, 0.16);
+            return;
+          }
+        }
+
+        // 5. 抓起髒盤子拖進水槽
+        for (let i = dining.dirtyPlates.length - 1; i >= 0; i--) {
+          const p = dining.dirtyPlates[i];
+          if (Math.hypot(pos.x - p.x, pos.y - p.y) < 34) {
+            dining.dragItem = { type: 'plate', ref: p };
+            playSound('sine', 420, 560, 0.06, 0.16);
+            return;
+          }
+        }
+      }
+
+      // --- 浴室互動 ---
+      if (state.scene === 'bathroom') {
+        if (Math.hypot(pos.x - bathroom.soap.x, pos.y - bathroom.soap.y) < 42) {
+          bathroom.soap.dragging = true;
+          return;
+        }
+        if (Math.hypot(pos.x - bathroom.shower.x, pos.y - bathroom.shower.y) < 46) {
+          bathroom.shower.dragging = true;
+          return;
+        }
+        if (Math.hypot(pos.x - bathroom.dryer.x, pos.y - bathroom.dryer.y) < 46) {
+          bathroom.dryer.dragging = true;
+          return;
+        }
+      }
+
+      // --- 花園互動 ---
+      if (state.scene === 'garden') {
+        if (Math.hypot(pos.x - garden.can.x, pos.y - garden.can.y) < 46) {
+          garden.can.dragging = true;
+          return;
+        }
+        garden.plots.forEach(plot => {
+          if (Math.hypot(pos.x - plot.x, pos.y - plot.y) < 45) {
+            if (plot.stage === 0) {
+              const flowers = ['🌷', '🌻', '🌹', '🌸', '🌺'];
+              plot.flower = flowers[Math.floor(Math.random() * flowers.length)];
+              plot.stage = 1;
+              plot.water = 0;
+              playSound('sine', 440, 660, 0.1, 0.2);
+              addFloatText(plot.x, plot.y - 35, '種下花種子 🌱');
+            } else if (plot.stage === 2) {
+              plot.stage = 0;
+              plot.water = 0;
+              state.coins += 8;
+              state.happy = Math.min(100, state.happy + 6);
+              updateStatsUI();
+              playSound('triangle', 580, 920, 0.16, 0.25);
+              spawnParticles(plot.x, plot.y - 20, [plot.flower, '🪙', '✨'], 8);
+              addFloatText(plot.x, plot.y - 45, '採收花朵 +8 🪙');
+            } else {
+              addFloatText(plot.x, plot.y - 35, '拖曳澆水壺來澆水！💧');
+            }
+          }
+        });
+      }
+
+      // --- 房間互動 ---
+      if (state.scene === 'bedroom') {
+        if (inRect(pos.x, pos.y, bedroom.lampRect)) {
+          bedroom.lightsOn = !bedroom.lightsOn;
+          dino.isSleeping = !bedroom.lightsOn && dino.blanketOn;
+          playSound('sine', bedroom.lightsOn ? 620 : 320, bedroom.lightsOn ? 820 : 220, 0.08, 0.22);
+          addFloatText(bedroom.lampRect.x + 35, bedroom.lampRect.y - 10, bedroom.lightsOn ? '開燈啦 ☀️' : '關燈好夢 🌙');
+          return;
+        }
+        const b = bedroom.blanket;
+        if (pos.x >= b.x && pos.x <= b.x + b.w && pos.y >= b.y && pos.y <= b.y + b.h) {
+          bedroom.blanket.dragging = true;
+          return;
+        }
+      }
+
+      // --- 黃金史萊姆小遊戲互動 ---
+      if (state.scene === 'slime') {
+        slimeGame.dragging = true;
+        for (let i = slimeGame.innerBubbles.length - 1; i >= 0; i--) {
+          const b = slimeGame.innerBubbles[i];
+          const bx = width * 0.5 + b.relX;
+          const by = height * 0.52 + b.relY;
+          if (Math.hypot(pos.x - bx, pos.y - by) <= b.r + 16) {
+            slimeGame.innerBubbles.splice(i, 1);
+            state.coins += 2;
+            state.happy = Math.min(100, state.happy + 2);
+            updateStatsUI();
+            playSound('sine', 660, 1260, 0.07, 0.3);
+            spawnParticles(bx, by, ['🪙', '✨', '💛'], 8);
+            addFloatText(bx, by - 15, '+2 🪙');
+            return;
+          }
+        }
+        playSound('sine', 190, 95, 0.12, 0.22);
+      }
+
+      // 點擊小恐龍通用摸摸頭
+      if (['dining', 'bathroom', 'garden', 'bedroom'].includes(state.scene) && !dining.cooking.active) {
+        if (Math.hypot(pos.x - dino.x, pos.y - dino.y) < 68 && !dino.isSleeping) {
+          dino.happyTimer = 38;
+          if (dino.bounceOffset === 0) dino.bounceVel = -7;
+          state.happy = Math.min(100, state.happy + 2);
+          updateStatsUI();
+          playSound('triangle', 460, 780, 0.12, 0.2);
+          spawnParticles(dino.x, dino.y - 45, ['❤️', '✨'], 5);
+        }
+      }
+    }
+
+    function handleMove(clientX, clientY) {
+      const pos = getPos(clientX, clientY);
+      pointer.prevX = pointer.x;
+      pointer.prevY = pointer.y;
+      pointer.x = pos.x;
+      pointer.y = pos.y;
+
+      if (!pointer.down) return;
+
+      // --- 餐廳互動 ---
+      if (state.scene === 'dining') {
+        // 1. 平底鍋來回滑動翻炒料理！
+        if (dining.cooking.active) {
+          const panCenter = { x: width * 0.5, y: height * 0.56 };
+          if (Math.hypot(pos.x - panCenter.x, pos.y - panCenter.y) < 115) {
+            const moveDist = Math.hypot(pos.x - pointer.prevX, pos.y - pointer.prevY);
+            if (moveDist > 2) {
+              dining.cooking.progress = Math.min(100, dining.cooking.progress + moveDist * 0.22);
+              dining.cooking.foodAngle += (pos.x - pointer.prevX) * 0.08;
+              dining.cooking.panX = width * 0.5 + Math.sin(Date.now() * 0.03) * 6;
+
+              if (Math.random() < 0.28) {
+                playSound('triangle', 320 + Math.random() * 140, 520, 0.06, 0.16);
+                spawnParticles(panCenter.x + (Math.random() - 0.5) * 50, panCenter.y - 10, ['🔥', '✨', '💨'], 1);
+              }
+
+              // 熟度達到 100% 香噴噴出爐！
+              if (dining.cooking.progress >= 100) {
+                const finishedDish = dining.cooking.dish;
+                dining.cooking.active = false;
+                state.coins += 6;
+                state.happy = Math.min(100, state.happy + 4);
+                updateStatsUI();
+
+                playSound('triangle', 520, 980, 0.2, 0.28);
+                spawnParticles(panCenter.x, panCenter.y, ['✨', '👑', '🪙', finishedDish.emoji], 12);
+                placeDishOnTable(finishedDish, true);
+                document.getElementById('room-hint').textContent = '🍽️ 現炒料理出爐啦！快拖去餵小恐龍！';
+              }
+            }
+          }
+          return;
+        }
+
+        // 2. 拖曳海綿洗水槽裡的髒盤子
+        if (dining.sponge.dragging) {
+          dining.sponge.x = pos.x;
+          dining.sponge.y = pos.y;
+          for (let i = dining.dirtyPlates.length - 1; i >= 0; i--) {
+            const p = dining.dirtyPlates[i];
+            if (p.inSink && Math.hypot(pos.x - p.x, pos.y - p.y) < 42) {
+              p.scrub += 8;
+              if (Math.random() < 0.35) {
+                playSound('sine', 520 + Math.random() * 200, 780, 0.05, 0.15);
+                spawnParticles(p.x, p.y, ['🫧', '✨'], 2);
+              }
+              if (p.scrub >= 100) {
+                dining.dirtyPlates.splice(i, 1);
+                state.coins += 5;
+                state.clean = Math.min(100, state.clean + 4);
+                updateStatsUI();
+                playSound('triangle', 580, 960, 0.16, 0.25);
+                spawnParticles(p.x, p.y, ['✨', '🪙', '🫧'], 8);
+                addFloatText(p.x, p.y - 25, '洗得亮晶晶！+5 🪙');
+              }
+            }
+          }
+          return;
+        }
+
+        // 3. 拖曳食物餵食 或 拖曳髒盤子進水槽
+        if (dining.dragItem) {
+          dining.dragItem.ref.x = pos.x;
+          dining.dragItem.ref.y = pos.y;
+
+          if (dining.dragItem.type === 'food') {
+            if (Math.hypot(pos.x - dino.x, pos.y - (dino.y - 22)) < 48) {
+              const food = dining.dragItem.ref;
+              dining.tableFoods = dining.tableFoods.filter(f => f !== food);
+              dining.dragItem = null;
+
+              const isDesired = dino.desiredDish && food.id === dino.desiredDish.id;
+              const freshBonus = food.isFreshCooked ? 5 : 0;
+              const gainCoins = (isDesired ? 10 : 4) + freshBonus;
+
+              state.hunger = Math.min(100, state.hunger + (isDesired ? 20 : 12));
+              state.happy = Math.min(100, state.happy + (isDesired ? 12 : 5));
+              state.coins += gainCoins;
+              updateStatsUI();
+
+              dino.chewTimer = 38;
+              dino.happyTimer = 50;
+              dino.bounceVel = -9;
+              playSound('triangle', 320, 720, 0.15, 0.28);
+              spawnParticles(dino.x, dino.y - 30, isDesired ? ['👑', '❤️', '🪙'] : ['❤️', '✨'], 9);
+
+              let msg = isDesired ? `點餐大滿足！+${gainCoins} 🪙` : `好好吃！+${gainCoins} 🪙`;
+              if (food.isFreshCooked) msg = `現炒超香！+${gainCoins} 🪙`;
+              addFloatText(dino.x, dino.y - 78, msg);
+
+              // 產生髒盤子等待洗碗
+              const plateX = width * (0.24 + (dining.dirtyPlates.length % 2) * 0.16);
+              dining.dirtyPlates.push({
+                x: plateX,
+                y: height * 0.65,
+                homeX: plateX,
+                homeY: height * 0.65,
+                inSink: false,
+                scrub: 0
+              });
+
+              pickNewCraving();
+            }
+          } else if (dining.dragItem.type === 'plate') {
+            const plate = dining.dragItem.ref;
+            if (inRect(pos.x, pos.y, dining.sinkRect)) {
+              plate.inSink = true;
+              plate.homeX = dining.sinkRect.x + 36;
+              plate.homeY = dining.sinkRect.y + 38;
+              plate.x = plate.homeX;
+              plate.y = plate.homeY;
+              dining.dragItem = null;
+              playSound('sine', 440, 620, 0.08, 0.2);
+              addFloatText(plate.x, plate.y - 28, '拖曳海綿搓泡泡洗碗！🧽');
+            }
+          }
+        }
+      }
+
+      // --- 浴室互動（搓肥皂、蓮蓬頭沖水、吹風機吹乾） ---
+      if (state.scene === 'bathroom') {
+        if (bathroom.soap.dragging) {
+          bathroom.soap.x = pos.x;
+          bathroom.soap.y = pos.y;
+          if (Math.hypot(pos.x - dino.x, pos.y - dino.y) < 75) {
+            if (dino.soapBubbles.length < 28 && Math.random() < 0.45) {
+              dino.soapBubbles.push({
+                dx: (Math.random() - 0.5) * 90,
+                dy: (Math.random() - 0.5) * 95,
+                r: Math.random() * 10 + 10
+              });
+              playSound('sine', 480 + Math.random() * 200, 720, 0.05, 0.14);
+            }
+          }
+        } else if (bathroom.shower.dragging) {
+          bathroom.shower.x = pos.x;
+          bathroom.shower.y = pos.y;
+          for (let i = 0; i < 3; i++) {
+            bathroom.waterDrops.push({
+              x: pos.x - 15 + (Math.random() - 0.5) * 24,
+              y: pos.y + 18,
+              vy: Math.random() * 4 + 5
+            });
+          }
+          if (Math.hypot(pos.x - dino.x, pos.y - (dino.y - 65)) < 95) {
+            if (dino.soapBubbles.length > 0) {
+              dino.soapBubbles.splice(0, 2);
+              state.clean = Math.min(100, state.clean + 3);
+              if (dino.soapBubbles.length === 0) {
+                dino.wetDrops = [
+                  { dx: -26, dy: -45 },
+                  { dx: 28, dy: -35 },
+                  { dx: -18, dy: 10 },
+                  { dx: 22, dy: 15 }
+                ];
+                addFloatText(dino.x, dino.y - 82, '泡泡沖掉啦！再用吹風機吹乾 💨');
+              }
+              updateStatsUI();
+            } else if (state.clean < 100 && Math.random() < 0.2) {
+              state.clean = Math.min(100, state.clean + 2);
+              updateStatsUI();
+            }
+          }
+        } else if (bathroom.dryer.dragging) {
+          bathroom.dryer.x = pos.x;
+          bathroom.dryer.y = pos.y;
+          spawnParticles(pos.x - 24, pos.y - 8, ['💨', '✨'], 1);
+          if (Math.hypot(pos.x - dino.x, pos.y - dino.y) < 85 && dino.wetDrops.length > 0) {
+            if (Math.random() < 0.25) {
+              dino.wetDrops.pop();
+              playSound('sine', 360, 520, 0.06, 0.14);
+              if (dino.wetDrops.length === 0) {
+                state.coins += 8;
+                state.happy = Math.min(100, state.happy + 6);
+                dino.happyTimer = 55;
+                updateStatsUI();
+                playSound('triangle', 580, 920, 0.18, 0.26);
+                spawnParticles(dino.x, dino.y - 40, ['✨', '💖', '🪙'], 10);
+                addFloatText(dino.x, dino.y - 82, '吹得蓬鬆香噴噴！+8 🪙');
+              }
+            }
+          }
+        }
+      }
+
+      // --- 花園互動 ---
+      if (state.scene === 'garden' && garden.can.dragging) {
+        garden.can.x = pos.x;
+        garden.can.y = pos.y;
+        spawnParticles(pos.x - 24, pos.y + 12, ['💧'], 1);
+
+        garden.plots.forEach(plot => {
+          if (Math.hypot(pos.x - plot.x, pos.y - (plot.y - 45)) < 55) {
+            if (plot.stage === 1 && Math.random() < 0.14) {
+              plot.water++;
+              playSound('sine', 420, 620, 0.08, 0.18);
+              if (plot.water >= 2) {
+                plot.stage = 2;
+                state.happy = Math.min(100, state.happy + 5);
+                updateStatsUI();
+                spawnParticles(plot.x, plot.y - 25, [plot.flower, '✨', '💖'], 8);
+                addFloatText(plot.x, plot.y - 45, '花朵盛開啦！點擊採收');
+              }
+            }
+          }
+        });
+      }
+
+      // --- 房間拖曳暖被子蓋在小恐龍身上 ---
+      if (state.scene === 'bedroom' && bedroom.blanket.dragging) {
+        bedroom.blanket.x = pos.x - bedroom.blanket.w / 2;
+        bedroom.blanket.y = pos.y - bedroom.blanket.h / 2;
+        if (Math.hypot(pos.x - dino.x, pos.y - (dino.y + 15)) < 65) {
+          dino.blanketOn = true;
+          bedroom.blanket.dragging = false;
+          bedroom.blanket.homeY = dino.y - 12;
+          dino.isSleeping = !bedroom.lightsOn;
+          playSound('triangle', 420, 640, 0.14, 0.22);
+          addFloatText(dino.x, dino.y - 78, bedroom.lightsOn ? '蓋好被子啦！關燈就能睡覺 🌙' : '蓋好暖被子甜甜入睡 Zzz... 💤');
+        }
+      }
+
+      // --- 黃金史萊姆揉捏物理 ---
+      if (state.scene === 'slime' && slimeGame.dragging) {
+        const dx = pointer.x - pointer.prevX;
+        const dy = pointer.y - pointer.prevY;
+        const cx = width * 0.5;
+        const cy = height * 0.52;
+
+        slimeGame.points.forEach(p => {
+          const px = cx + Math.cos(p.angle) * p.radius;
+          const py = cy + Math.sin(p.angle) * p.radius;
+          const dist = Math.hypot(pointer.x - px, pointer.y - py);
+          if (dist < 85) {
+            const inf = 1 - dist / 85;
+            p.velocity += (dx * Math.cos(p.angle) + dy * Math.sin(p.angle)) * 0.45 * inf;
+          }
+        });
+
+        if (Math.hypot(dx, dy) > 14 && Math.random() < 0.25) {
+          playSound('sine', 160 + Math.random() * 60, 85, 0.1, 0.18);
+          spawnParticles(pointer.x, pointer.y, ['✨', '💛'], 2);
+        }
+      }
+    }
+
+    function handleEnd() {
+      pointer.down = false;
+      dining.dragItem = null;
+      dining.sponge.dragging = false;
+      bathroom.soap.dragging = false;
+      bathroom.shower.dragging = false;
+      bathroom.dryer.dragging = false;
+      garden.can.dragging = false;
+      bedroom.blanket.dragging = false;
+      slimeGame.dragging = false;
+    }
+
+    canvas.addEventListener('mousedown', e => handleStart(e.clientX, e.clientY));
+    window.addEventListener('mousemove', e => handleMove(e.clientX, e.clientY));
+    window.addEventListener('mouseup', handleEnd);
+
+    canvas.addEventListener('touchstart', e => {
+      e.preventDefault();
+      if (e.touches.length > 0) handleStart(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', e => {
+      e.preventDefault();
+      if (e.touches.length > 0) handleMove(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', handleEnd);
+
+    // ==================== 6. 繪製可愛黃金小恐龍 ====================
+    function drawDino(x, y) {
+      ctx.save();
+      const drawY = y + dino.bounceOffset;
+      ctx.translate(x, drawY);
+
+      const chewSquash = dino.chewTimer > 0 ? Math.sin(dino.chewTimer * 0.85) * 0.06 : 0;
+      ctx.scale(1 + chewSquash, 1 - chewSquash);
+
+      // 尾巴
+      const tailWag = Math.sin(Date.now() * 0.006) * 9;
+      ctx.fillStyle = '#D4AF37';
+      ctx.beginPath();
+      ctx.moveTo(26, 24);
+      ctx.quadraticCurveTo(64 + tailWag, 14, 72 + tailWag, -8);
+      ctx.quadraticCurveTo(48, 4, 28, 8);
+      ctx.fill();
+
+      // 身體
+      const bodyGrad = ctx.createRadialGradient(-10, -10, 10, 0, 10, 65);
+      bodyGrad.addColorStop(0, '#FFFDF0');
+      bodyGrad.addColorStop(0.45, '#FCF6BA');
+      bodyGrad.addColorStop(1, '#D4AF37');
+
+      ctx.fillStyle = bodyGrad;
+      ctx.beginPath();
+      ctx.ellipse(0, 20, 46, 44, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#996515';
+      ctx.stroke();
+
+      // 白肚肚
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.78)';
+      ctx.beginPath();
+      ctx.ellipse(0, 25, 28, 30, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 頭頂小骨板
+      ctx.fillStyle = '#B38728';
+      [-15, 0, 15].forEach((bx, idx) => {
+        ctx.beginPath();
+        ctx.arc(bx, -62 - (idx === 1 ? 4 : 0), 7, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // 大頭
+      ctx.fillStyle = bodyGrad;
+      ctx.beginPath();
+      ctx.ellipse(0, -30, 44, 36, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#996515';
+      ctx.stroke();
+
+      // 腮紅
+      ctx.fillStyle = 'rgba(255, 105, 135, 0.5)';
+      ctx.beginPath();
+      ctx.ellipse(-26, -22, 9, 6, 0, 0, Math.PI * 2);
+      ctx.ellipse(26, -22, 9, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 眼睛
+      const eyeOffsetX = 18;
+      const eyeY = -37;
+      if (dino.isSleeping) {
+        ctx.strokeStyle = '#4A3500';
+        ctx.lineWidth = 3.5;
+        ctx.lineCap = 'round';
+        [-1, 1].forEach(side => {
+          ctx.beginPath();
+          ctx.arc(side * eyeOffsetX, eyeY, 8, 0.1 * Math.PI, 0.9 * Math.PI);
+          ctx.stroke();
+        });
+      } else if (dino.happyTimer > 0 && dino.mouthOpen < 0.2) {
+        ctx.strokeStyle = '#4A3500';
+        ctx.lineWidth = 3.8;
+        ctx.lineCap = 'round';
+        [-1, 1].forEach(side => {
+          ctx.beginPath();
+          ctx.arc(side * eyeOffsetX, eyeY + 3, 7.5, Math.PI, 0, false);
+          ctx.stroke();
+        });
+      } else {
+        [-1, 1].forEach(side => {
+          const ex = side * eyeOffsetX;
+          ctx.fillStyle = '#FFFFFF';
+          ctx.beginPath();
+          ctx.arc(ex, eyeY, 9.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#3B2800';
+          ctx.beginPath();
+          ctx.arc(ex + dino.eyeLookX, eyeY + dino.eyeLookY, 5.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#FFFFFF';
+          ctx.beginPath();
+          ctx.arc(ex + dino.eyeLookX - 2, eyeY + dino.eyeLookY - 2, 2, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      // 嘴巴
+      const mouthY = -20;
+      if (dino.mouthOpen > 0.15) {
+        const rx = 13 + dino.mouthOpen * 7;
+        const ry = 5 + dino.mouthOpen * 14;
+        ctx.fillStyle = '#8C1D40';
+        ctx.beginPath();
+        ctx.ellipse(0, mouthY + 2, rx, ry, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = '#4A3500';
+        ctx.stroke();
+
+        ctx.fillStyle = '#FF758F';
+        ctx.beginPath();
+        ctx.ellipse(0, mouthY + 2 + ry * 0.4, rx * 0.65, ry * 0.4, 0, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.strokeStyle = '#4A3500';
+        ctx.lineWidth = 3.2;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.arc(0, mouthY - 2, 8, 0.15 * Math.PI, 0.85 * Math.PI);
+        ctx.stroke();
+      }
+
+      // 小短手
+      ctx.fillStyle = '#FCF6BA';
+      ctx.strokeStyle = '#996515';
+      ctx.lineWidth = 2.5;
+      [-1, 1].forEach(side => {
+        ctx.beginPath();
+        ctx.ellipse(side * 25, 22, 12, 8, side * 0.25, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      });
+
+      // 浴室肥皂泡泡
+      dino.soapBubbles.forEach(b => {
+        ctx.beginPath();
+        ctx.arc(b.dx, b.dy, b.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.fill();
+        ctx.strokeStyle = '#BAE6FD';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      });
+
+      // 沖完水後的小水珠
+      dino.wetDrops.forEach(w => {
+        ctx.fillStyle = '#38BDF8';
+        ctx.beginPath();
+        ctx.arc(w.dx, w.dy, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      ctx.restore();
+    }
+
+    function drawSpeechBubble(text) {
+      if (!text) return;
+      ctx.save();
+      ctx.font = '900 16px "Noto Sans TC", sans-serif';
+      const w = Math.min(width - 28, Math.max(185, ctx.measureText(text).width + 30));
+      const h = 40;
+      const x = dino.x - w / 2;
+      const y = dino.y - 122 + Math.sin(Date.now() * 0.004) * 2.5;
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.strokeStyle = '#D4AF37';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, h, 18);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(dino.x - 8, y + h);
+      ctx.lineTo(dino.x, y + h + 9);
+      ctx.lineTo(dino.x + 8, y + h);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fill();
+
+      ctx.fillStyle = '#4A3500';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, dino.x, y + h / 2 + 1);
+      ctx.restore();
+    }
+
+    // ==================== 7. 各場景專屬渲染 ====================
+    function renderDining() {
+      const bg = ctx.createLinearGradient(0, 0, 0, height);
+      bg.addColorStop(0, '#FFF8DC');
+      bg.addColorStop(0.62, '#F7E39C');
+      bg.addColorStop(0.63, '#D4A349');
+      bg.addColorStop(1, '#A67422');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, width, height);
+
+      // 1. 雙門大冰箱（16 道料理）
+      const fr = dining.fridgeRect;
+      ctx.fillStyle = '#F8FAFC';
+      ctx.strokeStyle = '#0284C7';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.roundRect(fr.x, fr.y, fr.w, fr.h, 14);
+      ctx.fill();
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(fr.x + fr.w / 2, fr.y);
+      ctx.lineTo(fr.x + fr.w / 2, fr.y + fr.h);
+      ctx.stroke();
+      ctx.fillStyle = '#0369A1';
+      ctx.font = '900 12px "Noto Sans TC", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('❄️ 16道冰箱', fr.x + fr.w / 2, fr.y + fr.h + 14);
+
+      // 2. 互動平底鍋料理台
+      const st = dining.stoveRect;
+      ctx.fillStyle = '#FEF3C7';
+      ctx.strokeStyle = '#D97706';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.roundRect(st.x, st.y, st.w, st.h, 14);
+      ctx.fill();
+      ctx.stroke();
+      ctx.font = '32px sans-serif';
+      ctx.fillText('🍳', st.x + st.w / 2, st.y + 42);
+      ctx.fillStyle = '#92400E';
+      ctx.font = '900 12px "Noto Sans TC", sans-serif';
+      ctx.fillText('🔥 互動料理台', st.x + st.w / 2, st.y + st.h + 14);
+
+      // 3. 水槽洗碗區 + 海綿
+      const sk = dining.sinkRect;
+      ctx.fillStyle = '#E2E8F0';
+      ctx.strokeStyle = '#64748B';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.roundRect(sk.x, sk.y, sk.w, sk.h, 14);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#BAE6FD';
+      ctx.beginPath();
+      ctx.roundRect(sk.x + 8, sk.y + 10, sk.w - 16, sk.h - 18, 10);
+      ctx.fill();
+      ctx.fillStyle = '#0369A1';
+      ctx.font = '900 12px "Noto Sans TC", sans-serif';
+      ctx.fillText('🚰 水槽洗碗', sk.x + sk.w / 2, sk.y + sk.h + 14);
+
+      // 小恐龍與點餐泡泡
+      drawDino(dino.x, dino.y);
+      drawSpeechBubble(dino.speechText);
+
+      // 餐桌白瓷大餐盤
+      ctx.fillStyle = '#FFFDF5';
+      ctx.strokeStyle = '#D4AF37';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.ellipse(width * 0.46, height * 0.785, 102, 36, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // 餐盤食物（含料理名稱標籤，16 道菜清晰好辨識）
+      dining.tableFoods.forEach(f => {
+        ctx.save();
+        ctx.translate(f.x, f.y);
+        if (dino.desiredDish && f.id === dino.desiredDish.id) {
+          ctx.beginPath();
+          ctx.arc(0, -2, 24, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(255, 215, 0, 0.35)';
+          ctx.fill();
+        }
+        ctx.font = '34px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(f.emoji, -4, -4);
+        ctx.font = '18px sans-serif';
+        ctx.fillText(f.sub, 14, 4);
+
+        ctx.fillStyle = '#4A3500';
+        ctx.font = '900 11px "Noto Sans TC", sans-serif';
+        ctx.fillText(f.name, 0, 22);
+        ctx.restore();
+      });
+
+      // 髒盤子
+      dining.dirtyPlates.forEach(p => {
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.fillStyle = '#E2E8F0';
+        ctx.strokeStyle = '#64748B';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 24, 12, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        if (!p.inSink) {
+          ctx.fillStyle = '#D97706';
+          ctx.beginPath();
+          ctx.arc(-5, -1, 4, 0, Math.PI * 2);
+          ctx.arc(6, 2, 3, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#7C2D12';
+          ctx.font = 'bold 11px "Noto Sans TC", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('拖去水槽', 0, 20);
+        } else {
+          // 顯示洗碗進度條
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(-20, -20, 40, 6);
+          ctx.fillStyle = '#0284C7';
+          ctx.fillRect(-20, -20, 40 * (p.scrub / 100), 6);
+        }
+        ctx.restore();
+      });
+
+      // 洗碗海綿
+      if (!dining.sponge.dragging) {
+        dining.sponge.x += (dining.sponge.homeX - dining.sponge.x) * 0.2;
+        dining.sponge.y += (dining.sponge.homeY - dining.sponge.y) * 0.2;
+      }
+      ctx.save();
+      ctx.translate(dining.sponge.x, dining.sponge.y);
+      ctx.fillStyle = '#FACC15';
+      ctx.strokeStyle = '#CA8A04';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(-16, -11, 32, 22, 6);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#15803D';
+      ctx.fillRect(-16, 4, 32, 7);
+      ctx.restore();
+
+      // 互動平底鍋料理台操作畫面覆蓋
+      if (dining.cooking.active && dining.cooking.dish) {
+        const d = dining.cooking.dish;
+        ctx.save();
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+        ctx.fillRect(0, 0, width, height);
+
+        const boxW = Math.min(width - 28, 320);
+        const boxH = 260;
+        const bx = width * 0.5 - boxW / 2;
+        const by = height * 0.34;
+
+        ctx.fillStyle = '#FFFDF5';
+        ctx.strokeStyle = '#F59E0B';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.roundRect(bx, by, boxW, boxH, 26);
+        ctx.fill();
+        ctx.stroke();
+
+        // 關閉按鈕
+        ctx.fillStyle = '#FEF3C7';
+        ctx.beginPath();
+        ctx.arc(bx + boxW - 22, by + 22, 15, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#92400E';
+        ctx.font = '900 15px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('✕', bx + boxW - 22, by + 27);
+
+        ctx.fillStyle = '#92400E';
+        ctx.font = '900 18px "Noto Sans TC", sans-serif';
+        ctx.fillText(`🔥 正在翻炒：${d.name}`, width * 0.5, by + 32);
+
+        // 平底鍋本體
+        const px = dining.cooking.panX || width * 0.5;
+        const py = by + 135;
+        // 鍋柄
+        ctx.fillStyle = '#334155';
+        ctx.beginPath();
+        ctx.roundRect(px + 55, py - 8, 65, 16, 8);
+        ctx.fill();
+        // 鍋身
+        ctx.fillStyle = '#1E293B';
+        ctx.strokeStyle = '#64748B';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(px, py, 64, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // 鍋內翻炒的食材
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.rotate(dining.cooking.foodAngle);
+        ctx.font = '46px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(d.emoji, -10, -4);
+        ctx.font = '28px sans-serif';
+        ctx.fillText(d.sub, 18, 10);
+        ctx.restore();
+
+        // 熟度進度條
+        const prog = Math.round(dining.cooking.progress);
+        ctx.fillStyle = '#FEF3C7';
+        ctx.beginPath();
+        ctx.roundRect(bx + 24, by + 212, boxW - 48, 22, 11);
+        ctx.fill();
+
+        ctx.fillStyle = '#F59E0B';
+        ctx.beginPath();
+        ctx.roundRect(bx + 24, by + 212, (boxW - 48) * (prog / 100), 22, 11);
+        ctx.fill();
+
+        ctx.fillStyle = '#4A3500';
+        ctx.font = '900 13px "Noto Sans TC", sans-serif';
+        ctx.fillText(`手指在鍋上來回滑動翻炒！熟度 ${prog}%`, width * 0.5, by + 227);
+        ctx.restore();
+      }
+    }
+
+    function renderBathroom() {
+      const bg = ctx.createLinearGradient(0, 0, 0, height);
+      bg.addColorStop(0, '#E0F2FE');
+      bg.addColorStop(0.68, '#BAE6FD');
+      bg.addColorStop(0.69, '#7DD3FC');
+      bg.addColorStop(1, '#38BDF8');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.strokeStyle = '#0284C7';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.roundRect(width * 0.5 - 110, dino.y + 10, 220, 85, [12, 12, 42, 42]);
+      ctx.fill();
+      ctx.stroke();
+
+      drawDino(dino.x, dino.y);
+
+      ctx.fillStyle = '#F0F9FF';
+      ctx.beginPath();
+      ctx.roundRect(width * 0.5 - 106, dino.y + 32, 212, 60, [6, 6, 38, 38]);
+      ctx.fill();
+
+      ctx.fillStyle = '#0284C7';
+      for (let i = bathroom.waterDrops.length - 1; i >= 0; i--) {
+        const d = bathroom.waterDrops[i];
+        d.y += d.vy;
+        if (d.y > dino.y + 45) {
+          bathroom.waterDrops.splice(i, 1);
+          continue;
+        }
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // 肥皂
+      if (!bathroom.soap.dragging) {
+        bathroom.soap.x += (bathroom.soap.homeX - bathroom.soap.x) * 0.2;
+        bathroom.soap.y += (bathroom.soap.homeY - bathroom.soap.y) * 0.2;
+      }
+      ctx.save();
+      ctx.translate(bathroom.soap.x, bathroom.soap.y);
+      ctx.fillStyle = '#F472B6';
+      ctx.strokeStyle = '#DB2777';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.roundRect(-28, -18, 56, 36, 16);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 13px "Noto Sans TC", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('🧼 肥皂', 0, 5);
+      ctx.restore();
+
+      // 蓮蓬頭
+      if (!bathroom.shower.dragging) {
+        bathroom.shower.x += (bathroom.shower.homeX - bathroom.shower.x) * 0.2;
+        bathroom.shower.y += (bathroom.shower.homeY - bathroom.shower.y) * 0.2;
+      }
+      ctx.save();
+      ctx.translate(bathroom.shower.x, bathroom.shower.y);
+      ctx.font = '42px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🚿', 0, 0);
+      ctx.fillStyle = '#0369A1';
+      ctx.font = 'bold 12px "Noto Sans TC", sans-serif';
+      ctx.fillText('蓮蓬頭', 0, 30);
+      ctx.restore();
+
+      // 吹風機
+      if (!bathroom.dryer.dragging) {
+        bathroom.dryer.x += (bathroom.dryer.homeX - bathroom.dryer.x) * 0.2;
+        bathroom.dryer.y += (bathroom.dryer.homeY - bathroom.dryer.y) * 0.2;
+      }
+      ctx.save();
+      ctx.translate(bathroom.dryer.x, bathroom.dryer.y);
+      ctx.font = '40px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('💨', 0, 0);
+      ctx.fillStyle = '#0369A1';
+      ctx.font = 'bold 12px "Noto Sans TC", sans-serif';
+      ctx.fillText('吹風機', 0, 30);
+      ctx.restore();
+    }
+
+    function renderGarden() {
+      const bg = ctx.createLinearGradient(0, 0, 0, height);
+      bg.addColorStop(0, '#FEF9C3');
+      bg.addColorStop(0.58, '#DCFCE7');
+      bg.addColorStop(0.59, '#86EFAC');
+      bg.addColorStop(1, '#22C55E');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, width, height);
+
+      drawDino(dino.x, dino.y - 25);
+
+      garden.butterflies.forEach(b => {
+        b.phase += 0.05;
+        const bx = b.x + Math.cos(b.phase) * 28;
+        const by = b.y + Math.sin(b.phase * 1.5) * 14;
+        ctx.font = '26px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('🦋', bx, by);
+      });
+
+      garden.plots.forEach(plot => {
+        ctx.save();
+        ctx.translate(plot.x, plot.y);
+        ctx.fillStyle = '#78350F';
+        ctx.strokeStyle = '#451A03';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.ellipse(0, 12, 42, 18, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.textAlign = 'center';
+        if (plot.stage === 0) {
+          ctx.fillStyle = '#FEF3C7';
+          ctx.font = 'bold 13px "Noto Sans TC", sans-serif';
+          ctx.fillText('點我種花', 0, 16);
+        } else if (plot.stage === 1) {
+          ctx.font = '34px sans-serif';
+          ctx.fillText('🌱', 0, -6);
+        } else if (plot.stage === 2) {
+          ctx.font = '44px sans-serif';
+          ctx.fillText(plot.flower, 0, -14);
+        }
+        ctx.restore();
+      });
+
+      if (!garden.can.dragging) {
+        garden.can.x += (garden.can.homeX - garden.can.x) * 0.2;
+        garden.can.y += (garden.can.homeY - garden.can.y) * 0.2;
+      }
+      ctx.save();
+      ctx.translate(garden.can.x, garden.can.y);
+      ctx.font = '44px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🪴', 0, 0);
+      ctx.fillStyle = '#15803D';
+      ctx.font = 'bold 13px "Noto Sans TC", sans-serif';
+      ctx.fillText('拖我澆水', 0, 32);
+      ctx.restore();
+    }
+
+    function renderBedroom() {
+      const bg = ctx.createLinearGradient(0, 0, 0, height);
+      if (bedroom.lightsOn) {
+        bg.addColorStop(0, '#FEF3C7');
+        bg.addColorStop(1, '#FDE68A');
+      } else {
+        bg.addColorStop(0, '#1E1B4B');
+        bg.addColorStop(1, '#312E81');
+      }
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, width, height);
+
+      // 窗戶
+      ctx.fillStyle = bedroom.lightsOn ? '#BAE6FD' : '#0F172A';
+      ctx.strokeStyle = '#B45309';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.roundRect(24, 68, 92, 95, 12);
+      ctx.fill();
+      ctx.stroke();
+      ctx.font = '32px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(bedroom.lightsOn ? '☀️' : '🌙', 70, 122);
+
+      // 床鋪
+      ctx.fillStyle = '#F59E0B';
+      ctx.beginPath();
+      ctx.roundRect(width * 0.5 - 95, dino.y - 10, 190, 115, 18);
+      ctx.fill();
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath();
+      ctx.roundRect(width * 0.5 - 65, dino.y - 38, 130, 42, 14);
+      ctx.fill();
+
+      drawDino(dino.x, dino.y);
+
+      // 可拖曳的暖暖棉被
+      const br = bedroom.blanket;
+      if (!br.dragging) {
+        br.x += (br.homeX - br.x) * 0.2;
+        br.y += (br.homeY - br.y) * 0.2;
+      }
+      ctx.fillStyle = dino.blanketOn ? '#F472B6' : '#FBCFE8';
+      ctx.strokeStyle = '#DB2777';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.roundRect(br.x, br.y, br.w, br.h, 16);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#831843';
+      ctx.font = 'bold 13px "Noto Sans TC", sans-serif';
+      ctx.fillText(dino.blanketOn ? '暖暖被子蓋好囉 💖' : '拖曳被子蓋在恐龍身上', br.x + br.w / 2, br.y + 46);
+
+      // 床頭小夜燈開關
+      const lr = bedroom.lampRect;
+      ctx.fillStyle = bedroom.lightsOn ? '#FEF08A' : '#475569';
+      ctx.strokeStyle = '#B45309';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.roundRect(lr.x, lr.y, lr.w, lr.h, 16);
+      ctx.fill();
+      ctx.stroke();
+      ctx.font = '32px sans-serif';
+      ctx.fillText('🛋️', lr.x + lr.w / 2, lr.y + 42);
+      ctx.fillStyle = bedroom.lightsOn ? '#78350F' : '#F8FAFC';
+      ctx.font = 'bold 13px "Noto Sans TC", sans-serif';
+      ctx.fillText(bedroom.lightsOn ? '點我關燈' : '點我開燈', lr.x + lr.w / 2, lr.y + 74);
+
+      if (dino.isSleeping) {
+        if (Math.random() < 0.035) {
+          state.energy = Math.min(100, state.energy + 1);
+          updateStatsUI();
+          addFloatText(dino.x + 35, dino.y - 65, 'Zzz... ⚡+1');
+        }
+      }
+    }
+
+    function renderSlime() {
+      const bg = ctx.createLinearGradient(0, 0, 0, height);
+      bg.addColorStop(0, '#FFFDF2');
+      bg.addColorStop(1, '#F7E59E');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, width, height);
+
+      const cx = width * 0.5;
+      const cy = height * 0.52;
+      const baseR = Math.min(width, height) * 0.28;
+
+      if (Math.random() < 0.03 && slimeGame.innerBubbles.length < 8) {
+        const a = Math.random() * Math.PI * 2;
+        const d = Math.random() * baseR * 0.6;
+        slimeGame.innerBubbles.push({ relX: Math.cos(a) * d, relY: Math.sin(a) * d, r: Math.random() * 7 + 9 });
+      }
+
+      for (let i = 0; i < slimeGame.numPoints; i++) {
+        const p = slimeGame.points[i];
+        const force = (p.targetRadius - p.radius) * 0.065;
+        p.velocity = (p.velocity + force) * 0.86;
+        p.radius += p.velocity;
+      }
+
+      ctx.save();
+      ctx.beginPath();
+      const coords = slimeGame.points.map(p => ({
+        x: cx + Math.cos(p.angle) * p.radius,
+        y: cy + Math.sin(p.angle) * p.radius
+      }));
+      for (let i = 0; i < slimeGame.numPoints; i++) {
+        const curr = coords[i];
+        const next = coords[(i + 1) % slimeGame.numPoints];
+        const midX = (curr.x + next.x) / 2;
+        const midY = (curr.y + next.y) / 2;
+        if (i === 0) {
+          const prev = coords[slimeGame.numPoints - 1];
+          ctx.moveTo((prev.x + curr.x) / 2, (prev.y + curr.y) / 2);
+        }
+        ctx.quadraticCurveTo(curr.x, curr.y, midX, midY);
+      }
+      ctx.closePath();
+
+      const grad = ctx.createRadialGradient(cx - 30, cy - 30, 12, cx, cy, baseR * 1.3);
+      grad.addColorStop(0, '#FFFDF0');
+      grad.addColorStop(0.4, '#FCF6BA');
+      grad.addColorStop(0.8, '#D4AF37');
+      grad.addColorStop(1, '#996515');
+      ctx.fillStyle = grad;
+      ctx.shadowColor = 'rgba(74, 53, 0, 0.3)';
+      ctx.shadowBlur = 22;
+      ctx.shadowOffsetY = 10;
+      ctx.fill();
+      ctx.clip();
+      ctx.shadowColor = 'transparent';
+
+      slimeGame.innerBubbles.forEach(b => {
+        ctx.beginPath();
+        ctx.arc(cx + b.relX, cy + b.relY, b.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+        ctx.fill();
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
+
+      [-24, 24].forEach(ox => {
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.arc(cx + ox, cy - 8, 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#3B2800';
+        ctx.beginPath();
+        ctx.arc(cx + ox, cy - 8, 6.5, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.restore();
+    }
+
+    // ==================== 8. 主動畫迴圈 ====================
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+
+      if (dino.bounceOffset < 0 || dino.bounceVel !== 0) {
+        dino.bounceOffset += dino.bounceVel;
+        dino.bounceVel += 0.85;
+        if (dino.bounceOffset >= 0) {
+          dino.bounceOffset = 0;
+          dino.bounceVel = 0;
+        }
+      }
+      if (dino.chewTimer > 0) dino.chewTimer--;
+      if (dino.happyTimer > 0) dino.happyTimer--;
+
+      const targetX = (dining.dragItem && dining.dragItem.ref) ? dining.dragItem.ref.x : pointer.x;
+      const targetY = (dining.dragItem && dining.dragItem.ref) ? dining.dragItem.ref.y : pointer.y;
+      const angle = Math.atan2(targetY - (dino.y - 35), targetX - dino.x);
+      dino.eyeLookX += (Math.cos(angle) * 3.5 - dino.eyeLookX) * 0.2;
+      dino.eyeLookY += (Math.sin(angle) * 3.5 - dino.eyeLookY) * 0.2;
+
+      if (state.scene === 'dining' && dining.dragItem && dining.dragItem.type === 'food') {
+        const d = Math.hypot(dining.dragItem.ref.x - dino.x, dining.dragItem.ref.y - (dino.y - 22));
+        dino.mouthOpen += ((d < 145 ? 1 : 0.2) - dino.mouthOpen) * 0.25;
+      } else {
+        dino.mouthOpen += (0 - dino.mouthOpen) * 0.2;
+      }
+
+      if (state.scene === 'dining') renderDining();
+      else if (state.scene === 'bathroom') renderBathroom();
+      else if (state.scene === 'garden') renderGarden();
+      else if (state.scene === 'bedroom') renderBedroom();
+      else if (state.scene === 'slime') renderSlime();
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 0.025;
+        if (p.life <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.font = `${p.size}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText(p.icon, p.x, p.y);
+        ctx.restore();
+      }
+
+      for (let i = floatTexts.length - 1; i >= 0; i--) {
+        const ft = floatTexts[i];
+        ft.y -= 1.2;
+        ft.life -= 0.022;
+        if (ft.life <= 0) {
+          floatTexts.splice(i, 1);
+          continue;
+        }
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, ft.life);
+        ctx.fillStyle = '#5C4300';
+        ctx.font = '900 17px "Noto Sans TC", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(ft.text, ft.x, ft.y);
+        ctx.restore();
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', resize);
+    window.onload = function () {
+      buildDishModals();
+      resize();
+      updateStatsUI();
+      animate();
+    };
+  </script>
+</body>
+</html>
