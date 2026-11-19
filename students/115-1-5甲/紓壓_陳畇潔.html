@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>黑藍霓虹星海 · 深海微光紓壓空間</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Noto Sans TC', 'Inter', sans-serif;
+      color: #ffffff;
+      /* 黑到深藍動態流動漸層背景 */
+      background: linear-gradient(-45deg, #000000, #050a1f, #0a1931, #001f4d, #020617);
+      background-size: 400% 400%;
+      animation: deepBlueFlow 18s ease infinite;
+    }
+
+    @keyframes deepBlueFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* 純白文字搭配柔和深藍外發光 (Neon Blue Glow) */
+    .neon-text {
+      color: #ffffff;
+      text-shadow:
+        0 0 8px rgba(0, 170, 255, 0.85),
+        0 0 18px rgba(0, 85, 255, 0.75),
+        0 0 32px rgba(0, 40, 160, 0.6);
+    }
+
+    .neon-text-subtle {
+      color: rgba(255, 255, 255, 0.92);
+      text-shadow:
+        0 0 6px rgba(0, 170, 255, 0.65),
+        0 0 14px rgba(0, 85, 255, 0.5);
+    }
+
+    /* 極簡透明玻璃膠囊與深藍光暈邊框 */
+    .glass-pill {
+      background: rgba(5, 15, 38, 0.45);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      box-shadow:
+        0 0 20px rgba(0, 85, 255, 0.2),
+        inset 0 0 12px rgba(0, 170, 255, 0.08);
+      transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .glass-pill:hover {
+      border-color: rgba(56, 189, 248, 0.55);
+      box-shadow:
+        0 0 25px rgba(0, 140, 255, 0.4),
+        inset 0 0 15px rgba(0, 170, 255, 0.18);
+    }
+
+    .mode-btn.active {
+      background: rgba(0, 102, 255, 0.35);
+      border-color: rgba(125, 211, 252, 0.8);
+      box-shadow:
+        0 0 16px rgba(0, 170, 255, 0.65),
+        inset 0 0 10px rgba(125, 211, 252, 0.35);
+    }
+
+    #zen-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 1;
+      touch-action: none;
+    }
+
+    /* UI 淡入淡出過渡 (純粹全螢幕放空模式) */
+    .ui-layer {
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .ui-hidden {
+      opacity: 0;
+      pointer-events: none !important;
+      transform: translateY(-8px);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 全螢幕互動 Canvas -->
+  <canvas id="zen-canvas"></canvas>
+
+  <!-- 頂部極簡控制列 -->
+  <header id="top-ui" class="ui-layer fixed top-0 left-0 right-0 z-20 p-4 sm:p-6 flex flex-wrap items-center justify-between gap-3 pointer-events-none">
+    <!-- 左側標題 -->
+    <div class="pointer-events-auto flex items-center gap-2.5 px-4 py-2 rounded-full glass-pill">
+      <span class="inline-block w-2.5 h-2.5 rounded-full bg-sky-300 shadow-[0_0_10px_#38bdf8] animate-pulse"></span>
+      <h1 class="text-sm sm:text-base font-medium tracking-wider neon-text">黑藍霓虹星海</h1>
+    </div>
+
+    <!-- 中央三模式切換膠囊 -->
+    <nav class="pointer-events-auto flex items-center gap-1 sm:gap-1.5 p-1.5 rounded-full glass-pill order-3 sm:order-2 w-full sm:w-auto justify-center">
+      <button data-mode="nebula" class="mode-btn active px-3.5 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium neon-text-subtle transition">
+        ✨ 星塵流體引力
+      </button>
+      <button data-mode="bubbles" class="mode-btn px-3.5 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium neon-text-subtle transition">
+        🫧 深海氣泡捏捏樂
+      </button>
+      <button data-mode="breath" class="mode-btn px-3.5 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium neon-text-subtle transition">
+        🌊 4-7-8 深藍呼吸
+      </button>
+    </nav>
+
+    <!-- 右側音效與沉浸模式開關 -->
+    <div class="pointer-events-auto flex items-center gap-2 order-2 sm:order-3">
+      <!-- 深海環境音開關 -->
+      <button id="btn-ambient" class="glass-pill px-3 py-2 rounded-full text-xs sm:text-sm neon-text-subtle flex items-center gap-1.5" title="切換深海低頻環境音">
+        <span id="ambient-icon">🌌</span>
+        <span class="hidden md:inline">深海環境音</span>
+      </button>
+
+      <!-- 主音效開關 -->
+      <button id="btn-sound" class="glass-pill px-3 py-2 rounded-full text-xs sm:text-sm neon-text-subtle flex items-center gap-1.5" title="開啟或靜音療癒音效">
+        <span id="sound-icon">🔊</span>
+        <span class="hidden md:inline" id="sound-label">音效開啟</span>
+      </button>
+
+      <!-- 隱藏 UI 進入純粹放空模式 -->
+      <button id="btn-hide-ui" class="glass-pill px-3 py-2 rounded-full text-xs sm:text-sm neon-text-subtle" title="隱藏介面進入純粹放空模式">
+        👁️
+      </button>
+    </div>
+  </header>
+
+  <!-- 恢復 UI 浮動小按鈕 (僅在隱藏 UI 時顯示) -->
+  <button id="btn-show-ui" class="hidden fixed top-4 right-4 z-30 glass-pill px-3.5 py-2 rounded-full text-xs neon-text-subtle opacity-60 hover:opacity-100 transition">
+    ✨ 顯示選單
+  </button>
+
+  <!-- 氣泡模式專屬：底部一鍵全部戳破與計數膠囊 -->
+  <div id="bubble-controls" class="ui-layer hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3">
+    <div class="glass-pill px-4 py-2 rounded-full text-xs sm:text-sm neon-text-subtle">
+      已釋放壓力：<span id="pop-counter" class="font-bold text-sky-200 neon-text">0</span> 顆氣泡
+    </div>
+    <button id="btn-pop-all" class="glass-pill px-5 py-2 rounded-full text-xs sm:text-sm font-medium neon-text hover:scale-105 active:scale-95 transition cursor-pointer">
+      💥 一鍵全部戳破
+    </button>
+  </div>
+
+  <!-- 呼吸模式專屬：中央溫柔引導文字 -->
+  <div id="breath-guide" class="ui-layer hidden fixed inset-0 z-10 pointer-events-none flex flex-col items-center justify-center text-center px-6">
+    <div id="breath-phase-text" class="text-2xl sm:text-4xl font-light tracking-[0.2em] neon-text mb-3 transition-all duration-700">
+      準備放鬆身心
+    </div>
+    <div id="breath-sub-text" class="text-sm sm:text-base font-light tracking-widest text-sky-200/80 neon-text-subtle">
+      跟隨深藍光環的節奏，慢慢調整呼吸
+    </div>
+    <div id="breath-timer-text" class="mt-4 text-lg sm:text-xl font-mono text-sky-300/90 neon-text-subtle">
+      4 · 7 · 8
+    </div>
+  </div>
+
+  <!-- 底部溫柔操作提示 -->
+  <footer id="bottom-hint" class="ui-layer fixed bottom-5 left-0 right-0 z-10 pointer-events-none text-center px-4">
+    <p id="hint-text" class="text-xs sm:text-sm font-light tracking-widest text-sky-100/75 neon-text-subtle">
+      在夜空中滑動或長按，凝聚發光星塵與深海微光 · 放開後如煙火溫柔綻放
+    </p>
+  </footer>
+
+  <script>
+    /**
+     * ============================================================================
+     * 1. 療癒音效與深海環境音合成器 (Web Audio API - 無需外部音檔)
+     * ============================================================================
+     */
+    class ZenAudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.soundEnabled = true;
+        this.ambientEnabled = false;
+        this.ambientNodes = null;
+        this.lastChimeTime = 0;
+
+        // C 大調五聲音階頻率 (無論怎麼隨機觸發都極度溫柔、和諧、治癒)
+        this.pentatonic = [
+          261.63, 293.66, 329.63, 392.00, 440.00,
+          523.25, 587.33, 659.25, 783.99, 880.00,
+          1046.50
+        ];
+      }
+
+      // 首次互動時自動解鎖瀏覽器 AudioContext
+      unlock() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioCtx();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      toggleSound() {
+        this.unlock();
+        this.soundEnabled = !this.soundEnabled;
+        if (!this.soundEnabled && this.ambientEnabled) {
+          this.stopAmbient();
+          this.ambientEnabled = false;
+        }
+        return this.soundEnabled;
+      }
+
+      toggleAmbient() {
+        this.unlock();
+        this.ambientEnabled = !this.ambientEnabled;
+        if (this.ambientEnabled) {
+          if (!this.soundEnabled) this.soundEnabled = true;
+          this.startAmbient();
+        } else {
+          this.stopAmbient();
+        }
+        return this.ambientEnabled;
+      }
+
+      // 啟動深海低頻環境音與微光和弦 Pad
+      startAmbient() {
+        if (!this.ctx || this.ambientNodes) return;
+        const now = this.ctx.currentTime;
+
+        // 1. 柔和粉紅/布朗噪音模擬深海海浪白噪音
+        const bufferSize = this.ctx.sampleRate * 4;
+        const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        let lastOut = 0.0;
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          output[i] = (lastOut + 0.02 * white) / 1.02;
+          lastOut = output[i];
+          output[i] *= 2.5;
+        }
+
+        const whiteNoise = this.ctx.createBufferSource();
+        whiteNoise.buffer = noiseBuffer;
+        whiteNoise.loop = true;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(220, now);
+
+        const noiseGain = this.ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.001, now);
+        noiseGain.gain.linearRampToValueAtTime(0.12, now + 2.5);
+
+        whiteNoise.connect(filter);
+        filter.connect(noiseGain);
+        noiseGain.connect(this.ctx.destination);
+        whiteNoise.start(now);
+
+        // 2. 深海溫暖低頻和弦 (C2 + G2 + E3)
+        const padFreqs = [65.41, 98.00, 164.81];
+        const oscs = padFreqs.map(freq => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now);
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.linearRampToValueAtTime(0.03, now + 3.0);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          return { osc, gain };
+        });
+
+        this.ambientNodes = { whiteNoise, noiseGain, oscs };
+      }
+
+      stopAmbient() {
+        if (!this.ambientNodes || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const { whiteNoise, noiseGain, oscs } = this.ambientNodes;
+
+        try {
+          noiseGain.gain.setTargetAtTime(0.0001, now, 0.4);
+          oscs.forEach(({ gain }) => gain.gain.setTargetAtTime(0.0001, now, 0.4));
+          setTimeout(() => {
+            try {
+              whiteNoise.stop();
+              oscs.forEach(({ osc }) => osc.stop());
+            } catch (e) {}
+          }, 1200);
+        } catch (e) {}
+
+        this.ambientNodes = null;
+      }
+
+      // 氣泡破裂：清脆水滴 / 泡泡音 (五聲音階隨機音高)
+      playBubblePop(pitchBoost = 1) {
+        if (!this.soundEnabled) return;
+        this.unlock();
+        const now = this.ctx.currentTime;
+
+        const baseFreq = this.pentatonic[Math.floor(Math.random() * this.pentatonic.length)] * pitchBoost;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sine';
+        // 水滴音特色：頻率快速上滑
+        osc.frequency.setValueAtTime(baseFreq * 0.72, now);
+        osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.45, now + 0.085);
+
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.14, now + 0.012);
+        gain.gain.exponentialRampToValueAtTime(0.0008, now + 0.22);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.24);
+      }
+
+      // 星塵滑動：輕柔空靈的風鈴 / 豎琴泛音
+      playStarChime(speedRatio = 0.5) {
+        if (!this.soundEnabled) return;
+        this.unlock();
+        const now = this.ctx.currentTime;
+        // 節流避免過度密集
+        if (now - this.lastChimeTime < 0.09) return;
+        this.lastChimeTime = now;
+
+        const idx = Math.min(
+          this.pentatonic.length - 1,
+          Math.floor(Math.random() * 6 + speedRatio * 5)
+        );
+        const freq = this.pentatonic[idx];
+
+        const osc = this.ctx.createOscillator();
+        const overtone = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now);
+
+        overtone.type = 'triangle';
+        overtone.frequency.setValueAtTime(freq * 2, now);
+
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.linearRampToValueAtTime(0.055, now + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.0005, now + 1.15);
+
+        const overtoneGain = this.ctx.createGain();
+        overtoneGain.gain.setValueAtTime(0.18, now);
+
+        osc.connect(gain);
+        overtone.connect(overtoneGain);
+        overtoneGain.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(now);
+        overtone.start(now);
+        osc.stop(now + 1.2);
+        overtone.stop(now + 1.2);
+      }
+
+      // 呼吸階段切換的溫柔頌缽提示音
+      playBreathBell(freq = 392.0) {
+        if (!this.soundEnabled) return;
+        this.unlock();
+        const now = this.ctx.currentTime;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now);
+
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.linearRampToValueAtTime(0.06, now + 0.25);
+        gain.gain.exponentialRampToValueAtTime(0.0005, now + 2.4);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 2.5);
+      }
+    }
+
+    const audio = new ZenAudioEngine();
+
+    /**
+     * ============================================================================
+     * 2. 全螢幕 Canvas 與深海星空背景粒子系統
+     * ============================================================================
+     */
+    const canvas = document.getElementById('zen-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    // 固定背景深海微光星空粒子
+    const bgStars = [];
+    const BG_STAR_COUNT = 110;
+
+    function initBgStars() {
+      bgStars.length = 0;
+      for (let i = 0; i < BG_STAR_COUNT; i++) {
+        bgStars.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          r: Math.random() * 1.8 + 0.4,
+          phase: Math.random() * Math.PI * 2,
+          speed: 0.5 + Math.random() * 1.5,
+          driftY: -0.08 - Math.random() * 0.18,
+          hue: Math.random() > 0.3 ? 205 : 220
+        });
+      }
+    }
+
+    function updateAndDrawBgStars(time) {
+      for (let i = 0; i < bgStars.length; i++) {
+        const s = bgStars[i];
+        s.y += s.driftY;
+        if (s.y < -5) {
+          s.y = height + 5;
+          s.x = Math.random() * width;
+        }
+        const alpha = 0.25 + 0.55 * (0.5 + 0.5 * Math.sin(time * s.speed + s.phase));
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${s.hue}, 100%, 82%, ${alpha})`;
+        ctx.fill();
+      }
+    }
+
+    /**
+     * ============================================================================
+     * 3. 模式一：【星塵流體引力 (Nebula Flow)】
+     * ============================================================================
+     */
+    const STARDUST_COUNT = 280;
+    const stardust = [];
+    const ripples = []; // 觸控水波紋特效
+
+    // 多點觸控 / 滑鼠指標追蹤
+    const pointers = new Map();
+    let wasInteracting = false;
+
+    const palette = [
+      { h: 215, s: 100, l: 62 }, // 深海霓虹藍 (#0055ff ~ #0088ff)
+      { h: 198, s: 100, l: 68 }, // 冰藍光暈 (#00aaff)
+      { h: 188, s: 95,  l: 78 }, // 水母螢光青藍
+      { h: 210, s: 40,  l: 95 }  // 銀白星塵
+    ];
+
+    function initStardust() {
+      stardust.length = 0;
+      for (let i = 0; i < STARDUST_COUNT; i++) {
+        const col = palette[i % palette.length];
+        stardust.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: (Math.random() - 0.5) * 0.8,
+          vy: (Math.random() - 0.5) * 0.8,
+          size: Math.random() * 2.4 + 1.1,
+          color: col,
+          orbitAngle: Math.random() * Math.PI * 2,
+          orbitRadius: 25 + Math.random() * 110,
+          history: [] // 儲存軌跡點以繪製柔光尾巴
+        });
+      }
+    }
+
+    // 放開手指/滑鼠時，星塵如煙火般溫柔向四周綻放
+    function scatterStardust(originX, originY) {
+      ripples.push({ x: originX, y: originY, r: 8, alpha: 0.75 });
+      for (let i = 0; i < stardust.length; i++) {
+        const p = stardust[i];
+        const dx = p.x - originX;
+        const dy = p.y - originY;
+        const dist = Math.hypot(dx, dy) || 1;
+        if (dist < 320) {
+          const force = (1 - dist / 320) * (4.5 + Math.random() * 5.5);
+          const angle = Math.atan2(dy, dx) + (Math.random() - 0.5) * 0.4;
+          p.vx += Math.cos(angle) * force;
+          p.vy += Math.sin(angle) * force;
+        }
+      }
+      audio.playStarChime(0.95);
+    }
+
+    function updateAndDrawNebula(time) {
+      const activePts = Array.from(pointers.values());
+      const isInteracting = activePts.length > 0;
+
+      // 繪製水波光環
+      for (let i = ripples.length - 1; i >= 0; i--) {
+        const rp = ripples[i];
+        rp.r += 4.2;
+        rp.alpha *= 0.95;
+        ctx.beginPath();
+        ctx.arc(rp.x, rp.y, rp.r, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(56, 189, 248, ${rp.alpha})`;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        if (rp.alpha < 0.02) ripples.splice(i, 1);
+      }
+
+      // 若正在按住/滑動，在指尖周圍繪製深藍光暈核心
+      if (isInteracting) {
+        activePts.forEach(pt => {
+          const grad = ctx.createRadialGradient(pt.x, pt.y, 2, pt.x, pt.y, 110);
+          grad.addColorStop(0, 'rgba(125, 211, 252, 0.35)');
+          grad.addColorStop(0.45, 'rgba(0, 102, 255, 0.14)');
+          grad.addColorStop(1, 'rgba(0, 30, 100, 0)');
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, 110, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+
+      for (let i = 0; i < stardust.length; i++) {
+        const p = stardust[i];
+
+        if (isInteracting) {
+          // 尋找最近的觸控點
+          let target = activePts[0];
+          if (activePts.length > 1) {
+            let minDist = Infinity;
+            for (const pt of activePts) {
+              const d = (p.x - pt.x) ** 2 + (p.y - pt.y) ** 2;
+              if (d < minDist) {
+                minDist = d;
+                target = pt;
+              }
+            }
+          }
+
+          p.orbitAngle += 0.032;
+          const swirlX = target.x + Math.cos(p.orbitAngle) * p.orbitRadius * 0.55;
+          const swirlY = target.y + Math.sin(p.orbitAngle) * p.orbitRadius * 0.55;
+
+          const dx = swirlX - p.x;
+          const dy = swirlY - p.y;
+          const dist = Math.hypot(dx, dy) || 1;
+
+          // 引力與優雅旋渦切線力
+          const pull = Math.min(1.4, 180 / (dist + 40)) * 0.28;
+          p.vx += (dx / dist) * pull - (dy / dist) * 0.14;
+          p.vy += (dy / dist) * pull + (dx / dist) * 0.14;
+          p.vx *= 0.91;
+          p.vy *= 0.91;
+        } else {
+          // 自由漂浮如深海發光水母
+          p.orbitAngle += 0.01;
+          p.vx += Math.cos(time * 0.6 + i) * 0.015;
+          p.vy += Math.sin(time * 0.5 + i) * 0.015 - 0.008;
+          p.vx *= 0.975;
+          p.vy *= 0.975;
+        }
+
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // 邊界柔和循環
+        if (p.x < -30) { p.x = width + 30; p.history.length = 0; }
+        if (p.x > width + 30) { p.x = -30; p.history.length = 0; }
+        if (p.y < -30) { p.y = height + 30; p.history.length = 0; }
+        if (p.y > height + 30) { p.y = -30; p.history.length = 0; }
+
+        // 記錄柔光軌跡
+        p.history.push({ x: p.x, y: p.y });
+        const maxTrail = isInteracting ? 12 : 7;
+        if (p.history.length > maxTrail) p.history.shift();
+
+        // 繪製拖曳光軌
+        if (p.history.length > 1) {
+          ctx.beginPath();
+          ctx.moveTo(p.history[0].x, p.history[0].y);
+          for (let j = 1; j < p.history.length; j++) {
+            ctx.lineTo(p.history[j].x, p.history[j].y);
+          }
+          ctx.strokeStyle = `hsla(${p.color.h}, ${p.color.s}%, ${p.color.l}%, 0.28)`;
+          ctx.lineWidth = p.size * 0.85;
+          ctx.lineCap = 'round';
+          ctx.stroke();
+        }
+
+        // 繪製星塵光點核心
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${p.color.h}, ${p.color.s}%, ${p.color.l}%, 0.9)`;
+        ctx.fill();
+      }
+
+      ctx.restore();
+      wasInteracting = isInteracting;
+    }
+
+    /**
+     * ============================================================================
+     * 4. 模式二：【深海氣泡捏捏樂 (Neon Bubble Pop)】
+     * ============================================================================
+     */
+    const bubbles = [];
+    const popParticles = [];
+    let poppedCount = 0;
+    const popCounterEl = document.getElementById('pop-counter');
+
+    function initBubbles() {
+      bubbles.length = 0;
+      const isMobile = width < 640;
+      const radius = isMobile ? 25 : 32;
+      const gap = isMobile ? 12 : 16;
+      const step = radius * 2 + gap;
+
+      const topMargin = isMobile ? 125 : 105;
+      const bottomMargin = 95;
+      const usableW = width - 40;
+      const usableH = Math.max(200, height - topMargin - bottomMargin);
+
+      const cols = Math.max(4, Math.floor(usableW / step));
+      const rows = Math.max(4, Math.floor(usableH / step));
+
+      const offsetX = (width - (cols * step - gap)) / 2 + radius;
+      const offsetY = topMargin + (usableH - (rows * step - gap)) / 2 + radius;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          // 蜂巢錯位排列，視覺更飽滿療癒
+          const stagger = (r % 2 === 1) ? step * 0.22 : -step * 0.22;
+          const bx = offsetX + c * step + stagger;
+          const by = offsetY + r * step;
+
+          if (bx > radius + 8 && bx < width - radius - 8) {
+            bubbles.push({
+              x: bx,
+              y: by,
+              maxR: radius,
+              currentR: radius,
+              popped: false,
+              respawnTimer: 0,
+              phase: Math.random() * Math.PI * 2,
+              hue: 198 + Math.random() * 22
+            });
+          }
+        }
+      }
+    }
+
+    function popSingleBubble(b, playAudio = true) {
+      if (b.popped) return;
+      b.popped = true;
+      b.currentR = 0;
+      b.respawnTimer = 2.6 + Math.random() * 1.6; // 幾秒後像水珠般慢慢充氣復原
+
+      poppedCount++;
+      popCounterEl.textContent = poppedCount;
+
+      if (playAudio) {
+        audio.playBubblePop(1);
+      }
+
+      // 爆出細碎藍光水珠粒子
+      const shardCount = 12;
+      for (let i = 0; i < shardCount; i++) {
+        const angle = (i / shardCount) * Math.PI * 2 + Math.random() * 0.3;
+        const speed = 2.2 + Math.random() * 4.5;
+        popParticles.push({
+          x: b.x + Math.cos(angle) * (b.maxR * 0.4),
+          y: b.y + Math.sin(angle) * (b.maxR * 0.4),
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          r: 1.5 + Math.random() * 2.5,
+          life: 1.0,
+          hue: b.hue
+        });
+      }
+    }
+
+    function checkBubbleHit(px, py) {
+      for (let i = 0; i < bubbles.length; i++) {
+        const b = bubbles[i];
+        if (!b.popped && b.currentR > b.maxR * 0.55) {
+          const dist = Math.hypot(px - b.x, py - b.y);
+          if (dist <= b.currentR * 1.12) {
+            popSingleBubble(b, true);
+          }
+        }
+      }
+    }
+
+    // 一鍵全部戳破（帶連鎖波浪音效，超解壓！）
+    function popAllBubbles() {
+      const unpopped = bubbles.filter(b => !b.popped);
+      if (unpopped.length === 0) return;
+
+      // 依從左到右排序，形成波浪爆破感
+      unpopped.sort((a, b) => (a.x + a.y * 0.5) - (b.x + b.y * 0.5));
+      unpopped.forEach((b, idx) => {
+        setTimeout(() => {
+          popSingleBubble(b, idx % 3 === 0);
+        }, Math.min(450, idx * 8));
+      });
+    }
+
+    function updateAndDrawBubbles(time, dt) {
+      // 更新與繪製氣泡
+      for (let i = 0; i < bubbles.length; i++) {
+        const b = bubbles[i];
+
+        if (b.popped) {
+          b.respawnTimer -= dt;
+          if (b.respawnTimer <= 0) {
+            // 像水珠一樣彈性充氣恢復
+            b.currentR += (b.maxR - b.currentR) * Math.min(1, dt * 5.5);
+            if (b.maxR - b.currentR < 0.4) {
+              b.currentR = b.maxR;
+              b.popped = false;
+            }
+          } else {
+            // 未復原前顯示淡淡的水漬光圈殘影
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.maxR * 0.72, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.1)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            continue;
+          }
+        }
+
+        const breath = b.popped ? 0 : Math.sin(time * 2.2 + b.phase) * 1.6;
+        const r = Math.max(0.1, b.currentR + breath);
+
+        // 水晶氣泡漸層球體
+        const grad = ctx.createRadialGradient(
+          b.x - r * 0.32, b.y - r * 0.32, r * 0.08,
+          b.x, b.y, r
+        );
+        grad.addColorStop(0, 'rgba(224, 242, 254, 0.55)');
+        grad.addColorStop(0.35, `hsla(${b.hue}, 100%, 58%, 0.24)`);
+        grad.addColorStop(0.82, 'rgba(0, 68, 204, 0.38)');
+        grad.addColorStop(1, 'rgba(56, 189, 248, 0.75)');
+
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, r, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // 外發光邊框
+        ctx.strokeStyle = 'rgba(125, 211, 252, 0.55)';
+        ctx.lineWidth = 1.3;
+        ctx.stroke();
+
+        // 左上角水晶高光點
+        ctx.beginPath();
+        ctx.ellipse(
+          b.x - r * 0.34,
+          b.y - r * 0.34,
+          r * 0.22,
+          r * 0.12,
+          -Math.PI / 4,
+          0,
+          Math.PI * 2
+        );
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+        ctx.fill();
+      }
+
+      // 更新與繪製爆裂藍光碎片
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      for (let i = popParticles.length - 1; i >= 0; i--) {
+        const p = popParticles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vx *= 0.93;
+        p.vy *= 0.93;
+        p.life -= dt * 2.4;
+
+        if (p.life <= 0) {
+          popParticles.splice(i, 1);
+          continue;
+        }
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${p.hue}, 100%, 75%, ${p.life})`;
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    /**
+     * ============================================================================
+     * 5. 模式三：【深藍呼吸律動 (4-7-8 Deep Breath)】
+     * ============================================================================
+     */
+    const breathPhaseEl = document.getElementById('breath-phase-text');
+    const breathSubEl = document.getElementById('breath-sub-text');
+    const breathTimerEl = document.getElementById('breath-timer-text');
+
+    let breathElapsed = 0;
+    let lastBreathPhase = '';
+
+    // 4-7-8 呼吸法總週期 = 4 + 7 + 8 = 19 秒
+    function updateAndDrawBreath(dt) {
+      breathElapsed = (breathElapsed + dt) % 19;
+
+      let phaseName = '';
+      let subText = '';
+      let remaining = 0;
+      let scale = 0.45; // 0.45 (最小) ~ 1.0 (最大)
+
+      if (breathElapsed < 4) {
+        // 吸氣 4 秒：平滑放大
+        const t = breathElapsed / 4;
+        const ease = 0.5 - 0.5 * Math.cos(t * Math.PI);
+        scale = 0.45 + ease * 0.55;
+        phaseName = '深深吸氣';
+        subText = '用鼻子緩慢吸入寧靜的深海微光';
+        remaining = Math.ceil(4 - breathElapsed);
+      } else if (breathElapsed < 11) {
+        // 憋氣 7 秒：維持飽滿光環並微微脈動
+        const holdT = breathElapsed - 4;
+        scale = 1.0 + Math.sin(holdT * 2.5) * 0.018;
+        phaseName = '輕柔屏息';
+        subText = '讓平靜與氧氣在身體裡停留片刻';
+        remaining = Math.ceil(11 - breathElapsed);
+      } else {
+        // 吐氣 8 秒：平滑縮小釋放壓力
+        const t = (breathElapsed - 11) / 8;
+        const ease = 0.5 - 0.5 * Math.cos(t * Math.PI);
+        scale = 1.0 - ease * 0.55;
+        phaseName = '緩緩吐氣';
+        subText = '把所有疲憊與緊繃隨氣息一起釋放';
+        remaining = Math.ceil(19 - breathElapsed);
+      }
+
+      if (phaseName !== lastBreathPhase) {
+        lastBreathPhase = phaseName;
+        breathPhaseEl.textContent = phaseName;
+        breathSubEl.textContent = subText;
+        const bellFreq = phaseName === '深深吸氣' ? 392.0 : (phaseName === '輕柔屏息' ? 440.0 : 261.63);
+        audio.playBreathBell(bellFreq);
+      }
+      breathTimerEl.textContent = `${remaining} 秒`;
+
+      const cx = width / 2;
+      const cy = height / 2;
+      const maxRadius = Math.min(width, height) * 0.34;
+      const r = maxRadius * scale;
+
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+
+      // 多層深藍光暈圓環
+      for (let layer = 3; layer >= 1; layer--) {
+        const layerR = r * (0.82 + layer * 0.12);
+        const grad = ctx.createRadialGradient(cx, cy, layerR * 0.2, cx, cy, layerR);
+        grad.addColorStop(0, 'rgba(0, 85, 255, 0.05)');
+        grad.addColorStop(0.7, `rgba(0, 140, 255, ${0.14 / layer})`);
+        grad.addColorStop(1, 'rgba(56, 189, 248, 0)');
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, layerR, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+      }
+
+      // 呼吸主發光環
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(125, 211, 252, 0.85)';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#0088ff';
+      ctx.shadowBlur = 28;
+      ctx.stroke();
+
+      // 環繞光環的小光點衛星
+      const dotCount = 12;
+      for (let i = 0; i < dotCount; i++) {
+        const angle = (i / dotCount) * Math.PI * 2 + breathElapsed * 0.35;
+        const dx = cx + Math.cos(angle) * r;
+        const dy = cy + Math.sin(angle) * r;
+        ctx.beginPath();
+        ctx.arc(dx, dy, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(224, 242, 254, 0.9)';
+        ctx.fill();
+      }
+
+      ctx.restore();
+    }
+
+    /**
+     * ============================================================================
+     * 6. 模式切換與互動事件綁定
+     * ============================================================================
+     */
+    let currentMode = 'nebula'; // 'nebula' | 'bubbles' | 'breath'
+
+    const modeButtons = document.querySelectorAll('.mode-btn');
+    const bubbleControls = document.getElementById('bubble-controls');
+    const breathGuide = document.getElementById('breath-guide');
+    const bottomHint = document.getElementById('bottom-hint');
+    const hintText = document.getElementById('hint-text');
+
+    const modeHints = {
+      nebula: '在夜空中滑動或長按，凝聚發光星塵與深海微光 · 放開後如煙火溫柔綻放',
+      bubbles: '點擊或滑過發光深藍氣泡，「啵」一聲釋放壓力 · 氣泡稍後會自動恢復',
+      breath: '跟隨中央深藍光環進行 4-7-8 呼吸練習，享受無壓力的寧靜時刻'
+    };
+
+    function switchMode(mode) {
+      currentMode = mode;
+      modeButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+      });
+
+      bubbleControls.classList.toggle('hidden', mode !== 'bubbles');
+      breathGuide.classList.toggle('hidden', mode !== 'breath');
+      bottomHint.classList.toggle('hidden', mode === 'bubbles');
+      hintText.textContent = modeHints[mode];
+
+      if (mode === 'bubbles' && bubbles.length === 0) {
+        initBubbles();
+      }
+      if (mode === 'breath') {
+        breathElapsed = 0;
+        lastBreathPhase = '';
+      }
+    }
+
+    modeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        audio.unlock();
+        switchMode(btn.dataset.mode);
+      });
+    });
+
+    // Pointer Events 統一支援滑鼠與手機多點觸控
+    canvas.addEventListener('pointerdown', (e) => {
+      audio.unlock();
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if (currentMode === 'nebula') {
+        ripples.push({ x: e.clientX, y: e.clientY, r: 5, alpha: 0.65 });
+        audio.playStarChime(0.4);
+      } else if (currentMode === 'bubbles') {
+        checkBubbleHit(e.clientX, e.clientY);
+      }
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+      if (pointers.has(e.pointerId)) {
+        const prev = pointers.get(e.pointerId);
+        const speed = Math.hypot(e.clientX - prev.x, e.clientY - prev.y);
+        pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+        if (currentMode === 'nebula' && speed > 3) {
+          audio.playStarChime(Math.min(1, speed / 35));
+        } else if (currentMode === 'bubbles') {
+          checkBubbleHit(e.clientX, e.clientY);
+        }
+      }
+    });
+
+    function handlePointerRelease(e) {
+      if (pointers.has(e.pointerId)) {
+        const pt = pointers.get(e.pointerId);
+        pointers.delete(e.pointerId);
+        if (currentMode === 'nebula') {
+          scatterStardust(pt.x, pt.y);
+        }
+      }
+    }
+
+    canvas.addEventListener('pointerup', handlePointerRelease);
+    canvas.addEventListener('pointercancel', handlePointerRelease);
+
+    // 氣泡一鍵全部戳破
+    document.getElementById('btn-pop-all').addEventListener('click', () => {
+      audio.unlock();
+      popAllBubbles();
+    });
+
+    // 音效與深海環境音按鈕
+    const btnSound = document.getElementById('btn-sound');
+    const soundIcon = document.getElementById('sound-icon');
+    const soundLabel = document.getElementById('sound-label');
+
+    btnSound.addEventListener('click', () => {
+      const enabled = audio.toggleSound();
+      soundIcon.textContent = enabled ? '🔊' : '🔇';
+      soundLabel.textContent = enabled ? '音效開啟' : '已靜音';
+      updateAmbientBtnUI(audio.ambientEnabled);
+    });
+
+    const btnAmbient = document.getElementById('btn-ambient');
+    function updateAmbientBtnUI(active) {
+      btnAmbient.classList.toggle('active', active);
+    }
+
+    btnAmbient.addEventListener('click', () => {
+      const active = audio.toggleAmbient();
+      updateAmbientBtnUI(active);
+      if (active) {
+        soundIcon.textContent = '🔊';
+        soundLabel.textContent = '音效開啟';
+      }
+    });
+
+    // 隱藏 / 顯示 UI 進入純粹全螢幕放空模式
+    const btnHideUi = document.getElementById('btn-hide-ui');
+    const btnShowUi = document.getElementById('btn-show-ui');
+    const uiLayers = document.querySelectorAll('.ui-layer');
+
+    btnHideUi.addEventListener('click', () => {
+      uiLayers.forEach(el => el.classList.add('ui-hidden'));
+      btnShowUi.classList.remove('hidden');
+    });
+
+    btnShowUi.addEventListener('click', () => {
+      uiLayers.forEach(el => el.classList.remove('ui-hidden'));
+      btnShowUi.classList.add('hidden');
+    });
+
+    /**
+     * ============================================================================
+     * 7. 視窗自適應與主動畫迴圈
+     * ============================================================================
+     */
+    function resizeCanvas() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      initBgStars();
+      if (currentMode === 'bubbles') {
+        initBubbles();
+      }
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+
+    let lastTimestamp = 0;
+    function animate(timestamp) {
+      const dt = Math.min(0.05, (timestamp - lastTimestamp) / 1000 || 0.016);
+      lastTimestamp = timestamp;
+      const time = timestamp / 1000;
+
+      // 清除畫布並保留 CSS 動態黑藍漸層背景透出
+      ctx.clearRect(0, 0, width, height);
+
+      // 繪製深海星空微光粒子
+      updateAndDrawBgStars(time);
+
+      // 繪製當前紓壓模式
+      if (currentMode === 'nebula') {
+        updateAndDrawNebula(time);
+      } else if (currentMode === 'bubbles') {
+        updateAndDrawBubbles(time, dt);
+      } else if (currentMode === 'breath') {
+        updateAndDrawBreath(dt);
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    window.onload = function () {
+      resizeCanvas();
+      initStardust();
+      initBubbles();
+      requestAnimationFrame(animate);
+    };
+  </script>
+</body>
+</html>
