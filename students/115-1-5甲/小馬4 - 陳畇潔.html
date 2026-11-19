@@ -1,0 +1,1710 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>雲寶的彩虹音爆大挑戰 - Rainbow Dash</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Fredoka', 'Noto Sans TC', sans-serif;
+      background: #4facfe;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .rainbow-border {
+      background: linear-gradient(90deg, #ff3b30, #ff9500, #ffcc00, #34c759, #007aff, #af52de);
+      padding: 4px;
+      border-radius: 24px;
+      box-shadow: 0 12px 32px rgba(0, 85, 170, 0.35);
+    }
+    .rainbow-text {
+      background: linear-gradient(90deg, #ff2a5f, #ff7b00, #eab308, #10b981, #0284c7, #9333ea);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 2px 4px rgba(255,255,255,0.8));
+    }
+    .btn-pony {
+      transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2), 0 10px 20px rgba(0,0,0,0.15);
+    }
+    .btn-pony:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2), 0 4px 10px rgba(0,0,0,0.15);
+    }
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 15px #ff2a85, 0 0 30px #00d2ff; transform: scale(1); }
+      50% { box-shadow: 0 0 25px #ffcc00, 0 0 45px #ff2a85; transform: scale(1.05); }
+    }
+    .rainboom-ready {
+      animation: pulse-glow 0.9s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="relative w-full h-full">
+
+  <!-- 遊戲主畫布 -->
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- 頂部狀態列 (HUD) -->
+  <div id="hud" class="hidden absolute top-0 left-0 w-full p-3 sm:p-5 flex justify-between items-start pointer-events-none z-10">
+    <!-- 左上：分數與最高分 -->
+    <div class="flex flex-col gap-2">
+      <div class="bg-white/85 backdrop-blur-md border-2 border-sky-300 rounded-2xl px-4 py-2 shadow-lg flex items-center gap-3">
+        <div class="text-2xl">⚡</div>
+        <div>
+          <div class="text-xs font-bold text-sky-600">飛行積分</div>
+          <div id="scoreDisplay" class="text-2xl sm:text-3xl font-black text-sky-900 leading-none">0</div>
+        </div>
+        <div class="h-8 w-[2px] bg-sky-200 mx-1"></div>
+        <div>
+          <div class="text-xs font-bold text-amber-500">最高紀錄</div>
+          <div id="highScoreDisplay" class="text-lg sm:text-xl font-extrabold text-amber-600 leading-none">0</div>
+        </div>
+      </div>
+
+      <!-- 難度與速度提示 -->
+      <div class="flex items-center gap-2">
+        <span id="diffBadge" class="bg-sky-600/90 text-white text-xs font-bold px-3 py-1 rounded-full shadow">困難模式</span>
+        <span id="comboBadge" class="hidden bg-gradient-to-r from-pink-500 to-amber-400 text-white text-xs font-black px-3 py-1 rounded-full shadow animate-bounce">連擊 x2!</span>
+      </div>
+    </div>
+
+    <!-- 中上：彩虹音爆能量條 -->
+    <div class="flex flex-col items-center w-44 sm:w-64">
+      <div class="text-xs sm:text-sm font-black text-white drop-shadow-[0_2px_3px_rgba(0,0,0,0.5)] mb-1 tracking-wider">
+        🌈 彩虹音爆能量 (SONIC RAINBOOM)
+      </div>
+      <div id="rainboomBarContainer" class="w-full h-5 sm:h-6 bg-slate-900/50 backdrop-blur-sm rounded-full p-1 border-2 border-white shadow-inner overflow-hidden">
+        <div id="rainboomBar" class="h-full w-0 rounded-full transition-all duration-150"
+             style="background: linear-gradient(90deg, #ff3b30, #ff9500, #ffcc00, #34c759, #00c7be, #007aff, #af52de);">
+        </div>
+      </div>
+      <div id="rainboomHint" class="text-[11px] sm:text-xs font-bold text-yellow-200 drop-shadow mt-1 opacity-0 transition-opacity">
+        ✨ 能量已滿！按 [空白鍵] 或點擊右下按鈕釋放！
+      </div>
+    </div>
+
+    <!-- 右上：音效開關 -->
+    <button id="muteBtn" class="pointer-events-auto bg-white/85 hover:bg-white text-sky-700 border-2 border-sky-300 rounded-2xl p-2.5 sm:p-3 shadow-lg transition active:scale-95" title="音效開關">
+      <span id="muteIcon" class="text-xl sm:text-2xl">🔊</span>
+    </button>
+  </div>
+
+  <!-- 右下角：手機/滑鼠專用「彩虹音爆」觸發按鈕 -->
+  <button id="rainboomTriggerBtn" class="hidden fixed bottom-6 right-6 z-20 rounded-full px-5 py-4 sm:px-6 sm:py-5 font-black text-white text-base sm:text-lg border-4 border-white shadow-2xl transition-all opacity-40 cursor-not-allowed"
+          style="background: linear-gradient(135deg, #ff2a5f, #ff9500, #34c759, #007aff, #af52de);">
+    🌈 彩虹音爆！
+  </button>
+
+  <!-- 開始畫面 (Title Screen) -->
+  <div id="startScreen" class="absolute inset-0 flex items-center justify-center p-4 z-30 bg-sky-900/25 backdrop-blur-[2px]">
+    <div class="rainbow-border max-w-lg w-full">
+      <div class="bg-white/95 backdrop-blur-xl rounded-[20px] p-6 sm:p-8 text-center relative overflow-hidden">
+        <!-- 裝飾星星 -->
+        <div class="text-4xl sm:text-5xl mb-2 animate-bounce">🦄🌈⚡</div>
+        <h1 class="text-3xl sm:text-4xl font-black rainbow-text mb-2 tracking-tight">
+          雲寶的彩虹音爆大挑戰
+        </h1>
+        <p class="text-sky-700 font-bold text-sm sm:text-base mb-5">
+          穿梭雲中城的狂風與雷電，展現小馬利亞最快飛馬的實力！
+        </p>
+
+        <!-- 難度選擇器 -->
+        <div class="mb-6">
+          <div class="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-2">選擇挑戰難度</div>
+          <div class="grid grid-cols-3 gap-2 sm:gap-3" id="difficultySelector">
+            <button data-diff="normal" class="diff-btn py-2.5 px-2 rounded-xl font-bold text-sm border-2 border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100 transition">
+              🌤️ 普通飛行
+            </button>
+            <button data-diff="hard" class="diff-btn py-2.5 px-2 rounded-xl font-bold text-sm border-2 border-pink-500 bg-pink-500 text-white shadow-md transition">
+              ⛈️ 暴風挑戰
+            </button>
+            <button data-diff="master" class="diff-btn py-2.5 px-2 rounded-xl font-bold text-sm border-2 border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 transition">
+              ⚡ 音爆大師
+            </button>
+          </div>
+        </div>
+
+        <!-- 操作說明卡片 -->
+        <div class="bg-sky-50/90 border border-sky-200 rounded-2xl p-4 mb-6 text-left text-xs sm:text-sm text-sky-900 space-y-2">
+          <div class="flex items-center gap-2.5">
+            <span class="bg-sky-500 text-white font-bold px-2 py-0.5 rounded-md text-xs">飛行</span>
+            <span>按住 <b>滑鼠左鍵 / 觸控螢幕 / W / ↑</b> 向上爬升，放開下降。</span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <span class="bg-amber-500 text-white font-bold px-2 py-0.5 rounded-md text-xs">收集</span>
+            <span>吃掉 <b>黃金馬蹄鐵與彩虹寶石</b> 累積能量，閃避 <b>閃電烏雲、龍捲風與暗影蝙蝠</b>！</span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <span class="bg-gradient-to-r from-pink-500 to-indigo-500 text-white font-bold px-2 py-0.5 rounded-md text-xs">必殺</span>
+            <span>能量集滿按 <b>空白鍵 (Space) / Shift</b> 施展無敵<b>「彩虹音爆」</b>粉碎障礙！</span>
+          </div>
+        </div>
+
+        <button id="startBtn" class="btn-pony w-full py-4 rounded-2xl font-black text-xl text-white tracking-wider cursor-pointer"
+                style="background: linear-gradient(90deg, #00a8ff, #0077ff);">
+          🚀 展翅起飛！
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 遊戲結束畫面 (Game Over Screen) -->
+  <div id="gameOverScreen" class="hidden absolute inset-0 flex items-center justify-center p-4 z-30 bg-slate-900/45 backdrop-blur-sm">
+    <div class="rainbow-border max-w-md w-full">
+      <div class="bg-white/95 backdrop-blur-xl rounded-[20px] p-6 sm:p-8 text-center">
+        <div class="text-5xl mb-2">💫☁️</div>
+        <h2 class="text-2xl sm:text-3xl font-black text-slate-800 mb-1">撞上暴風雲了！</h2>
+        <p id="encouragementText" class="text-sky-600 font-bold text-sm mb-5">「別擔心，神奇閃電隊從不輕言放棄！」— 雲寶</p>
+
+        <div class="grid grid-cols-2 gap-3 mb-6">
+          <div class="bg-sky-50 border-2 border-sky-200 rounded-2xl p-3">
+            <div class="text-xs font-bold text-sky-500">本次得分</div>
+            <div id="finalScore" class="text-3xl font-black text-sky-900">0</div>
+          </div>
+          <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-3">
+            <div class="text-xs font-bold text-amber-500">歷史最高</div>
+            <div id="finalHighScore" class="text-3xl font-black text-amber-600">0</div>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3">
+          <button id="retryBtn" class="btn-pony flex-1 py-3.5 rounded-2xl font-black text-lg text-white cursor-pointer"
+                  style="background: linear-gradient(90deg, #ff2a5f, #ff7b00);">
+            🔄 再挑戰一次
+          </button>
+          <button id="menuBtn" class="btn-pony py-3.5 px-5 rounded-2xl font-bold text-base text-sky-700 bg-sky-100 hover:bg-sky-200 cursor-pointer">
+            切換難度
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * ============================================================================
+     * 雲寶的彩虹音爆大挑戰 (Rainbow Dash: Sonic Rainboom Challenge)
+     * 完整遊戲引擎、高精細向量角色繪製與 Web Audio 合成音效
+     * ============================================================================
+     */
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // UI 元素參照
+    const hud = document.getElementById('hud');
+    const startScreen = document.getElementById('startScreen');
+    const gameOverScreen = document.getElementById('gameOverScreen');
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const highScoreDisplay = document.getElementById('highScoreDisplay');
+    const finalScoreEl = document.getElementById('finalScore');
+    const finalHighScoreEl = document.getElementById('finalHighScore');
+    const encouragementText = document.getElementById('encouragementText');
+    const rainboomBar = document.getElementById('rainboomBar');
+    const rainboomBarContainer = document.getElementById('rainboomBarContainer');
+    const rainboomHint = document.getElementById('rainboomHint');
+    const rainboomTriggerBtn = document.getElementById('rainboomTriggerBtn');
+    const diffBadge = document.getElementById('diffBadge');
+    const comboBadge = document.getElementById('comboBadge');
+    const muteBtn = document.getElementById('muteBtn');
+    const muteIcon = document.getElementById('muteIcon');
+
+    // ----------------------------------------------------------------------------
+    // 1. Web Audio API 音效合成系統 (無需外部音檔)
+    // ----------------------------------------------------------------------------
+    class SoundFX {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioCtx();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      toggleMute() {
+        this.muted = !this.muted;
+        muteIcon.textContent = this.muted ? '🔇' : '🔊';
+      }
+
+      // 翅膀拍動氣流聲
+      playFlap() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.exponentialRampToValueAtTime(320, now + 0.09);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.1);
+      }
+
+      // 收集寶石/馬蹄鐵清脆音效
+      playCollect(isGem = false) {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        if (isGem) {
+          osc.frequency.setValueAtTime(587.33, now); // D5
+          osc.frequency.setValueAtTime(880, now + 0.06); // A5
+          osc.frequency.setValueAtTime(1174.66, now + 0.12); // D6
+        } else {
+          osc.frequency.setValueAtTime(523.25, now); // C5
+          osc.frequency.exponentialRampToValueAtTime(1046.5, now + 0.12); // C6
+        }
+        gain.gain.setValueAtTime(0.14, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.22);
+      }
+
+      // 彩虹音爆震撼音效
+      playRainboom() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        // 低頻音爆衝擊
+        const sub = this.ctx.createOscillator();
+        const subGain = this.ctx.createGain();
+        sub.type = 'sawtooth';
+        sub.frequency.setValueAtTime(160, now);
+        sub.frequency.exponentialRampToValueAtTime(35, now + 0.6);
+        subGain.gain.setValueAtTime(0.3, now);
+        subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+        sub.connect(subGain);
+        subGain.connect(this.ctx.destination);
+        sub.start(now);
+        sub.stop(now + 0.65);
+
+        // 高頻彩虹和弦閃耀
+        const freqs = [523.25, 659.25, 783.99, 1046.5, 1318.5];
+        freqs.forEach((f, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(f, now + idx * 0.04);
+          osc.frequency.exponentialRampToValueAtTime(f * 1.5, now + 0.7);
+          gain.gain.setValueAtTime(0.09, now + idx * 0.04);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.75);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.04);
+          osc.stop(now + 0.75);
+        });
+      }
+
+      // 雷擊警告與轟鳴
+      playThunder() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const bufferSize = this.ctx.sampleRate * 0.4;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.12));
+        }
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(450, now);
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        noise.start(now);
+      }
+
+      // 撞擊失敗音效
+      playCrash() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.linearRampToValueAtTime(55, now + 0.35);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.38);
+      }
+    }
+
+    const sfx = new SoundFX();
+
+    // ----------------------------------------------------------------------------
+    // 2. 遊戲全域狀態與難度參數設定
+    // ----------------------------------------------------------------------------
+    const DIFFICULTIES = {
+      normal: {
+        label: '🌤️ 普通飛行',
+        baseSpeed: 340,
+        maxSpeed: 640,
+        accel: 7,
+        spawnInterval: 1.45,
+        gravity: 1150,
+        lift: -1350,
+        windStrength: 0
+      },
+      hard: {
+        label: '⛈️ 暴風挑戰',
+        baseSpeed: 440,
+        maxSpeed: 840,
+        accel: 11,
+        spawnInterval: 1.05,
+        gravity: 1350,
+        lift: -1580,
+        windStrength: 90
+      },
+      master: {
+        label: '⚡ 音爆大師',
+        baseSpeed: 540,
+        maxSpeed: 1050,
+        accel: 15,
+        spawnInterval: 0.78,
+        gravity: 1550,
+        lift: -1820,
+        windStrength: 165
+      }
+    };
+
+    const RAINBOW_COLORS = ['#FF2A3C', '#FF8C00', '#FFE600', '#2CE64B', '#14A3FF', '#9B4DFF'];
+
+    let gameState = 'MENU'; // MENU, PLAYING, GAMEOVER
+    let currentDiffKey = 'hard';
+    let highScore = parseInt(localStorage.getItem('rd_rainboom_highscore') || '0', 10);
+    highScoreDisplay.textContent = highScore;
+
+    // 遊戲動態變數
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    let lastTime = 0;
+    let score = 0;
+    let combo = 0;
+    let comboTimer = 0;
+    let currentSpeed = 440;
+    let distanceTraveled = 0;
+    let spawnTimer = 0;
+    let collectibleTimer = 0;
+    let screenShake = 0;
+    let windPhase = 0;
+
+    // 彩虹音爆狀態
+    let rainboomEnergy = 0; // 0 ~ 100
+    let isRainboomActive = false;
+    let rainboomTimer = 0;
+    const RAINBOOM_DURATION = 4.2; // 無敵衝刺持續秒數
+
+    // 輸入控制狀態
+    const input = {
+      up: false,
+      down: false,
+      pointerDown: false
+    };
+
+    // ----------------------------------------------------------------------------
+    // 3. 雲寶 (Rainbow Dash) 角色物理與高精細可愛向量繪製
+    // ----------------------------------------------------------------------------
+    const player = {
+      x: 140,
+      y: 300,
+      vy: 0,
+      radius: 26, // 碰撞判定半徑（略小於視覺身體以提升手感）
+      wingAngle: 0,
+      maneWave: 0,
+      tilt: 0,
+      trail: [], // 彩虹尾跡點
+
+      reset() {
+        this.x = Math.min(180, width * 0.22);
+        this.y = height * 0.45;
+        this.vy = 0;
+        this.tilt = 0;
+        this.trail = [];
+      },
+
+      update(dt) {
+        const cfg = DIFFICULTIES[currentDiffKey];
+        const isAscending = input.up || input.pointerDown;
+
+        if (isAscending) {
+          this.vy += cfg.lift * dt;
+          if (Math.random() < 0.25) sfx.playFlap();
+        } else if (input.down) {
+          this.vy += (cfg.gravity * 1.45) * dt;
+        } else {
+          this.vy += cfg.gravity * dt;
+        }
+
+        // 暴風亂流影響（音爆無敵時不受干擾）
+        if (!isRainboomActive && cfg.windStrength > 0) {
+          windPhase += dt * 2.2;
+          this.vy += Math.sin(windPhase) * cfg.windStrength * dt * 3.5;
+        }
+
+        // 限制最大垂直速度
+        const maxVy = isRainboomActive ? 680 : 580;
+        this.vy = Math.max(-maxVy, Math.min(maxVy, this.vy));
+        this.y += this.vy * dt;
+
+        // 上下邊界柔和反彈限制
+        const margin = 42;
+        if (this.y < margin) {
+          this.y = margin;
+          this.vy = Math.max(0, this.vy * 0.3);
+        } else if (this.y > height - margin) {
+          this.y = height - margin;
+          this.vy = Math.min(0, this.vy * 0.3);
+        }
+
+        // 身體俯仰角平滑跟隨垂直速度
+        const targetTilt = Math.max(-0.48, Math.min(0.48, this.vy / 850));
+        this.tilt += (targetTilt - this.tilt) * 12 * dt;
+
+        // 翅膀拍動與鬃毛波動動畫
+        const flapSpeed = isAscending || isRainboomActive ? 26 : 14;
+        this.wingAngle += flapSpeed * dt;
+        this.maneWave += 10 * dt;
+
+        // 更新彩虹尾跡
+        this.trail.unshift({ x: this.x - 24, y: this.y + 4 });
+        const maxTrail = isRainboomActive ? 38 : 22;
+        if (this.trail.length > maxTrail) {
+          this.trail.pop();
+        }
+        // 尾跡隨風向左移動
+        const scrollSpeed = isRainboomActive ? currentSpeed * 1.55 : currentSpeed;
+        for (let i = 0; i < this.trail.length; i++) {
+          this.trail[i].x -= scrollSpeed * dt;
+        }
+      },
+
+      drawTrail(ctx) {
+        if (this.trail.length < 2) return;
+        const stripeWidth = isRainboomActive ? 6.5 : 3.6;
+        const totalHeight = stripeWidth * 6;
+
+        ctx.save();
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        for (let c = 0; c < 6; c++) {
+          const offsetY = (c - 2.5) * stripeWidth;
+          ctx.beginPath();
+          ctx.strokeStyle = RAINBOW_COLORS[c];
+          ctx.lineWidth = stripeWidth + 0.8;
+          ctx.globalAlpha = isRainboomActive ? 0.95 : 0.78;
+
+          for (let i = 0; i < this.trail.length; i++) {
+            const pt = this.trail[i];
+            const wave = Math.sin(this.maneWave - i * 0.45) * (isRainboomActive ? 4 : 2);
+            const px = pt.x;
+            const py = pt.y + offsetY + wave;
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
+          ctx.stroke();
+        }
+        ctx.restore();
+      },
+
+      /**
+       * 高精細向量繪製：可愛、還原小馬寶莉經典造型的雲寶 (Rainbow Dash)
+       */
+      draw(ctx) {
+        this.drawTrail(ctx);
+
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.tilt);
+
+        // 音爆狀態外圍音速光錐 (Mach Cone)
+        if (isRainboomActive) {
+          ctx.save();
+          const pulse = 1 + Math.sin(this.maneWave * 2) * 0.08;
+          ctx.scale(pulse, pulse);
+          const coneGrad = ctx.createLinearGradient(55, 0, -55, 0);
+          coneGrad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+          coneGrad.addColorStop(0.3, 'rgba(0, 229, 255, 0.55)');
+          coneGrad.addColorStop(0.7, 'rgba(255, 42, 133, 0.35)');
+          coneGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+          ctx.fillStyle = coneGrad;
+          ctx.beginPath();
+          ctx.moveTo(62, 0);
+          ctx.quadraticCurveTo(10, -54, -55, -48);
+          ctx.lineTo(-35, 0);
+          ctx.lineTo(-55, 48);
+          ctx.quadraticCurveTo(10, 54, 62, 0);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        const coatColor = '#66CCFF';     // 經典天藍色毛皮
+        const coatOutline = '#2488CC';   // 柔和深藍描邊
+
+        // 1. 飄逸彩虹尾巴 (位於身體後方)
+        this.drawRainbowTail(ctx);
+
+        // 2. 後腿與前腿 (飛行時向後伸展的超人飛馬姿勢)
+        ctx.lineWidth = 2.2;
+        ctx.strokeStyle = coatOutline;
+        ctx.fillStyle = coatColor;
+
+        // 後腿
+        ctx.beginPath();
+        ctx.moveTo(-18, 10);
+        ctx.quadraticCurveTo(-34, 14, -44, 12);
+        ctx.quadraticCurveTo(-47, 16, -42, 19);
+        ctx.quadraticCurveTo(-28, 21, -14, 16);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // 前腿 (向前伸展衝刺姿勢！)
+        ctx.beginPath();
+        ctx.moveTo(14, 10);
+        ctx.quadraticCurveTo(32, 11, 44, 8);
+        ctx.quadraticCurveTo(47, 12, 42, 15);
+        ctx.quadraticCurveTo(28, 18, 12, 16);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // 3. 身體軀幹 (圓潤可愛的小馬流線身形)
+        ctx.beginPath();
+        ctx.ellipse(-2, 6, 23, 14, -0.06, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // 4. 可愛標誌 (Cutie Mark: 白雲與紅黃藍閃電)
+        this.drawCutieMark(ctx, -13, 5);
+
+        // 5. 脖子與圓潤可愛的頭部
+        ctx.beginPath();
+        ctx.moveTo(10, 2);
+        ctx.quadraticCurveTo(14, -10, 12, -16);
+        ctx.lineTo(22, -14);
+        ctx.quadraticCurveTo(22, 0, 18, 8);
+        ctx.fill();
+
+        // 頭部主體 (Q版大頭比例更顯可愛)
+        ctx.beginPath();
+        ctx.arc(20, -16, 17.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // 可愛小巧的飛馬鼻吻 (Muzzle)
+        ctx.beginPath();
+        ctx.moveTo(33, -17);
+        ctx.quadraticCurveTo(40, -16, 39, -11);
+        ctx.quadraticCurveTo(38, -7, 31, -8);
+        ctx.fill();
+        ctx.stroke();
+
+        // 自信可愛的微笑嘴巴與紅暈
+        ctx.beginPath();
+        ctx.strokeStyle = '#1B6699';
+        ctx.lineWidth = 1.8;
+        ctx.arc(33, -12, 4, 0.15 * Math.PI, 0.85 * Math.PI);
+        ctx.stroke();
+
+        // 臉頰可愛粉紅暈
+        ctx.fillStyle = 'rgba(255, 115, 160, 0.45)';
+        ctx.beginPath();
+        ctx.ellipse(27, -9, 3.8, 2.2, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 6. 尖尖的飛馬耳朵
+        ctx.fillStyle = coatColor;
+        ctx.strokeStyle = coatOutline;
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.moveTo(11, -28);
+        ctx.quadraticCurveTo(7, -41, 15, -42);
+        ctx.quadraticCurveTo(20, -36, 19, -29);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // 耳朵內部細節
+        ctx.beginPath();
+        ctx.strokeStyle = '#3DA5E0';
+        ctx.lineWidth = 1.5;
+        ctx.moveTo(13, -31);
+        ctx.quadraticCurveTo(12, -37, 15, -38);
+        ctx.stroke();
+
+        // 7. 經典紫紅色大眼睛 (Expressive Magenta Anime Eyes)
+        this.drawExpressiveEye(ctx, 25, -17);
+
+        // 8. 招牌尖刺感彩虹瀏海與後鬃毛
+        this.drawRainbowMane(ctx);
+
+        // 9. 動態拍動的飛馬翅膀 (位於身體側面最上層)
+        this.drawWing(ctx, -2, 2);
+
+        ctx.restore();
+      },
+
+      drawExpressiveEye(ctx, ex, ey) {
+        ctx.save();
+        ctx.translate(ex, ey);
+
+        // 眼白
+        ctx.fillStyle = '#FFFFFF';
+        ctx.strokeStyle = '#1C2B3A';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 6.8, 8.6, -0.1, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // 紫紅色虹膜漸層
+        const irisGrad = ctx.createLinearGradient(0, -6, 0, 7);
+        irisGrad.addColorStop(0, '#8A004F');
+        irisGrad.addColorStop(0.5, '#E6197A');
+        irisGrad.addColorStop(1, '#FF75B5');
+        ctx.fillStyle = irisGrad;
+        ctx.beginPath();
+        ctx.ellipse(1.2, 0.4, 4.6, 6.4, -0.08, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 深色瞳孔
+        ctx.fillStyle = '#2B0018';
+        ctx.beginPath();
+        ctx.ellipse(1.5, 0.4, 2.4, 3.6, -0.08, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 靈動大高光與小高光
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.arc(-0.6, -2.5, 2.2, 0, Math.PI * 2);
+        ctx.arc(2.6, 2.4, 1.1, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 翹翹的睫毛
+        ctx.strokeStyle = '#1C2B3A';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-4, -6);
+        ctx.lineTo(-7, -8.5);
+        ctx.moveTo(-1, -8);
+        ctx.lineTo(-3, -11);
+        ctx.stroke();
+
+        ctx.restore();
+      },
+
+      drawRainbowMane(ctx) {
+        ctx.save();
+        const wave = Math.sin(this.maneWave) * 2.5;
+
+        // 後側頸部鬃毛 (綠、藍、紫)
+        const neckColors = ['#2CE64B', '#14A3FF', '#9B4DFF'];
+        neckColors.forEach((col, i) => {
+          ctx.fillStyle = col;
+          ctx.strokeStyle = 'rgba(0,0,0,0.22)';
+          ctx.lineWidth = 1.4;
+          ctx.beginPath();
+          const yOff = -22 + i * 7;
+          ctx.moveTo(8, yOff);
+          ctx.quadraticCurveTo(-8, yOff - 2 + wave, -15, yOff + 6 + wave);
+          ctx.quadraticCurveTo(-5, yOff + 10, 10, yOff + 7);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        });
+
+        // 額頭招牌尖刺彩虹瀏海 (紅、橙、黃)
+        const bangs = [
+          { color: '#FF2A3C', tipX: 34, tipY: -27, base1: [16, -33], base2: [23, -25] },
+          { color: '#FF8C00', tipX: 31, tipY: -21, base1: [14, -29], base2: [21, -21] },
+          { color: '#FFE600', tipX: 25, tipY: -17, base1: [12, -25], base2: [18, -17] }
+        ];
+
+        bangs.forEach((b) => {
+          ctx.fillStyle = b.color;
+          ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(b.base1[0], b.base1[1]);
+          ctx.quadraticCurveTo(b.tipX - 2, b.tipY - 4, b.tipX, b.tipY);
+          ctx.quadraticCurveTo(b.tipX - 5, b.tipY + 3, b.base2[0], b.base2[1]);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        });
+
+        ctx.restore();
+      },
+
+      drawRainbowTail(ctx) {
+        ctx.save();
+        ctx.translate(-22, 3);
+        const wave1 = Math.sin(this.maneWave) * 5;
+        const wave2 = Math.cos(this.maneWave * 0.9) * 6;
+
+        for (let i = 0; i < 6; i++) {
+          ctx.fillStyle = RAINBOW_COLORS[i];
+          ctx.beginPath();
+          const yStart = (i - 2.5) * 2.2;
+          ctx.moveTo(0, yStart);
+          ctx.bezierCurveTo(
+            -16, yStart - 6 + wave1,
+            -30, yStart + 8 + wave2,
+            -42, yStart + (i - 2.5) * 3.5 + wave1
+          );
+          ctx.lineTo(-36, yStart + 4 + wave2);
+          ctx.quadraticCurveTo(-18, yStart + 4, 0, yStart + 2.5);
+          ctx.closePath();
+          ctx.fill();
+        }
+        ctx.restore();
+      },
+
+      drawCutieMark(ctx, cx, cy) {
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.scale(0.68, 0.68);
+
+        // 紅黃藍三色閃電
+        ctx.beginPath();
+        ctx.moveTo(0, 2);
+        ctx.lineTo(-5, 11);
+        ctx.lineTo(1, 11);
+        ctx.lineTo(-3, 20);
+        ctx.lineTo(7, 8);
+        ctx.lineTo(1, 8);
+        ctx.closePath();
+        const boltGrad = ctx.createLinearGradient(-5, 2, 7, 20);
+        boltGrad.addColorStop(0, '#FF2A3C');
+        boltGrad.addColorStop(0.5, '#FFE600');
+        boltGrad.addColorStop(1, '#14A3FF');
+        ctx.fillStyle = boltGrad;
+        ctx.fill();
+
+        // 蓬鬆小白雲
+        ctx.fillStyle = '#FFFFFF';
+        ctx.strokeStyle = '#B8E2F8';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.arc(-4, 0, 5, 0, Math.PI * 2);
+        ctx.arc(2, -2, 6, 0, Math.PI * 2);
+        ctx.arc(7, 1, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.restore();
+      },
+
+      drawWing(ctx, wx, wy) {
+        ctx.save();
+        ctx.translate(wx, wy);
+        // 翅膀上下拍動角度
+        const flap = Math.sin(this.wingAngle) * 0.65 - 0.25;
+        ctx.rotate(flap);
+
+        ctx.fillStyle = '#7AD4FF';
+        ctx.strokeStyle = '#2488CC';
+        ctx.lineWidth = 2;
+
+        ctx.beginPath();
+        ctx.moveTo(4, 2);
+        ctx.quadraticCurveTo(-10, -24, -26, -20);
+        ctx.quadraticCurveTo(-22, -11, -15, -10);
+        ctx.quadraticCurveTo(-23, -5, -18, 0);
+        ctx.quadraticCurveTo(-17, 6, -8, 6);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // 羽毛內層線條
+        ctx.beginPath();
+        ctx.strokeStyle = '#3DA5E0';
+        ctx.lineWidth = 1.5;
+        ctx.moveTo(-4, -3);
+        ctx.quadraticCurveTo(-12, -12, -19, -12);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+    };
+
+    // ----------------------------------------------------------------------------
+    // 4. 雲中城視差背景 (Cloudsdale Parallax Sky & Pillars)
+    // ----------------------------------------------------------------------------
+    const bgClouds = [];
+    const bgPillars = [];
+    const sparkles = [];
+
+    function initBackground() {
+      bgClouds.length = 0;
+      bgPillars.length = 0;
+      sparkles.length = 0;
+
+      for (let i = 0; i < 12; i++) {
+        bgClouds.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          scale: 0.5 + Math.random() * 0.9,
+          speed: 35 + Math.random() * 65,
+          alpha: 0.45 + Math.random() * 0.45
+        });
+      }
+
+      for (let i = 0; i < 4; i++) {
+        bgPillars.push({
+          x: (width / 3) * i + 100,
+          y: height * (0.65 + Math.random() * 0.2),
+          scale: 0.7 + Math.random() * 0.4,
+          speed: 25
+        });
+      }
+
+      for (let i = 0; i < 25; i++) {
+        sparkles.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          size: 1.5 + Math.random() * 2.5,
+          phase: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    function updateAndDrawBackground(ctx, dt) {
+      // 夢幻小馬利亞晴空漸層
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, height);
+      if (isRainboomActive) {
+        skyGrad.addColorStop(0, '#0066FF');
+        skyGrad.addColorStop(0.5, '#38BDF8');
+        skyGrad.addColorStop(1, '#F472B6');
+      } else {
+        skyGrad.addColorStop(0, '#1E90FF');
+        skyGrad.addColorStop(0.55, '#67D1FF');
+        skyGrad.addColorStop(1, '#E0F7FF');
+      }
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, width, height);
+
+      // 右上角溫暖陽光與光暈
+      const sunX = width * 0.85;
+      const sunY = height * 0.16;
+      const sunGrad = ctx.createRadialGradient(sunX, sunY, 10, sunX, sunY, 180);
+      sunGrad.addColorStop(0, 'rgba(255, 253, 210, 0.95)');
+      sunGrad.addColorStop(0.3, 'rgba(255, 240, 150, 0.35)');
+      sunGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = sunGrad;
+      ctx.beginPath();
+      ctx.arc(sunX, sunY, 180, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 遠景雲中城希臘風雲柱建築
+      const speedMult = isRainboomActive ? 1.8 : 1.0;
+      bgPillars.forEach(p => {
+        p.x -= p.speed * speedMult * dt;
+        if (p.x < -150) p.x = width + 150;
+        drawCloudsdaleTemple(ctx, p.x, p.y, p.scale);
+      });
+
+      // 蓬鬆白雲視差滾動
+      bgClouds.forEach(c => {
+        c.x -= c.speed * speedMult * dt;
+        if (c.x < -160) {
+          c.x = width + 160;
+          c.y = Math.random() * height;
+        }
+        drawFluffyCloud(ctx, c.x, c.y, c.scale, c.alpha);
+      });
+
+      // 空氣中的魔法星光微粒
+      sparkles.forEach(s => {
+        s.x -= 60 * speedMult * dt;
+        s.phase += 4 * dt;
+        if (s.x < 0) s.x = width;
+        const alpha = 0.3 + Math.abs(Math.sin(s.phase)) * 0.7;
+        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function drawFluffyCloud(ctx, x, y, scale, alpha) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(scale, scale);
+      ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+      ctx.beginPath();
+      ctx.arc(0, 0, 32, 0, Math.PI * 2);
+      ctx.arc(28, -8, 38, 0, Math.PI * 2);
+      ctx.arc(62, -2, 30, 0, Math.PI * 2);
+      ctx.arc(85, 8, 22, 0, Math.PI * 2);
+      ctx.arc(-25, 8, 22, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawCloudsdaleTemple(ctx, x, y, scale) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(scale, scale);
+      ctx.globalAlpha = 0.45;
+
+      // 雲柱建築本體
+      ctx.fillStyle = '#E6F7FF';
+      ctx.fillRect(-35, -70, 12, 70);
+      ctx.fillRect(-8, -70, 12, 70);
+      ctx.fillRect(19, -70, 12, 70);
+      // 屋頂三角楣
+      ctx.beginPath();
+      ctx.moveTo(-45, -70);
+      ctx.lineTo(0, -98);
+      ctx.lineTo(45, -70);
+      ctx.closePath();
+      ctx.fill();
+
+      // 底座大雲朵
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath();
+      ctx.arc(-30, 5, 25, 0, Math.PI * 2);
+      ctx.arc(0, 0, 32, 0, Math.PI * 2);
+      ctx.arc(32, 6, 24, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // ----------------------------------------------------------------------------
+    // 5. 障礙物、收集品與爆破粒子系統
+    // ----------------------------------------------------------------------------
+    const obstacles = [];
+    const collectibles = [];
+    const particles = [];
+    const shockwaves = [];
+
+    function spawnHazard() {
+      const rand = Math.random();
+      const margin = 75;
+      const spawnX = width + 90;
+
+      if (rand < 0.36) {
+        // 類型 1：閃電暴風烏雲 (會週期性預警並劈下閃電！)
+        const y = margin + Math.random() * (height - margin * 2.5);
+        obstacles.push({
+          type: 'storm_cloud',
+          x: spawnX,
+          y: y,
+          radius: 38,
+          lightningTimer: 0.6 + Math.random() * 0.8,
+          isStriking: false,
+          strikeDuration: 0,
+          boltLength: 160 + Math.random() * 90
+        });
+      } else if (rand < 0.68) {
+        // 類型 2：狂暴龍捲風 (上下擺動的高速氣旋)
+        const baseY = margin + 40 + Math.random() * (height - margin * 2 - 80);
+        obstacles.push({
+          type: 'tornado',
+          x: spawnX,
+          y: baseY,
+          baseY: baseY,
+          radius: 34,
+          height: 110,
+          phase: Math.random() * Math.PI * 2,
+          amp: 45 + Math.random() * 55
+        });
+      } else if (rand < 0.86) {
+        // 類型 3：暗影閃電隊蝙蝠 (主動追蹤微調高度)
+        const y = margin + Math.random() * (height - margin * 2);
+        obstacles.push({
+          type: 'shadow_bat',
+          x: spawnX,
+          y: y,
+          radius: 24,
+          flap: Math.random() * 6,
+          speedMult: 1.25
+        });
+      } else {
+        // 類型 4：雙層雲峽谷 (上下夾擊，考驗精準穿越！)
+        const gapSize = currentDiffKey === 'master' ? 155 : (currentDiffKey === 'hard' ? 180 : 210);
+        const gapCenter = margin + gapSize * 0.6 + Math.random() * (height - margin * 2 - gapSize * 1.2);
+        obstacles.push({
+          type: 'storm_cloud',
+          x: spawnX,
+          y: gapCenter - gapSize * 0.5 - 35,
+          radius: 38,
+          lightningTimer: 99,
+          isStriking: false,
+          boltLength: 0
+        });
+        obstacles.push({
+          type: 'storm_cloud',
+          x: spawnX,
+          y: gapCenter + gapSize * 0.5 + 35,
+          radius: 38,
+          lightningTimer: 99,
+          isStriking: false,
+          boltLength: 0
+        });
+      }
+    }
+
+    function spawnCollectibleWave() {
+      const startY = 80 + Math.random() * (height - 160);
+      const count = 3 + Math.floor(Math.random() * 3);
+      const isArc = Math.random() > 0.5;
+
+      for (let i = 0; i < count; i++) {
+        const isRainbowGem = (i === count - 1 && Math.random() < 0.45);
+        collectibles.push({
+          type: isRainbowGem ? 'gem' : 'horseshoe',
+          x: width + 60 + i * 48,
+          y: isArc ? startY + Math.sin((i / count) * Math.PI) * -55 : startY,
+          radius: isRainbowGem ? 20 : 17,
+          bob: i * 0.6
+        });
+      }
+    }
+
+    function createExplosion(x, y, colors, count = 18) {
+      for (let i = 0; i < count; i++) {
+        const angle = (Math.PI * 2 * i) / count + Math.random() * 0.3;
+        const speed = 120 + Math.random() * 280;
+        particles.push({
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size: 4 + Math.random() * 6,
+          color: colors[i % colors.length],
+          life: 0.55 + Math.random() * 0.35,
+          maxLife: 0.9
+        });
+      }
+    }
+
+    function triggerSonicRainboom() {
+      if (rainboomEnergy < 100 || isRainboomActive || gameState !== 'PLAYING') return;
+
+      isRainboomActive = true;
+      rainboomTimer = RAINBOOM_DURATION;
+      rainboomEnergy = 0;
+      screenShake = 18;
+      sfx.playRainboom();
+
+      // 產生經典圓形彩虹音爆衝擊波！
+      shockwaves.push({
+        x: player.x,
+        y: player.y,
+        radius: 20,
+        maxRadius: Math.max(width, height) * 1.1,
+        alpha: 1
+      });
+
+      // 立即震碎畫面上所有現有障礙物並加分！
+      obstacles.forEach(obs => {
+        createExplosion(obs.x, obs.y, RAINBOW_COLORS, 20);
+        score += 50;
+      });
+      obstacles.length = 0;
+
+      updateRainboomUI();
+    }
+
+    function updateRainboomUI() {
+      rainboomBar.style.width = `${rainboomEnergy}%`;
+      if (rainboomEnergy >= 100 && !isRainboomActive) {
+        rainboomBarContainer.classList.add('rainboom-ready');
+        rainboomHint.style.opacity = '1';
+        rainboomTriggerBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+        rainboomTriggerBtn.classList.add('rainboom-ready', 'cursor-pointer');
+      } else {
+        rainboomBarContainer.classList.remove('rainboom-ready');
+        rainboomHint.style.opacity = '0';
+        rainboomTriggerBtn.classList.add('opacity-40', 'cursor-not-allowed');
+        rainboomTriggerBtn.classList.remove('rainboom-ready', 'cursor-pointer');
+      }
+    }
+
+    // ----------------------------------------------------------------------------
+    // 6. 遊戲主更新與渲染迴圈
+    // ----------------------------------------------------------------------------
+    function updateGame(dt) {
+      if (gameState !== 'PLAYING') return;
+
+      const cfg = DIFFICULTIES[currentDiffKey];
+
+      // 速度隨時間漸進加速，提升挑戰張力
+      currentSpeed = Math.min(cfg.maxSpeed, currentSpeed + cfg.accel * dt);
+      const effectiveSpeed = isRainboomActive ? currentSpeed * 1.65 : currentSpeed;
+
+      // 距離積分增加
+      distanceTraveled += effectiveSpeed * dt;
+      score += (effectiveSpeed * dt) * 0.045;
+      scoreDisplay.textContent = Math.floor(score);
+
+      // 連擊計時器
+      if (combo > 0) {
+        comboTimer -= dt;
+        if (comboTimer <= 0) {
+          combo = 0;
+          comboBadge.classList.add('hidden');
+        }
+      }
+
+      // 彩虹音爆無敵狀態計時
+      if (isRainboomActive) {
+        rainboomTimer -= dt;
+        rainboomBar.style.width = `${Math.max(0, (rainboomTimer / RAINBOOM_DURATION) * 100)}%`;
+        if (rainboomTimer <= 0) {
+          isRainboomActive = false;
+          updateRainboomUI();
+        }
+      } else {
+        // 隨飛行自然緩慢充能
+        rainboomEnergy = Math.min(100, rainboomEnergy + dt * 3.8);
+        updateRainboomUI();
+      }
+
+      // 更新雲寶
+      player.update(dt);
+
+      // 生成障礙物與獎勵
+      spawnTimer -= dt * (effectiveSpeed / cfg.baseSpeed);
+      if (spawnTimer <= 0) {
+        spawnHazard();
+        spawnTimer = cfg.spawnInterval * (0.82 + Math.random() * 0.36);
+      }
+
+      collectibleTimer -= dt;
+      if (collectibleTimer <= 0) {
+        spawnCollectibleWave();
+        collectibleTimer = 1.6 + Math.random() * 1.1;
+      }
+
+      // 更新與檢查收集品
+      for (let i = collectibles.length - 1; i >= 0; i--) {
+        const item = collectibles[i];
+        item.x -= effectiveSpeed * dt;
+        item.bob += 6 * dt;
+
+        // 音爆狀態下自帶強大磁鐵吸力！
+        if (isRainboomActive) {
+          const dx = player.x - item.x;
+          const dy = player.y - item.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < 280) {
+            item.x += (dx / dist) * 650 * dt;
+            item.y += (dy / dist) * 650 * dt;
+          }
+        }
+
+        const distToPlayer = Math.hypot(player.x - item.x, player.y - item.y);
+        if (distToPlayer < player.radius + item.radius + 8) {
+          const isGem = item.type === 'gem';
+          sfx.playCollect(isGem);
+          combo++;
+          comboTimer = 2.8;
+          if (combo >= 2) {
+            comboBadge.textContent = `連擊 x${combo}!`;
+            comboBadge.classList.remove('hidden');
+          }
+
+          const bonus = (isGem ? 120 : 35) * (1 + Math.min(combo, 10) * 0.1);
+          score += bonus;
+
+          if (!isRainboomActive) {
+            rainboomEnergy = Math.min(100, rainboomEnergy + (isGem ? 26 : 8));
+            updateRainboomUI();
+          }
+
+          createExplosion(item.x, item.y, isGem ? RAINBOW_COLORS : ['#FFD700', '#FFF59D'], 12);
+          collectibles.splice(i, 1);
+          continue;
+        }
+
+        if (item.x < -60) collectibles.splice(i, 1);
+      }
+
+      // 更新與檢查障礙物碰撞
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        const obs = obstacles[i];
+        const moveMult = obs.speedMult || 1;
+        obs.x -= effectiveSpeed * moveMult * dt;
+
+        if (obs.type === 'tornado') {
+          obs.phase += 3.2 * dt;
+          obs.y = obs.baseY + Math.sin(obs.phase) * obs.amp;
+        } else if (obs.type === 'shadow_bat') {
+          obs.flap += 16 * dt;
+          // 緩慢追蹤雲寶高度
+          const dy = player.y - obs.y;
+          obs.y += Math.sign(dy) * Math.min(Math.abs(dy), 95 * dt);
+        } else if (obs.type === 'storm_cloud') {
+          if (obs.lightningTimer < 50) {
+            obs.lightningTimer -= dt;
+            if (obs.lightningTimer <= 0 && !obs.isStriking) {
+              obs.isStriking = true;
+              obs.strikeDuration = 0.45;
+              if (obs.x > 0 && obs.x < width) sfx.playThunder();
+            }
+            if (obs.isStriking) {
+              obs.strikeDuration -= dt;
+              if (obs.strikeDuration <= 0) {
+                obs.isStriking = false;
+                obs.lightningTimer = 1.6;
+              }
+            }
+          }
+        }
+
+        // 碰撞判定
+        let hit = false;
+        const dist = Math.hypot(player.x - obs.x, player.y - obs.y);
+        if (dist < player.radius + obs.radius - 6) {
+          hit = true;
+        }
+
+        // 閃電光束碰撞判定
+        if (!hit && obs.type === 'storm_cloud' && obs.isStriking) {
+          if (Math.abs(player.x - obs.x) < 18 && player.y > obs.y && player.y < obs.y + obs.boltLength) {
+            hit = true;
+          }
+        }
+
+        if (hit) {
+          if (isRainboomActive) {
+            // 音爆狀態下直接撞碎障礙並獲得額外獎勵！
+            sfx.playCollect(true);
+            screenShake = 8;
+            score += 80;
+            createExplosion(obs.x, obs.y, RAINBOW_COLORS, 22);
+            obstacles.splice(i, 1);
+            continue;
+          } else {
+            triggerGameOver();
+            return;
+          }
+        }
+
+        if (obs.x < -120) obstacles.splice(i, 1);
+      }
+
+      // 更新粒子與音爆衝擊波
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.life -= dt;
+        if (p.life <= 0) particles.splice(i, 1);
+      }
+
+      for (let i = shockwaves.length - 1; i >= 0; i--) {
+        const sw = shockwaves[i];
+        sw.radius += 1450 * dt;
+        sw.alpha = Math.max(0, 1 - sw.radius / sw.maxRadius);
+        if (sw.alpha <= 0) shockwaves.splice(i, 1);
+      }
+
+      if (screenShake > 0) {
+        screenShake = Math.max(0, screenShake - 45 * dt);
+      }
+    }
+
+    function drawEntities(ctx) {
+      // 1. 繪製收集品 (黃金馬蹄鐵 & 彩虹寶石)
+      collectibles.forEach(item => {
+        ctx.save();
+        ctx.translate(item.x, item.y + Math.sin(item.bob) * 5);
+        if (item.type === 'horseshoe') {
+          // 發光黃金馬蹄鐵
+          ctx.shadowColor = '#FFD700';
+          ctx.shadowBlur = 12;
+          ctx.strokeStyle = '#FFB300';
+          ctx.lineWidth = 6;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.arc(0, 0, 11, 0.2 * Math.PI, 1.8 * Math.PI);
+          ctx.stroke();
+
+          ctx.strokeStyle = '#FFF176';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.arc(0, 0, 11, 0.25 * Math.PI, 1.75 * Math.PI);
+          ctx.stroke();
+        } else {
+          // 閃耀彩虹鑽石寶石
+          ctx.rotate(Math.sin(item.bob * 0.5) * 0.25);
+          ctx.shadowColor = '#FF2A85';
+          ctx.shadowBlur = 16;
+          const gemGrad = ctx.createLinearGradient(-14, -14, 14, 14);
+          gemGrad.addColorStop(0, '#FF2A3C');
+          gemGrad.addColorStop(0.35, '#FFE600');
+          gemGrad.addColorStop(0.7, '#2CE64B');
+          gemGrad.addColorStop(1, '#14A3FF');
+          ctx.fillStyle = gemGrad;
+          ctx.strokeStyle = '#FFFFFF';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(0, -16);
+          ctx.lineTo(13, 0);
+          ctx.lineTo(0, 16);
+          ctx.lineTo(-13, 0);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        }
+        ctx.restore();
+      });
+
+      // 2. 繪製障礙物
+      obstacles.forEach(obs => {
+        ctx.save();
+        ctx.translate(obs.x, obs.y);
+
+        if (obs.type === 'storm_cloud') {
+          // 閃電預警虛線
+          if (!obs.isStriking && obs.lightningTimer < 0.45 && obs.boltLength > 0) {
+            ctx.strokeStyle = 'rgba(255, 230, 0, 0.75)';
+            ctx.setLineDash([8, 8]);
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(0, 15);
+            ctx.lineTo(0, obs.boltLength);
+            ctx.stroke();
+            ctx.setLineDash([]);
+          }
+
+          // 劈下鋸齒閃電
+          if (obs.isStriking && obs.boltLength > 0) {
+            ctx.shadowColor = '#FFF700';
+            ctx.shadowBlur = 20;
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.lineWidth = 7;
+            ctx.beginPath();
+            ctx.moveTo(0, 15);
+            let curY = 15;
+            let dir = 1;
+            while (curY < obs.boltLength) {
+              curY += 28;
+              ctx.lineTo(dir * 14, curY);
+              dir *= -1;
+            }
+            ctx.stroke();
+
+            ctx.strokeStyle = '#FFE600';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+          }
+
+          // 深紫色邪惡暴風烏雲
+          const cloudGrad = ctx.createLinearGradient(0, -30, 0, 30);
+          cloudGrad.addColorStop(0, '#475569');
+          cloudGrad.addColorStop(1, '#1E293B');
+          ctx.fillStyle = cloudGrad;
+          ctx.strokeStyle = '#0F172A';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.arc(-22, 4, 22, 0, Math.PI * 2);
+          ctx.arc(0, -8, 28, 0, Math.PI * 2);
+          ctx.arc(24, 3, 21, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+
+          // 憤怒發光黃眼
+          ctx.fillStyle = '#FACC15';
+          ctx.beginPath();
+          ctx.moveTo(-14, 0);
+          ctx.lineTo(-4, 5);
+          ctx.lineTo(-12, 8);
+          ctx.moveTo(14, 0);
+          ctx.lineTo(4, 5);
+          ctx.lineTo(12, 8);
+          ctx.fill();
+
+        } else if (obs.type === 'tornado') {
+          // 旋轉龍捲風漏斗
+          for (let layer = 0; layer < 6; layer++) {
+            const ly = -45 + layer * 18;
+            const lw = 36 - layer * 4.5;
+            const sway = Math.sin(obs.phase * 2 + layer) * 6;
+            ctx.fillStyle = layer % 2 === 0 ? 'rgba(203, 213, 225, 0.85)' : 'rgba(148, 163, 184, 0.85)';
+            ctx.strokeStyle = '#64748B';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(sway, ly, lw, 9, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+          }
+        } else if (obs.type === 'shadow_bat') {
+          // 暗影閃電蝙蝠
+          const wingY = Math.sin(obs.flap) * 14;
+          ctx.fillStyle = '#311042';
+          ctx.strokeStyle = '#A855F7';
+          ctx.lineWidth = 2;
+          // 蝙蝠翅膀
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.quadraticCurveTo(12, -22 + wingY, 26, -8 + wingY);
+          ctx.quadraticCurveTo(14, 2, 0, 6);
+          ctx.fill();
+          ctx.stroke();
+          // 身體與發光紅眼
+          ctx.beginPath();
+          ctx.arc(0, 0, 14, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#FF2A5f';
+          ctx.beginPath();
+          ctx.arc(-6, -2, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.restore();
+      });
+
+      // 3. 繪製音爆全螢幕彩虹衝擊波
+      shockwaves.forEach(sw => {
+        ctx.save();
+        ctx.globalAlpha = sw.alpha;
+        for (let c = 0; c < 6; c++) {
+          ctx.strokeStyle = RAINBOW_COLORS[c];
+          ctx.lineWidth = 8;
+          ctx.beginPath();
+          ctx.arc(sw.x, sw.y, Math.max(1, sw.radius - c * 9), 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+      });
+
+      // 4. 繪製爆炸星光粒子
+      particles.forEach(p => {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+    }
+
+    function gameLoop(timestamp) {
+      if (!lastTime) lastTime = timestamp;
+      const dt = Math.min(0.05, (timestamp - lastTime) / 1000);
+      lastTime = timestamp;
+
+      ctx.save();
+      if (screenShake > 0) {
+        const sx = (Math.random() - 0.5) * screenShake;
+        const sy = (Math.random() - 0.5) * screenShake;
+        ctx.translate(sx, sy);
+      }
+
+      updateAndDrawBackground(ctx, dt);
+
+      if (gameState === 'PLAYING') {
+        updateGame(dt);
+        drawEntities(ctx);
+        player.draw(ctx);
+      } else if (gameState === 'MENU') {
+        // 標題畫面展示雲寶在空中優雅滑翔
+        player.x = width * 0.5;
+        player.y = height * 0.22 + Math.sin(timestamp * 0.004) * 12;
+        player.wingAngle += 14 * dt;
+        player.maneWave += 8 * dt;
+        player.tilt = Math.cos(timestamp * 0.004) * 0.08;
+        player.trail.unshift({ x: player.x - 24, y: player.y + 4 });
+        if (player.trail.length > 20) player.trail.pop();
+        player.trail.forEach(t => t.x -= 240 * dt);
+        player.draw(ctx);
+      }
+
+      ctx.restore();
+      requestAnimationFrame(gameLoop);
+    }
+
+    // ----------------------------------------------------------------------------
+    // 7. 遊戲流程控制與事件監聽
+    // ----------------------------------------------------------------------------
+    function startGame() {
+      sfx.init();
+      const cfg = DIFFICULTIES[currentDiffKey];
+      diffBadge.textContent = cfg.label;
+
+      score = 0;
+      combo = 0;
+      comboTimer = 0;
+      currentSpeed = cfg.baseSpeed;
+      rainboomEnergy = 35; // 開局贈送 35% 能量
+      isRainboomActive = false;
+      rainboomTimer = 0;
+      spawnTimer = 0.8;
+      collectibleTimer = 0.6;
+      obstacles.length = 0;
+      collectibles.length = 0;
+      particles.length = 0;
+      shockwaves.length = 0;
+
+      player.reset();
+      updateRainboomUI();
+      comboBadge.classList.add('hidden');
+
+      startScreen.classList.add('hidden');
+      gameOverScreen.classList.add('hidden');
+      hud.classList.remove('hidden');
+      rainboomTriggerBtn.classList.remove('hidden');
+
+      gameState = 'PLAYING';
+    }
+
+    function triggerGameOver() {
+      gameState = 'GAMEOVER';
+      screenShake = 22;
+      sfx.playCrash();
+      createExplosion(player.x, player.y, ['#FFFFFF', '#66CCFF', '#FF2A3C', '#FFE600'], 30);
+
+      const finalIntScore = Math.floor(score);
+      if (finalIntScore > highScore) {
+        highScore = finalIntScore;
+        localStorage.setItem('rd_rainboom_highscore', highScore.toString());
+        highScoreDisplay.textContent = highScore;
+        encouragementText.textContent = '🎉 太神啦！你打破了雲中城的最高飛行紀錄！';
+      } else {
+        const quotes = [
+          '「別擔心，神奇閃電隊從不輕言放棄！」— 雲寶',
+          '「差一點就能施展完美音爆了，再試一次吧！」— 雲寶',
+          '「風速越強，我飛得越快！我們再衝一趟！」— 雲寶'
+        ];
+        encouragementText.textContent = quotes[Math.floor(Math.random() * quotes.length)];
+      }
+
+      finalScoreEl.textContent = finalIntScore;
+      finalHighScoreEl.textContent = highScore;
+
+      hud.classList.add('hidden');
+      rainboomTriggerBtn.classList.add('hidden');
+      gameOverScreen.classList.remove('hidden');
+    }
+
+    // 響應式畫布尺寸調整
+    function resizeCanvas() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width;
+      canvas.height = height;
+      if (gameState === 'PLAYING') {
+        player.x = Math.min(180, width * 0.22);
+      }
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    // 難度選擇按鈕
+    document.querySelectorAll('.diff-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        sfx.init();
+        currentDiffKey = btn.dataset.diff;
+        document.querySelectorAll('.diff-btn').forEach(b => {
+          b.className = 'diff-btn py-2.5 px-2 rounded-xl font-bold text-sm border-2 border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100 transition';
+        });
+        btn.className = 'diff-btn py-2.5 px-2 rounded-xl font-bold text-sm border-2 border-pink-500 bg-pink-500 text-white shadow-md transition';
+      });
+    });
+
+    // 鍵盤控制
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'ArrowUp' || e.code === 'KeyW') {
+        input.up = true;
+      } else if (e.code === 'ArrowDown' || e.code === 'KeyS') {
+        input.down = true;
+      } else if (e.code === 'Space' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+        if (gameState === 'PLAYING') {
+          e.preventDefault();
+          triggerSonicRainboom();
+        }
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (e.code === 'ArrowUp' || e.code === 'KeyW') input.up = false;
+      if (e.code === 'ArrowDown' || e.code === 'KeyS') input.down = false;
+    });
+
+    // 滑鼠與觸控飛行控制
+    canvas.addEventListener('pointerdown', (e) => {
+      if (gameState === 'PLAYING') {
+        sfx.init();
+        input.pointerDown = true;
+      }
+    });
+    window.addEventListener('pointerup', () => {
+      input.pointerDown = false;
+    });
+
+    // UI 按鈕綁定
+    document.getElementById('startBtn').addEventListener('click', startGame);
+    document.getElementById('retryBtn').addEventListener('click', startGame);
+    document.getElementById('menuBtn').addEventListener('click', () => {
+      gameOverScreen.classList.add('hidden');
+      startScreen.classList.remove('hidden');
+      gameState = 'MENU';
+    });
+
+    rainboomTriggerBtn.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
+      triggerSonicRainboom();
+    });
+
+    muteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      sfx.init();
+      sfx.toggleMute();
+    });
+
+    // 啟動初始化
+    window.onload = function () {
+      resizeCanvas();
+      initBackground();
+      requestAnimationFrame(gameLoop);
+    };
+  </script>
+</body>
+</html>
