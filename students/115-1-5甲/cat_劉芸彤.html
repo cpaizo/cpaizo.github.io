@@ -73,6 +73,18 @@
 
     <!-- 右側功能鈕 -->
     <div class="flex flex-wrap justify-end items-center gap-1.5 sm:gap-2 pointer-events-auto">
+      <button id="swim-btn" class="bg-cyan-100 hover:bg-cyan-200 active:scale-90 text-cyan-800 font-bold px-3 py-2 rounded-full shadow-md border-2 border-cyan-300 text-xs sm:text-sm transition flex items-center gap-1" title="讓小貓咪戴游泳圈戲水">
+        <span>🏊</span><span id="swim-label">游泳</span>
+      </button>
+      <button id="play-btn" class="bg-rose-100 hover:bg-rose-200 active:scale-90 text-rose-800 font-bold px-3 py-2 rounded-full shadow-md border-2 border-rose-300 text-xs sm:text-sm transition flex items-center gap-1" title="丟毛線球跟小貓玩">
+        <span>🧶</span><span id="play-label">玩毛線球</span>
+      </button>
+      <button id="sing-btn" class="bg-purple-100 hover:bg-purple-200 active:scale-90 text-purple-800 font-bold px-3 py-2 rounded-full shadow-md border-2 border-purple-300 text-xs sm:text-sm transition flex items-center gap-1" title="讓小貓彈琴唱歌">
+        <span>🎵</span><span id="sing-label">彈琴唱歌</span>
+      </button>
+      <button id="photo-btn" class="bg-yellow-100 hover:bg-yellow-200 active:scale-90 text-yellow-800 font-bold px-3 py-2 rounded-full shadow-md border-2 border-yellow-300 text-xs sm:text-sm transition flex items-center gap-1" title="幫小貓拍可愛照片">
+        <span>📸</span><span class="hidden sm:inline">拍美照</span>
+      </button>
       <button id="scene-btn" class="bg-emerald-100 hover:bg-emerald-200 active:scale-90 text-emerald-800 font-bold px-3 py-2 rounded-full shadow-md border-2 border-emerald-300 text-xs sm:text-sm transition flex items-center gap-1" title="切換不同場景背景">
         <span>🏞️</span><span id="scene-label">去野餐草地</span>
       </button>
@@ -82,7 +94,7 @@
       <button id="sleep-btn" class="bg-indigo-100 hover:bg-indigo-200 active:scale-90 text-indigo-800 font-bold px-3 py-2 rounded-full shadow-md border-2 border-indigo-300 text-xs sm:text-sm transition flex items-center gap-1" title="哄小貓咪睡覺">
         <span>💤</span><span id="sleep-label">睡覺</span>
       </button>
-      <button id="breed-btn" class="bg-amber-100 hover:bg-amber-200 active:scale-90 text-amber-900 font-bold px-3 py-2 rounded-full shadow-md border-2 border-amber-300 text-xs sm:text-sm transition flex items-center gap-1" title="切換橘貓 / 虎斑貓 / 小黑貓">
+      <button id="breed-btn" class="bg-amber-100 hover:bg-amber-200 active:scale-90 text-amber-900 font-bold px-3 py-2 rounded-full shadow-md border-2 border-amber-300 text-xs sm:text-sm transition flex items-center gap-1" title="切換橘貓 / 虎斑貓 / 黑貓 / 白貓">
         <span>🎨</span><span id="breed-label">變身虎斑貓</span>
       </button>
       <button id="pet-btn" class="bg-pink-100 hover:bg-pink-200 active:scale-90 text-pink-700 font-bold px-3 py-2 rounded-full shadow-md border-2 border-pink-300 text-xs sm:text-sm transition flex items-center gap-1" title="摸摸小貓咪">
@@ -258,6 +270,43 @@
           osc.stop(now + idx * 0.22 + 0.45);
         });
       }
+
+      // 彈鋼琴唱歌單音音效
+      playNote() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const scale = [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50];
+        const freq = scale[Math.floor(Math.random() * scale.length)];
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now);
+        gain.gain.setValueAtTime(0.16, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.32);
+      }
+
+      // 拍照快門咔嚓音效
+      playShutter() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(950, now);
+        osc.frequency.exponentialRampToValueAtTime(180, now + 0.06);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.07);
+      }
     }
 
     const audio = new CuteAudio();
@@ -298,10 +347,14 @@
       walkPhase: 0,
       eatenCount: 0,
       breed: 'orange', // 'orange' | 'tabby' | 'black' | 'white'
-      mode: 'normal', // 'normal' | 'bath' | 'sleep'
+      mode: 'normal', // 'normal' | 'bath' | 'sleep' | 'sing' | 'swim'
       scene: 'room', // 'room' | 'park' | 'beach' | 'starry'
       fxTimer: 0
     };
+
+    // 玩具毛線球狀態與拍照閃光燈計時
+    let yarnBall = null;
+    let cameraFlash = 0;
 
     // 場景清單設定
     const SCENE_ORDER = ['room', 'park', 'beach', 'starry'];
@@ -312,16 +365,27 @@
       starry: { name: '夢幻星空露營', nextLabel: '回溫馨客廳' }
     };
 
-    // 毛色主題設定（小橘貓 vs 銀棕虎斑貓 vs 酷萌小黑貓 vs 雪白小白貓）
+    // 海底世界熱帶魚群資料
+    const seaFishes = Array.from({ length: 8 }, (_, i) => ({
+      rx: (i * 0.14 + 0.08) % 0.95,
+      ry: 0.18 + (i % 4) * 0.13,
+      speed: 22 + (i % 3) * 12,
+      dir: i % 2 === 0 ? 1 : -1,
+      color: ['#ff9f43', '#ff6b81', '#ffeaa7', '#55efc4', '#74b9ff'][i % 5],
+      size: 10 + (i % 3) * 3,
+      phase: i * 1.1
+    }));
+
+    // 貓咪毛色主題配置 (橘貓 / 虎斑貓 / 黑貓 / 白貓)
     const BREED_ORDER = ['orange', 'tabby', 'black', 'white'];
     const BREED_THEMES = {
       orange: {
         name: '小橘貓',
         nextLabel: '變身虎斑貓',
-        bodyLight: '#ffb866',
-        bodyDark: '#f38b2b',
-        headLight: '#ffba6b',
-        headDark: '#f79131',
+        bodyLight: '#ffc078',
+        bodyDark: '#ff9636',
+        headLight: '#ffc685',
+        headDark: '#ff9b3d',
         earMain: '#ffa245',
         stripe: '#d96b14',
         tailTip: '#fffdf9',
@@ -451,10 +515,31 @@
     function setCatMode(newMode) {
       cat.mode = newMode;
       cat.fxTimer = 0;
+      const swimLabel = document.getElementById('swim-label');
       const bathLabel = document.getElementById('bath-label');
       const sleepLabel = document.getElementById('sleep-label');
+      const singLabel = document.getElementById('sing-label');
+      if (swimLabel) swimLabel.textContent = newMode === 'swim' ? '上岸擦乾' : '游泳';
       if (bathLabel) bathLabel.textContent = newMode === 'bath' ? '擦乾出浴' : '洗澡';
       if (sleepLabel) sleepLabel.textContent = newMode === 'sleep' ? '叫醒牠' : '睡覺';
+      if (singLabel) singLabel.textContent = newMode === 'sing' ? '停止唱歌' : '彈琴唱歌';
+    }
+
+    function spawnYarnBall() {
+      const colors = ['#ff6b81', '#a29bfe', '#55efc4', '#ffeaa7', '#fd79a8'];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      yarnBall = {
+        x: width * (0.25 + Math.random() * 0.5),
+        y: height * 0.35,
+        vx: (Math.random() > 0.5 ? 1 : -1) * 180,
+        vy: -120,
+        r: 24,
+        rot: 0,
+        color,
+        bounces: 0
+      };
+      const playLabel = document.getElementById('play-label');
+      if (playLabel) playLabel.textContent = '收起毛線';
     }
 
     function updateStatusUI() {
@@ -474,8 +559,109 @@
     // ==========================================
     // 4. 繪製 2D 多元場景背景與超萌小貓咪
     // ==========================================
-    function drawBackground() {
+    function drawBackground(time = 0) {
       const floorY = height * 0.72;
+
+      if (cat.mode === 'swim') {
+        // 專屬海底世界場景：陽光穿透蔚藍深海！
+        const seaGrad = ctx.createLinearGradient(0, 0, 0, height);
+        seaGrad.addColorStop(0, '#38bdf8');
+        seaGrad.addColorStop(0.55, '#0284c7');
+        seaGrad.addColorStop(1, '#0369a1');
+        ctx.fillStyle = seaGrad;
+        ctx.fillRect(0, 0, width, height);
+
+        // 海面波光粼粼與斜射陽光光束
+        ctx.save();
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+        [0.18, 0.45, 0.72].forEach((rx, idx) => {
+          ctx.beginPath();
+          ctx.moveTo(width * rx - 30, 0);
+          ctx.lineTo(width * rx + 50, 0);
+          ctx.lineTo(width * rx + 130 + Math.sin(time + idx) * 20, height * 0.75);
+          ctx.lineTo(width * rx + 10 + Math.sin(time + idx) * 20, height * 0.75);
+          ctx.closePath();
+          ctx.fill();
+        });
+        ctx.restore();
+
+        // 頂部海浪波紋線
+        ctx.strokeStyle = 'rgba(224, 242, 254, 0.7)';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        for (let x = 0; x <= width; x += 20) {
+          const wy = 24 + Math.sin(x * 0.02 + time * 2.5) * 6;
+          if (x === 0) ctx.moveTo(x, wy);
+          else ctx.lineTo(x, wy);
+        }
+        ctx.stroke();
+
+        // 悠游的七彩熱帶小魚群
+        seaFishes.forEach((fish) => {
+          const fx = ((fish.rx * width + time * fish.speed * fish.dir) % (width + 80) + (width + 80)) % (width + 80) - 40;
+          const fy = height * fish.ry + Math.sin(time * 2.5 + fish.phase) * 8;
+          ctx.save();
+          ctx.translate(fx, fy);
+          ctx.scale(fish.dir, 1);
+          ctx.fillStyle = fish.color;
+          // 魚身與魚尾
+          ctx.beginPath();
+          ctx.ellipse(0, 0, fish.size, fish.size * 0.58, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.moveTo(-fish.size * 0.8, 0);
+          ctx.lineTo(-fish.size * 1.45, -fish.size * 0.5);
+          ctx.lineTo(-fish.size * 1.45, fish.size * 0.5);
+          ctx.closePath();
+          ctx.fill();
+          // 小魚眼睛
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(fish.size * 0.45, -fish.size * 0.12, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        });
+
+        // 柔細海底金沙床
+        const seabedGrad = ctx.createLinearGradient(0, floorY + 25, 0, height);
+        seabedGrad.addColorStop(0, '#fde047');
+        seabedGrad.addColorStop(1, '#eab308');
+        ctx.fillStyle = seabedGrad;
+        ctx.beginPath();
+        ctx.moveTo(0, floorY + 35);
+        ctx.quadraticCurveTo(width * 0.3, floorY + 20, width * 0.6, floorY + 38);
+        ctx.quadraticCurveTo(width * 0.85, floorY + 48, width, floorY + 30);
+        ctx.lineTo(width, height);
+        ctx.lineTo(0, height);
+        ctx.closePath();
+        ctx.fill();
+
+        // 搖曳翠綠海草與粉紅珊瑚、可愛海星
+        [0.12, 0.16, 0.82, 0.87].forEach((rx, idx) => {
+          const sx = width * rx;
+          const sy = floorY + 42;
+          ctx.strokeStyle = idx % 2 === 0 ? '#10b981' : '#34d399';
+          ctx.lineWidth = 8;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(sx, sy);
+          ctx.quadraticCurveTo(sx + Math.sin(time * 2 + idx) * 14, sy - 35, sx - 6, sy - 70);
+          ctx.stroke();
+        });
+
+        // 粉紅鹿角珊瑚與海星
+        ctx.fillStyle = '#fb7185';
+        ctx.beginPath();
+        ctx.arc(width * 0.25, floorY + 44, 16, Math.PI, Math.PI * 2);
+        ctx.arc(width * 0.27, floorY + 36, 12, Math.PI, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#f97316';
+        ctx.beginPath();
+        ctx.arc(width * 0.72, floorY + 52, 8, 0, Math.PI * 2);
+        ctx.fill();
+        return;
+      }
 
       if (cat.scene === 'park') {
         // 1. 櫻花野餐草地
@@ -692,23 +878,29 @@
       const baseY = height * 0.71;
       const isSleeping = cat.mode === 'sleep';
       const isBathing = cat.mode === 'bath';
+      const isSinging = cat.mode === 'sing';
+      const isSwimming = cat.mode === 'swim';
 
       const chewBounce = (!isSleeping && cat.chewTimer > 0) ? Math.abs(Math.sin(time * 28)) * 10 : 0;
-      const walkBounce = (!isSleeping && !isBathing) ? Math.abs(Math.sin(cat.walkPhase)) * 6 : 0;
+      const singBounce = isSinging ? Math.abs(Math.sin(time * 8)) * 7 : 0;
+      const swimFloat = isSwimming ? Math.sin(time * 3.8) * 6 : 0;
+      const walkBounce = (!isSleeping && !isBathing && !isSinging && !isSwimming) ? Math.abs(Math.sin(cat.walkPhase)) * 6 : 0;
       const breathe = Math.sin(time * (isSleeping ? 2.0 : 3.0)) * (isSleeping ? 3.5 : 2.5);
 
       const cx = cat.x;
-      const cy = baseY - chewBounce - walkBounce;
+      const cy = baseY - chewBounce - walkBounce - singBounce - swimFloat;
       const f = cat.fatness;
 
       ctx.save();
       ctx.translate(cx, cy);
 
-      // 地面柔焦陰影
-      ctx.fillStyle = 'rgba(130, 80, 30, 0.22)';
-      ctx.beginPath();
-      ctx.ellipse(0, chewBounce + walkBounce + 12, 76 * f, 20, 0, 0, Math.PI * 2);
-      ctx.fill();
+      // 非游泳模式時顯示地面柔焦陰影
+      if (!isSwimming) {
+        ctx.fillStyle = 'rgba(130, 80, 30, 0.22)';
+        ctx.beginPath();
+        ctx.ellipse(0, chewBounce + walkBounce + 12, 76 * f, 20, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
 
       // 睡覺時的軟綿綿寵物小睡窩底座
       if (isSleeping) {
@@ -805,10 +997,10 @@
 
       // 3. 四隻小短腿與白襪子 (非睡覺狀態顯示)
       if (!isSleeping) {
-        const legSwing = isBathing ? 0 : Math.sin(cat.walkPhase) * 11;
+        const legSwing = (isBathing || isSinging) ? 0 : (isSwimming ? Math.sin(time * 12) * 14 : Math.sin(cat.walkPhase) * 11);
         const legPositions = [
-          { x: -30 * f - legSwing, y: 5, lift: isBathing ? 0 : Math.max(0, -Math.sin(cat.walkPhase)) * 6 },
-          { x: 28 * f + legSwing, y: 5, lift: isBathing ? 0 : Math.max(0, Math.sin(cat.walkPhase)) * 6 }
+          { x: -30 * f - legSwing, y: 5, lift: isSwimming ? (12 + Math.cos(time * 12) * 5) : ((isBathing || isSinging) ? 0 : Math.max(0, -Math.sin(cat.walkPhase)) * 6) },
+          { x: 28 * f + legSwing, y: 5, lift: isSwimming ? (12 - Math.cos(time * 12) * 5) : (isSinging ? (Math.abs(Math.sin(time * 12)) * 12 + 8) : (isBathing ? 0 : Math.max(0, Math.sin(cat.walkPhase)) * 6)) }
         ];
         legPositions.forEach((leg) => {
           ctx.save();
@@ -888,38 +1080,112 @@
 
       // 洗澡模式：可愛粉藍小木盆 + 滿盆綿密白色泡泡浴！
       if (isBathing) {
-        // 沐浴木盆後半緣
+        // 小木盆本體
         ctx.fillStyle = '#74b9ff';
         ctx.strokeStyle = '#0984e3';
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 4.5;
         ctx.beginPath();
-        ctx.ellipse(0, -bodyH * 0.85, 86 * f, 20, 0, Math.PI, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-
-        // 木盆本體
-        ctx.fillStyle = '#81ecec';
-        ctx.beginPath();
-        ctx.moveTo(-86 * f, -bodyH * 0.85);
-        ctx.lineTo(-70 * f, 12);
-        ctx.quadraticCurveTo(0, 22, 70 * f, 12);
-        ctx.lineTo(86 * f, -bodyH * 0.85);
+        ctx.moveTo(-78 * f, -bodyH * 0.85);
+        ctx.lineTo(-62 * f, 8);
+        ctx.quadraticCurveTo(0, 18, 62 * f, 8);
+        ctx.lineTo(78 * f, -bodyH * 0.85);
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
 
-        // 盆口綿密白色泡泡群
+        // 木盆邊緣白邊
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.roundRect(-84 * f, -bodyH * 0.92, 168 * f, 14, 7);
+        ctx.fill();
+        ctx.stroke();
+
+        // 盆裡滿出來的綿密泡泡雲
         ctx.fillStyle = '#ffffff';
         ctx.strokeStyle = '#bce0fd';
-        ctx.lineWidth = 2.5;
-        const foamOffsets = [-68, -46, -24, 0, 24, 46, 68];
-        foamOffsets.forEach((ox, i) => {
-          const r = 15 + (i % 2) * 4 + Math.sin(time * 4 + i) * 1.5;
+        ctx.lineWidth = 3;
+        const foamOffsets = [-55, -30, 0, 30, 55];
+        foamOffsets.forEach((fx, idx) => {
+          const r = 18 + (idx % 2) * 5 + Math.sin(time * 4 + idx) * 2;
           ctx.beginPath();
-          ctx.arc(ox * f * 0.95, -bodyH * 0.85 + Math.cos(time * 3 + i) * 2, r, 0, Math.PI * 2);
+          ctx.arc(fx * f, -bodyH * 0.95, r, 0, Math.PI * 2);
           ctx.fill();
           ctx.stroke();
         });
+      }
+
+      // 游泳模式：套在腰上的超萌小黃鴨游泳圈 + 晶瑩水花波紋！
+      if (isSwimming) {
+        // 黃色游泳圈主體
+        ctx.fillStyle = '#facc15';
+        ctx.strokeStyle = '#ca8a04';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.ellipse(0, -bodyH * 0.55, 84 * f, 24, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // 游泳圈白色高光條紋
+        ctx.strokeStyle = '#fef9c3';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.ellipse(0, -bodyH * 0.58, 72 * f, 16, 0, Math.PI * 0.1, Math.PI * 0.9);
+        ctx.stroke();
+
+        // 游泳圈前端小鴨鴨頭與橘色鴨嘴
+        ctx.save();
+        ctx.translate(68 * f, -bodyH * 0.68);
+        ctx.fillStyle = '#facc15';
+        ctx.strokeStyle = '#ca8a04';
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.arc(0, 0, 15, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        // 小鴨眼睛
+        ctx.fillStyle = '#1e293b';
+        ctx.beginPath();
+        ctx.arc(5, -3, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        // 橘色扁扁鴨嘴
+        ctx.fillStyle = '#fb923c';
+        ctx.beginPath();
+        ctx.ellipse(16, 2, 8, 4.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 彈鋼琴唱歌模式：小貓面前的粉色迷你三角鋼琴！
+      if (isSinging) {
+        ctx.save();
+        ctx.translate(46 * f, -38);
+        // 琴腳
+        ctx.fillStyle = '#5c3317';
+        ctx.fillRect(-16, 12, 6, 26);
+        ctx.fillRect(14, 12, 6, 26);
+        // 粉紅琴身
+        ctx.fillStyle = '#ff9ff3';
+        ctx.strokeStyle = '#5c3317';
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.roundRect(-24, -4, 52, 20, 6);
+        ctx.fill();
+        ctx.stroke();
+        // 掀開的琴蓋
+        ctx.beginPath();
+        ctx.moveTo(-18, -4);
+        ctx.lineTo(18, -22);
+        ctx.lineTo(26, -4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        // 黑白琴鍵
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-20, 6, 36, 8);
+        ctx.fillStyle = '#2f3542';
+        [-14, -6, 4, 12].forEach((kx) => ctx.fillRect(kx, 6, 4, 5));
+        ctx.restore();
       }
 
       // 5. 超大比例 Q 彈包子臉貓咪頭
@@ -928,6 +1194,8 @@
       ctx.translate(10, headY);
       if (isSleeping) {
         ctx.rotate(0.14); // 睡著時頭微微歪一邊超可愛
+      } else if (isSinging) {
+        ctx.rotate(Math.sin(time * 6) * 0.12 - 0.08); // 陶醉搖頭晃腦唱歌
       } else if (cat.chewTimer > 0) {
         ctx.rotate(Math.sin(time * 32) * 0.09);
       }
@@ -1108,100 +1376,118 @@
       // 愛心形粉紅小鼻子
       ctx.fillStyle = '#ff6b81';
       ctx.beginPath();
-      ctx.ellipse(14, 9, 6.5, 4.8, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#ffc2cd';
-      ctx.beginPath();
-      ctx.arc(12, 7.5, 1.8, 0, Math.PI * 2);
+      ctx.moveTo(14, 15);
+      ctx.bezierCurveTo(9, 10, 6, 13, 14, 18);
+      ctx.bezierCurveTo(22, 13, 19, 10, 14, 15);
       ctx.fill();
 
-      // 嘴巴 (睡覺時微張小嘴呼吸 / 食物靠近張大圓嘴 / 平常 ω 貓咪嘴)
+      // 嘴巴 (睡覺時微張小嘴呼吸 / 唱歌張小圓嘴 / 食物靠近張大圓嘴 / 平常 ω 貓咪嘴)
       if (isSleeping) {
         const breathMouth = 4 + Math.sin(time * 2.0) * 1.5;
         ctx.fillStyle = '#ff7675';
         ctx.beginPath();
         ctx.ellipse(14, 21, 5, breathMouth, 0, 0, Math.PI * 2);
         ctx.fill();
-      } else if (cat.mouthOpen > 0.15) {
-        const openR = 15.5 * cat.mouthOpen;
+      } else if (isSinging) {
+        const singR = 9 + Math.sin(time * 10) * 3;
         ctx.fillStyle = '#ff4757';
         ctx.strokeStyle = '#5c3317';
-        ctx.lineWidth = 3.2;
+        ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.arc(14, 24, openR, 0, Math.PI * 2);
+        ctx.arc(14, 22, singR, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      } else if (cat.mouthOpen > 0.15) {
+        const mouthR = 15 * cat.mouthOpen + 4;
+        ctx.fillStyle = '#ff4757';
+        ctx.strokeStyle = theme.outline;
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.arc(14, 23, mouthR, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
 
+        // 粉紅小舌頭
         ctx.fillStyle = '#ff9ff3';
         ctx.beginPath();
-        ctx.arc(14, 26 + openR * 0.25, openR * 0.62, 0, Math.PI);
+        ctx.ellipse(14, 25 + mouthR * 0.35, mouthR * 0.65, mouthR * 0.42, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        if (cat.mouthOpen > 0.5) {
-          ctx.fillStyle = '#ffffff';
-          ctx.beginPath();
-          ctx.moveTo(6, 13);
-          ctx.lineTo(9, 18);
-          ctx.lineTo(12, 13);
-          ctx.moveTo(16, 13);
-          ctx.lineTo(19, 18);
-          ctx.lineTo(22, 13);
-          ctx.fill();
-        }
+        // 可愛迷你小虎牙
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(8, 23 - mouthR * 0.72);
+        ctx.lineTo(11, 23 - mouthR * 0.32);
+        ctx.lineTo(13, 23 - mouthR * 0.72);
+        ctx.moveTo(15, 23 - mouthR * 0.72);
+        ctx.lineTo(17, 23 - mouthR * 0.32);
+        ctx.lineTo(20, 23 - mouthR * 0.72);
+        ctx.fill();
       } else {
-        ctx.strokeStyle = '#5c3317';
+        ctx.strokeStyle = theme.outline;
         ctx.lineWidth = 3.5;
         ctx.lineCap = 'round';
         ctx.beginPath();
-        ctx.arc(8.5, 16, 5.5, 0.1, Math.PI - 0.1);
+        ctx.arc(9, 20, 5.5, 0.15, Math.PI - 0.15);
         ctx.stroke();
         ctx.beginPath();
-        ctx.arc(19.5, 16, 5.5, 0.1, Math.PI - 0.1);
+        ctx.arc(19, 20, 5.5, 0.15, Math.PI - 0.15);
         ctx.stroke();
       }
 
-      // 左右各兩根微彎鬍鬚
-      ctx.strokeStyle = cat.breed === 'black' ? '#e2e8f0' : theme.outline;
+      // 靈動貓咪鬍鬚
+      ctx.strokeStyle = theme.outline;
       ctx.lineWidth = 2.6;
-      [-1, 1].forEach((side) => {
-        const baseWx = side === -1 ? -38 : 48;
-        ctx.beginPath();
-        ctx.moveTo(baseWx, 8);
-        ctx.quadraticCurveTo(baseWx + side * 12, 4, baseWx + side * 24, 3);
-        ctx.moveTo(baseWx, 16);
-        ctx.quadraticCurveTo(baseWx + side * 12, 16, baseWx + side * 24, 19);
-        ctx.stroke();
-      });
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(-26, 8); ctx.lineTo(-52, 3);
+      ctx.moveTo(-26, 15); ctx.lineTo(-50, 17);
+      ctx.moveTo(52, 8); ctx.lineTo(78, 3);
+      ctx.moveTo(52, 15); ctx.lineTo(76, 17);
+      ctx.stroke();
 
-      ctx.restore();
-      ctx.restore();
+      ctx.restore(); // 結束頭部
+      ctx.restore(); // 結束整體貓咪
     }
 
     // ==========================================
-    // 5. 主遊戲迴圈與物理更新
+    // 5. 主動畫與物理更新迴圈
     // ==========================================
     let lastTime = performance.now();
 
     function gameLoop(now) {
-      const dt = Math.min((now - lastTime) / 1000, 0.05);
+      const dt = Math.min(0.05, (now - lastTime) / 1000);
       lastTime = now;
       const time = now / 1000;
 
       ctx.clearRect(0, 0, width, height);
-      drawBackground();
+      drawBackground(time);
 
-      // 洗澡或睡覺時的持續可愛特效生成 (七彩泡泡 / Zzz 符號)
+      // 洗澡、睡覺、唱歌或游泳時的持續可愛特效生成 (七彩泡泡 / Zzz 符號 / 音符 / 海底氣泡)
       if (cat.mode === 'bath') {
         cat.fxTimer -= dt;
         if (cat.fxTimer <= 0) {
           cat.fxTimer = 0.35;
           spawnParticles(cat.x + (Math.random() - 0.5) * 110, cat.y - 40 - Math.random() * 60, '#74b9ff', 2, 'bubble');
         }
+      } else if (cat.mode === 'swim') {
+        cat.fxTimer -= dt;
+        if (cat.fxTimer <= 0) {
+          cat.fxTimer = 0.35;
+          spawnParticles(cat.x + (Math.random() - 0.5) * 140, cat.y - 25 - Math.random() * 60, '#bae6fd', 2, 'bubble');
+        }
       } else if (cat.mode === 'sleep') {
         cat.fxTimer -= dt;
         if (cat.fxTimer <= 0) {
           cat.fxTimer = 1.1;
           spawnParticles(cat.x + cat.facing * 35, cat.y - 125, '#a29bfe', 1, 'zzz');
+        }
+      } else if (cat.mode === 'sing') {
+        cat.fxTimer -= dt;
+        if (cat.fxTimer <= 0) {
+          cat.fxTimer = 0.55;
+          audio.playNote();
+          spawnParticles(cat.x + cat.facing * 45, cat.y - 115, '#ff6b81', 1, 'note');
         }
       }
 
@@ -1218,14 +1504,14 @@
         }
       }
 
-      // 小貓咪自動尋食移動 (洗澡時坐在木盆裡轉頭張嘴等餵食)
+      // 小貓咪自動尋食或追毛線球移動
       if (nearestFood) {
         cat.targetX = nearestFood.x;
         const dx = cat.targetX - cat.x;
         if (Math.abs(dx) > 12) {
           cat.facing = dx > 0 ? 1 : -1;
-          if (cat.mode === 'normal') {
-            const moveSpeed = Math.min(340, Math.abs(dx) * 4.5);
+          if (cat.mode === 'normal' || cat.mode === 'swim') {
+            const moveSpeed = cat.mode === 'swim' ? 230 : Math.min(340, Math.abs(dx) * 4.5);
             cat.x += Math.sign(dx) * moveSpeed * dt;
             cat.walkPhase += dt * 16;
           } else {
@@ -1237,6 +1523,24 @@
 
         const targetMouth = nearestDist < 170 ? Math.min(1, (170 - nearestDist) / 110) : 0;
         cat.mouthOpen += (targetMouth - cat.mouthOpen) * 14 * dt;
+      } else if (yarnBall && (cat.mode === 'normal' || cat.mode === 'swim')) {
+        // 開心追逐毛線球並伸出貓掌拍打！
+        const dx = yarnBall.x - cat.x;
+        if (Math.abs(dx) > 45) {
+          cat.facing = dx > 0 ? 1 : -1;
+          cat.x += Math.sign(dx) * 260 * dt;
+          cat.walkPhase += dt * 18;
+        } else {
+          cat.walkPhase = 0;
+          if (Math.abs(yarnBall.y - (height * 0.68)) < 45) {
+            audio.playPop();
+            yarnBall.vx = cat.facing * (240 + Math.random() * 140);
+            yarnBall.vy = -260 - Math.random() * 90;
+            cat.happyTimer = 0.6;
+            spawnParticles(yarnBall.x, yarnBall.y, yarnBall.color, 6);
+          }
+        }
+        cat.mouthOpen += (0 - cat.mouthOpen) * 10 * dt;
       } else {
         cat.walkPhase = 0;
         cat.mouthOpen += (0 - cat.mouthOpen) * 10 * dt;
@@ -1247,6 +1551,51 @@
 
       // 繪製小貓咪
       drawCat(time);
+
+      // 更新並繪製彈跳七彩毛線球
+      if (yarnBall) {
+        yarnBall.vy += 680 * dt;
+        yarnBall.x += yarnBall.vx * dt;
+        yarnBall.y += yarnBall.vy * dt;
+        yarnBall.rot += (yarnBall.vx * 0.015) * dt;
+
+        const floorBallY = height * 0.72 - yarnBall.r;
+        if (yarnBall.y >= floorBallY) {
+          yarnBall.y = floorBallY;
+          yarnBall.vy = -yarnBall.vy * 0.68;
+          yarnBall.vx *= 0.88;
+        }
+        if (yarnBall.x < yarnBall.r + 20) {
+          yarnBall.x = yarnBall.r + 20;
+          yarnBall.vx = Math.abs(yarnBall.vx) * 0.85;
+        } else if (yarnBall.x > width - yarnBall.r - 20) {
+          yarnBall.x = width - yarnBall.r - 20;
+          yarnBall.vx = -Math.abs(yarnBall.vx) * 0.85;
+        }
+
+        ctx.save();
+        ctx.translate(yarnBall.x, yarnBall.y);
+        ctx.rotate(yarnBall.rot);
+        ctx.fillStyle = yarnBall.color;
+        ctx.strokeStyle = '#5c3317';
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.arc(0, 0, yarnBall.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // 毛線纏繞紋路
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(0, 0, yarnBall.r * 0.65, 0.2, Math.PI * 1.1);
+        ctx.moveTo(-yarnBall.r * 0.7, -4);
+        ctx.quadraticCurveTo(0, -14, yarnBall.r * 0.7, -2);
+        ctx.moveTo(-yarnBall.r * 0.6, 8);
+        ctx.quadraticCurveTo(0, 0, yarnBall.r * 0.6, 10);
+        ctx.stroke();
+        ctx.restore();
+      }
 
       // 更新並繪製所有美食
       const mouthX = cat.x + cat.facing * 26;
@@ -1327,6 +1676,14 @@
         if (p.kind === 'heart') {
           ctx.font = '18px serif';
           ctx.fillText('🧡', 0, 0);
+        } else if (p.kind === 'note') {
+          ctx.font = '900 22px "Noto Sans TC", sans-serif';
+          ctx.fillStyle = '#ff4757';
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 3;
+          const noteChar = Math.sin(p.x) > 0 ? '♪' : '♫';
+          ctx.strokeText(noteChar, 0, 0);
+          ctx.fillText(noteChar, 0, 0);
         } else if (p.kind === 'zzz') {
           ctx.font = '900 20px "Noto Sans TC", sans-serif';
           ctx.fillStyle = '#ffffff';
@@ -1377,12 +1734,72 @@
         ctx.restore();
       }
 
+      // 拍照閃光燈白光特效
+      if (cameraFlash > 0) {
+        cameraFlash -= dt * 2.5;
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0, cameraFlash)})`;
+        ctx.fillRect(0, 0, width, height);
+      }
+
       requestAnimationFrame(gameLoop);
     }
 
     // ==========================================
     // 6. 綁定按鈕與點擊螢幕互動事件
     // ==========================================
+    document.getElementById('swim-btn').addEventListener('click', () => {
+      if (cat.mode === 'swim') {
+        setCatMode('normal');
+        audio.playMeow();
+        spawnParticles(cat.x, cat.y - 40, '#38bdf8', 12);
+        addFloatingText(cat.x, cat.y - 135, '🐾 游回岸上擦乾啦！', '#0284c7');
+      } else {
+        setCatMode('swim');
+        audio.playBubble();
+        cat.happyTimer = 1.4;
+        spawnParticles(cat.x, cat.y - 40, '#bae6fd', 16, 'bubble');
+        addFloatingText(cat.x, cat.y - 135, '🌊 潛入海底跟魚兒一起游游！', '#0284c7');
+      }
+    });
+
+    document.getElementById('play-btn').addEventListener('click', () => {
+      if (yarnBall) {
+        yarnBall = null;
+        document.getElementById('play-label').textContent = '玩毛線球';
+        addFloatingText(cat.x, cat.y - 135, '🧶 把毛線球收起來啦！', '#e11d48');
+      } else {
+        if (cat.mode !== 'normal') setCatMode('normal');
+        audio.playMeow();
+        spawnYarnBall();
+        addFloatingText(cat.x, cat.y - 135, '🧶 哇！是彈力毛線球！', '#e11d48');
+      }
+    });
+
+    document.getElementById('sing-btn').addEventListener('click', () => {
+      if (cat.mode === 'sing') {
+        setCatMode('normal');
+        audio.playMeow();
+        addFloatingText(cat.x, cat.y - 135, '👏 謝謝大家聽我唱歌！', '#7e22ce');
+      } else {
+        yarnBall = null;
+        document.getElementById('play-label').textContent = '玩毛線球';
+        setCatMode('sing');
+        audio.playNote();
+        cat.happyTimer = 1.5;
+        addFloatingText(cat.x, cat.y - 135, '🎵 喵喵音樂會開始囉～', '#7e22ce');
+      }
+    });
+
+    document.getElementById('photo-btn').addEventListener('click', () => {
+      audio.playShutter();
+      cameraFlash = 0.95;
+      cat.happyTimer = 1.2;
+      spawnParticles(cat.x, cat.y - 95, '#ff8da1', 12, 'heart');
+      const breedName = BREED_THEMES[cat.breed].name;
+      const sceneName = SCENE_INFO[cat.scene].name;
+      addFloatingText(cat.x, cat.y - 140, `📸 咔嚓！拍下${sceneName}的超萌${breedName}！`, '#d97706');
+    });
+
     document.querySelectorAll('.food-trigger').forEach((btn) => {
       btn.addEventListener('click', () => {
         if (cat.mode === 'sleep') {
