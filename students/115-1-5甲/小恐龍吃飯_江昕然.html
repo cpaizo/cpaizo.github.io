@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>餵小恐龍吃飯</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      margin: 0;
+      padding: 12px;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      color: #4A3500;
+      /* 黃金色金屬漸層背景 */
+      background: linear-gradient(135deg, #BF953F 0%, #FCF6BA 45%, #B38728 70%, #FBF5B7 100%);
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    .gold-title {
+      text-shadow: 0 2px 4px rgba(255, 255, 255, 0.85), 0 -1px 1px rgba(74, 53, 0, 0.25);
+    }
+
+    /* 直式大型互動畫布容器 */
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      flex: 1;
+      min-height: 0;
+      margin: 8px 0;
+      background: radial-gradient(circle at center, rgba(255, 253, 240, 0.72) 0%, rgba(252, 246, 186, 0.42) 100%);
+      border: 3px solid rgba(255, 255, 255, 0.85);
+      border-radius: 32px;
+      box-shadow:
+        inset 0 4px 16px rgba(179, 135, 40, 0.3),
+        0 14px 32px rgba(74, 53, 0, 0.25);
+      backdrop-filter: blur(8px);
+      overflow: hidden;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: pointer;
+      touch-action: none;
+    }
+
+    /* 底部立體果凍感按鈕 */
+    .btn-gold {
+      background: linear-gradient(180deg, #FFFDF0 0%, #F5E298 100%);
+      border: 2px solid #B38728;
+      box-shadow: 0 4px 0 #8C6614, 0 6px 12px rgba(74, 53, 0, 0.2);
+      color: #4A3500;
+      transition: transform 0.08s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.15s;
+      touch-action: manipulation;
+    }
+
+    .btn-gold:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #8C6614, 0 2px 5px rgba(74, 53, 0, 0.18);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 頂部標題與計分列 -->
+  <header class="w-full max-w-md text-center shrink-0">
+    <h1 class="gold-title text-2xl sm:text-3xl font-black tracking-wide">
+      🦖 餵小恐龍吃飯 🍽️
+    </h1>
+    <p class="text-[20px] sm:text-[22px] font-black mt-1 text-[#5C4300]">
+      已餵食：<span id="score" class="text-2xl text-[#8C5800]">0</span> 份美食
+    </p>
+  </header>
+
+  <!-- 中央直式大型遊戲舞台 -->
+  <main id="container" class="canvas-container">
+    <canvas id="gameCanvas"></canvas>
+    <div id="size-badge" class="absolute top-3 left-4 bg-white/80 px-3 py-1 rounded-full text-base font-black text-[#6E4F00] pointer-events-none shadow-sm">
+      ⚖️ 體型：標準苗條
+    </div>
+    <div id="sound-badge" class="absolute top-3 right-4 bg-white/80 px-3 py-1 rounded-full text-base font-bold text-[#6E4F00] pointer-events-none shadow-sm">
+      🔊 點擊開啟音效
+    </div>
+  </main>
+
+  <!-- 底部三大互動按鈕 -->
+  <footer class="w-full max-w-[400px] shrink-0 pb-1">
+    <div class="grid grid-cols-3 gap-2.5">
+      <button class="btn-gold rounded-2xl py-3 px-1 flex flex-col items-center justify-center" onclick="serveNewPlate()">
+        <span class="text-2xl">🍽️</span>
+        <span class="text-[19px] sm:text-[20px] font-black leading-tight mt-0.5">換一盤菜</span>
+      </button>
+      <button class="btn-gold rounded-2xl py-3 px-1 flex flex-col items-center justify-center" onclick="changeCraving()">
+        <span class="text-2xl">💭</span>
+        <span class="text-[19px] sm:text-[20px] font-black leading-tight mt-0.5">換個想吃的</span>
+      </button>
+      <button class="btn-gold rounded-2xl py-3 px-1 flex flex-col items-center justify-center" onclick="exerciseDino()">
+        <span class="text-2xl">🏃</span>
+        <span class="text-[19px] sm:text-[20px] font-black leading-tight mt-0.5">消化運動</span>
+      </button>
+    </div>
+  </footer>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('container');
+
+    let width = 0;
+    let height = 0;
+    let dpr = window.devicePixelRatio || 1;
+    let score = 0;
+
+    // 美味食物清單與專屬點餐台詞
+    const foodMenu = [
+      { emoji: '🍔', name: '大漢堡', lines: ['我想吃 🍔 大漢堡！', '好想咬一口 🍔 漢堡喔～'] },
+      { emoji: '🍰', name: '草莓蛋糕', lines: ['好想吃甜甜的 🍰 蛋糕～', '點心時間想吃 🍰 蛋糕！'] },
+      { emoji: '🍣', name: '鮮美壽司', lines: ['我想吃 🍣 鮮美壽司！', '快餵我吃 🍣 壽司吧～'] },
+      { emoji: '🍗', name: '香烤雞腿', lines: ['肚子餓了，給我 🍗 雞腿！', '最喜歡香噴噴的 🍗 雞腿！'] },
+      { emoji: '🍉', name: '甜西瓜', lines: ['想吃多汁的 🍉 甜西瓜！', '來片冰涼的 🍉 西瓜吧～'] },
+      { emoji: '🍙', name: '三角飯糰', lines: ['我想吃 🍙 三角飯糰！', '肚子咕嚕叫，想吃 🍙 飯糰！'] },
+      { emoji: '🍩', name: '甜甜圈', lines: ['好想吃圓圓的 🍩 甜甜圈！', '餵我吃甜甜的 🍩 甜甜圈～'] },
+      { emoji: '🍦', name: '冰淇淋', lines: ['我想舔一口 🍦 冰淇淋！', '好想吃冰冰的 🍦 冰淇淋～'] }
+    ];
+
+    // 餐盤上的食物與拖曳狀態
+    let plateFoods = [];
+    let draggedFood = null;
+    let pointerPos = { x: 0, y: 0 };
+
+    // 小恐龍目前點餐目標與對話泡泡狀態
+    let desiredFood = null;
+    let speechText = '';
+    let bubbleBounds = { x: 0, y: 0, w: 0, h: 0 };
+    let bubbleBounce = 0;
+
+    let particles = [];
+    let floatTexts = [];
+
+    // 坐在餐桌前的金色小恐龍狀態
+    const dino = {
+      x: 190,
+      y: 230,
+      fatness: 1.0,    // 身體圓潤倍率 (1.0 ~ 1.65)
+      mouthOpen: 0,    // 0 ~ 1 嘴巴張開程度
+      chewTimer: 0,    // 咀嚼動畫計時器
+      happyTimer: 0,   // 開心眯眯眼計時器
+      bounceOffset: 0, // 開心上下彈跳位移
+      bounceVel: 0,
+      eyeLookX: 0,     // 眼睛追蹤食物偏移
+      eyeLookY: 0,
+      crumbs: []       // 嘴角小餅乾屑
+    };
+
+    /**
+     * 安全 Web Audio API 音效合成器
+     */
+    let audioCtx = null;
+    let soundUnlocked = false;
+
+    function unlockSound() {
+      try {
+        if (!audioCtx) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) audioCtx = new AC();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        if (audioCtx && !soundUnlocked) {
+          soundUnlocked = true;
+          const badge = document.getElementById('sound-badge');
+          if (badge) badge.textContent = '🔊 音效已開啟';
+        }
+      } catch (e) {}
+    }
+
+    function playSound(type, f1, f2, dur, vol = 0.25) {
+      unlockSound();
+      if (!audioCtx) return;
+      try {
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(f1, now);
+        if (f2) {
+          osc.frequency.exponentialRampToValueAtTime(f2, now + dur);
+        }
+
+        gain.gain.setValueAtTime(vol, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + dur + 0.01);
+      } catch (e) {}
+    }
+
+    // 播放可愛「啊嗚、嚼嚼」連續音效
+    function playMunchSound(isBonus = false) {
+      if (isBonus) {
+        // 大滿足獎勵：更歡快的四連音旋律
+        playSound('triangle', 392, 523.25, 0.09, 0.28);
+        setTimeout(() => playSound('triangle', 523.25, 659.25, 0.09, 0.28), 90);
+        setTimeout(() => playSound('sine', 659.25, 783.99, 0.1, 0.28), 180);
+        setTimeout(() => playSound('triangle', 783.99, 1046.5, 0.22, 0.3), 270);
+      } else {
+        playSound('triangle', 260, 480, 0.09, 0.26);
+        setTimeout(() => playSound('sine', 340, 560, 0.09, 0.22), 100);
+        setTimeout(() => playSound('triangle', 420, 720, 0.12, 0.24), 210);
+      }
+    }
+
+    /**
+     * 響應式畫布尺寸調整與餐盤擺設
+     */
+    function resize() {
+      const rect = container.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
+      dpr = window.devicePixelRatio || 1;
+
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      dino.x = width / 2;
+      dino.y = height * 0.47;
+
+      if (plateFoods.length === 0) {
+        serveNewPlate(true);
+      } else {
+        layoutPlateFoods();
+      }
+    }
+
+    // 計算餐盤上 4 份食物的整齊位置
+    function layoutPlateFoods() {
+      const plateY = height * 0.815;
+      const spread = Math.min(width * 0.29, 112);
+      const offsets = [
+        { dx: -spread * 0.72, dy: -16 },
+        { dx: spread * 0.72, dy: -16 },
+        { dx: -spread * 0.72, dy: 24 },
+        { dx: spread * 0.72, dy: 24 }
+      ];
+      plateFoods.forEach((item, idx) => {
+        const pos = offsets[idx % offsets.length];
+        item.homeX = width / 2 + pos.dx;
+        item.homeY = plateY + pos.dy;
+        if (!item.isDragging) {
+          item.x = item.homeX;
+          item.y = item.homeY;
+        }
+      });
+    }
+
+    /**
+     * 從目前餐盤上的食物隨機挑選一樣作為小恐龍最想吃的目標
+     */
+    function pickNewCraving(excludeEmoji = null) {
+      if (plateFoods.length === 0) return;
+      let candidates = plateFoods;
+      if (excludeEmoji && plateFoods.length > 1) {
+        const filtered = plateFoods.filter(f => f.emoji !== excludeEmoji);
+        if (filtered.length > 0) candidates = filtered;
+      }
+      const chosen = candidates[Math.floor(Math.random() * candidates.length)];
+      desiredFood = { emoji: chosen.emoji, name: chosen.name };
+
+      const menuEntry = foodMenu.find(m => m.emoji === chosen.emoji);
+      if (menuEntry && menuEntry.lines.length > 0) {
+        speechText = menuEntry.lines[Math.floor(Math.random() * menuEntry.lines.length)];
+      } else {
+        speechText = `我想吃 ${chosen.emoji} ${chosen.name}！`;
+      }
+      bubbleBounce = 1.0;
+    }
+
+    /**
+     * 按鈕 1：換一盤菜（擺上 4 份新美食並重新點餐）
+     */
+    function serveNewPlate(silent = false) {
+      if (!silent) {
+        unlockSound();
+        playSound('sine', 440, 660, 0.14, 0.22);
+      }
+      const shuffled = [...foodMenu].sort(() => Math.random() - 0.5);
+      const selected = shuffled.slice(0, 4);
+      plateFoods = selected.map(f => ({
+        emoji: f.emoji,
+        name: f.name,
+        x: 0,
+        y: 0,
+        homeX: 0,
+        homeY: 0,
+        size: 46,
+        isDragging: false,
+        scale: 0.1
+      }));
+      layoutPlateFoods();
+      pickNewCraving();
+
+      if (!silent) {
+        addFloatText(width / 2, height * 0.67, '新餐點上桌啦！✨');
+      }
+    }
+
+    /**
+     * 按鈕 2：換個想吃的（重新挑選目前餐盤上的另一種食物）
+     */
+    function changeCraving() {
+      unlockSound();
+      if (plateFoods.length === 0) {
+        serveNewPlate(false);
+        return;
+      }
+      const prevEmoji = desiredFood ? desiredFood.emoji : null;
+      pickNewCraving(prevEmoji);
+      dino.bounceVel = -5;
+      playSound('sine', 520, 780, 0.12, 0.22);
+    }
+
+    /**
+     * 按鈕 3：消化運動（跳躍變瘦）
+     */
+    function exerciseDino() {
+      unlockSound();
+      dino.bounceVel = -14;
+      dino.fatness = Math.max(1.0, dino.fatness - 0.18);
+      updateSizeBadge();
+      playSound('triangle', 300, 640, 0.16, 0.25);
+      spawnParticles(dino.x, dino.y - 30, ['⭐', '✨', '💛'], 6);
+      addFloatText(dino.x, dino.y - 85, '跳跳消肚子！🏃');
+    }
+
+    function updateSizeBadge() {
+      const badge = document.getElementById('size-badge');
+      if (!badge) return;
+      if (dino.fatness < 1.15) {
+        badge.textContent = '⚖️ 體型：標準苗條';
+      } else if (dino.fatness < 1.35) {
+        badge.textContent = '⚖️ 體型：微胖可愛';
+      } else if (dino.fatness < 1.52) {
+        badge.textContent = '⚖️ 體型：圓滾滾球';
+      } else {
+        badge.textContent = '⚖️ 體型：超級大胖龍';
+      }
+    }
+
+    function spawnParticles(x, y, icons = ['❤️', '✨', '💛', '⭐'], count = 7) {
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: x + (Math.random() - 0.5) * 48,
+          y: y - 15,
+          vx: (Math.random() - 0.5) * 4.8,
+          vy: -Math.random() * 3.8 - 1.5,
+          icon: icons[Math.floor(Math.random() * icons.length)],
+          size: Math.random() * 11 + 18,
+          life: 1.0
+        });
+      }
+    }
+
+    function addFloatText(x, y, text) {
+      floatTexts.push({ x, y, text, life: 1.0 });
+    }
+
+    // 取得小恐龍嘴巴中心座標
+    function getMouthCenter() {
+      return {
+        x: dino.x,
+        y: dino.y - 26 + dino.bounceOffset
+      };
+    }
+
+    /**
+     * 滑鼠與觸控拖曳餵食互動
+     */
+    function getCanvasCoords(clientX, clientY) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+      };
+    }
+
+    function onDragStart(clientX, clientY) {
+      unlockSound();
+      const pos = getCanvasCoords(clientX, clientY);
+      pointerPos = pos;
+
+      // 1. 檢查是否抓起餐盤上的某份食物
+      for (let i = plateFoods.length - 1; i >= 0; i--) {
+        const item = plateFoods[i];
+        if (Math.hypot(pos.x - item.x, pos.y - item.y) < 42) {
+          draggedFood = item;
+          item.isDragging = true;
+          playSound('sine', 480, 620, 0.06, 0.16);
+          return;
+        }
+      }
+
+      // 2. 檢查是否點擊頭頂上的對話泡泡（讓小恐龍換個想吃的）
+      if (
+        pos.x >= bubbleBounds.x &&
+        pos.x <= bubbleBounds.x + bubbleBounds.w &&
+        pos.y >= bubbleBounds.y &&
+        pos.y <= bubbleBounds.y + bubbleBounds.h
+      ) {
+        changeCraving();
+        return;
+      }
+
+      // 3. 若直接點擊小恐龍臉部或肚子，觸發開心摸摸頭
+      if (Math.hypot(pos.x - dino.x, pos.y - (dino.y - 10)) < 75 * dino.fatness) {
+        dino.happyTimer = 45;
+        if (dino.bounceOffset === 0) dino.bounceVel = -8;
+        playSound('triangle', 460, 820, 0.15, 0.22);
+        spawnParticles(dino.x, dino.y - 50, ['❤️', '🥰', '✨'], 6);
+        addFloatText(dino.x, dino.y - 85, '好喜歡你！🥰');
+      }
+    }
+
+    function onDragMove(clientX, clientY) {
+      const pos = getCanvasCoords(clientX, clientY);
+      pointerPos = pos;
+
+      if (draggedFood) {
+        draggedFood.x = pos.x;
+        draggedFood.y = pos.y;
+
+        // 檢查是否已經送到小恐龍張大的嘴巴裡！
+        const mouth = getMouthCenter();
+        if (Math.hypot(draggedFood.x - mouth.x, draggedFood.y - mouth.y) < 50) {
+          feedDino(draggedFood);
+        }
+      }
+    }
+
+    function onDragEnd() {
+      if (draggedFood) {
+        draggedFood.isDragging = false;
+        draggedFood = null;
+      }
+    }
+
+    // 餵食成功觸發大口吃掉與咀嚼反應（區分是否命中點餐目標）
+    function feedDino(foodItem) {
+      const idx = plateFoods.indexOf(foodItem);
+      if (idx !== -1) {
+        plateFoods.splice(idx, 1);
+      }
+      draggedFood = null;
+
+      const isDesiredMatch = desiredFood && foodItem.emoji === desiredFood.emoji;
+      const mouth = getMouthCenter();
+
+      if (isDesiredMatch) {
+        // 命中她點餐想吃的食物：大滿足獎勵 +3 分！
+        score += 3;
+        document.getElementById('score').textContent = score;
+
+        dino.fatness = Math.min(1.65, dino.fatness + 0.055);
+        updateSizeBadge();
+        dino.chewTimer = 45;
+        dino.happyTimer = 65;
+        dino.mouthOpen = 0;
+        dino.bounceVel = -11;
+
+        dino.crumbs = [
+          { dx: -24, dy: -16 },
+          { dx: 26, dy: -14 }
+        ];
+
+        playMunchSound(true);
+        spawnParticles(mouth.x, mouth.y, ['👑', '❤️', '💖', '✨', '🌟'], 15);
+        speechText = '太幸福了！這就是我想吃的！🥰';
+        bubbleBounce = 1.0;
+        addFloatText(dino.x, dino.y - 75, '大滿足獎勵！+3 👑');
+      } else {
+        // 餵給她其他食物：一樣開心吃掉 +1 分
+        score += 1;
+        document.getElementById('score').textContent = score;
+
+        dino.fatness = Math.min(1.65, dino.fatness + 0.035);
+        updateSizeBadge();
+        dino.chewTimer = 36;
+        dino.happyTimer = 42;
+        dino.mouthOpen = 0;
+        dino.bounceVel = -6;
+
+        dino.crumbs = [
+          { dx: -24, dy: -16 },
+          { dx: 26, dy: -14 }
+        ];
+
+        playMunchSound(false);
+        spawnParticles(mouth.x, mouth.y, ['❤️', '✨', '😋'], 7);
+        const stillWant = desiredFood ? `${desiredFood.emoji} ${desiredFood.name}` : '點心';
+        speechText = `也很好吃～但我還在等 ${stillWant} 喔！`;
+        bubbleBounce = 0.85;
+        addFloatText(dino.x, dino.y - 75, `${foodItem.name}好吃！+1`);
+      }
+
+      // 餐盤全部吃光後自動補上一盤新菜，否則視情況更新下一道點餐
+      if (plateFoods.length === 0) {
+        setTimeout(() => {
+          serveNewPlate(false);
+        }, 950);
+      } else if (isDesiredMatch) {
+        setTimeout(() => {
+          if (plateFoods.length > 0) {
+            pickNewCraving();
+          }
+        }, 1250);
+      }
+    }
+
+    // 綁定滑鼠事件
+    canvas.addEventListener('mousedown', e => onDragStart(e.clientX, e.clientY));
+    window.addEventListener('mousemove', e => onDragMove(e.clientX, e.clientY));
+    window.addEventListener('mouseup', onDragEnd);
+
+    // 綁定觸控事件（防止頁面捲動）
+    canvas.addEventListener('touchstart', e => {
+      e.preventDefault();
+      if (e.touches.length > 0) {
+        onDragStart(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', e => {
+      e.preventDefault();
+      if (e.touches.length > 0) {
+        onDragMove(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', e => {
+      e.preventDefault();
+      onDragEnd();
+    }, { passive: false });
+
+    /**
+     * 繪製小恐龍頭頂上的可愛圓角對話泡泡（Speech Bubble）
+     */
+    function drawSpeechBubble() {
+      if (!speechText) return;
+
+      ctx.save();
+      const fontSize = width < 350 ? 17 : 19;
+      ctx.font = `900 ${fontSize}px "Noto Sans TC", sans-serif`;
+
+      const textMetrics = ctx.measureText(speechText);
+      const padX = 18;
+      const boxW = Math.min(width - 24, Math.max(210, textMetrics.width + padX * 2));
+      const boxH = 48;
+      const boxX = width / 2 - boxW / 2;
+      const floatWave = Math.sin(Date.now() * 0.004) * 2.5;
+      const bounceScale = 1 + bubbleBounce * 0.14;
+      const boxY = Math.max(46, dino.y - 148 + dino.bounceOffset * 0.4 + floatWave);
+
+      bubbleBounds = { x: boxX, y: boxY, w: boxW, h: boxH };
+
+      ctx.translate(boxX + boxW / 2, boxY + boxH / 2);
+      ctx.scale(bounceScale, bounceScale);
+      ctx.translate(-(boxX + boxW / 2), -(boxY + boxH / 2));
+
+      // 對話泡泡陰影
+      ctx.shadowColor = 'rgba(74, 53, 0, 0.22)';
+      ctx.shadowBlur = 12;
+      ctx.shadowOffsetY = 5;
+
+      // 白色圓角泡泡主體與下方指向小恐龍的尖角
+      const r = 20;
+      const tailX = width / 2;
+      const tailTipY = boxY + boxH + 11;
+
+      ctx.beginPath();
+      ctx.moveTo(boxX + r, boxY);
+      ctx.lineTo(boxX + boxW - r, boxY);
+      ctx.quadraticCurveTo(boxX + boxW, boxY, boxX + boxW, boxY + r);
+      ctx.lineTo(boxX + boxW, boxY + boxH - r);
+      ctx.quadraticCurveTo(boxX + boxW, boxY + boxH, boxX + boxW - r, boxY + boxH);
+      // 底部右側連接尖角
+      ctx.lineTo(tailX + 10, boxY + boxH);
+      ctx.lineTo(tailX, tailTipY);
+      ctx.lineTo(tailX - 10, boxY + boxH);
+      // 底部左側
+      ctx.lineTo(boxX + r, boxY + boxH);
+      ctx.quadraticCurveTo(boxX, boxY + boxH, boxX, boxY + boxH - r);
+      ctx.lineTo(boxX, boxY + r);
+      ctx.quadraticCurveTo(boxX, boxY, boxX + r, boxY);
+      ctx.closePath();
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fill();
+
+      ctx.shadowColor = 'transparent';
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#D4AF37';
+      ctx.stroke();
+
+      // 繪製點餐撒嬌台詞文字
+      ctx.fillStyle = '#4A3500';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(speechText, width / 2, boxY + boxH / 2 + 1);
+
+      ctx.restore();
+    }
+
+    /**
+     * 繪製溫馨木質圓餐桌與金色餐盤
+     */
+    function drawDiningTableAndPlate() {
+      const tableTopY = height * 0.58;
+
+      // 溫馨木質餐桌桌面
+      ctx.save();
+      const tableGrad = ctx.createLinearGradient(0, tableTopY, 0, height);
+      tableGrad.addColorStop(0, '#E8C574');
+      tableGrad.addColorStop(0.25, '#D4A349');
+      tableGrad.addColorStop(1, '#A67422');
+
+      ctx.fillStyle = tableGrad;
+      ctx.beginPath();
+      ctx.ellipse(width / 2, height * 0.88, width * 0.68, height * 0.34, 0, Math.PI, Math.PI * 2);
+      ctx.lineTo(width, height);
+      ctx.lineTo(0, height);
+      ctx.closePath();
+      ctx.fill();
+
+      // 餐桌邊緣高光線
+      ctx.strokeStyle = 'rgba(255, 253, 240, 0.75)';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.ellipse(width / 2, height * 0.88, width * 0.68, height * 0.34, 0, Math.PI * 1.12, Math.PI * 1.88);
+      ctx.stroke();
+
+      // 下方白瓷鑲金大餐盤
+      const plateY = height * 0.815;
+      const plateRx = Math.min(width * 0.38, 148);
+      const plateRy = 56;
+
+      // 餐盤陰影
+      ctx.fillStyle = 'rgba(74, 53, 0, 0.25)';
+      ctx.beginPath();
+      ctx.ellipse(width / 2, plateY + 8, plateRx, plateRy, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 餐盤外圈
+      ctx.fillStyle = '#FFFDF5';
+      ctx.beginPath();
+      ctx.ellipse(width / 2, plateY, plateRx, plateRy, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = '#D4AF37';
+      ctx.stroke();
+
+      // 餐盤內圈金邊
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = 'rgba(212, 175, 55, 0.55)';
+      ctx.beginPath();
+      ctx.ellipse(width / 2, plateY, plateRx * 0.82, plateRy * 0.78, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    /**
+     * 繪製坐在餐桌前的正面超萌金色小恐龍
+     */
+    function drawSittingDino() {
+      ctx.save();
+      const f = dino.fatness;
+      const drawY = dino.y + dino.bounceOffset;
+      ctx.translate(dino.x, drawY);
+
+      // 咀嚼時的臉頰鼓起與上下微動
+      const chewSquash = dino.chewTimer > 0 ? Math.sin(dino.chewTimer * 0.85) * 0.06 : 0;
+      ctx.scale(1 + chewSquash, 1 - chewSquash);
+
+      // 背後搖擺的小尾巴
+      const tailWag = Math.sin(Date.now() * 0.006) * 10;
+      ctx.fillStyle = '#D4AF37';
+      ctx.beginPath();
+      ctx.moveTo(28 * f, 28);
+      ctx.quadraticCurveTo(68 * f + tailWag, 18, 76 * f + tailWag, -6);
+      ctx.quadraticCurveTo(52 * f, 6, 30 * f, 10);
+      ctx.fill();
+
+      // 圓滾滾金色身體（坐在餐桌後面）
+      const bodyGrad = ctx.createRadialGradient(-12, -10, 12, 0, 10, 68 * f);
+      bodyGrad.addColorStop(0, '#FFFDF0');
+      bodyGrad.addColorStop(0.45, '#FCF6BA');
+      bodyGrad.addColorStop(1, '#D4AF37');
+
+      ctx.fillStyle = bodyGrad;
+      ctx.beginPath();
+      ctx.ellipse(0, 22, 50 * f, 48, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#996515';
+      ctx.stroke();
+
+      // 奶白色大肚肚
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.78)';
+      ctx.beginPath();
+      ctx.ellipse(0, 28, 32 * f, 34, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 頭頂三片可愛金色小骨板
+      ctx.fillStyle = '#B38728';
+      [-16, 0, 16].forEach((bx, idx) => {
+        ctx.beginPath();
+        ctx.arc(bx, -66 - (idx === 1 ? 5 : 0), 7.5, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // 圓潤大頭
+      ctx.fillStyle = bodyGrad;
+      ctx.beginPath();
+      ctx.ellipse(0, -32, 46 + (f - 1) * 14, 38, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#996515';
+      ctx.stroke();
+
+      // 粉嫩圓腮紅（咀嚼或開心時更紅潤）
+      const cheekBoost = (dino.chewTimer > 0 || dino.happyTimer > 0) ? 4 : 0;
+      ctx.fillStyle = 'rgba(255, 105, 135, 0.52)';
+      ctx.beginPath();
+      ctx.ellipse(-28, -24, 10 + cheekBoost, 6.5 + cheekBoost * 0.5, 0, 0, Math.PI * 2);
+      ctx.ellipse(28, -24, 10 + cheekBoost, 6.5 + cheekBoost * 0.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 雙眼繪製（會追蹤被拖曳的食物！）
+      const eyeOffsetX = 20;
+      const eyeY = -40;
+      if (dino.happyTimer > 0 && dino.mouthOpen < 0.2) {
+        // 吃到美食後的幸福眯眯眼 ^ ^
+        ctx.strokeStyle = '#4A3500';
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        [-1, 1].forEach(side => {
+          ctx.beginPath();
+          ctx.arc(side * eyeOffsetX, eyeY + 3, 8, Math.PI, 0, false);
+          ctx.stroke();
+        });
+      } else {
+        // 水汪汪大眼睛 + 視線追蹤
+        [-1, 1].forEach(side => {
+          const ex = side * eyeOffsetX;
+          ctx.fillStyle = '#FFFFFF';
+          ctx.beginPath();
+          ctx.arc(ex, eyeY, 10.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#3B2800';
+          ctx.beginPath();
+          ctx.arc(ex + dino.eyeLookX, eyeY + dino.eyeLookY, 6, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#FFFFFF';
+          ctx.beginPath();
+          ctx.arc(ex + dino.eyeLookX - 2, eyeY + dino.eyeLookY - 2, 2.2, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      // 嘴巴繪製（張大嘴「啊嗚」等待餵食 / 咀嚼小嘴 / 微笑）
+      const mouthY = -22;
+      if (dino.mouthOpen > 0.12) {
+        // 張得大大的圓嘴巴等待美食
+        const openRx = 14 + dino.mouthOpen * 8;
+        const openRy = 6 + dino.mouthOpen * 16;
+
+        ctx.fillStyle = '#8C1D40';
+        ctx.beginPath();
+        ctx.ellipse(0, mouthY + 3, openRx, openRy, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = '#4A3500';
+        ctx.stroke();
+
+        // 粉嫩小舌頭
+        ctx.fillStyle = '#FF758F';
+        ctx.beginPath();
+        ctx.ellipse(0, mouthY + 3 + openRy * 0.45, openRx * 0.68, openRy * 0.45, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 上排兩顆可愛小白牙
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.arc(-5, mouthY + 3 - openRy + 3, 3, 0, Math.PI);
+        ctx.arc(5, mouthY + 3 - openRy + 3, 3, 0, Math.PI);
+        ctx.fill();
+      } else if (dino.chewTimer > 0) {
+        // 鼓著腮幫子嚼嚼小波浪嘴
+        ctx.strokeStyle = '#4A3500';
+        ctx.lineWidth = 3.5;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(-10, mouthY);
+        ctx.quadraticCurveTo(-5, mouthY - 4, 0, mouthY);
+        ctx.quadraticCurveTo(5, mouthY + 4, 10, mouthY);
+        ctx.stroke();
+      } else {
+        // 乖巧微笑小嘴
+        ctx.strokeStyle = '#4A3500';
+        ctx.lineWidth = 3.5;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.arc(0, mouthY - 2, 9, 0.15 * Math.PI, 0.85 * Math.PI);
+        ctx.stroke();
+      }
+
+      // 嘴角沾到的小碎屑
+      dino.crumbs.forEach(c => {
+        ctx.fillStyle = '#E69D24';
+        ctx.beginPath();
+        ctx.arc(c.dx, c.dy, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // 兩隻小短手放在餐桌邊緣期待吃飯
+      const handWave = draggedFood ? Math.sin(Date.now() * 0.02) * 5 : 0;
+      ctx.fillStyle = '#FCF6BA';
+      ctx.strokeStyle = '#996515';
+      ctx.lineWidth = 2.8;
+      [-1, 1].forEach(side => {
+        ctx.beginPath();
+        ctx.ellipse(side * (26 + (f - 1) * 10), 42 + handWave * side, 13, 9, side * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      });
+
+      ctx.restore();
+    }
+
+    /**
+     * 60 FPS 主動畫迴圈
+     */
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+
+      // 1. 繪製餐桌與大餐盤
+      drawDiningTableAndPlate();
+
+      // 2. 計算小恐龍眼睛追蹤與張嘴程度
+      const mouth = getMouthCenter();
+      if (draggedFood) {
+        const dx = draggedFood.x - dino.x;
+        const dy = draggedFood.y - (dino.y - 40);
+        const angle = Math.atan2(dy, dx);
+        const dist = Math.min(4.2, Math.hypot(dx, dy) * 0.03);
+        dino.eyeLookX += (Math.cos(angle) * dist - dino.eyeLookX) * 0.25;
+        dino.eyeLookY += (Math.sin(angle) * dist - dino.eyeLookY) * 0.25;
+
+        // 食物越靠近嘴巴，嘴巴張得越大（「啊嗚～」）
+        const distToMouth = Math.hypot(draggedFood.x - mouth.x, draggedFood.y - mouth.y);
+        const targetOpen = distToMouth < 165 ? Math.min(1, (165 - distToMouth) / 105) : 0.15;
+        dino.mouthOpen += (targetOpen - dino.mouthOpen) * 0.28;
+      } else {
+        dino.eyeLookX += (0 - dino.eyeLookX) * 0.15;
+        dino.eyeLookY += (0 - dino.eyeLookY) * 0.15;
+        dino.mouthOpen += (0 - dino.mouthOpen) * 0.22;
+      }
+
+      // 更新小恐龍彈跳與計時器
+      if (dino.bounceOffset < 0 || dino.bounceVel !== 0) {
+        dino.bounceOffset += dino.bounceVel;
+        dino.bounceVel += 0.85;
+        if (dino.bounceOffset >= 0) {
+          dino.bounceOffset = 0;
+          dino.bounceVel = 0;
+        }
+      }
+      if (dino.chewTimer > 0) dino.chewTimer--;
+      if (dino.happyTimer > 0) dino.happyTimer--;
+      if (bubbleBounce > 0) {
+        bubbleBounce = Math.max(0, bubbleBounce - 0.07);
+      }
+
+      // 3. 繪製坐在餐桌前的小恐龍與頭頂點餐對話泡泡
+      drawSittingDino();
+      drawSpeechBubble();
+
+      // 引導提示文字
+      if (score === 0 && !draggedFood) {
+        ctx.save();
+        ctx.fillStyle = 'rgba(74, 53, 0, 0.72)';
+        ctx.font = '900 18px "Noto Sans TC", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('👆 把她想吃的美食拖到嘴巴餵牠！', width / 2, height * 0.665);
+        ctx.restore();
+      }
+
+      // 4. 繪製餐盤上的美食（非拖曳中的先畫，正在拖曳的畫在最上層）
+      plateFoods.forEach(item => {
+        if (!item.isDragging) {
+          item.x += (item.homeX - item.x) * 0.22;
+          item.y += (item.homeY - item.y) * 0.22;
+          item.scale += (1.0 - item.scale) * 0.2;
+        } else {
+          item.scale += (1.25 - item.scale) * 0.25;
+        }
+      });
+
+      const sortedFoods = [...plateFoods].sort((a, b) => (a.isDragging ? 1 : 0) - (b.isDragging ? 1 : 0));
+      sortedFoods.forEach(item => {
+        const isDesired = desiredFood && item.emoji === desiredFood.emoji && !item.isDragging;
+
+        ctx.save();
+        ctx.translate(item.x, item.y);
+
+        // 若是小恐龍目前點餐想吃的食物，加上淡淡的金色光環提示
+        if (isDesired) {
+          const pulse = 1 + Math.sin(Date.now() * 0.008) * 0.08;
+          ctx.save();
+          ctx.scale(pulse, pulse);
+          ctx.beginPath();
+          ctx.arc(0, 2, 27, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(255, 215, 0, 0.25)';
+          ctx.fill();
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = 'rgba(212, 175, 55, 0.8)';
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        ctx.scale(item.scale, item.scale);
+        ctx.shadowColor = 'rgba(74, 53, 0, 0.28)';
+        ctx.shadowBlur = item.isDragging ? 16 : 6;
+        ctx.shadowOffsetY = item.isDragging ? 10 : 3;
+        ctx.font = `${item.size}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(item.emoji, 0, 0);
+        ctx.restore();
+      });
+
+      // 5. 繪製愛心與星星特效
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 0.024;
+        if (p.life <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.font = `${p.size}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText(p.icon, p.x, p.y);
+        ctx.restore();
+      }
+
+      // 6. 繪製飄浮文字
+      for (let i = floatTexts.length - 1; i >= 0; i--) {
+        const ft = floatTexts[i];
+        ft.y -= 1.25;
+        ft.life -= 0.022;
+        if (ft.life <= 0) {
+          floatTexts.splice(i, 1);
+          continue;
+        }
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, ft.life);
+        ctx.fillStyle = '#7A4B00';
+        ctx.font = '900 20px "Noto Sans TC", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(ft.text, ft.x, ft.y);
+        ctx.restore();
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', resize);
+    window.onload = function () {
+      resize();
+      animate();
+    };
+  </script>
+</body>
+</html>
