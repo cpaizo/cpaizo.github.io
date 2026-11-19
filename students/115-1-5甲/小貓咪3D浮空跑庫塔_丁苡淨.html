@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>小貓咪3D浮空跑庫塔 | Cat Sky Parkour Tower</title>
+    <!-- 引入 Tailwind CSS 以構建清新可愛的 HUD 介面 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Three.js 進行 3D 場景渲染 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- 引入圓潤可愛的繁體中文字體 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Noto Sans TC', sans-serif;
+            background: linear-gradient(180deg, #60a5fa 0%, #bae6fd 55%, #fef3c7 100%);
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        .font-round {
+            font-family: 'Fredoka', 'Noto Sans TC', sans-serif;
+        }
+
+        #canvas-container {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* 玻璃擬態可愛卡片 */
+        .cute-glass {
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 8px 24px rgba(14, 116, 144, 0.15);
+        }
+
+        /* 貓爪肉球按鈕質感 */
+        .btn-paw {
+            background: linear-gradient(135deg, #fb923c 0%, #f43f5e 100%);
+            box-shadow: 0 6px 0 #be123c, 0 12px 20px rgba(244, 63, 94, 0.35);
+            transition: all 0.12s ease;
+        }
+        .btn-paw:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 0 #be123c, 0 15px 25px rgba(244, 63, 94, 0.45);
+        }
+        .btn-paw:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #be123c, 0 4px 10px rgba(244, 63, 94, 0.3);
+        }
+
+        /* 觸控按鍵回饋 */
+        .touch-btn:active, .touch-btn.active {
+            transform: scale(0.9);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+        }
+        .animate-float {
+            animation: floatSlow 2.5s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 3D 遊戲主畫布容器 -->
+    <div id="canvas-container"></div>
+
+    <!-- 頂部 HUD 資訊列 -->
+    <header id="hudHeader" class="fixed top-3 left-3 right-3 z-10 flex flex-wrap items-center justify-between gap-2 pointer-events-none opacity-0 transition-opacity duration-500">
+        <!-- 左側：小魚乾與存檔點 -->
+        <div class="flex items-center gap-2 pointer-events-auto">
+            <div class="cute-glass rounded-2xl px-3.5 py-2 flex items-center gap-2">
+                <span class="text-xl">🐟</span>
+                <div>
+                    <div class="text-[10px] font-bold text-slate-500 leading-none">黃金小魚乾</div>
+                    <div class="font-round text-base sm:text-lg font-black text-amber-500 leading-tight">
+                        <span id="fishCount">0</span> <span class="text-xs text-slate-400">/ <span id="fishTotal">0</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cute-glass rounded-2xl px-3.5 py-2 flex items-center gap-2">
+                <span class="text-xl">🐾</span>
+                <div>
+                    <div class="text-[10px] font-bold text-slate-500 leading-none">目前存檔點</div>
+                    <div id="checkpointText" class="font-round text-sm sm:text-base font-black text-pink-500 leading-tight">
+                        起點草地
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 中央：登塔高度進度條 -->
+        <div class="cute-glass rounded-2xl px-4 py-2 flex-1 max-w-xs sm:max-w-sm mx-auto">
+            <div class="flex justify-between items-center text-xs font-bold text-slate-600 mb-1">
+                <span>☁️ 爬塔高度</span>
+                <span class="font-round text-sky-600 font-black"><span id="heightPercent">0</span>% (<span id="heightMeters">0</span>m)</span>
+            </div>
+            <div class="w-full h-3 bg-sky-100 rounded-full overflow-hidden border border-sky-200 p-0.5">
+                <div id="heightBar" class="h-full bg-gradient-to-r from-sky-400 via-pink-400 to-amber-400 rounded-full transition-all duration-150" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <!-- 右側：計時器與功能按鈕 -->
+        <div class="flex items-center gap-2 pointer-events-auto">
+            <div class="cute-glass rounded-2xl px-3.5 py-2 hidden sm:flex items-center gap-2">
+                <span class="text-lg">⏱️</span>
+                <span id="timerText" class="font-round text-base font-black text-slate-700">00:00</span>
+            </div>
+
+            <button id="respawnBtn" title="回到上一個存檔點 (R)" class="cute-glass hover:bg-white rounded-2xl px-3 py-2 text-xs sm:text-sm font-bold text-slate-700 flex items-center gap-1 cursor-pointer active:scale-95 transition">
+                <span>🔄</span>
+                <span class="hidden md:inline">回存檔點(R)</span>
+            </button>
+
+            <button id="muteBtn" title="音效開關" class="cute-glass hover:bg-white rounded-2xl p-2.5 text-base cursor-pointer active:scale-95 transition">
+                🔊
+            </button>
+        </div>
+    </header>
+
+    <!-- 浮動提示訊息（例如：抵達存檔點、獲得小魚乾、掉下去提示） -->
+    <div id="toastBanner" class="fixed top-20 left-1/2 -translate-x-1/2 z-20 pointer-events-none opacity-0 transition-all duration-300 transform -translate-y-2">
+        <div class="cute-glass px-5 py-2 rounded-full text-sm sm:text-base font-black text-pink-600 shadow-lg flex items-center gap-2">
+            <span id="toastIcon">🐾</span>
+            <span id="toastMessage">已啟動貓爪存檔點！</span>
+        </div>
+    </div>
+
+    <!-- 桌面端底部操作小提示 -->
+    <div id="desktopControlsHint" class="fixed bottom-3 left-1/2 -translate-x-1/2 z-10 hidden md:flex items-center gap-4 cute-glass px-5 py-2 rounded-full text-xs font-bold text-slate-600 pointer-events-none opacity-0 transition-opacity duration-500">
+        <span><kbd class="px-1.5 py-0.5 bg-white rounded border border-slate-300 text-slate-800">W A S D</kbd> / <kbd class="px-1.5 py-0.5 bg-white rounded border border-slate-300 text-slate-800">方向鍵</kbd> 移動</span>
+        <span><kbd class="px-1.5 py-0.5 bg-white rounded border border-slate-300 text-slate-800">空白鍵</kbd> 跳躍 (按兩下二段跳！)</span>
+        <span>🖱️ 按住滑鼠拖曳旋轉視角</span>
+        <span><kbd class="px-1.5 py-0.5 bg-white rounded border border-slate-300 text-slate-800">R</kbd> 回存檔點</span>
+    </div>
+
+    <!-- 行動裝置 / 滑鼠觸控虛擬按鍵 (螢幕較小時自動顯示，亦可點擊) -->
+    <div id="mobileControls" class="fixed bottom-4 left-4 right-4 z-10 flex md:hidden items-end justify-between pointer-events-none opacity-0 transition-opacity duration-500">
+        <!-- 左側方向鍵盤 -->
+        <div class="grid grid-cols-3 gap-1.5 w-36 h-36 pointer-events-auto">
+            <div></div>
+            <button data-key="KeyW" class="touch-btn cute-glass rounded-2xl flex items-center justify-center text-xl font-black text-slate-700">▲</button>
+            <div></div>
+            <button data-key="KeyA" class="touch-btn cute-glass rounded-2xl flex items-center justify-center text-xl font-black text-slate-700">◀</button>
+            <button data-key="KeyS" class="touch-btn cute-glass rounded-2xl flex items-center justify-center text-xl font-black text-slate-700">▼</button>
+            <button data-key="KeyD" class="touch-btn cute-glass rounded-2xl flex items-center justify-center text-xl font-black text-slate-700">▶</button>
+        </div>
+
+        <!-- 右側跳躍與視角旋轉 -->
+        <div class="flex flex-col items-end gap-2 pointer-events-auto">
+            <div class="flex gap-2">
+                <button id="camLeftBtn" class="touch-btn cute-glass rounded-xl px-3 py-2 text-xs font-bold text-slate-700">↺ 視角</button>
+                <button id="camRightBtn" class="touch-btn cute-glass rounded-xl px-3 py-2 text-xs font-bold text-slate-700">視角 ↻</button>
+            </div>
+            <button id="touchJumpBtn" class="touch-btn btn-paw w-20 h-20 rounded-full flex flex-col items-center justify-center text-white font-black shadow-lg">
+                <span class="text-2xl leading-none">🐾</span>
+                <span class="text-xs mt-0.5">跳躍</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 開始畫面 / 通關結算覆蓋層 -->
+    <div id="menuOverlay" class="fixed inset-0 z-30 flex items-center justify-center p-4 bg-sky-900/30 backdrop-blur-sm transition-opacity duration-300">
+        <div class="cute-glass max-w-md w-full rounded-3xl p-6 sm:p-8 text-center relative overflow-hidden">
+            <!-- 裝飾性頂部標籤 -->
+            <div class="inline-flex items-center gap-1.5 bg-amber-100 border border-amber-300 text-amber-700 px-3.5 py-1 rounded-full text-xs font-black mb-3 animate-float">
+                <span>🐱</span> 3D 療癒系雲端冒險
+            </div>
+
+            <h1 id="menuTitle" class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight mb-2">
+                小貓咪<span class="text-orange-500">3D</span>浮空跑庫塔
+            </h1>
+            <p id="menuSubtitle" class="text-slate-600 text-sm sm:text-base mb-5 leading-relaxed">
+                幫助橘白小貓咪跳上漂浮在雲海中的甜點與草地浮島，收集黃金小魚乾，一路登上雲端王冠塔頂吧！
+            </p>
+
+            <!-- 機關圖鑑說明 -->
+            <div id="guideBox" class="grid grid-cols-2 gap-2 text-left bg-white/70 rounded-2xl p-3.5 mb-6 border border-white text-xs text-slate-700">
+                <div class="flex items-center gap-2">
+                    <span class="text-lg">☁️</span>
+                    <div><strong class="text-sky-600">軟綿彈跳雲</strong><br>踩上去會超高彈跳！</div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-lg">🍪</span>
+                    <div><strong class="text-amber-600">酥脆餅乾台</strong><br>踩踏後 1.5 秒會碎裂</div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-lg">🐾</span>
+                    <div><strong class="text-pink-500">貓爪存檔點</strong><br>掉落時自動傳送回來</div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-lg">✨</span>
+                    <div><strong class="text-indigo-500">空中二段跳</strong><br>半空中可再跳躍一次</div>
+                </div>
+            </div>
+
+            <!-- 通關結算數據卡片 (通關時顯示) -->
+            <div id="victoryStats" class="hidden bg-gradient-to-br from-amber-50 to-pink-50 border-2 border-amber-200 rounded-2xl p-4 mb-6">
+                <div class="text-lg font-black text-amber-600 mb-3">👑 恭喜小貓咪登上雲端王座！</div>
+                <div class="grid grid-cols-2 gap-3 text-center">
+                    <div class="bg-white/80 rounded-xl p-2.5">
+                        <div class="text-xs text-slate-500 font-bold">通關時間</div>
+                        <div id="finalTime" class="font-round text-xl font-black text-slate-800">00:00</div>
+                    </div>
+                    <div class="bg-white/80 rounded-xl p-2.5">
+                        <div class="text-xs text-slate-500 font-bold">收集小魚乾</div>
+                        <div id="finalFish" class="font-round text-xl font-black text-amber-500">0 / 0</div>
+                    </div>
+                </div>
+            </div>
+
+            <button id="playBtn" class="btn-paw w-full py-4 rounded-2xl text-white font-black text-lg sm:text-xl tracking-wide cursor-pointer flex items-center justify-center gap-2">
+                <span>🐾</span>
+                <span id="playBtnText">開始冒險喵！</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * 小貓咪3D浮空跑庫塔 (Cat Sky Parkour Tower)
+         * 完整 3D 物理平台跳躍遊戲，使用 Three.js 建構低多邊形可愛世界與 Web Audio API 合成貓咪音效
+         */
+        window.onload = function() {
+            // ==========================================
+            // 1. Web Audio API 可愛程序化音效系統
+            // ==========================================
+            class SoundFX {
+                constructor() {
+                    this.ctx = null;
+                    this.muted = false;
+                }
+
+                init() {
+                    if (!this.ctx) {
+                        const AudioContext = window.AudioContext || window.webkitAudioContext;
+                        this.ctx = new AudioContext();
+                    }
+                    if (this.ctx.state === 'suspended') {
+                        this.ctx.resume();
+                    }
+                }
+
+                // 可愛貓咪「喵嗚」合成音效 (用於跳躍與存檔點)
+                playMeow(pitchMultiplier = 1.0) {
+                    if (this.muted || !this.ctx) return;
+                    const now = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    const filter = this.ctx.createBiquadFilter();
+
+                    osc.type = 'triangle';
+                    // 模擬貓叫聲的音高滑動 (上揚再微降)
+                    osc.frequency.setValueAtTime(520 * pitchMultiplier, now);
+                    osc.frequency.exponentialRampToValueAtTime(880 * pitchMultiplier, now + 0.11);
+                    osc.frequency.exponentialRampToValueAtTime(640 * pitchMultiplier, now + 0.26);
+
+                    filter.type = 'bandpass';
+                    filter.frequency.setValueAtTime(1100, now);
+                    filter.Q.setValueAtTime(2.5, now);
+
+                    gain.gain.setValueAtTime(0.01, now);
+                    gain.gain.linearRampToValueAtTime(0.16, now + 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+
+                    osc.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start(now);
+                    osc.stop(now + 0.29);
+                }
+
+                // 收集黃金小魚乾清脆鈴聲
+                playFish() {
+                    if (this.muted || !this.ctx) return;
+                    const now = this.ctx.currentTime;
+                    const notes = [987.77, 1318.51]; // B5 -> E6
+                    notes.forEach((freq, idx) => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.07);
+                        gain.gain.setValueAtTime(0.14, now + idx * 0.07);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.25);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now + idx * 0.07);
+                        osc.stop(now + idx * 0.07 + 0.26);
+                    });
+                }
+
+                // 彈跳雲朵「Boing」音效
+                playBounce() {
+                    if (this.muted || !this.ctx) return;
+                    const now = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(240, now);
+                    osc.frequency.exponentialRampToValueAtTime(760, now + 0.25);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.29);
+                }
+
+                // 存檔點啟動音效
+                playCheckpoint() {
+                    if (this.muted || !this.ctx) return;
+                    this.playMeow(1.15);
+                    const now = this.ctx.currentTime;
+                    [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.06);
+                        gain.gain.setValueAtTime(0.1, now + i * 0.06);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.3);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now + i * 0.06);
+                        osc.stop(now + i * 0.06 + 0.32);
+                    });
+                }
+
+                // 登頂勝利號角
+                playVictory() {
+                    if (this.muted || !this.ctx) return;
+                    this.playMeow(1.25);
+                    const now = this.ctx.currentTime;
+                    const fanfare = [523.25, 659.25, 783.99, 1046.5, 783.99, 1046.5];
+                    const times = [0, 0.12, 0.24, 0.38, 0.55, 0.72];
+                    fanfare.forEach((freq, i) => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + times[i]);
+                        gain.gain.setValueAtTime(0.16, now + times[i]);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + times[i] + 0.45);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now + times[i]);
+                        osc.stop(now + times[i] + 0.46);
+                    });
+                }
+            }
+
+            const sfx = new SoundFX();
+
+            // ==========================================
+            // 2. Three.js 場景、燈光與夢幻天空初始化
+            // ==========================================
+            const container = document.getElementById('canvas-container');
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x93c5fd);
+            scene.fog = new THREE.FogExp2(0xbae6fd, 0.0075);
+
+            const camera = new THREE.PerspectiveCamera(58, window.innerWidth / window.innerHeight, 0.1, 400);
+            const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            // 柔和明亮的環境光與太陽光
+            const hemiLight = new THREE.HemisphereLight(0xffffff, 0xfde68a, 0.85);
+            hemiLight.position.set(0, 120, 0);
+            scene.add(hemiLight);
+
+            const dirLight = new THREE.DirectionalLight(0xfffbeb, 0.95);
+            dirLight.position.set(25, 65, 30);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 1024;
+            dirLight.shadow.mapSize.height = 1024;
+            dirLight.shadow.camera.near = 1;
+            dirLight.shadow.camera.far = 200;
+            const d = 45;
+            dirLight.shadow.camera.left = -d;
+            dirLight.shadow.camera.right = d;
+            dirLight.shadow.camera.top = d;
+            dirLight.shadow.camera.bottom = -d;
+            scene.add(dirLight);
+
+            // 背景裝飾：夢幻漂浮白雲與遠方彩虹環
+            const bgClouds = [];
+            const cloudMat = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.88 });
+            function createFluffyCloud(x, y, z, scale = 1) {
+                const group = new THREE.Group();
+                const geo = new THREE.DodecahedronGeometry(1.8, 1);
+                const offsets = [
+                    [0, 0, 0, 1.2],
+                    [-1.6, -0.3, 0.2, 0.9],
+                    [1.6, -0.2, -0.2, 0.95],
+                    [0.6, 0.6, 0.4, 0.85],
+                    [-0.7, 0.5, -0.3, 0.8]
+                ];
+                offsets.forEach(([ox, oy, oz, s]) => {
+                    const puff = new THREE.Mesh(geo, cloudMat);
+                    puff.position.set(ox, oy, oz);
+                    puff.scale.setScalar(s);
+                    group.add(puff);
+                });
+                group.position.set(x, y, z);
+                group.scale.setScalar(scale);
+                scene.add(group);
+                bgClouds.push({ mesh: group, speed: 0.2 + Math.random() * 0.35, baseX: x });
+            }
+
+            for (let i = 0; i < 32; i++) {
+                const angle = (i / 32) * Math.PI * 6;
+                const radius = 22 + Math.random() * 35;
+                createFluffyCloud(
+                    Math.cos(angle) * radius,
+                    i * 3.2 - 5,
+                    Math.sin(angle) * radius,
+                    0.8 + Math.random() * 1.1
+                );
+            }
+
+            // ==========================================
+            // 3. 打造可愛 3D 小貓咪角色模型
+            // ==========================================
+            function buildCuteCat() {
+                const catRoot = new THREE.Group();
+                const catBodyGroup = new THREE.Group();
+                catRoot.add(catBodyGroup);
+
+                const orangeMat = new THREE.MeshLambertMaterial({ color: 0xfb923c }); // 暖橘色毛髮
+                const creamMat = new THREE.MeshLambertMaterial({ color: 0xfffbeb });  // 奶油白肚肚與臉頰
+                const pinkMat = new THREE.MeshLambertMaterial({ color: 0xf472b6 });   // 粉紅肉球與內耳
+                const darkMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });   // 黑溜溜大眼睛
+                const collarMat = new THREE.MeshLambertMaterial({ color: 0xef4444 }); // 紅色小項圈
+                const bellMat = new THREE.MeshPhongMaterial({ color: 0xfbbf24, shininess: 90 }); // 金色鈴鐺
+
+                // 身體 (圓滾滾膠囊/球體組合)
+                const torso = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.85, 1.15), orangeMat);
+                torso.position.set(0, 0.65, 0);
+                torso.castShadow = true;
+                catBodyGroup.add(torso);
+
+                // 白肚肚
+                const belly = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.6, 1.18), creamMat);
+                belly.position.set(0, 0.55, 0.02);
+                catBodyGroup.add(belly);
+
+                // 紅色項圈與金色小鈴鐺
+                const collar = new THREE.Mesh(new THREE.BoxGeometry(0.98, 0.16, 0.98), collarMat);
+                collar.position.set(0, 1.05, 0.12);
+                catBodyGroup.add(collar);
+
+                const bell = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 12), bellMat);
+                bell.position.set(0, 0.98, 0.64);
+                catBodyGroup.add(bell);
+
+                // 貓咪大頭
+                const headGroup = new THREE.Group();
+                headGroup.position.set(0, 1.48, 0.22);
+                catBodyGroup.add(headGroup);
+
+                const head = new THREE.Mesh(new THREE.BoxGeometry(1.18, 0.96, 1.02), orangeMat);
+                head.castShadow = true;
+                headGroup.add(head);
+
+                // 奶油白嘴巴周圍
+                const muzzle = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.44, 0.2), creamMat);
+                muzzle.position.set(0, -0.18, 0.48);
+                headGroup.add(muzzle);
+
+                // 粉紅小鼻子
+                const nose = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.11, 0.1), pinkMat);
+                nose.position.set(0, -0.08, 0.58);
+                headGroup.add(nose);
+
+                // 黑溜溜大眼睛 + 白色高光
+                const eyeGeo = new THREE.BoxGeometry(0.18, 0.22, 0.08);
+                const shineGeo = new THREE.BoxGeometry(0.07, 0.07, 0.09);
+
+                const leftEye = new THREE.Mesh(eyeGeo, darkMat);
+                leftEye.position.set(-0.3, 0.08, 0.5);
+                const leftShine = new THREE.Mesh(shineGeo, creamMat);
+                leftShine.position.set(-0.27, 0.13, 0.51);
+                headGroup.add(leftEye, leftShine);
+
+                const rightEye = new THREE.Mesh(eyeGeo, darkMat);
+                rightEye.position.set(0.3, 0.08, 0.5);
+                const rightShine = new THREE.Mesh(shineGeo, creamMat);
+                rightShine.position.set(0.33, 0.13, 0.51);
+                headGroup.add(rightEye, rightShine);
+
+                // 粉紅腮紅
+                const blushGeo = new THREE.BoxGeometry(0.18, 0.1, 0.06);
+                const leftBlush = new THREE.Mesh(blushGeo, pinkMat);
+                leftBlush.position.set(-0.42, -0.12, 0.5);
+                const rightBlush = new THREE.Mesh(blushGeo, pinkMat);
+                rightBlush.position.set(0.42, -0.12, 0.5);
+                headGroup.add(leftBlush, rightBlush);
+
+                // 兩隻尖尖貓耳朵
+                const earGeo = new THREE.ConeGeometry(0.28, 0.48, 4);
+                const innerEarGeo = new THREE.ConeGeometry(0.16, 0.32, 4);
+
+                const leftEar = new THREE.Mesh(earGeo, orangeMat);
+                leftEar.position.set(-0.36, 0.66, 0);
+                leftEar.rotation.y = Math.PI / 4;
+                leftEar.rotation.z = 0.15;
+                const leftInner = new THREE.Mesh(innerEarGeo, pinkMat);
+                leftInner.position.set(-0.35, 0.63, 0.06);
+                leftInner.rotation.y = Math.PI / 4;
+                leftInner.rotation.z = 0.15;
+                headGroup.add(leftEar, leftInner);
+
+                const rightEar = new THREE.Mesh(earGeo, orangeMat);
+                rightEar.position.set(0.36, 0.66, 0);
+                rightEar.rotation.y = Math.PI / 4;
+                rightEar.rotation.z = -0.15;
+                const rightInner = new THREE.Mesh(innerEarGeo, pinkMat);
+                rightInner.position.set(0.35, 0.63, 0.06);
+                rightInner.rotation.y = Math.PI / 4;
+                rightInner.rotation.z = -0.15;
+                headGroup.add(rightEar, rightInner);
+
+                // 可愛鬍鬚
+                const whiskerGeo = new THREE.BoxGeometry(0.36, 0.03, 0.03);
+                [-1, 1].forEach(side => {
+                    const w1 = new THREE.Mesh(whiskerGeo, darkMat);
+                    w1.position.set(side * 0.62, -0.12, 0.48);
+                    w1.rotation.z = side * 0.12;
+                    const w2 = new THREE.Mesh(whiskerGeo, darkMat);
+                    w2.position.set(side * 0.62, -0.22, 0.48);
+                    w2.rotation.z = -side * 0.1;
+                    headGroup.add(w1, w2);
+                });
+
+                // 四隻小短腿 (白襪子腳掌)
+                const legGeo = new THREE.BoxGeometry(0.26, 0.36, 0.28);
+                const pawGeo = new THREE.BoxGeometry(0.28, 0.12, 0.32);
+
+                function makeLeg(x, z) {
+                    const legGroup = new THREE.Group();
+                    legGroup.position.set(x, 0.34, z);
+                    const leg = new THREE.Mesh(legGeo, orangeMat);
+                    leg.position.y = -0.12;
+                    leg.castShadow = true;
+                    const paw = new THREE.Mesh(pawGeo, creamMat);
+                    paw.position.set(0, -0.28, 0.03);
+                    legGroup.add(leg, paw);
+                    catBodyGroup.add(legGroup);
+                    return legGroup;
+                }
+
+                const legs = {
+                    fl: makeLeg(-0.3, 0.36),
+                    fr: makeLeg(0.3, 0.36),
+                    bl: makeLeg(-0.3, -0.36),
+                    br: makeLeg(0.3, -0.36)
+                };
+
+                // 翹起來搖擺的長尾巴
+                const tailPivot = new THREE.Group();
+                tailPivot.position.set(0, 0.85, -0.55);
+                catBodyGroup.add(tailPivot);
+
+                const tail1 = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.55, 0.18), orangeMat);
+                tail1.position.set(0, 0.22, -0.12);
+                tail1.rotation.x = -0.45;
+                const tailTip = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.28, 0.2), creamMat);
+                tailTip.position.set(0, 0.52, -0.26);
+                tailTip.rotation.x = -0.2;
+                tailPivot.add(tail1, tailTip);
+
+                return {
+                    root: catRoot,
+                    body: catBodyGroup,
+                    head: headGroup,
+                    legs,
+                    tail: tailPivot
+                };
+            }
+
+            const cat = buildCuteCat();
+            scene.add(cat.root);
+
+            // 腳底圓形小陰影（幫助玩家在 3D 跳躍時精準判斷落點！）
+            const shadowBlob = new THREE.Mesh(
+                new THREE.CircleGeometry(0.65, 20),
+                new THREE.MeshBasicMaterial({ color: 0x0f172a, transparent: true, opacity: 0.28 })
+            );
+            shadowBlob.rotation.x = -Math.PI / 2;
+            scene.add(shadowBlob);
+
+            // ==========================================
+            // 4. 建造 3D 浮空跑酷塔關卡 (28 層螺旋上升)
+            // ==========================================
+            const platforms = [];
+            const fishes = [];
+            const checkpoints = [];
+            const particles = [];
+
+            // 平台材質庫
+            const matGrassTop = new THREE.MeshLambertMaterial({ color: 0x4ade80 });
+            const matDirtBase = new THREE.MeshLambertMaterial({ color: 0xd97706 });
+            const matPastelPink = new THREE.MeshLambertMaterial({ color: 0xf9a8d4 });
+            const matPastelBlue = new THREE.MeshLambertMaterial({ color: 0x7dd3fc });
+            const matBouncyCloud = new THREE.MeshLambertMaterial({ color: 0xffffff });
+            const matCookie = new THREE.MeshLambertMaterial({ color: 0xfbbf24 });
+            const matGold = new THREE.MeshPhongMaterial({ color: 0xfacc15, emissive: 0xd97706, emissiveIntensity: 0.25, shininess: 100 });
+
+            // 輔助函式：建立一座平台
+            function addPlatform(opts) {
+                const {
+                    x, y, z,
+                    w = 3.8, h = 0.8, d = 3.8,
+                    type = 'normal', // 'normal', 'moveX', 'moveY', 'bouncy', 'crumble', 'summit'
+                    moveRange = 3.5,
+                    moveSpeed = 1.6,
+                    movePhase = 0,
+                    hasFish = false,
+                    checkpointName = null
+                } = opts;
+
+                const group = new THREE.Group();
+                group.position.set(x, y, z);
+
+                if (type === 'bouncy') {
+                    // 軟綿綿彈跳雲朵平台
+                    const pad = new THREE.Mesh(new THREE.CylinderGeometry(w * 0.52, w * 0.45, h, 16), matBouncyCloud);
+                    pad.receiveShadow = true;
+                    pad.castShadow = true;
+                    const ring = new THREE.Mesh(
+                        new THREE.TorusGeometry(w * 0.42, 0.12, 8, 24),
+                        new THREE.MeshLambertMaterial({ color: 0x38bdf8 })
+                    );
+                    ring.rotation.x = Math.PI / 2;
+                    ring.position.y = h * 0.5;
+                    group.add(pad, ring);
+                } else if (type === 'crumble') {
+                    // 酥脆餅乾平台 (踩上後會震動消失)
+                    const cookie = new THREE.Mesh(new THREE.BoxGeometry(w, h * 0.85, d), matCookie);
+                    cookie.receiveShadow = true;
+                    cookie.castShadow = true;
+                    // 餅乾上的巧克力豆裝飾
+                    const chipMat = new THREE.MeshLambertMaterial({ color: 0x78350f });
+                    [[-0.7, -0.7], [0.7, 0.6], [-0.5, 0.8], [0.8, -0.6]].forEach(([cx, cz]) => {
+                        const chip = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.15, 0.32), chipMat);
+                        chip.position.set(cx, h * 0.45, cz);
+                        group.add(chip);
+                    });
+                    group.add(cookie);
+                } else if (type === 'summit') {
+                    // 塔頂雲端聖殿平台
+                    const base = new THREE.Mesh(new THREE.CylinderGeometry(w * 0.55, w * 0.45, h * 1.4, 24), matPastelPink);
+                    base.receiveShadow = true;
+                    const topGold = new THREE.Mesh(new THREE.CylinderGeometry(w * 0.52, w * 0.52, 0.25, 24), matGold);
+                    topGold.position.y = h * 0.7;
+                    group.add(base, topGold);
+
+                    // 巨大黃金貓咪皇冠獎盃
+                    const trophyGroup = new THREE.Group();
+                    trophyGroup.position.set(0, h * 0.8 + 1.4, 0);
+                    const crown = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 0.75, 1.1, 8), matGold);
+                    const fishStatue = new THREE.Mesh(new THREE.OctahedronGeometry(0.85, 0), matGold);
+                    fishStatue.position.y = 1.45;
+                    fishStatue.scale.set(1.4, 0.8, 0.5);
+                    trophyGroup.add(crown, fishStatue);
+                    group.add(trophyGroup);
+                    group.userData.trophy = trophyGroup;
+                } else {
+                    // 一般浮空草地 / 粉彩方塊島
+                    const topMat = type === 'moveX' || type === 'moveY' ? matPastelBlue : matGrassTop;
+                    const topBlock = new THREE.Mesh(new THREE.BoxGeometry(w, h * 0.45, d), topMat);
+                    topBlock.position.y = h * 0.275;
+                    topBlock.receiveShadow = true;
+                    topBlock.castShadow = true;
+
+                    const bottomBlock = new THREE.Mesh(new THREE.BoxGeometry(w * 0.9, h * 0.55, d * 0.9), matDirtBase);
+                    bottomBlock.position.y = -h * 0.225;
+                    bottomBlock.castShadow = true;
+
+                    group.add(topBlock, bottomBlock);
+                }
+
+                scene.add(group);
+
+                const platformObj = {
+                    mesh: group,
+                    x, y, z,
+                    baseX: x, baseY: y, baseZ: z,
+                    prevX: x, prevY: y, prevZ: z,
+                    w, h, d,
+                    type,
+                    moveRange,
+                    moveSpeed,
+                    movePhase,
+                    crumbleState: 'idle', // 'idle', 'shaking', 'gone'
+                    crumbleTimer: 0
+                };
+                platforms.push(platformObj);
+
+                // 放置黃金小魚乾
+                if (hasFish) {
+                    const fishGroup = new THREE.Group();
+                    fishGroup.position.set(x, y + h * 0.5 + 1.15, z);
+
+                    const body = new THREE.Mesh(new THREE.OctahedronGeometry(0.45, 0), matGold);
+                    body.scale.set(1.35, 0.75, 0.45);
+                    const tail = new THREE.Mesh(new THREE.ConeGeometry(0.32, 0.45, 4), matGold);
+                    tail.rotation.z = Math.PI / 2;
+                    tail.position.x = -0.62;
+                    fishGroup.add(body, tail);
+
+                    scene.add(fishGroup);
+                    fishes.push({
+                        mesh: fishGroup,
+                        baseY: fishGroup.position.y,
+                        collected: false,
+                        phase: Math.random() * Math.PI * 2
+                    });
+                }
+
+                // 放置貓爪存檔點旗幟
+                if (checkpointName) {
+                    const cpGroup = new THREE.Group();
+                    cpGroup.position.set(x + w * 0.32, y + h * 0.5, z - d * 0.32);
+
+                    const padMesh = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.65, 0.75, 0.16, 16),
+                        new THREE.MeshLambertMaterial({ color: 0xf472b6 })
+                    );
+                    const pole = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.07, 0.07, 2.2, 8),
+                        new THREE.MeshLambertMaterial({ color: 0xffffff })
+                    );
+                    pole.position.y = 1.1;
+
+                    const flagMat = new THREE.MeshLambertMaterial({ color: 0x94a3b8 });
+                    const flag = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.6, 0.08), flagMat);
+                    flag.position.set(0.48, 1.85, 0);
+
+                    cpGroup.add(padMesh, pole, flag);
+                    scene.add(cpGroup);
+
+                    checkpoints.push({
+                        mesh: cpGroup,
+                        flagMat,
+                        name: checkpointName,
+                        spawnPos: new THREE.Vector3(x, y + h * 0.5 + 0.2, z),
+                        activated: false
+                    });
+                }
+            }
+
+            // 設計 28 層螺旋上升的浮空跑酷塔關卡
+            let summitHeight = 0;
+            function buildTowerLevel() {
+                // 第 0 層：起點大草地浮島
+                addPlatform({
+                    x: 0, y: 0, z: 0,
+                    w: 8.5, h: 1.2, d: 8.5,
+                    type: 'normal',
+                    checkpointName: '起點草地'
+                });
+
+                const totalSteps = 27;
+                let angle = 0;
+                let currentY = 1.6;
+                const spiralRadius = 7.2;
+
+                for (let i = 1; i <= totalSteps; i++) {
+                    angle += 0.54; // 螺旋角度遞增
+                    const px = Math.cos(angle) * spiralRadius;
+                    const pz = Math.sin(angle) * spiralRadius;
+
+                    let type = 'normal';
+                    let w = 3.7;
+                    let d = 3.7;
+                    let hasFish = (i % 2 === 1);
+                    let checkpointName = null;
+
+                    // 關卡節奏設計
+                    if (i === 6) {
+                        checkpointName = '第 1 層・微風平台';
+                        w = 5.2; d = 5.2;
+                    } else if (i === 13) {
+                        checkpointName = '第 2 層・雲朵花園';
+                        w = 5.2; d = 5.2;
+                    } else if (i === 20) {
+                        checkpointName = '第 3 層・星光高塔';
+                        w = 5.2; d = 5.2;
+                    } else if (i === 4 || i === 11 || i === 18 || i === 24) {
+                        type = 'bouncy'; // 彈跳雲朵，讓人一口氣飛高！
+                        w = 3.6; d = 3.6;
+                    } else if (i === 3 || i === 9 || i === 15 || i === 22) {
+                        type = 'moveX'; // 水平移動平台
+                        w = 3.6; d = 3.6;
+                    } else if (i === 7 || i === 16 || i === 25) {
+                        type = 'moveY'; // 上下升降平台
+                        w = 3.6; d = 3.6;
+                    } else if (i === 5 || i === 10 || i === 14 || i === 19 || i === 23 || i === 26) {
+                        type = 'crumble'; // 酥脆餅乾平台
+                        w = 3.5; d = 3.5;
+                    }
+
+                    addPlatform({
+                        x: px,
+                        y: currentY,
+                        z: pz,
+                        w, h: 0.85, d,
+                        type,
+                        moveRange: 2.8,
+                        moveSpeed: 1.5 + (i * 0.03),
+                        movePhase: i * 0.9,
+                        hasFish,
+                        checkpointName
+                    });
+
+                    // 彈跳雲朵後高度跳升較多
+                    currentY += (type === 'bouncy') ? 4.4 : 2.25;
+                }
+
+                // 塔頂終點平台
+                angle += 0.55;
+                const topX = Math.cos(angle) * (spiralRadius * 0.55);
+                const topZ = Math.sin(angle) * (spiralRadius * 0.55);
+                summitHeight = currentY + 0.5;
+
+                addPlatform({
+                    x: topX,
+                    y: summitHeight,
+                    z: topZ,
+                    w: 8.5, h: 1.4, d: 8.5,
+                    type: 'summit',
+                    hasFish: true
+                });
+
+                // 預設啟動起點存檔點
+                checkpoints[0].activated = true;
+                checkpoints[0].flagMat.color.setHex(0xf43f5e);
+                document.getElementById('fishTotal').textContent = fishes.length;
+            }
+
+            buildTowerLevel();
+
+            // ==========================================
+            // 5. 粒子特效系統 (跳躍雲煙、吃魚星星、勝利彩帶)
+            // ==========================================
+            function spawnBurstParticles(pos, colorHex, count = 12, speed = 4) {
+                const geo = new THREE.BoxGeometry(0.18, 0.18, 0.18);
+                const mat = new THREE.MeshBasicMaterial({ color: colorHex });
+                for (let i = 0; i < count; i++) {
+                    const mesh = new THREE.Mesh(geo, mat);
+                    mesh.position.copy(pos);
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi = Math.random() * Math.PI;
+                    const spd = (0.4 + Math.random() * 0.8) * speed;
+                    scene.add(mesh);
+                    particles.push({
+                        mesh,
+                        vel: new THREE.Vector3(
+                            Math.sin(phi) * Math.cos(theta) * spd,
+                            Math.abs(Math.cos(phi)) * spd + 1.5,
+                            Math.sin(phi) * Math.sin(theta) * spd
+                        ),
+                        life: 0.65 + Math.random() * 0.35,
+                        maxLife: 1.0
+                    });
+                }
+            }
+
+            // ==========================================
+            // 6. 玩家控制、物理運動與視角系統
+            // ==========================================
+            const player = {
+                pos: new THREE.Vector3(0, 1.0, 0),
+                vel: new THREE.Vector3(0, 0, 0),
+                radius: 0.48,
+                height: 1.6,
+                onGround: false,
+                jumpsLeft: 2,
+                facingAngle: 0,
+                standingPlatform: null,
+                checkpointPos: checkpoints[0].spawnPos.clone(),
+                collectedFish: 0,
+                animTime: 0
+            };
+
+            let gameStarted = false;
+            let gameWon = false;
+            let elapsedTime = 0;
+            let toastTimeout = null;
+
+            function showToast(icon, msg) {
+                const banner = document.getElementById('toastBanner');
+                document.getElementById('toastIcon').textContent = icon;
+                document.getElementById('toastMessage').textContent = msg;
+                banner.classList.remove('opacity-0', '-translate-y-2');
+                banner.classList.add('opacity-100', 'translate-y-0');
+                clearTimeout(toastTimeout);
+                toastTimeout = setTimeout(() => {
+                    banner.classList.remove('opacity-100', 'translate-y-0');
+                    banner.classList.add('opacity-0', '-translate-y-2');
+                }, 2200);
+            }
+
+            // 鍵盤與觸控按鍵狀態
+            const keys = {};
+            window.addEventListener('keydown', (e) => {
+                keys[e.code] = true;
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    if (gameStarted && !gameWon) triggerJump();
+                }
+                if (e.code === 'KeyR' && gameStarted) {
+                    respawnAtCheckpoint('已傳送回存檔點！');
+                }
+            });
+            window.addEventListener('keyup', (e) => {
+                keys[e.code] = false;
+            });
+
+            // 跳躍邏輯 (支援一段跳與空中二段跳)
+            function triggerJump() {
+                if (player.jumpsLeft > 0) {
+                    const isSecondJump = !player.onGround && player.jumpsLeft === 1;
+                    player.vel.y = isSecondJump ? 10.2 : 11.2;
+                    player.onGround = false;
+                    player.standingPlatform = null;
+                    player.jumpsLeft--;
+
+                    sfx.playMeow(isSecondJump ? 1.25 : 1.0);
+                    spawnBurstParticles(
+                        player.pos.clone().add(new THREE.Vector3(0, 0.1, 0)),
+                        isSecondJump ? 0xf472b6 : 0xffffff,
+                        isSecondJump ? 14 : 8,
+                        3.2
+                    );
+                }
+            }
+
+            // 回到上一個存檔點
+            function respawnAtCheckpoint(reasonMsg) {
+                player.pos.copy(player.checkpointPos);
+                player.vel.set(0, 0, 0);
+                player.jumpsLeft = 2;
+                player.standingPlatform = null;
+                sfx.playMeow(0.85);
+                spawnBurstParticles(player.pos.clone().add(new THREE.Vector3(0, 0.6, 0)), 0x38bdf8, 16, 4);
+                if (reasonMsg) showToast('🐾', reasonMsg);
+            }
+
+            // 第三人稱相機拖曳旋轉控制
+            let camYaw = 0;        // 水平旋轉角
+            let camPitch = 0.36;   // 俯仰角
+            let isDragging = false;
+            let lastPointerX = 0;
+            let lastPointerY = 0;
+
+            renderer.domElement.addEventListener('pointerdown', (e) => {
+                isDragging = true;
+                lastPointerX = e.clientX;
+                lastPointerY = e.clientY;
+            });
+            window.addEventListener('pointermove', (e) => {
+                if (!isDragging) return;
+                const dx = e.clientX - lastPointerX;
+                const dy = e.clientY - lastPointerY;
+                lastPointerX = e.clientX;
+                lastPointerY = e.clientY;
+
+                camYaw -= dx * 0.0075;
+                camPitch = Math.max(0.08, Math.min(1.05, camPitch + dy * 0.006));
+            });
+            window.addEventListener('pointerup', () => {
+                isDragging = false;
+            });
+
+            // 行動端虛擬按鍵事件綁定
+            document.querySelectorAll('.touch-btn[data-key]').forEach(btn => {
+                const code = btn.getAttribute('data-key');
+                const press = (e) => { e.preventDefault(); keys[code] = true; btn.classList.add('active'); };
+                const release = (e) => { e.preventDefault(); keys[code] = false; btn.classList.remove('active'); };
+                btn.addEventListener('pointerdown', press);
+                btn.addEventListener('pointerup', release);
+                btn.addEventListener('pointerleave', release);
+            });
+
+            document.getElementById('touchJumpBtn').addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                if (gameStarted && !gameWon) triggerJump();
+            });
+            document.getElementById('camLeftBtn').addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                camYaw += 0.45;
+            });
+            document.getElementById('camRightBtn').addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                camYaw -= 0.45;
+            });
+
+            // HUD 按鈕事件
+            document.getElementById('respawnBtn').addEventListener('click', () => {
+                if (gameStarted) respawnAtCheckpoint('已回到最近的貓爪存檔點！');
+            });
+
+            const muteBtn = document.getElementById('muteBtn');
+            muteBtn.addEventListener('click', () => {
+                sfx.muted = !sfx.muted;
+                muteBtn.textContent = sfx.muted ? '🔇' : '🔊';
+            });
+
+            // 開始 / 重新遊玩按鈕
+            document.getElementById('playBtn').addEventListener('click', () => {
+                sfx.init();
+                sfx.playMeow(1.1);
+
+                if (gameWon) {
+                    // 重置整局遊戲
+                    gameWon = false;
+                    elapsedTime = 0;
+                    player.collectedFish = 0;
+                    document.getElementById('fishCount').textContent = '0';
+
+                    fishes.forEach(f => {
+                        f.collected = false;
+                        f.mesh.visible = true;
+                    });
+                    checkpoints.forEach((cp, idx) => {
+                        cp.activated = (idx === 0);
+                        cp.flagMat.color.setHex(idx === 0 ? 0xf43f5e : 0x94a3b8);
+                    });
+                    platforms.forEach(p => {
+                        p.crumbleState = 'idle';
+                        p.crumbleTimer = 0;
+                        p.mesh.visible = true;
+                        p.mesh.scale.setScalar(1);
+                    });
+
+                    player.checkpointPos.copy(checkpoints[0].spawnPos);
+                    document.getElementById('checkpointText').textContent = '起點草地';
+                    respawnAtCheckpoint('新的雲端冒險開始啦！');
+                } else {
+                    player.pos.copy(checkpoints[0].spawnPos);
+                }
+
+                gameStarted = true;
+                document.getElementById('menuOverlay').classList.add('opacity-0', 'pointer-events-none');
+                document.getElementById('hudHeader').classList.remove('opacity-0');
+                document.getElementById('desktopControlsHint').classList.remove('opacity-0');
+                document.getElementById('mobileControls').classList.remove('opacity-0');
+            });
+
+            // ==========================================
+            // 7. 物理更新與遊戲主迴圈 (60fps)
+            // ==========================================
+            const clock = new THREE.Clock();
+
+            function formatTime(sec) {
+                const m = Math.floor(sec / 60).toString().padStart(2, '0');
+                const s = Math.floor(sec % 60).toString().padStart(2, '0');
+                return `${m}:${s}`;
+            }
+
+            function updatePhysics(dt) {
+                // 限制最大時間步長避免切換分頁後穿牆
+                dt = Math.min(dt, 0.05);
+
+                // 更新背景雲朵飄動
+                bgClouds.forEach((c, idx) => {
+                    c.mesh.position.x = c.baseX + Math.sin(clock.elapsedTime * c.speed + idx) * 2.2;
+                });
+
+                // 1. 更新所有浮空平台動態 (移動、酥脆餅乾碎裂、塔頂獎盃旋轉)
+                platforms.forEach(p => {
+                    p.prevX = p.x;
+                    p.prevY = p.y;
+                    p.prevZ = p.z;
+
+                    if (p.type === 'moveX') {
+                        p.x = p.baseX + Math.sin(clock.elapsedTime * p.moveSpeed + p.movePhase) * p.moveRange;
+                    } else if (p.type === 'moveY') {
+                        p.y = p.baseY + Math.sin(clock.elapsedTime * p.moveSpeed + p.movePhase) * (p.moveRange * 0.75);
+                    } else if (p.type === 'crumble') {
+                        if (p.crumbleState === 'shaking') {
+                            p.crumbleTimer += dt;
+                            p.mesh.position.x = p.baseX + (Math.random() - 0.5) * 0.18;
+                            if (p.crumbleTimer >= 1.35) {
+                                p.crumbleState = 'gone';
+                                p.crumbleTimer = 0;
+                                p.mesh.visible = false;
+                                spawnBurstParticles(new THREE.Vector3(p.x, p.y, p.z), 0xfbbf24, 14, 3.5);
+                            }
+                        } else if (p.crumbleState === 'gone') {
+                            p.crumbleTimer += dt;
+                            if (p.crumbleTimer >= 3.2) {
+                                // 3.2 秒後餅乾重新烘焙恢復
+                                p.crumbleState = 'idle';
+                                p.crumbleTimer = 0;
+                                p.mesh.visible = true;
+                                p.x = p.baseX;
+                            }
+                        }
+                    } else if (p.type === 'summit' && p.mesh.userData.trophy) {
+                        p.mesh.userData.trophy.rotation.y += dt * 1.4;
+                    }
+
+                    if (p.crumbleState !== 'shaking') {
+                        p.mesh.position.set(p.x, p.y, p.z);
+                    }
+                });
+
+                // 2. 更新黃金小魚乾旋轉與漂浮
+                fishes.forEach(f => {
+                    if (f.collected) return;
+                    f.mesh.rotation.y += dt * 2.4;
+                    f.mesh.position.y = f.baseY + Math.sin(clock.elapsedTime * 3.2 + f.phase) * 0.22;
+                });
+
+                // 更新粒子特效
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    const pt = particles[i];
+                    pt.life -= dt;
+                    if (pt.life <= 0) {
+                        scene.remove(pt.mesh);
+                        particles.splice(i, 1);
+                    } else {
+                        pt.vel.y -= 14 * dt;
+                        pt.mesh.position.addScaledVector(pt.vel, dt);
+                        pt.mesh.scale.setScalar(pt.life / pt.maxLife);
+                    }
+                }
+
+                if (!gameStarted || gameWon) {
+                    // 未開始或已通關時，小貓咪在原地可愛呼吸搖尾巴
+                    cat.root.position.copy(player.pos);
+                    cat.tail.rotation.z = Math.sin(clock.elapsedTime * 5) * 0.35;
+                    return;
+                }
+
+                // 更新計時器
+                elapsedTime += dt;
+                document.getElementById('timerText').textContent = formatTime(elapsedTime);
+
+                // 3. 處理玩家移動輸入 (相對於相機水平朝向)
+                let moveForward = 0;
+                let moveRight = 0;
+                if (keys['KeyW'] || keys['ArrowUp']) moveForward += 1;
+                if (keys['KeyS'] || keys['ArrowDown']) moveForward -= 1;
+                if (keys['KeyD'] || keys['ArrowRight']) moveRight += 1;
+                if (keys['KeyA'] || keys['ArrowLeft']) moveRight -= 1;
+
+                // 鍵盤 Q / E 輔助旋轉相機
+                if (keys['KeyQ']) camYaw += 2.0 * dt;
+                if (keys['KeyE']) camYaw -= 2.0 * dt;
+
+                const moveSpeed = 7.6;
+                const forwardVec = new THREE.Vector3(-Math.sin(camYaw), 0, -Math.cos(camYaw));
+                const rightVec = new THREE.Vector3(Math.cos(camYaw), 0, -Math.sin(camYaw));
+
+                const wishDir = new THREE.Vector3()
+                    .addScaledVector(forwardVec, moveForward)
+                    .addScaledVector(rightVec, moveRight);
+
+                const isMoving = wishDir.lengthSq() > 0.001;
+                if (isMoving) {
+                    wishDir.normalize();
+                    player.vel.x = wishDir.x * moveSpeed;
+                    player.vel.z = wishDir.z * moveSpeed;
+
+                    // 平滑轉向小貓咪面朝方向
+                    const targetAngle = Math.atan2(wishDir.x, wishDir.z);
+                    let angleDiff = targetAngle - player.facingAngle;
+                    while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+                    while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+                    player.facingAngle += angleDiff * Math.min(1, dt * 14);
+                } else {
+                    // 地面摩擦力與空中微阻尼
+                    const damping = player.onGround ? 0.78 : 0.92;
+                    player.vel.x *= damping;
+                    player.vel.z *= damping;
+                }
+
+                // 若站在移動平台上，跟隨平台位移
+                if (player.onGround && player.standingPlatform) {
+                    const sp = player.standingPlatform;
+                    player.pos.x += (sp.x - sp.prevX);
+                    player.pos.y += (sp.y - sp.prevY);
+                    player.pos.z += (sp.z - sp.prevZ);
+                }
+
+                // 重力加速度
+                const gravity = 26.5;
+                player.vel.y -= gravity * dt;
+
+                // 積分位置
+                const prevY = player.pos.y;
+                player.pos.x += player.vel.x * dt;
+                player.pos.z += player.vel.z * dt;
+                player.pos.y += player.vel.y * dt;
+
+                // 4. 平台碰撞檢測 (腳底著陸與側面阻擋)
+                player.onGround = false;
+                player.standingPlatform = null;
+                let highestShadowY = -999;
+
+                for (let i = 0; i < platforms.length; i++) {
+                    const p = platforms[i];
+                    if (p.crumbleState === 'gone') continue;
+
+                    const halfW = p.w * 0.5 + player.radius * 0.65;
+                    const halfD = p.d * 0.5 + player.radius * 0.65;
+                    const topY = p.y + p.h * 0.5;
+                    const botY = p.y - p.h * 0.5;
+
+                    const withinXZ = Math.abs(player.pos.x - p.x) <= halfW &&
+                                     Math.abs(player.pos.z - p.z) <= halfD;
+
+                    if (withinXZ) {
+                        // 計算腳底投影陰影高度
+                        if (topY <= player.pos.y + 0.1 && topY > highestShadowY) {
+                            highestShadowY = topY;
+                        }
+
+                        // 從上方落下著陸判定
+                        if (player.vel.y <= 0 && prevY >= topY - 0.25 && player.pos.y <= topY + 0.08) {
+                            player.pos.y = topY;
+
+                            if (p.type === 'bouncy') {
+                                // 彈跳雲朵超高彈射！
+                                player.vel.y = 17.5;
+                                player.onGround = false;
+                                player.jumpsLeft = 1;
+                                sfx.playBounce();
+                                spawnBurstParticles(player.pos.clone(), 0x38bdf8, 16, 4.5);
+                            } else {
+                                player.vel.y = 0;
+                                player.onGround = true;
+                                player.jumpsLeft = 2;
+                                player.standingPlatform = p;
+
+                                if (p.type === 'crumble' && p.crumbleState === 'idle') {
+                                    p.crumbleState = 'shaking';
+                                    p.crumbleTimer = 0;
+                                }
+
+                                if (p.type === 'summit' && !gameWon) {
+                                    triggerVictory();
+                                }
+                            }
+                        } else if (player.pos.y + player.height > botY && player.pos.y < topY - 0.15) {
+                            // 側面碰撞推出，避免穿入方塊內部
+                            const overlapX = halfW - Math.abs(player.pos.x - p.x);
+                            const overlapZ = halfD - Math.abs(player.pos.z - p.z);
+                            if (overlapX < overlapZ) {
+                                player.pos.x += (player.pos.x > p.x ? overlapX : -overlapX);
+                            } else {
+                                player.pos.z += (player.pos.z > p.z ? overlapZ : -overlapZ);
+                            }
+                        }
+                    }
+                }
+
+                // 5. 收集黃金小魚乾檢測
+                fishes.forEach(f => {
+                    if (f.collected) return;
+                    const dist = player.pos.clone().add(new THREE.Vector3(0, 0.8, 0)).distanceTo(f.mesh.position);
+                    if (dist < 1.35) {
+                        f.collected = true;
+                        f.mesh.visible = false;
+                        player.collectedFish++;
+                        document.getElementById('fishCount').textContent = player.collectedFish;
+                        sfx.playFish();
+                        spawnBurstParticles(f.mesh.position, 0xfacc15, 14, 4);
+                        showToast('🐟', `獲得黃金小魚乾！(${player.collectedFish}/${fishes.length})`);
+                    }
+                });
+
+                // 6. 啟動貓爪存檔點檢測
+                checkpoints.forEach(cp => {
+                    if (cp.activated) return;
+                    if (player.pos.distanceTo(cp.spawnPos) < 2.4) {
+                        cp.activated = true;
+                        cp.flagMat.color.setHex(0xf43f5e);
+                        player.checkpointPos.copy(cp.spawnPos);
+                        document.getElementById('checkpointText').textContent = cp.name;
+                        sfx.playCheckpoint();
+                        spawnBurstParticles(cp.spawnPos.clone().add(new THREE.Vector3(0, 1, 0)), 0xf472b6, 20, 4.5);
+                        showToast('🐾', `已啟動存檔點：${cp.name}`);
+                    }
+                });
+
+                // 7. 掉落深淵判定 -> 自動送回最近的貓爪存檔點
+                if (player.pos.y < player.checkpointPos.y - 18 || player.pos.y < -12) {
+                    respawnAtCheckpoint('哎呀踩空了！已將小貓咪送回存檔點 🐾');
+                }
+
+                // 8. 更新小貓咪動畫 (跑步擺腿、跳躍伸展、尾巴搖擺)
+                cat.root.position.copy(player.pos);
+                cat.root.rotation.y = player.facingAngle;
+
+                if (!player.onGround) {
+                    // 空中跳躍姿勢
+                    cat.legs.fl.rotation.x = -0.6;
+                    cat.legs.fr.rotation.x = -0.4;
+                    cat.legs.bl.rotation.x = 0.6;
+                    cat.legs.br.rotation.x = 0.4;
+                    cat.body.rotation.x = -player.vel.y * 0.025;
+                    cat.tail.rotation.x = 0.3;
+                } else if (isMoving) {
+                    // 可愛小碎步奔跑動畫
+                    player.animTime += dt * 16;
+                    const swing = Math.sin(player.animTime) * 0.65;
+                    cat.legs.fl.rotation.x = swing;
+                    cat.legs.br.rotation.x = swing;
+                    cat.legs.fr.rotation.x = -swing;
+                    cat.legs.bl.rotation.x = -swing;
+                    cat.body.position.y = Math.abs(Math.cos(player.animTime)) * 0.1;
+                    cat.body.rotation.x = 0.08;
+                    cat.tail.rotation.z = Math.sin(player.animTime * 0.8) * 0.4;
+                } else {
+                    // 待機呼吸與擺尾
+                    cat.legs.fl.rotation.x = 0;
+                    cat.legs.fr.rotation.x = 0;
+                    cat.legs.bl.rotation.x = 0;
+                    cat.legs.br.rotation.x = 0;
+                    cat.body.position.y = Math.sin(clock.elapsedTime * 4) * 0.03;
+                    cat.body.rotation.x = 0;
+                    cat.tail.rotation.z = Math.sin(clock.elapsedTime * 5) * 0.35;
+                }
+
+                // 更新腳底投影陰影
+                if (highestShadowY > -500) {
+                    shadowBlob.visible = true;
+                    shadowBlob.position.set(player.pos.x, highestShadowY + 0.02, player.pos.z);
+                    const distToGround = Math.max(0, player.pos.y - highestShadowY);
+                    const shadowScale = Math.max(0.25, 1 - distToGround * 0.12);
+                    shadowBlob.scale.setScalar(shadowScale);
+                } else {
+                    shadowBlob.visible = false;
+                }
+
+                // 9. 更新爬塔高度進度條 HUD
+                const progress = Math.max(0, Math.min(100, Math.round((player.pos.y / summitHeight) * 100)));
+                document.getElementById('heightPercent').textContent = progress;
+                document.getElementById('heightMeters').textContent = Math.max(0, Math.round(player.pos.y));
+                document.getElementById('heightBar').style.width = `${progress}%`;
+            }
+
+            // 登頂勝利結算
+            function triggerVictory() {
+                gameWon = true;
+                sfx.playVictory();
+                spawnBurstParticles(player.pos.clone().add(new THREE.Vector3(0, 2, 0)), 0xfacc15, 45, 7);
+                spawnBurstParticles(player.pos.clone().add(new THREE.Vector3(0, 2, 0)), 0xf472b6, 45, 7);
+
+                setTimeout(() => {
+                    document.getElementById('menuTitle').innerHTML = '🎉 登頂成功喵！';
+                    document.getElementById('menuSubtitle').textContent = '小貓咪成功征服了雲端浮空跑庫塔，戴上了閃耀的黃金魚乾皇冠！';
+                    document.getElementById('guideBox').classList.add('hidden');
+                    document.getElementById('victoryStats').classList.remove('hidden');
+                    document.getElementById('finalTime').textContent = formatTime(elapsedTime);
+                    document.getElementById('finalFish').textContent = `${player.collectedFish} / ${fishes.length}`;
+                    document.getElementById('playBtnText').textContent = '再玩一次喵！';
+
+                    document.getElementById('menuOverlay').classList.remove('opacity-0', 'pointer-events-none');
+                }, 900);
+            }
+
+            // 平滑第三人稱相機跟隨
+            const smoothCamPos = new THREE.Vector3(0, 6, 12);
+            const smoothLookAt = new THREE.Vector3(0, 1.5, 0);
+
+            function updateCamera(dt) {
+                const camDist = 8.2;
+                const targetFocus = player.pos.clone().add(new THREE.Vector3(0, 1.35, 0));
+
+                const offsetX = Math.sin(camYaw) * Math.cos(camPitch) * camDist;
+                const offsetY = Math.sin(camPitch) * camDist;
+                const offsetZ = Math.cos(camYaw) * Math.cos(camPitch) * camDist;
+
+                const desiredCamPos = targetFocus.clone().add(new THREE.Vector3(offsetX, offsetY, offsetZ));
+                smoothCamPos.lerp(desiredCamPos, Math.min(1, dt * 10));
+                smoothLookAt.lerp(targetFocus, Math.min(1, dt * 14));
+
+                camera.position.copy(smoothCamPos);
+                camera.lookAt(smoothLookAt);
+            }
+
+            // 視窗大小自適應
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            // 主動畫迴圈
+            function animate() {
+                requestAnimationFrame(animate);
+                const dt = clock.getDelta();
+                updatePhysics(dt);
+                updateCamera(dt);
+                renderer.render(scene, camera);
+            }
+
+            animate();
+        };
+    </script>
+</body>
+</html>
