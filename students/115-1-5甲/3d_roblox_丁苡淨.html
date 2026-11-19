@@ -1,0 +1,1975 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>3D Roblox × 麥快方塊大亨 BLOCK TYCOON</title>
+    <!-- 引入 Google Fonts 繁體中文圓潤粗體字型 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+    <!-- 引入 Three.js 3D 引擎 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        /* ==================== 基礎 Roblox Tycoon 亮麗風格樣式 ==================== */
+        :root {
+            --hud-bg: rgba(15, 23, 42, 0.88);
+            --hud-border: rgba(255, 255, 255, 0.28);
+            --cash-green: #4ade80;
+            --cash-gold: #facc15;
+            --accent-cyan: #38bdf8;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #60a5fa;
+            font-family: 'Noto Sans TC', sans-serif;
+            color: #ffffff;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ==================== 3D 空間懸浮按鈕文字標籤層 ==================== */
+        #labels-layer {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 6;
+        }
+
+        .pad-label {
+            position: absolute;
+            transform: translate(-50%, -100%);
+            background: rgba(15, 23, 42, 0.92);
+            border: 2.5px solid #4ade80;
+            border-radius: 14px;
+            padding: 5px 12px;
+            text-align: center;
+            white-space: nowrap;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+            transition: border-color 0.2s, transform 0.12s;
+        }
+
+        .pad-label.locked {
+            border-color: #ef4444;
+        }
+
+        .pad-label.collector {
+            border-color: #22c55e;
+            background: rgba(6, 78, 59, 0.94);
+        }
+
+        .pad-label.mine {
+            border-color: #38bdf8;
+            background: rgba(12, 74, 110, 0.94);
+        }
+
+        .pad-title {
+            font-size: 13px;
+            font-weight: 900;
+            color: #ffffff;
+            line-height: 1.25;
+        }
+
+        .pad-price {
+            font-size: 14px;
+            font-weight: 900;
+            color: #4ade80;
+            margin-top: 1px;
+        }
+
+        .pad-label.locked .pad-price {
+            color: #f87171;
+        }
+
+        .floating-popup {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            font-weight: 900;
+            color: #4ade80;
+            text-shadow: 0 2px 0 #052e16, 0 4px 10px rgba(0,0,0,0.7);
+            pointer-events: none;
+            animation: floatUpFade 1.05s ease-out forwards;
+        }
+
+        @keyframes floatUpFade {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(0.85); }
+            25% { opacity: 1; transform: translate(-50%, -95%) scale(1.12); }
+            100% { opacity: 0; transform: translate(-50%, -185%) scale(1.0); }
+        }
+
+        /* ==================== 頂部大亨財富與建造進度儀表板 ==================== */
+        #top-hud {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 10px;
+            pointer-events: none;
+            z-index: 12;
+        }
+
+        .hud-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            pointer-events: auto;
+        }
+
+        .cash-card {
+            background: var(--hud-bg);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 2px solid #4ade80;
+            border-radius: 18px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
+        }
+
+        .cash-main {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 24px;
+            font-weight: 900;
+            color: #4ade80;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .income-pill {
+            background: rgba(34, 197, 94, 0.22);
+            border: 1px solid rgba(74, 222, 128, 0.5);
+            color: #bbf7d0;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        /* 大亨建造進度條 */
+        .progress-card {
+            background: var(--hud-bg);
+            backdrop-filter: blur(8px);
+            border: 2px solid var(--hud-border);
+            border-radius: 18px;
+            padding: 8px 14px;
+            min-width: 195px;
+            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
+        }
+
+        .prog-top {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12.5px;
+            font-weight: 900;
+            margin-bottom: 5px;
+            color: #e2e8f0;
+        }
+
+        .prog-track {
+            width: 100%;
+            height: 11px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 999px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        .prog-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #38bdf8, #4ade80, #facc15);
+            border-radius: 999px;
+            transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .top-btn {
+            background: var(--hud-bg);
+            backdrop-filter: blur(8px);
+            border: 2px solid var(--hud-border);
+            color: #ffffff;
+            border-radius: 14px;
+            padding: 9px 13px;
+            font-family: 'Noto Sans TC', sans-serif;
+            font-size: 13.5px;
+            font-weight: 900;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+            transition: transform 0.1s, background 0.15s;
+        }
+
+        .top-btn:hover {
+            background: rgba(30, 41, 59, 0.96);
+            border-color: #7dd3fc;
+        }
+
+        .top-btn:active {
+            transform: scale(0.94);
+        }
+
+        /* 動態提示氣泡 */
+        #toast-banner {
+            position: absolute;
+            top: 74px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.92);
+            border: 2px solid #facc15;
+            color: #fef9c3;
+            padding: 6px 18px;
+            border-radius: 999px;
+            font-size: 13.5px;
+            font-weight: 900;
+            pointer-events: none;
+            z-index: 14;
+            white-space: nowrap;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+            transition: opacity 0.25s;
+        }
+
+        /* ==================== 底部超好上手觸控/滑鼠控制面板 ==================== */
+        #bottom-controls {
+            position: absolute;
+            bottom: 14px;
+            left: 14px;
+            right: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            pointer-events: none;
+            z-index: 15;
+        }
+
+        .dpad-box {
+            display: grid;
+            grid-template-columns: repeat(3, 50px);
+            grid-template-rows: repeat(3, 50px);
+            gap: 5px;
+            pointer-events: auto;
+        }
+
+        .dir-btn {
+            background: rgba(15, 23, 42, 0.85);
+            border: 2px solid rgba(255, 255, 255, 0.42);
+            border-radius: 14px;
+            color: #ffffff;
+            font-family: 'Noto Sans TC', sans-serif;
+            font-size: 18px;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+        }
+
+        .dir-btn:active, .dir-btn.pressed {
+            background: #4ade80;
+            color: #052e16;
+            transform: scale(0.93);
+        }
+
+        .action-cluster {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+            pointer-events: auto;
+        }
+
+        .mine-boost-btn {
+            background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+            border: 2.5px solid #bae6fd;
+            border-radius: 18px;
+            padding: 12px 18px;
+            color: #ffffff;
+            font-family: 'Noto Sans TC', sans-serif;
+            font-size: 15px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(14, 165, 233, 0.55);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: transform 0.08s;
+        }
+
+        .mine-boost-btn:active {
+            transform: scale(0.92);
+        }
+
+        .jump-pill-btn {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border: 2.5px solid #bbf7d0;
+            border-radius: 18px;
+            padding: 11px 22px;
+            color: #ffffff;
+            font-family: 'Noto Sans TC', sans-serif;
+            font-size: 15px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(34, 197, 94, 0.45);
+        }
+
+        .jump-pill-btn:active {
+            transform: scale(0.93);
+        }
+
+        /* ==================== 開場歡迎與 100% 大亨通關慶祝彈窗 ==================== */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(7, 13, 28, 0.82);
+            backdrop-filter: blur(7px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 50;
+        }
+
+        .modal-card {
+            background: linear-gradient(160deg, #1e293b 0%, #0f172a 100%);
+            border: 3px solid #4ade80;
+            border-radius: 26px;
+            max-width: 500px;
+            width: 100%;
+            padding: 26px 24px;
+            text-align: center;
+            box-shadow: 0 22px 55px rgba(0, 0, 0, 0.85), 0 0 30px rgba(74, 222, 128, 0.25);
+            animation: popIn 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.9) translateY(14px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-title {
+            margin: 0 0 10px 0;
+            font-size: 25px;
+            font-weight: 900;
+            color: #ffffff;
+        }
+
+        .guide-list {
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 16px;
+            padding: 14px 18px;
+            text-align: left;
+            font-size: 13.5px;
+            line-height: 1.8;
+            color: #e2e8f0;
+            margin-bottom: 20px;
+        }
+
+        .big-play-btn {
+            width: 100%;
+            background: linear-gradient(90deg, #22c55e, #16a34a);
+            border: 2px solid #86efac;
+            border-radius: 16px;
+            padding: 15px;
+            font-size: 19px;
+            font-weight: 900;
+            color: #ffffff;
+            font-family: 'Noto Sans TC', sans-serif;
+            cursor: pointer;
+            box-shadow: 0 8px 22px rgba(34, 197, 94, 0.45);
+            transition: transform 0.1s, filter 0.15s;
+        }
+
+        .big-play-btn:hover {
+            filter: brightness(1.08);
+            transform: translateY(-2px);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 640px) {
+            .cash-main {
+                font-size: 20px;
+            }
+            .dpad-box {
+                grid-template-columns: repeat(3, 44px);
+                grid-template-rows: repeat(3, 44px);
+            }
+            .mine-boost-btn {
+                padding: 10px 13px;
+                font-size: 13.5px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <!-- 3D 空間懸浮購買按鈕標籤與 +$ 金錢跳字層 -->
+    <div id="labels-layer"></div>
+
+    <!-- 動態提示橫幅 -->
+    <div id="toast-banner">🟢 走到發光的綠色按鈕上，免費領取你的第一台「基礎礦石機」！</div>
+
+    <!-- 頂部大亨狀態儀表板 -->
+    <div id="top-hud">
+        <div class="hud-group">
+            <div class="cash-card">
+                <div class="cash-main">💵 $<span id="wallet-text">0</span></div>
+                <div class="income-pill">📈 每秒 +$<span id="sps-text">0</span>/s</div>
+            </div>
+
+            <div class="progress-card">
+                <div class="prog-top">
+                    <span>🏰 大亨建造進度</span>
+                    <span id="progress-pct" style="color:#4ade80;">0%</span>
+                </div>
+                <div class="prog-track">
+                    <div class="prog-fill" id="progress-bar"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hud-group">
+            <button class="top-btn" id="btn-reset-cam" title="重設視角與位置">🎥 重設視角</button>
+            <button class="top-btn" id="btn-mute" title="切換音效">🔊 音效</button>
+        </div>
+    </div>
+
+    <!-- 底部雙手觸控/滑鼠控制面板 -->
+    <div id="bottom-controls">
+        <!-- 左下角虛擬方向鍵 -->
+        <div class="dpad-box">
+            <div></div>
+            <button class="dir-btn" data-dir="up">▲</button>
+            <div></div>
+            <button class="dir-btn" data-dir="left">◀</button>
+            <button class="dir-btn" data-dir="down">▼</button>
+            <button class="dir-btn" data-dir="right">▶</button>
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+
+        <!-- 右下角手動挖礦賺錢鈕 + 跳躍鈕 -->
+        <div class="action-cluster">
+            <button class="mine-boost-btn" id="btn-manual-mine">⛏️ 手動挖水晶 (+$<span id="mine-reward-text">15</span>)</button>
+            <button class="jump-pill-btn" id="btn-jump">⬆️ 跳躍 (空白鍵)</button>
+        </div>
+    </div>
+
+    <!-- 開場歡迎說明視窗 -->
+    <div id="start-modal" class="modal-backdrop">
+        <div class="modal-card">
+            <div style="font-size:52px; margin-bottom:4px;">🏭💎💰</div>
+            <h1 class="modal-title">3D Roblox × 麥快方塊大亨</h1>
+            <p style="font-size:14px; color:#cbd5e1; margin:0 0 14px 0;">
+                從零開始打造你的自動化方塊礦石工廠與黃金帝王城堡！
+            </p>
+            <div class="guide-list">
+                <div>🚶 <strong>超簡單操作：</strong>用鍵盤 <b>WASD / 方向鍵</b> 走動，<b>滑鼠右鍵拖曳</b> 轉視角（也可以直接按畫面左下角方向鍵！）。</div>
+                <div>🟢 <strong>踩按鈕蓋工廠：</strong>地上發亮的 <b>綠色踏板</b> 代表錢夠買，走上去就會「砰！」一聲蓋出新設備！</div>
+                <div>💰 <strong>踏板自動收錢：</strong>輸送帶把礦石送進熔煉爐後會累積現金，走到 <b>綠色收錢踏板</b> 就能全部領進錢包！</div>
+                <div>⛏️ <strong>手動挖礦加速：</strong>想更快賺錢？隨時點擊右下角 <b>「手動挖水晶」</b> 立刻賺取額外現金！</div>
+            </div>
+            <button class="big-play-btn" id="btn-start-game">🏭 開始經營我的大亨工廠！</button>
+        </div>
+    </div>
+
+    <!-- 100% 大亨完成慶祝彈窗 -->
+    <div id="victory-modal" class="modal-backdrop hidden">
+        <div class="modal-card" style="border-color:#facc15;">
+            <div style="font-size:56px; margin-bottom:4px;">👑🏰🎆</div>
+            <h1 class="modal-title" style="color:#fde047;">恭喜達成 100% 終極方塊大亨！</h1>
+            <p style="font-size:14.5px; color:#e2e8f0; line-height:1.65;">
+                太厲害了！你已經解鎖所有高階礦石掉落機、自動收錢機器人與黃金帝王皇冠城堡！<br>
+                你可以繼續在你的豪華城堡裡自由參觀，看著金幣不斷自動進帳！
+            </p>
+            <button class="big-play-btn" id="btn-victory-continue" style="margin-top:12px;">🎉 繼續自由參觀我的大亨帝國</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/**
+ * ============================================================================
+ * 1. Web Audio API 療癒大亨音效引擎 (收銀機叮噹、踩按鈕建造、挖水晶、煙火慶祝)
+ * ============================================================================
+ */
+class TycoonAudio {
+    constructor() {
+        this.ctx = null;
+        this.muted = false;
+    }
+
+    init() {
+        if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            this.ctx = new AudioCtx();
+        }
+        if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+    }
+
+    toggleMute() {
+        this.muted = !this.muted;
+        return this.muted;
+    }
+
+    // 收錢踏板：清脆收銀機叮噹聲
+    playCashCollect() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const notes = [987.77, 1318.51, 1760.0]; // B5 E6 A6
+        notes.forEach((freq, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + i * 0.045);
+            gain.gain.setValueAtTime(0.16, now + i * 0.045);
+            gain.gain.exponentialRampToValueAtTime(0.004, now + i * 0.045 + 0.25);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + i * 0.045);
+            osc.stop(now + i * 0.045 + 0.25);
+        });
+    }
+
+    // 購買建築升級：積木彈出 + 歡快和弦
+    playPurchaseBuild() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5 E5 G5 C6
+        notes.forEach((freq, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + i * 0.055);
+            gain.gain.setValueAtTime(0.18, now + i * 0.055);
+            gain.gain.exponentialRampToValueAtTime(0.004, now + i * 0.055 + 0.3);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + i * 0.055);
+            osc.stop(now + i * 0.055 + 0.3);
+        });
+    }
+
+    // 手動挖水晶清脆敲擊聲
+    playMineCrystal() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        const f = 720 + Math.random() * 240;
+        osc.frequency.setValueAtTime(f, now);
+        osc.frequency.exponentialRampToValueAtTime(f * 1.45, now + 0.11);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.004, now + 0.11);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.11);
+    }
+
+    // 礦石掉進熔煉爐的輕微提示音
+    playSmeltBlip() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.exponentialRampToValueAtTime(660, now + 0.06);
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.exponentialRampToValueAtTime(0.002, now + 0.06);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.06);
+    }
+
+    // 100% 大亨完成慶祝煙火號角
+    playGrandVictory() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98];
+        notes.forEach((freq, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + i * 0.09);
+            gain.gain.setValueAtTime(0.2, now + i * 0.09);
+            gain.gain.exponentialRampToValueAtTime(0.004, now + i * 0.09 + 0.6);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + i * 0.09);
+            osc.stop(now + i * 0.09 + 0.6);
+        });
+    }
+}
+
+const audio = new TycoonAudio();
+
+/**
+ * ============================================================================
+ * 2. Three.js 陽光積木世界場景、草地底板、工廠大門與招牌 "BLOCK TYCOON"
+ * ============================================================================
+ */
+const container = document.getElementById('game-container');
+const labelsLayer = document.getElementById('labels-layer');
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x60b5ff);
+scene.fog = new THREE.FogExp2(0x60b5ff, 0.0055);
+
+const camera = new THREE.PerspectiveCamera(58, window.innerWidth / window.innerHeight, 0.1, 260);
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+container.appendChild(renderer.domElement);
+
+// 明亮陽光與環境補光
+const hemiLight = new THREE.HemisphereLight(0xffffff, 0x3b8228, 0.82);
+scene.add(hemiLight);
+
+const sunLight = new THREE.DirectionalLight(0xfffbeb, 0.92);
+sunLight.position.set(28, 52, 32);
+sunLight.castShadow = true;
+sunLight.shadow.mapSize.width = 2048;
+sunLight.shadow.mapSize.height = 2048;
+sunLight.shadow.camera.near = 5;
+sunLight.shadow.camera.far = 140;
+const sb = 42;
+sunLight.shadow.camera.left = -sb;
+sunLight.shadow.camera.right = sb;
+sunLight.shadow.camera.top = sb;
+sunLight.shadow.camera.bottom = -sb;
+scene.add(sunLight);
+
+// 輔助像素貼圖產生器
+function createPixelTexture(drawFn, repeatX = 1, repeatY = 1) {
+    const c = document.createElement('canvas');
+    c.width = 16;
+    c.height = 16;
+    const ctx = c.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    drawFn(ctx);
+    const tex = new THREE.CanvasTexture(c);
+    tex.magFilter = THREE.NearestFilter;
+    tex.minFilter = THREE.NearestFilter;
+    if (repeatX > 1 || repeatY > 1) {
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(repeatX, repeatY);
+    }
+    return tex;
+}
+
+// 1. 經典 Roblox 顆粒網格草地底板 (Baseplate)
+const baseplateTex = createPixelTexture(ctx => {
+    ctx.fillStyle = '#22c55e';
+    ctx.fillRect(0, 0, 16, 16);
+    ctx.fillStyle = '#16a34a';
+    ctx.fillRect(0, 0, 16, 1);
+    ctx.fillRect(0, 0, 1, 16);
+    // 經典 Roblox 凸起積木顆粒感
+    ctx.fillStyle = '#4ade80';
+    ctx.fillRect(3, 3, 3, 3);
+    ctx.fillRect(10, 3, 3, 3);
+    ctx.fillRect(3, 10, 3, 3);
+    ctx.fillRect(10, 10, 3, 3);
+}, 44, 44);
+
+const groundMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(180, 180),
+    new THREE.MeshLambertMaterial({ map: baseplateTex })
+);
+groundMesh.rotation.x = -Math.PI / 2;
+groundMesh.receiveShadow = true;
+scene.add(groundMesh);
+
+// 大亨專屬領地石磚地基 (X: -14 ~ +14, Z: -18 ~ +16)
+const plotFloorTex = createPixelTexture(ctx => {
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillRect(0, 0, 16, 16);
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillRect(1, 1, 14, 14);
+    ctx.fillStyle = '#64748b';
+    ctx.fillRect(0, 0, 16, 1);
+    ctx.fillRect(0, 0, 1, 16);
+}, 14, 17);
+
+const plotBaseMesh = new THREE.Mesh(
+    new THREE.BoxGeometry(28, 0.25, 34),
+    new THREE.MeshLambertMaterial({ map: plotFloorTex })
+);
+plotBaseMesh.position.set(0, 0.12, -1);
+plotBaseMesh.receiveShadow = true;
+scene.add(plotBaseMesh);
+
+// 2. 天空飄浮積木白雲與周圍麥快橡木大樹
+const clouds = [];
+const cloudMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+for (let i = 0; i < 14; i++) {
+    const cg = new THREE.Group();
+    const b1 = new THREE.Mesh(new THREE.BoxGeometry(10 + Math.random() * 8, 2.5, 6), cloudMat);
+    const b2 = new THREE.Mesh(new THREE.BoxGeometry(6, 2.0, 4.5), cloudMat);
+    b2.position.set(1, 1.8, 0);
+    cg.add(b1, b2);
+    cg.position.set((Math.random() - 0.5) * 160, 34 + Math.random() * 12, (Math.random() - 0.5) * 160);
+    scene.add(cg);
+    clouds.push(cg);
+}
+
+const trunkMat = new THREE.MeshLambertMaterial({ color: 0x78350f });
+const leafMat = new THREE.MeshLambertMaterial({ color: 0x15803d });
+for (let t = 0; t < 32; t++) {
+    const ang = (t / 32) * Math.PI * 2;
+    const dist = 24 + (t % 4) * 11;
+    const tx = Math.cos(ang) * dist;
+    const tz = Math.sin(ang) * dist;
+    if (Math.abs(tx) < 17 && Math.abs(tz) < 20) continue;
+
+    const tree = new THREE.Group();
+    tree.position.set(tx, 0, tz);
+    const trunk = new THREE.Mesh(new THREE.BoxGeometry(1.1, 3.6, 1.1), trunkMat);
+    trunk.position.y = 1.8;
+    trunk.castShadow = true;
+    const c1 = new THREE.Mesh(new THREE.BoxGeometry(3.8, 2.8, 3.8), leafMat);
+    c1.position.y = 4.6;
+    c1.castShadow = true;
+    const c2 = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.8, 2.2), leafMat);
+    c2.position.y = 6.6;
+    tree.add(trunk, c1, c2);
+    scene.add(tree);
+}
+
+// 3. 工廠入口大門與五彩發光看板 "BLOCK TYCOON"
+function buildEntranceSign() {
+    const signGroup = new THREE.Group();
+    signGroup.position.set(0, 0, 15.8);
+
+    const pillarMat = new THREE.MeshLambertMaterial({ color: 0x2563eb });
+    [-4.8, 4.8].forEach(px => {
+        const p = new THREE.Mesh(new THREE.BoxGeometry(1.1, 6.2, 1.1), pillarMat);
+        p.position.set(px, 3.1, 0);
+        p.castShadow = true;
+        signGroup.add(p);
+    });
+
+    // 使用 Canvas 繪製高解析 "BLOCK TYCOON" 霓虹發光看板貼圖
+    const signCanvas = document.createElement('canvas');
+    signCanvas.width = 512;
+    signCanvas.height = 128;
+    const sctx = signCanvas.getContext('2d');
+    sctx.fillStyle = '#0f172a';
+    sctx.fillRect(0, 0, 512, 128);
+    sctx.strokeStyle = '#38bdf8';
+    sctx.lineWidth = 10;
+    sctx.strokeRect(5, 5, 502, 118);
+
+    sctx.font = '900 54px "Noto Sans TC", sans-serif';
+    sctx.textAlign = 'center';
+    sctx.textBaseline = 'middle';
+    sctx.fillStyle = '#facc15';
+    sctx.fillText('BLOCK TYCOON', 256, 52);
+
+    sctx.font = '900 26px "Noto Sans TC", sans-serif';
+    sctx.fillStyle = '#4ade80';
+    sctx.fillText('★ 麥快方塊大亨工廠 ★', 256, 98);
+
+    const signTex = new THREE.CanvasTexture(signCanvas);
+    const board = new THREE.Mesh(
+        new THREE.BoxGeometry(10.8, 2.6, 0.7),
+        new THREE.MeshBasicMaterial({ map: signTex })
+    );
+    board.position.set(0, 6.2, 0);
+    signGroup.add(board);
+
+    scene.add(signGroup);
+}
+
+/**
+ * ============================================================================
+ * 3. 核心工廠設備：輸送帶、礦石熔煉爐、綠色收錢踏板與手動挖水晶礦台
+ * ============================================================================
+ */
+const CONVEYOR_X = -3.5;
+const CONVEYOR_START_Z = -13.5;
+const CONVEYOR_END_Z = 5.5;
+const COLLECTOR_POS = new THREE.Vector3(3.8, 0.28, 7.2);
+const MINE_CRYSTAL_POS = new THREE.Vector3(8.5, 0.28, 3.0);
+
+let beltTexture = null;
+let furnaceMesh = null;
+let collectorPadMesh = null;
+let crystalGroup = null;
+
+// HTML 懸浮標籤元素
+let collectorLabelEl = null;
+let mineLabelEl = null;
+
+function buildCoreFactoryStructures() {
+    // A. 中央自動化輸送帶 (從 Z = -13.5 延伸到 Z = +5.5)
+    beltTexture = createPixelTexture(ctx => {
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(0, 0, 16, 16);
+        ctx.fillStyle = '#38bdf8';
+        // 向前流動的箭頭條紋
+        ctx.fillRect(2, 4, 12, 2);
+        ctx.fillRect(5, 6, 6, 2);
+        ctx.fillRect(7, 8, 2, 2);
+    }, 1, 10);
+
+    const beltLen = CONVEYOR_END_Z - CONVEYOR_START_Z;
+    const beltCenterZ = (CONVEYOR_START_Z + CONVEYOR_END_Z) * 0.5;
+
+    const beltMesh = new THREE.Mesh(
+        new THREE.BoxGeometry(2.6, 0.35, beltLen),
+        new THREE.MeshLambertMaterial({ map: beltTexture })
+    );
+    beltMesh.position.set(CONVEYOR_X, 0.42, beltCenterZ);
+    beltMesh.receiveShadow = true;
+    scene.add(beltMesh);
+
+    // 輸送帶兩側金屬護欄
+    const railMat = new THREE.MeshLambertMaterial({ color: 0x475569 });
+    [-1.4, 1.4].forEach(rx => {
+        const rail = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.65, beltLen), railMat);
+        rail.position.set(CONVEYOR_X + rx, 0.56, beltCenterZ);
+        rail.castShadow = true;
+        scene.add(rail);
+    });
+
+    // B. 輸送帶終點：方塊礦石熔煉回收爐 (Furnace Collector)
+    const furnaceGroup = new THREE.Group();
+    furnaceGroup.position.set(CONVEYOR_X, 0.25, CONVEYOR_END_Z + 1.4);
+
+    const fBody = new THREE.Mesh(
+        new THREE.BoxGeometry(3.4, 2.8, 2.6),
+        new THREE.MeshLambertMaterial({ color: 0x334155 })
+    );
+    fBody.position.y = 1.4;
+    fBody.castShadow = true;
+
+    const fCore = new THREE.Mesh(
+        new THREE.BoxGeometry(2.2, 1.4, 0.3),
+        new THREE.MeshBasicMaterial({ color: 0xf97316 })
+    );
+    fCore.position.set(0, 1.0, -1.25);
+
+    const fRoof = new THREE.Mesh(
+        new THREE.BoxGeometry(3.8, 0.5, 3.0),
+        new THREE.MeshLambertMaterial({ color: 0xfacc15 })
+    );
+    fRoof.position.y = 2.95;
+
+    furnaceGroup.add(fBody, fCore, fRoof);
+    scene.add(furnaceGroup);
+    furnaceMesh = furnaceGroup;
+
+    // C. 亮綠色「收錢踏板 (Cash Collector Pad)」
+    const colGroup = new THREE.Group();
+    colGroup.position.copy(COLLECTOR_POS);
+
+    const colBase = new THREE.Mesh(
+        new THREE.BoxGeometry(3.2, 0.22, 3.2),
+        new THREE.MeshBasicMaterial({ color: 0x22c55e })
+    );
+    const colBorder = new THREE.Mesh(
+        new THREE.BoxGeometry(3.5, 0.14, 3.5),
+        new THREE.MeshLambertMaterial({ color: 0xfacc15 })
+    );
+    colGroup.add(colBase, colBorder);
+    scene.add(colGroup);
+    collectorPadMesh = colBase;
+
+    // 創建收錢踏板的 3D 懸浮標籤
+    collectorLabelEl = document.createElement('div');
+    collectorLabelEl.className = 'pad-label collector';
+    collectorLabelEl.innerHTML = `
+        <div class="pad-title">💰 領取工場收益</div>
+        <div class="pad-price" id="collector-amount">$0</div>
+    `;
+    labelsLayer.appendChild(collectorLabelEl);
+
+    // D. 手動挖礦加速水晶台 (讓玩家等待時也能手動敲擊賺外快)
+    crystalGroup = new THREE.Group();
+    crystalGroup.position.copy(MINE_CRYSTAL_POS);
+
+    const pedestal = new THREE.Mesh(
+        new THREE.BoxGeometry(2.4, 0.5, 2.4),
+        new THREE.MeshLambertMaterial({ color: 0x475569 })
+    );
+    pedestal.position.y = 0.25;
+
+    const crystalMesh = new THREE.Mesh(
+        new THREE.OctahedronGeometry(0.95, 0),
+        new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
+    );
+    crystalMesh.position.y = 1.65;
+    crystalGroup.userData.crystal = crystalMesh;
+
+    crystalGroup.add(pedestal, crystalMesh);
+    scene.add(crystalGroup);
+
+    mineLabelEl = document.createElement('div');
+    mineLabelEl.className = 'pad-label mine';
+    mineLabelEl.innerHTML = `
+        <div class="pad-title">⛏️ 能量水晶礦脈</div>
+        <div class="pad-price" style="color:#7dd3fc;">點擊或靠近賺錢！</div>
+    `;
+    labelsLayer.appendChild(mineLabelEl);
+}
+
+/**
+ * ============================================================================
+ * 4. 12 階 Roblox 大亨購買按鈕與 3D 積木建築解鎖系統
+ * ============================================================================
+ */
+const TYCOON_UPGRADES = [
+    {
+        id: 'stone_dropper',
+        name: '基礎石頭礦機',
+        cost: 0,
+        padPos: new THREE.Vector3(-0.2, 0.28, 7.2),
+        unlocks: ['conveyor_speed', 'iron_dropper'],
+        type: 'dropper',
+        dropInterval: 1.8,
+        oreValue: 10,
+        oreColor: 0x94a3b8,
+        zPos: -12.0,
+        desc: '免費啟動！開始自動掉落石頭方塊賺錢！'
+    },
+    {
+        id: 'conveyor_speed',
+        name: '渦輪加速輸送帶',
+        cost: 50,
+        padPos: new THREE.Vector3(0.2, 0.28, 3.2),
+        unlocks: ['laser_upgrader'],
+        type: 'speed',
+        desc: '輸送帶運轉速度加倍，賺錢更快！'
+    },
+    {
+        id: 'laser_upgrader',
+        name: '雙倍熔煉雷射門',
+        cost: 150,
+        padPos: new THREE.Vector3(0.2, 0.28, -1.2),
+        unlocks: ['oak_walls'],
+        type: 'laser',
+        desc: '通過雷射門的方塊價值直接翻 2 倍！'
+    },
+    {
+        id: 'iron_dropper',
+        name: '鐵礦石掉落機',
+        cost: 300,
+        padPos: new THREE.Vector3(-7.2, 0.28, -8.5),
+        unlocks: ['gold_dropper'],
+        type: 'dropper',
+        dropInterval: 1.9,
+        oreValue: 35,
+        oreColor: 0xf1f5f9,
+        zPos: -8.5,
+        desc: '每塊精煉鐵礦價值 $35！'
+    },
+    {
+        id: 'oak_walls',
+        name: '橡木圍牆與玻璃窗',
+        cost: 500,
+        padPos: new THREE.Vector3(7.5, 0.28, 8.8),
+        unlocks: ['helper_bot'],
+        type: 'building',
+        desc: '蓋起豪華麥快橡木工廠外牆與採光大窗！'
+    },
+    {
+        id: 'gold_dropper',
+        name: '黃金礦掉落機',
+        cost: 900,
+        padPos: new THREE.Vector3(-7.2, 0.28, -4.5),
+        unlocks: ['diamond_dropper'],
+        type: 'dropper',
+        dropInterval: 2.0,
+        oreValue: 90,
+        oreColor: 0xfacc15,
+        zPos: -4.5,
+        desc: '閃亮黃金方塊！每塊價值 $90！'
+    },
+    {
+        id: 'helper_bot',
+        name: '自動收錢小機器人',
+        cost: 1500,
+        padPos: new THREE.Vector3(4.2, 0.28, 2.8),
+        unlocks: ['castle_second_floor'],
+        type: 'bot',
+        desc: '召喚可愛迷你 Roblox 機器人幫你自動收錢！'
+    },
+    {
+        id: 'diamond_dropper',
+        name: '鑽石礦掉落機',
+        cost: 2500,
+        padPos: new THREE.Vector3(-7.2, 0.28, -0.5),
+        unlocks: ['emerald_reactor'],
+        type: 'dropper',
+        dropInterval: 2.1,
+        oreValue: 220,
+        oreColor: 0x38bdf8,
+        zPos: -0.5,
+        desc: '稀有天藍色鑽石方塊！每塊價值 $220！'
+    },
+    {
+        id: 'castle_second_floor',
+        name: '麥快方塊城堡二樓',
+        cost: 4000,
+        padPos: new THREE.Vector3(8.5, 0.28, -2.5),
+        unlocks: ['garden_fountain'],
+        type: 'building',
+        desc: '擴建紅磚與橡木二樓露台城堡！'
+    },
+    {
+        id: 'garden_fountain',
+        name: '皇家噴水池與花園',
+        cost: 6000,
+        padPos: new THREE.Vector3(8.5, 0.28, -7.5),
+        unlocks: ['crown_roof'],
+        type: 'building',
+        desc: '在庭院建造清澈噴水池與七彩花圃！'
+    },
+    {
+        id: 'emerald_reactor',
+        name: '終極綠寶石反應爐',
+        cost: 9000,
+        padPos: new THREE.Vector3(-7.2, 0.28, 3.5),
+        unlocks: [],
+        type: 'dropper',
+        dropInterval: 1.8,
+        oreValue: 600,
+        oreColor: 0x4ade80,
+        zPos: 3.5,
+        desc: '最強綠寶石方塊！每塊價值高達 $600！'
+    },
+    {
+        id: 'crown_roof',
+        name: '黃金帝王皇冠塔頂',
+        cost: 15000,
+        padPos: new THREE.Vector3(0.5, 0.28, -7.5),
+        unlocks: [],
+        type: 'building',
+        desc: '戴上象徵 100% 大亨霸主的巨型黃金皇冠塔頂！'
+    }
+];
+
+const state = {
+    wallet: 0,
+    collectorPool: 0,
+    purchasedIds: new Set(),
+    unlockedIds: new Set(['stone_dropper']),
+    conveyorSpeedMult: 1.0,
+    laserMultiplier: 1,
+    hasHelperBot: false,
+    manualMineReward: 15,
+    victoryShown: false
+};
+
+// 儲存動態建造出的 3D 結構與按鈕網格
+const buyPads = new Map();       // id -> { group, padMesh, labelEl }
+const activeDroppers = [];       // 已建造的礦石掉落機清單
+const movingOres = [];           // 輸送帶上正在移動的 3D 方塊礦石
+const popInAnimations = [];      // 新建造物件的彈跳縮放動畫清單
+let helperBotGroup = null;
+
+function initTycoonPads() {
+    TYCOON_UPGRADES.forEach(upg => {
+        const group = new THREE.Group();
+        group.position.copy(upg.padPos);
+
+        const baseRim = new THREE.Mesh(
+            new THREE.BoxGeometry(2.7, 0.16, 2.7),
+            new THREE.MeshLambertMaterial({ color: 0x1e293b })
+        );
+        const padMesh = new THREE.Mesh(
+            new THREE.BoxGeometry(2.3, 0.24, 2.3),
+            new THREE.MeshBasicMaterial({ color: 0x22c55e })
+        );
+        group.add(baseRim, padMesh);
+        group.visible = state.unlockedIds.has(upg.id);
+        scene.add(group);
+
+        const labelEl = document.createElement('div');
+        labelEl.className = 'pad-label';
+        const priceStr = upg.cost === 0 ? '免費領取！' : `$${upg.cost.toLocaleString()}`;
+        labelEl.innerHTML = `
+            <div class="pad-title">${upg.name}</div>
+            <div class="pad-price">${priceStr}</div>
+        `;
+        labelEl.style.display = group.visible ? 'block' : 'none';
+        labelsLayer.appendChild(labelEl);
+
+        buyPads.set(upg.id, { group, padMesh, labelEl, upg });
+    });
+}
+
+// 註冊彈跳出現動畫
+function registerPopIn(obj3D) {
+    obj3D.scale.set(0.05, 0.05, 0.05);
+    scene.add(obj3D);
+    popInAnimations.push({ obj: obj3D, progress: 0 });
+}
+
+// 執行購買並實際在 3D 場景蓋出該項升級建築！
+function purchaseUpgrade(upg) {
+    if (state.purchasedIds.has(upg.id)) return;
+    if (state.wallet < upg.cost) return;
+
+    state.wallet -= upg.cost;
+    state.purchasedIds.add(upg.id);
+
+    // 隱藏該購買踏板與標籤
+    const padObj = buyPads.get(upg.id);
+    if (padObj) {
+        padObj.group.visible = false;
+        padObj.labelEl.style.display = 'none';
+    }
+
+    // 解鎖後續科技樹按鈕
+    upg.unlocks.forEach(nextId => {
+        if (!state.purchasedIds.has(nextId)) {
+            state.unlockedIds.add(nextId);
+            const nextPad = buyPads.get(nextId);
+            if (nextPad) {
+                nextPad.group.visible = true;
+                nextPad.labelEl.style.display = 'block';
+            }
+        }
+    });
+
+    // 根據升級類型生成精美的 3D 麥快風格建築與機器！
+    if (upg.type === 'dropper') {
+        buildDropperMachine(upg);
+        activeDroppers.push({ ...upg, timer: upg.dropInterval * 0.7 });
+    } else if (upg.type === 'speed') {
+        state.conveyorSpeedMult = 1.85;
+        state.manualMineReward += 15;
+    } else if (upg.type === 'laser') {
+        state.laserMultiplier = 2;
+        state.manualMineReward += 25;
+        buildLaserUpgraderGate();
+    } else if (upg.type === 'bot') {
+        state.hasHelperBot = true;
+        state.manualMineReward += 40;
+        spawnHelperBot();
+    } else if (upg.id === 'oak_walls') {
+        state.manualMineReward += 30;
+        buildOakWallsAndWindows();
+    } else if (upg.id === 'castle_second_floor') {
+        state.manualMineReward += 60;
+        buildCastleSecondFloor();
+    } else if (upg.id === 'garden_fountain') {
+        state.manualMineReward += 80;
+        buildGardenFountain();
+    } else if (upg.id === 'crown_roof') {
+        buildGoldenCrownRoof();
+    }
+
+    audio.playPurchaseBuild();
+    spawnSparkles(upg.padPos.clone().add(new THREE.Vector3(0, 1.2, 0)), 0xfacc15, 18);
+    showToast(`🎉 已建造「${upg.name}」！${upg.desc}`);
+    updateTopHUD();
+
+    // 檢查是否全部 12 項升級皆已建造完成 (100%)
+    if (state.purchasedIds.size >= TYCOON_UPGRADES.length && !state.victoryShown) {
+        state.victoryShown = true;
+        audio.playGrandVictory();
+        spawnSparkles(new THREE.Vector3(0, 8, 0), 0xfacc15, 45);
+        setTimeout(() => {
+            document.getElementById('victory-modal').classList.remove('hidden');
+        }, 700);
+    }
+}
+
+// 建造礦石掉落機 3D 模型
+function buildDropperMachine(upg) {
+    const dg = new THREE.Group();
+    dg.position.set(CONVEYOR_X - 2.2, 0.25, upg.zPos);
+
+    const pillar = new THREE.Mesh(
+        new THREE.BoxGeometry(1.5, 3.6, 1.5),
+        new THREE.MeshLambertMaterial({ color: 0x334155 })
+    );
+    pillar.position.y = 1.8;
+    pillar.castShadow = true;
+
+    const arm = new THREE.Mesh(
+        new THREE.BoxGeometry(2.8, 0.85, 1.3),
+        new THREE.MeshLambertMaterial({ color: upg.oreColor })
+    );
+    arm.position.set(1.3, 3.2, 0);
+    arm.castShadow = true;
+
+    const nozzle = new THREE.Mesh(
+        new THREE.BoxGeometry(0.9, 0.5, 0.9),
+        new THREE.MeshLambertMaterial({ color: 0x0f172a })
+    );
+    nozzle.position.set(2.2, 2.65, 0);
+
+    dg.add(pillar, arm, nozzle);
+    registerPopIn(dg);
+}
+
+// 建造雙倍熔煉雷射門
+function buildLaserUpgraderGate() {
+    const lg = new THREE.Group();
+    lg.position.set(CONVEYOR_X, 0.25, -2.5);
+
+    const frameMat = new THREE.MeshLambertMaterial({ color: 0x0284c7 });
+    [-1.45, 1.45].forEach(lx => {
+        const post = new THREE.Mesh(new THREE.BoxGeometry(0.45, 3.2, 0.6), frameMat);
+        post.position.set(lx, 1.6, 0);
+        post.castShadow = true;
+        lg.add(post);
+    });
+
+    const topBar = new THREE.Mesh(new THREE.BoxGeometry(3.35, 0.55, 0.7), frameMat);
+    topBar.position.set(0, 3.2, 0);
+
+    const laserCurtain = new THREE.Mesh(
+        new THREE.BoxGeometry(2.4, 2.4, 0.14),
+        new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.45 })
+    );
+    laserCurtain.position.set(0, 1.6, 0);
+
+    lg.add(topBar, laserCurtain);
+    registerPopIn(lg);
+}
+
+// 建造橡木圍牆與玻璃窗
+function buildOakWallsAndWindows() {
+    const wg = new THREE.Group();
+    const woodMat = new THREE.MeshLambertMaterial({ color: 0x78350f });
+    const glassMat = new THREE.MeshLambertMaterial({ color: 0xbae6fd, transparent: true, opacity: 0.6 });
+
+    // 左側與後方麥快橡木石磚圍牆
+    const backWall = new THREE.Mesh(new THREE.BoxGeometry(26, 4.2, 0.8), woodMat);
+    backWall.position.set(0, 2.2, -16.8);
+    backWall.castShadow = true;
+
+    const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.8, 4.2, 31), woodMat);
+    leftWall.position.set(-13.2, 2.2, -1.5);
+    leftWall.castShadow = true;
+
+    const rightWall = new THREE.Mesh(new THREE.BoxGeometry(0.8, 4.2, 31), woodMat);
+    rightWall.position.set(13.2, 2.2, -1.5);
+    rightWall.castShadow = true;
+
+    // 嵌在牆上的明亮玻璃窗
+    [-6, 0, 6].forEach(wz => {
+        const win = new THREE.Mesh(new THREE.BoxGeometry(0.95, 1.8, 3.2), glassMat);
+        win.position.set(13.2, 2.4, wz);
+        wg.add(win);
+    });
+
+    wg.add(backWall, leftWall, rightWall);
+    registerPopIn(wg);
+}
+
+// 建造麥快方塊城堡二樓露台
+function buildCastleSecondFloor() {
+    const cg = new THREE.Group();
+    const brickMat = new THREE.MeshLambertMaterial({ color: 0xb91c1c });
+    const goldTrimMat = new THREE.MeshLambertMaterial({ color: 0xfacc15 });
+
+    const roofDeck = new THREE.Mesh(new THREE.BoxGeometry(27.2, 0.7, 31.8), brickMat);
+    roofDeck.position.set(0, 4.6, -1.5);
+    roofDeck.castShadow = true;
+
+    // 四角城堡箭塔
+    [[-12.5, -16], [12.5, -16], [-12.5, 13], [12.5, 13]].forEach(([tx, tz]) => {
+        const tower = new THREE.Mesh(new THREE.BoxGeometry(2.6, 4.5, 2.6), brickMat);
+        tower.position.set(tx, 7.1, tz);
+        tower.castShadow = true;
+        const cap = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.6, 3.0), goldTrimMat);
+        cap.position.set(tx, 9.5, tz);
+        cg.add(tower, cap);
+    });
+
+    registerPopIn(cg);
+}
+
+// 建造皇家噴水池與花園
+function buildGardenFountain() {
+    const fg = new THREE.Group();
+    fg.position.set(8.5, 0.25, -9.5);
+
+    const stoneMat = new THREE.MeshLambertMaterial({ color: 0xe2e8f0 });
+    const waterMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+
+    const basin = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.7, 5.2), stoneMat);
+    basin.position.y = 0.35;
+    const water = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.75, 4.4), waterMat);
+    water.position.y = 0.38;
+    const spout = new THREE.Mesh(new THREE.BoxGeometry(1.0, 2.2, 1.0), stoneMat);
+    spout.position.y = 1.2;
+    const waterJet = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.4, 0.5), waterMat);
+    waterJet.position.y = 2.7;
+
+    fg.add(basin, water, spout, waterJet);
+    registerPopIn(fg);
+}
+
+// 建造終極黃金帝王皇冠塔頂
+function buildGoldenCrownRoof() {
+    const crownGroup = new THREE.Group();
+    crownGroup.position.set(0, 10.2, -2);
+
+    const goldMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+    const rubyMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+
+    const ring = new THREE.Mesh(new THREE.BoxGeometry(7.5, 1.4, 7.5), goldMat);
+    crownGroup.add(ring);
+
+    [[-3.2, -3.2], [3.2, -3.2], [-3.2, 3.2], [3.2, 3.2], [0, -3.2], [0, 3.2]].forEach(([sx, sz]) => {
+        const spike = new THREE.Mesh(new THREE.BoxGeometry(1.1, 2.2, 1.1), goldMat);
+        spike.position.set(sx, 1.6, sz);
+        const gem = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.6, 0.6), rubyMat);
+        gem.position.set(sx, 0.1, sz);
+        crownGroup.add(spike, gem);
+    });
+
+    registerPopIn(crownGroup);
+}
+
+// 召喚可愛迷你自動收錢機器人
+function spawnHelperBot() {
+    helperBotGroup = new THREE.Group();
+    helperBotGroup.position.set(3.8, 0.25, 2.0);
+
+    const body = new THREE.Mesh(
+        new THREE.BoxGeometry(0.9, 0.9, 0.9),
+        new THREE.MeshLambertMaterial({ color: 0x38bdf8 })
+    );
+    body.position.y = 0.7;
+    const head = new THREE.Mesh(
+        new THREE.BoxGeometry(0.7, 0.55, 0.7),
+        new THREE.MeshLambertMaterial({ color: 0xfacc15 })
+    );
+    head.position.y = 1.45;
+    const antenna = new THREE.Mesh(
+        new THREE.BoxGeometry(0.14, 0.45, 0.14),
+        new THREE.MeshBasicMaterial({ color: 0x4ade80 })
+    );
+    antenna.position.y = 1.9;
+
+    helperBotGroup.add(body, head, antenna);
+    registerPopIn(helperBotGroup);
+}
+
+/**
+ * ============================================================================
+ * 5. 經典黃藍綠 Roblox 方塊人角色與第三人稱跟隨攝影機
+ * ============================================================================
+ */
+const playerGroup = new THREE.Group();
+scene.add(playerGroup);
+
+const matYellow = new THREE.MeshLambertMaterial({ color: 0xfacc15 });
+const matBlue = new THREE.MeshLambertMaterial({ color: 0x2563eb });
+const matGreen = new THREE.MeshLambertMaterial({ color: 0x16a34a });
+
+const smileyTex = createPixelTexture(ctx => {
+    ctx.fillStyle = '#facc15';
+    ctx.fillRect(0, 0, 16, 16);
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(4, 5, 2, 2);
+    ctx.fillRect(10, 5, 2, 2);
+    ctx.fillRect(5, 10, 6, 1);
+    ctx.fillRect(4, 9, 1, 1);
+    ctx.fillRect(11, 9, 1, 1);
+});
+
+const headMesh = new THREE.Mesh(new THREE.BoxGeometry(0.64, 0.58, 0.64), [
+    matYellow, matYellow, matYellow, matYellow,
+    new THREE.MeshLambertMaterial({ map: smileyTex }),
+    matYellow
+]);
+headMesh.position.y = 1.56;
+headMesh.castShadow = true;
+playerGroup.add(headMesh);
+
+const torsoMesh = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.42), matBlue);
+torsoMesh.position.y = 0.9;
+torsoMesh.castShadow = true;
+playerGroup.add(torsoMesh);
+
+const leftArmPivot = new THREE.Group();
+leftArmPivot.position.set(0.58, 1.24, 0);
+const leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.74, 0.34), matYellow);
+leftArm.position.y = -0.32;
+leftArm.castShadow = true;
+leftArmPivot.add(leftArm);
+playerGroup.add(leftArmPivot);
+
+const rightArmPivot = new THREE.Group();
+rightArmPivot.position.set(-0.58, 1.24, 0);
+const rightArm = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.74, 0.34), matYellow);
+rightArm.position.y = -0.32;
+rightArm.castShadow = true;
+rightArmPivot.add(rightArm);
+playerGroup.add(rightArmPivot);
+
+const leftLegPivot = new THREE.Group();
+leftLegPivot.position.set(0.2, 0.5, 0);
+const leftLeg = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.52, 0.36), matGreen);
+leftLeg.position.y = -0.26;
+leftLeg.castShadow = true;
+leftLegPivot.add(leftLeg);
+playerGroup.add(leftLegPivot);
+
+const rightLegPivot = new THREE.Group();
+rightLegPivot.position.set(-0.2, 0.5, 0);
+const rightLeg = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.52, 0.36), matGreen);
+rightLeg.position.y = -0.26;
+rightLeg.castShadow = true;
+rightLegPivot.add(rightLeg);
+playerGroup.add(rightLegPivot);
+
+const player = {
+    pos: new THREE.Vector3(1.8, 0.25, 11.5),
+    vel: new THREE.Vector3(0, 0, 0),
+    yaw: Math.PI,
+    onGround: true,
+    walkPhase: 0
+};
+
+/**
+ * ============================================================================
+ * 6. 3D 空間粒子、漂浮跳字與輸入控制綁定
+ * ============================================================================
+ */
+const sparkles = [];
+const sparkleGeo = new THREE.BoxGeometry(0.22, 0.22, 0.22);
+
+function spawnSparkles(origin, colorHex = 0x4ade80, count = 12) {
+    for (let i = 0; i < count; i++) {
+        const m = new THREE.Mesh(sparkleGeo, new THREE.MeshBasicMaterial({ color: colorHex }));
+        m.position.copy(origin);
+        scene.add(m);
+        sparkles.push({
+            mesh: m,
+            vel: new THREE.Vector3(
+                (Math.random() - 0.5) * 7,
+                Math.random() * 6 + 2,
+                (Math.random() - 0.5) * 7
+            ),
+            life: 0.55 + Math.random() * 0.25
+        });
+    }
+}
+
+// 在指定的 3D 世界座標上方產生「+$50!」飄字
+function spawnWorldPopup(worldPos, text, color = '#4ade80') {
+    const projected = worldPos.clone().project(camera);
+    if (projected.z > 1) return;
+    const sx = (projected.x * 0.5 + 0.5) * window.innerWidth;
+    const sy = (-projected.y * 0.5 + 0.5) * window.innerHeight;
+
+    const div = document.createElement('div');
+    div.className = 'floating-popup';
+    div.style.left = `${sx}px`;
+    div.style.top = `${sy}px`;
+    div.style.color = color;
+    div.textContent = text;
+    labelsLayer.appendChild(div);
+    setTimeout(() => div.remove(), 1050);
+}
+
+// 手動挖水晶賺錢功能
+function triggerManualMine() {
+    audio.init();
+    const reward = state.manualMineReward;
+    state.wallet += reward;
+    audio.playMineCrystal();
+    spawnSparkles(MINE_CRYSTAL_POS.clone().add(new THREE.Vector3(0, 1.6, 0)), 0x38bdf8, 8);
+    spawnWorldPopup(MINE_CRYSTAL_POS.clone().add(new THREE.Vector3(0, 2.5, 0)), `+$${reward}!`, '#38bdf8');
+    updateTopHUD();
+}
+
+// 攝影機旋轉與縮放
+let camYaw = 0.35;
+let camPitch = 0.52;
+let camDist = 14.5;
+let isRightDragging = false;
+let lastMouse = { x: 0, y: 0 };
+
+renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
+
+renderer.domElement.addEventListener('mousedown', (e) => {
+    audio.init();
+    if (e.button === 2) {
+        isRightDragging = true;
+        lastMouse = { x: e.clientX, y: e.clientY };
+    } else if (e.button === 0) {
+        // 點擊 3D 能量水晶也能直接挖礦
+        const rect = renderer.domElement.getBoundingClientRect();
+        const ndc = new THREE.Vector2(
+            ((e.clientX - rect.left) / rect.width) * 2 - 1,
+            -((e.clientY - rect.top) / rect.height) * 2 + 1
+        );
+        const ray = new THREE.Raycaster();
+        ray.setFromCamera(ndc, camera);
+        if (crystalGroup && ray.intersectObject(crystalGroup, true).length > 0) {
+            triggerManualMine();
+        }
+    }
+});
+
+window.addEventListener('mousemove', (e) => {
+    if (isRightDragging) {
+        const dx = e.clientX - lastMouse.x;
+        const dy = e.clientY - lastMouse.y;
+        camYaw -= dx * 0.0065;
+        camPitch = Math.max(0.22, Math.min(1.32, camPitch + dy * 0.0065));
+        lastMouse = { x: e.clientX, y: e.clientY };
+    }
+});
+
+window.addEventListener('mouseup', (e) => {
+    if (e.button === 2) isRightDragging = false;
+});
+
+renderer.domElement.addEventListener('wheel', (e) => {
+    camDist = Math.max(6.5, Math.min(28.0, camDist + e.deltaY * 0.008));
+}, { passive: true });
+
+// 觸控旋轉視角
+let touchStart = null;
+renderer.domElement.addEventListener('touchstart', (e) => {
+    audio.init();
+    if (e.touches.length === 1) {
+        touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        lastMouse = { ...touchStart };
+    }
+}, { passive: true });
+
+renderer.domElement.addEventListener('touchmove', (e) => {
+    if (e.touches.length === 1 && touchStart) {
+        const cx = e.touches[0].clientX;
+        const cy = e.touches[0].clientY;
+        camYaw -= (cx - lastMouse.x) * 0.0075;
+        camPitch = Math.max(0.22, Math.min(1.32, camPitch + (cy - lastMouse.y) * 0.0075));
+        lastMouse = { x: cx, y: cy };
+    }
+}, { passive: true });
+
+// 鍵盤與螢幕方向鍵控制
+const input = { up: false, down: false, left: false, right: false, jump: false };
+
+window.addEventListener('keydown', (e) => {
+    const code = e.code;
+    if (code === 'KeyW' || code === 'ArrowUp') input.up = true;
+    if (code === 'KeyS' || code === 'ArrowDown') input.down = true;
+    if (code === 'KeyA' || code === 'ArrowLeft') input.left = true;
+    if (code === 'KeyD' || code === 'ArrowRight') input.right = true;
+    if (code === 'Space') input.jump = true;
+});
+
+window.addEventListener('keyup', (e) => {
+    const code = e.code;
+    if (code === 'KeyW' || code === 'ArrowUp') input.up = false;
+    if (code === 'KeyS' || code === 'ArrowDown') input.down = false;
+    if (code === 'KeyA' || code === 'ArrowLeft') input.left = false;
+    if (code === 'KeyD' || code === 'ArrowRight') input.right = false;
+    if (code === 'Space') input.jump = false;
+});
+
+document.querySelectorAll('.dir-btn').forEach(btn => {
+    const dir = btn.dataset.dir;
+    const setPress = (val) => {
+        audio.init();
+        input[dir] = val;
+        btn.classList.toggle('pressed', val);
+    };
+    btn.addEventListener('pointerdown', (e) => { e.preventDefault(); setPress(true); });
+    btn.addEventListener('pointerup', () => setPress(false));
+    btn.addEventListener('pointerleave', () => setPress(false));
+});
+
+document.getElementById('btn-jump').addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    audio.init();
+    input.jump = true;
+});
+document.getElementById('btn-jump').addEventListener('pointerup', () => { input.jump = false; });
+
+document.getElementById('btn-manual-mine').addEventListener('click', triggerManualMine);
+
+document.getElementById('btn-reset-cam').addEventListener('click', () => {
+    audio.init();
+    player.pos.set(1.8, 0.25, 11.5);
+    camYaw = 0.35;
+    camPitch = 0.52;
+    camDist = 14.5;
+    showToast('🎥 已重設視角並回到工廠入口！');
+});
+
+document.getElementById('btn-mute').addEventListener('click', (e) => {
+    audio.init();
+    const muted = audio.toggleMute();
+    e.target.textContent = muted ? '🔇 靜音' : '🔊 音效';
+});
+
+document.getElementById('btn-start-game').addEventListener('click', () => {
+    audio.init();
+    document.getElementById('start-modal').classList.add('hidden');
+});
+
+document.getElementById('btn-victory-continue').addEventListener('click', () => {
+    document.getElementById('victory-modal').classList.add('hidden');
+});
+
+let toastTimer = null;
+function showToast(msg) {
+    const el = document.getElementById('toast-banner');
+    el.textContent = msg;
+    el.style.opacity = '1';
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+        el.style.opacity = '0.85';
+    }, 3400);
+}
+
+/**
+ * ============================================================================
+ * 7. 主更新迴圈：玩家移動、踩踏板購買、輸送帶礦石物理、自動收錢機器人與標籤投影
+ * ============================================================================
+ */
+let autoCrystalCooldown = 0;
+
+function updatePlayer(dt) {
+    const forward = new THREE.Vector3(-Math.sin(camYaw), 0, -Math.cos(camYaw));
+    const right = new THREE.Vector3(Math.cos(camYaw), 0, -Math.sin(camYaw));
+    const moveDir = new THREE.Vector3(0, 0, 0);
+
+    if (input.up) moveDir.add(forward);
+    if (input.down) moveDir.sub(forward);
+    if (input.right) moveDir.add(right);
+    if (input.left) moveDir.sub(right);
+
+    const speed = 8.4;
+    if (moveDir.lengthSq() > 0.001) {
+        moveDir.normalize();
+        player.vel.x = moveDir.x * speed;
+        player.vel.z = moveDir.z * speed;
+
+        const targetYaw = Math.atan2(moveDir.x, moveDir.z);
+        let diff = targetYaw - player.yaw;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        player.yaw += diff * 0.24;
+
+        player.walkPhase += dt * 12;
+    } else {
+        player.vel.x *= 0.78;
+        player.vel.z *= 0.78;
+        player.walkPhase = 0;
+    }
+
+    if (input.jump && player.onGround) {
+        player.vel.y = 8.5;
+        player.onGround = false;
+    }
+    player.vel.y -= 22.0 * dt;
+
+    player.pos.x = Math.max(-13.2, Math.min(13.2, player.pos.x + player.vel.x * dt));
+    player.pos.z = Math.max(-16.0, Math.min(15.0, player.pos.z + player.vel.z * dt));
+    player.pos.y += player.vel.y * dt;
+
+    if (player.pos.y <= 0.25) {
+        player.pos.y = 0.25;
+        player.vel.y = 0;
+        player.onGround = true;
+    }
+
+    playerGroup.position.copy(player.pos);
+    playerGroup.rotation.y = player.yaw;
+
+    const swing = Math.sin(player.walkPhase) * 0.65;
+    leftLegPivot.rotation.x = swing;
+    rightLegPivot.rotation.x = -swing;
+    leftArmPivot.rotation.x = -swing * 0.8;
+    rightArmPivot.rotation.x = swing * 0.8;
+
+    // 1. 檢查是否踩到「綠色收錢踏板」
+    if (state.collectorPool > 0 && player.pos.distanceTo(COLLECTOR_POS) < 2.1) {
+        collectFactoryCash();
+    }
+
+    // 2. 檢查是否靠近「能量水晶礦脈」自動敲擊賺錢
+    if (autoCrystalCooldown > 0) autoCrystalCooldown -= dt;
+    if (player.pos.distanceTo(MINE_CRYSTAL_POS) < 2.2 && autoCrystalCooldown <= 0) {
+        autoCrystalCooldown = 0.45;
+        triggerManualMine();
+    }
+
+    // 3. 檢查是否踩到任何已解鎖的「大亨購買踏板」
+    buyPads.forEach((padObj) => {
+        if (!padObj.group.visible) return;
+        const canAfford = state.wallet >= padObj.upg.cost;
+        // 動態切換按鈕顏色：錢夠發綠光，錢不夠發紅光
+        padObj.padMesh.material.color.setHex(canAfford ? 0x22c55e : 0xef4444);
+        padObj.labelEl.classList.toggle('locked', !canAfford);
+
+        if (canAfford && player.pos.distanceTo(padObj.upg.padPos) < 1.85) {
+            purchaseUpgrade(padObj.upg);
+        }
+    });
+}
+
+function collectFactoryCash() {
+    if (state.collectorPool <= 0) return;
+    const gained = state.collectorPool;
+    state.wallet += gained;
+    state.collectorPool = 0;
+
+    audio.playCashCollect();
+    spawnSparkles(COLLECTOR_POS.clone().add(new THREE.Vector3(0, 1.0, 0)), 0x4ade80, 14);
+    spawnWorldPopup(COLLECTOR_POS.clone().add(new THREE.Vector3(0, 2.0, 0)), `+$${gained.toLocaleString()}!`, '#4ade80');
+    updateTopHUD();
+}
+
+function updateFactoryAndOres(dt, timeSec) {
+    // 輸送帶紋理流動動畫
+    if (beltTexture) {
+        beltTexture.offset.y -= dt * 1.4 * state.conveyorSpeedMult;
+    }
+
+    // 能量水晶旋轉動畫
+    if (crystalGroup && crystalGroup.userData.crystal) {
+        crystalGroup.userData.crystal.rotation.y += dt * 2.2;
+        crystalGroup.userData.crystal.position.y = 1.65 + Math.sin(timeSec * 3) * 0.14;
+    }
+
+    // 各台礦石掉落機定時生成 3D 發光礦石方塊
+    activeDroppers.forEach(dropper => {
+        dropper.timer += dt;
+        if (dropper.timer >= dropper.dropInterval) {
+            dropper.timer = 0;
+            const oreMesh = new THREE.Mesh(
+                new THREE.BoxGeometry(0.68, 0.68, 0.68),
+                new THREE.MeshLambertMaterial({ color: dropper.oreColor })
+            );
+            oreMesh.position.set(CONVEYOR_X, 2.2, dropper.zPos);
+            oreMesh.castShadow = true;
+            scene.add(oreMesh);
+
+            movingOres.push({
+                mesh: oreMesh,
+                value: dropper.oreValue,
+                upgradedByLaser: false,
+                velY: 0
+            });
+        }
+    });
+
+    // 更新輸送帶上移動的方塊礦石
+    const beltSpeed = 4.2 * state.conveyorSpeedMult;
+    for (let i = movingOres.length - 1; i >= 0; i--) {
+        const ore = movingOres[i];
+        // 先掉落到輸送帶表面 (Y = 0.92)
+        if (ore.mesh.position.y > 0.92) {
+            ore.velY -= 18 * dt;
+            ore.mesh.position.y = Math.max(0.92, ore.mesh.position.y + ore.velY * dt);
+        } else {
+            ore.mesh.position.z += beltSpeed * dt;
+            ore.mesh.rotation.y += dt * 1.2;
+        }
+
+        // 經過雙倍熔煉雷射門 (Z = -2.5) 時價值翻倍並放大發光
+        if (!ore.upgradedByLaser && state.laserMultiplier > 1 && ore.mesh.position.z >= -2.5) {
+            ore.upgradedByLaser = true;
+            ore.value *= state.laserMultiplier;
+            ore.mesh.scale.set(1.22, 1.22, 1.22);
+            spawnSparkles(ore.mesh.position, 0x38bdf8, 4);
+        }
+
+        // 到達終點熔煉回收爐 (Z >= CONVEYOR_END_Z + 0.6)
+        if (ore.mesh.position.z >= CONVEYOR_END_Z + 0.6) {
+            state.collectorPool += ore.value;
+            audio.playSmeltBlip();
+            spawnSparkles(ore.mesh.position, 0xf97316, 4);
+            spawnWorldPopup(ore.mesh.position.clone().add(new THREE.Vector3(0, 1.4, 0)), `+$${ore.value}`, '#fde047');
+
+            scene.remove(ore.mesh);
+            movingOres.splice(i, 1);
+            updateTopHUD();
+        }
+    }
+
+    // 自動收錢小機器人來回巡邏並自動領取收錢踏板收益
+    if (helperBotGroup) {
+        const botZ = 4.5 + Math.sin(timeSec * 2.2) * 3.0;
+        helperBotGroup.position.set(3.8, 0.25 + Math.abs(Math.sin(timeSec * 8)) * 0.12, botZ);
+        helperBotGroup.rotation.y = Math.cos(timeSec * 2.2) > 0 ? 0 : Math.PI;
+
+        if (state.collectorPool > 0 && Math.abs(botZ - COLLECTOR_POS.z) < 0.8) {
+            collectFactoryCash();
+        }
+    }
+
+    // 更新新建造建築的彈跳縮放動畫
+    for (let i = popInAnimations.length - 1; i >= 0; i--) {
+        const anim = popInAnimations[i];
+        anim.progress = Math.min(1, anim.progress + dt * 3.2);
+        // 彈性過衝曲線
+        const t = anim.progress;
+        const s = t < 0.7 ? (t / 0.7) * 1.12 : 1.12 - ((t - 0.7) / 0.3) * 0.12;
+        anim.obj.scale.set(s, s, s);
+        if (anim.progress >= 1) {
+            anim.obj.scale.set(1, 1, 1);
+            popInAnimations.splice(i, 1);
+        }
+    }
+}
+
+// 將 3D 空間座標投影更新到畫面上的 HTML 標籤
+function projectWorldToScreen(worldPos, el, yOffset = 1.6) {
+    if (!el || el.style.display === 'none') return;
+    const p = worldPos.clone().add(new THREE.Vector3(0, yOffset, 0)).project(camera);
+    if (p.z > 1) {
+        el.style.opacity = '0';
+        return;
+    }
+    el.style.opacity = '1';
+    const x = (p.x * 0.5 + 0.5) * window.innerWidth;
+    const y = (-p.y * 0.5 + 0.5) * window.innerHeight;
+    el.style.left = `${x}px`;
+    el.style.top = `${y}px`;
+}
+
+function updateAllScreenLabels() {
+    projectWorldToScreen(COLLECTOR_POS, collectorLabelEl, 1.3);
+    projectWorldToScreen(MINE_CRYSTAL_POS, mineLabelEl, 2.7);
+    buyPads.forEach(padObj => {
+        if (padObj.group.visible) {
+            projectWorldToScreen(padObj.upg.padPos, padObj.labelEl, 1.15);
+        }
+    });
+}
+
+function updateTopHUD() {
+    document.getElementById('wallet-text').textContent = state.wallet.toLocaleString();
+    document.getElementById('collector-amount').textContent = `$${state.collectorPool.toLocaleString()}`;
+    document.getElementById('mine-reward-text').textContent = state.manualMineReward;
+
+    // 計算每秒平均被動收入 ($/s)
+    let totalSps = 0;
+    activeDroppers.forEach(d => {
+        totalSps += (d.oreValue * state.laserMultiplier) / d.dropInterval;
+    });
+    document.getElementById('sps-text').textContent = Math.round(totalSps).toLocaleString();
+
+    // 大亨總建造進度 (0% ~ 100%)
+    const pct = Math.round((state.purchasedIds.size / TYCOON_UPGRADES.length) * 100);
+    document.getElementById('progress-pct').textContent = `${pct}%`;
+    document.getElementById('progress-bar').style.width = `${pct}%`;
+}
+
+function updateCamera() {
+    const focus = player.pos.clone().add(new THREE.Vector3(0, 1.2, 0));
+    const ox = Math.sin(camYaw) * Math.cos(camPitch) * camDist;
+    const oy = Math.sin(camPitch) * camDist;
+    const oz = Math.cos(camYaw) * Math.cos(camPitch) * camDist;
+
+    camera.position.lerp(focus.clone().add(new THREE.Vector3(ox, oy, oz)), 0.2);
+    camera.lookAt(focus);
+}
+
+let lastTime = performance.now();
+function animate(now) {
+    const dt = Math.min(0.05, (now - lastTime) / 1000);
+    lastTime = now;
+    const timeSec = now / 1000;
+
+    updatePlayer(dt);
+    updateFactoryAndOres(dt, timeSec);
+    updateCamera();
+    updateAllScreenLabels();
+
+    // 雲朵緩慢飄動
+    clouds.forEach(c => {
+        c.position.x += dt * 1.1;
+        if (c.position.x > 90) c.position.x = -90;
+    });
+
+    // 粒子更新
+    for (let i = sparkles.length - 1; i >= 0; i--) {
+        const s = sparkles[i];
+        s.vel.y -= 15 * dt;
+        s.mesh.position.addScaledVector(s.vel, dt);
+        s.life -= dt;
+        s.mesh.scale.setScalar(Math.max(0.01, s.life * 1.6));
+        if (s.life <= 0) {
+            scene.remove(s.mesh);
+            sparkles.splice(i, 1);
+        }
+    }
+
+    renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+}
+
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+window.onload = function () {
+    buildEntranceSign();
+    buildCoreFactoryStructures();
+    initTycoonPads();
+    updateTopHUD();
+
+    lastTime = performance.now();
+    requestAnimationFrame(animate);
+};
+</script>
+</body>
+</html>
