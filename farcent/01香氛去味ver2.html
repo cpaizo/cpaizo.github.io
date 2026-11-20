@@ -8,286 +8,475 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #BA4A00;
-            --light: #EDBB99;
-            --border: #F5CBA7;
-            --bg: #FDF2E9;
-            --header-bg: linear-gradient(135deg, #FF7043, #BF360C);
+            --primary: #E07A5F;         /* 手繪暖珊瑚橘（按鈕與重點） */
+            --primary-dark: #B8563C;    /* 暖陶土深色 */
+            --secondary: #7EB59B;       /* 療癒草綠 */
+            --accent-yellow: #F7D988;   /* 溫柔奶油蛋黃 */
+            --cream-soft: #FFF4CC;      /* 淺奶油蛋黃 */
+            --light: #FFF9EB;           /* 奶油淺底 */
+            --border: #E8C7A8;          /* 手繪暖框 */
+            --bg: #FFFBEB;              /* 溫柔奶油蛋黃底色 */
+            --ink: #4A3F35;             /* 手繪鉛筆深褐 */
+            --header-bg: linear-gradient(135deg, #FFF3C4 0%, #FDE49E 55%, #F7D483 100%);
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans TC', sans-serif; }
-        
-        /* 選單 7: 10種背景質感 */
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        /* 配合溫柔奶油蛋黃的柔和光暈與手繪點點背景 */
         body {
             background-color: var(--bg);
-            
-            
-            
-            background-image: radial-gradient(var(--border) 20%, transparent 20%); background-size: 12px 12px;
-            
-            
-            
-            
-            
-            
-            color: #2C3E50; padding-bottom: 20px;
+            background-image:
+                radial-gradient(circle at 15% 12%, rgba(253, 231, 162, 0.7) 0%, transparent 32%),
+                radial-gradient(circle at 86% 18%, rgba(255, 240, 184, 0.75) 0%, transparent 34%),
+                radial-gradient(circle at 50% 90%, rgba(247, 217, 136, 0.35) 0%, transparent 38%),
+                radial-gradient(rgba(224, 122, 95, 0.14) 2px, transparent 2px),
+                radial-gradient(rgba(247, 217, 136, 0.5) 2px, transparent 2px);
+            background-size: 100% 100%, 100% 100%, 100% 100%, 28px 28px, 28px 28px;
+            background-position: 0 0, 0 0, 0 0, 0 0, 14px 14px;
+            color: var(--ink);
+            padding-bottom: 24px;
         }
 
         header {
-            background: var(--header-bg); padding: 35px 20px; text-align: center; color: white;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            background: var(--header-bg);
+            padding: 34px 20px 34px 20px;
+            text-align: center;
+            color: var(--ink);
+            border-bottom: 3px dashed var(--border);
+            box-shadow: 0 6px 18px rgba(247, 217, 136, 0.35);
         }
-        
-        /* 選單 9: 10種字體風格 */
+
+        .doodle-banner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
         header h1 {
-            font-size: 2.2rem; margin-bottom: 8px;
-            
-            
-            
-            
-            font-style: italic; font-weight: 700;
-            
-            
-            
-            
-            
+            font-size: 2.1rem;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            color: var(--ink);
         }
-        header p { display: inline-block; background: rgba(255,255,255,0.22); padding: 5px 18px; border-radius: 20px; font-weight: bold; }
 
-        .app-container { max-width: 1200px; margin: 25px auto; padding: 0 15px; }
+        header p {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.68);
+            color: var(--ink);
+            padding: 6px 20px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            border: 1.5px dashed var(--primary);
+            margin-top: 6px;
+        }
 
-        /* 選單 1: 10種核心網頁版面架構 */
-        .layout-classic { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .layout-classic .area-products { grid-column: span 2; }
+        .app-container {
+            max-width: 1160px;
+            margin: 28px auto 0 auto;
+            padding: 0 16px;
+        }
 
-        .layout-reversed { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .layout-reversed .area-cart { order: -1; }
-        .layout-reversed .area-products { grid-column: span 2; }
+        .layout-classic {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 22px;
+        }
 
-        .layout-stacked { display: flex; flex-direction: column; gap: 20px; }
-        .layout-stacked #webcam-container { max-width: 480px; }
-
-        .layout-sidebar { display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
-        .layout-sidebar .left-sidebar { display: flex; flex-direction: column; gap: 20px; }
-        .layout-sidebar .right-main { display: flex; flex-direction: column; gap: 20px; }
-
-        .layout-topcart { display: flex; flex-direction: column; gap: 20px; }
-        .layout-topcart .area-cart { order: -2; }
-        
-        .layout-focusai { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 15px; }
-        .layout-focusai .area-ai { grid-column: 2; grid-row: 1; }
-        .layout-focusai .area-cart { grid-column: 3; grid-row: 1; }
-        .layout-focusai .area-products { grid-column: 1; grid-row: 1; }
-
-        .layout-bottomai { display: flex; flex-direction: column; gap: 20px; }
-        .layout-bottomai .area-ai { order: 3; }
-
-        .layout-split3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
-
-        .layout-cardgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-
-        .layout-mobilefirst { display: flex; flex-direction: column; max-width: 500px; margin: 0 auto; gap: 15px; }
+        .layout-classic .area-products {
+            grid-column: span 2;
+        }
 
         @media (max-width: 850px) {
-            .layout-classic, .layout-reversed, .layout-sidebar, .layout-focusai, .layout-split3, .layout-cardgrid { display: flex; flex-direction: column; }
+            .layout-classic {
+                display: flex;
+                flex-direction: column;
+            }
         }
 
-        /* 選單 6: 10種懸浮動效 */
         .card {
-            background: white; padding: 20px; border-radius: 16px; border: 2px solid var(--border);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.04); transition: all 0.3s;
-            
-            
-            
-            &:hover { transform: rotate(1deg); }
-            
-            
-            
-            
-            
+            background: #FFFFFF;
+            padding: 22px;
+            border-radius: 24px 20px 26px 18px;
+            border: 2.5px solid var(--ink);
+            box-shadow: 5px 5px 0 var(--accent-yellow);
+            transition: transform 0.22s ease, box-shadow 0.22s ease;
         }
-        .card-title { font-size: 1.25rem; font-weight: 900; color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
 
-        /* 選單 10: 10種按鈕特效 */
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 6px 7px 0 var(--cream-soft);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: var(--primary-dark);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 8px;
+            border-bottom: 2px dashed var(--border);
+        }
+
+        .doodle-badge {
+            width: 34px;
+            height: 34px;
+            border-radius: 12px;
+            background: var(--light);
+            border: 2px solid var(--ink);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
         .btn {
-            background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 10px;
-            font-size: 1rem; font-weight: bold; cursor: pointer; width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px;
-            transition: all 0.2s; position: relative; overflow: hidden;
+            background: var(--primary);
+            color: #FFFFFF;
+            border: 2px solid var(--ink);
+            box-shadow: 3px 3px 0 var(--ink);
+            padding: 11px 18px;
+            border-radius: 14px;
+            font-size: 0.98rem;
+            font-weight: 800;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.2s ease;
         }
-        
-        
-        
-        
-        
-        
-        .btn:hover { transform: scale(1.05); }
-        
-        
-        
 
-        /* 選單 3: 10種 AI 鏡頭容器造型 */
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0 var(--ink);
+        }
+
+        .btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0 var(--ink);
+        }
+
+        /* 方形 Webcam 鏡頭容器（約 180 x 180 px，維持純方形） */
         #webcam-container {
-            width: 100%; aspect-ratio: 4/3; margin: 12px auto 0 auto; overflow: hidden; position: relative;
-            
-            
-            
-            
-            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); border: 2px solid var(--primary);
-            
-            
-            
-            
-            
+            width: 180px;
+            height: 180px;
+            min-width: 20px;
+            aspect-ratio: 1 / 1;
+            margin: 14px auto 8px auto;
+            overflow: hidden;
+            position: relative;
+            border-radius: 10px;
+            border: 2.5px solid var(--ink);
+            box-shadow: 3px 3px 0 var(--secondary);
+            background-color: var(--light);
         }
-        #webcam-container canvas { width: 100% !important; height: 100% !important; object-fit: cover; }
-        .prediction-row { background: #FAFAFA; border-radius: 6px; padding: 6px 10px; margin-top: 6px; }
-        .prediction-label { display: flex; justify-content: space-between; font-weight: bold; font-size: 0.85rem; }
-        .progress-bar-bg { background: #EAECEE; height: 6px; border-radius: 10px; overflow: hidden; margin-top: 3px; }
-        .progress-bar-fill { background: var(--primary); height: 100%; width: 0%; transition: width 0.2s; }
 
-        /* 選單 4: 10種購物車項目風格 */
-        .cart-list { height: 280px; overflow-y: auto; border: 1px solid #EAECEE; border-radius: 10px; padding: 10px; background: #FAFAFA; margin-bottom: 12px; }
+        #webcam-container canvas {
+            width: 180px !important;
+            height: 180px !important;
+            object-fit: cover;
+            display: block;
+        }
+
+        .prediction-row {
+            background: var(--light);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 7px 12px;
+            margin-top: 8px;
+        }
+
+        .prediction-label {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 700;
+            font-size: 0.86rem;
+            color: var(--ink);
+        }
+
+        .progress-bar-bg {
+            background: #EAE4D9;
+            height: 7px;
+            border-radius: 999px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .progress-bar-fill {
+            background: var(--secondary);
+            height: 100%;
+            width: 0%;
+            transition: width 0.2s ease;
+            border-radius: 999px;
+        }
+
+        .cart-list {
+            height: 260px;
+            overflow-y: auto;
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            padding: 12px;
+            background: #FFFDF9;
+            margin-bottom: 12px;
+        }
+
         .cart-item {
-            padding: 8px 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
-            
-            
-            
-            background: var(--light); border-radius: 20px;
-            
-            
-            
-            
-            
-            
+            padding: 9px 14px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            background: var(--light);
+            border: 1.5px solid var(--border);
+            border-radius: 14px;
+            font-size: 0.92rem;
         }
-        .qty-btn { background: #EAECEE; border: none; width: 22px; height: 22px; border-radius: 50%; cursor: pointer; font-weight: bold; }
 
-        /* 選單 5: 10種商品展示櫃排列 */
+        .qty-btn {
+            background: #FFFFFF;
+            color: var(--ink);
+            border: 1.5px solid var(--ink);
+            width: 24px;
+            height: 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .qty-btn:hover {
+            background: var(--accent-yellow);
+        }
+
         .product-grid {
-            display: grid; gap: 12px;
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            grid-template-columns: repeat(2, 1fr);
+            display: grid;
+            gap: 16px;
+            grid-template-columns: repeat(4, 1fr);
         }
+
+        @media (max-width: 960px) {
+            .product-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 500px) {
+            .product-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .product-card {
-            background: #FFF; border: 1px solid #EAECEE; border-radius: 10px; padding: 10px; text-align: center;
-            cursor: pointer; transition: transform 0.2s;
-            
-            
+            background: #FFFDF9;
+            border: 2px solid var(--border);
+            border-radius: 18px;
+            padding: 14px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
         }
-        .product-card:hover { transform: translateY(-3px); border-color: var(--border); }
-        .product-icon { width: 100%; height: 85px; object-fit: contain; margin-bottom: 6px; }
 
-        /* 選單 8: 10種滿額禮物區塊擺位風格 */
+        .product-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--ink);
+            box-shadow: 3px 4px 0 var(--accent-yellow);
+            background: #FFFFFF;
+        }
+
+        .product-icon {
+            width: 100%;
+            height: 96px;
+            object-fit: contain;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            background: #FFFFFF;
+            padding: 4px;
+        }
+
         .blessing-box {
-            text-align: center; padding: 12px; border-radius: 12px; background: var(--light);
-            border: 2px dashed var(--border); opacity: 0.5; transition: all 0.3s; margin-top: 10px;
+            text-align: center;
+            padding: 12px 14px;
+            border-radius: 16px;
+            background: #F4F9F6;
+            border: 2px dashed var(--secondary);
+            opacity: 0.65;
+            transition: all 0.3s ease;
+            margin-top: 12px;
         }
-        .blessing-box.unlocked { opacity: 1; filter: drop-shadow(0 0 6px rgba(241, 196, 15, 0.5)); }
 
-        .petal { position: fixed; top: -20px; pointer-events: none; z-index: 9999; animation: fall linear forwards; font-size: 24px; }
-        @keyframes fall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(105vh) rotate(720deg); opacity: 0; } }
+        .blessing-box.unlocked {
+            opacity: 1;
+            background: #FFF9E6;
+            border-style: solid;
+            border-color: var(--primary);
+            box-shadow: 2px 3px 0 var(--accent-yellow);
+        }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 999; opacity: 0; visibility: hidden; transition: all 0.3s; }
-        .modal-overlay.show { opacity: 1; visibility: visible; }
-        .modal-window { background: white; padding: 25px; border-radius: 16px; max-width: 380px; width: 90%; text-align: center; }
+        .petal {
+            position: fixed;
+            top: -20px;
+            pointer-events: none;
+            z-index: 9999;
+            animation: fall linear forwards;
+            font-size: 24px;
+        }
 
-        /* 頁尾教學宣告樣式 */
+        @keyframes fall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(74, 63, 53, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.25s ease;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-window {
+            background: #FFFFFF;
+            padding: 26px 22px;
+            border-radius: 24px;
+            border: 2.5px solid var(--ink);
+            box-shadow: 6px 6px 0 var(--accent-yellow);
+            max-width: 380px;
+            width: 90%;
+            text-align: center;
+        }
+
         footer {
-            max-width: 1200px; margin: 30px auto 0 auto; text-align: center; padding: 15px 20px;
-            color: #7F8C8D; font-size: 0.85rem; border-top: 1px solid rgba(0,0,0,0.1); white-space: pre-line;
+            max-width: 1160px;
+            margin: 34px auto 0 auto;
+            text-align: center;
+            padding: 18px 20px;
+            color: #7D7165;
+            font-size: 0.86rem;
+            border-top: 2px dashed var(--border);
+            white-space: pre-line;
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>🌸 花仙子：香氛魔法城堡 🌸</h1>
-        <p>✨ 揮動花香魔法棒！召喚花草精靈，把家裡的異味怪獸通通變不見！ ✨</p>
-        
-        <!-- 👉 點我看商品特輯 按鈕（白底橘字風格） -->
-        <div style="margin-top: 15px;">
-            <a href="01product.html" target="_blank" style="
-                display: inline-block;
-                padding: 10px 22px;
-                background-color: #FFFFFF;
-                color: #D35400;
-                text-decoration: none;
-                border-radius: 20px;
-                font-weight: 900;
-                font-size: 0.95rem;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-            ">
-                👉 點我看商品特輯
-            </a>
+        <div class="doodle-banner">
+            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                <circle cx="16" cy="8" r="5" fill="#FFFDF5" stroke="#4A3F35" stroke-width="2"/>
+                <circle cx="24" cy="14" r="5" fill="#FFFDF5" stroke="#4A3F35" stroke-width="2"/>
+                <circle cx="21" cy="23" r="5" fill="#FFFDF5" stroke="#4A3F35" stroke-width="2"/>
+                <circle cx="11" cy="23" r="5" fill="#FFFDF5" stroke="#4A3F35" stroke-width="2"/>
+                <circle cx="8" cy="14" r="5" fill="#FFFDF5" stroke="#4A3F35" stroke-width="2"/>
+                <circle cx="16" cy="16" r="4.5" fill="#E07A5F" stroke="#4A3F35" stroke-width="2"/>
+            </svg>
+            <h1>花仙子：香氛魔法城堡</h1>
+            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                <path d="M16 4L19.2 11.4L27.2 12.2L21.1 17.5L22.9 25.3L16 21.2L9.1 25.3L10.9 17.5L4.8 12.2L12.8 11.4L16 4Z" fill="#E07A5F" stroke="#4A3F35" stroke-width="2" stroke-linejoin="round"/>
+            </svg>
         </div>
-        <!-- 👆 新增結束 👆 -->
+        <p>揮動花香魔法棒！召喚花草精靈，把家裡的異味怪獸通通變不見！</p>
     </header>
 
     <div class="app-container">
-        
-
         <div class="layout-classic">
-
             <!-- AI 鏡頭區塊 -->
             <div class="card area-ai">
-                <div class="card-title"><i class="fa-solid fa-wand-magic-sparkles"></i> 召喚魔法陣 (AI 鏡頭)</div>
-                <button class="btn" onclick="startWebcam()"><i class="fa-solid fa-camera"></i> 啟動魔法水晶球</button>
+                <div class="card-title">
+                    <span class="doodle-badge">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M12 2L14 8L20 10L14 12L12 18L10 12L4 10L10 8L12 2Z" fill="#F7D988" stroke="#4A3F35" stroke-width="2" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                    <span>召喚魔法陣 (AI 鏡頭)</span>
+                </div>
+                <button class="btn" onclick="startWebcam()">
+                    <i class="fa-solid fa-camera"></i> 啟動魔法水晶球
+                </button>
                 <div id="webcam-container" style="display: none;"></div>
                 <div id="result-container"></div>
-                
             </div>
 
             <!-- 購物車與結帳區塊 -->
             <div class="card area-cart">
-                
-
-                <div class="card-title"><i class="fa-solid fa-cart-shopping"></i> 我的香氛百寶袋</div>
+                <div class="card-title">
+                    <span class="doodle-badge">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M6 8H18L17 20H7L6 8Z" fill="#FFF6E9" stroke="#4A3F35" stroke-width="2" stroke-linejoin="round"/>
+                            <path d="M9 8V6C9 4.34 10.34 3 12 3C13.66 3 15 4.34 15 6V8" stroke="#4A3F35" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </span>
+                    <span>我的香氛百寶袋</span>
+                </div>
                 <div class="cart-list" id="cart-items-wrapper"></div>
-                <div style="font-size: 1.2rem; font-weight: 900; margin-bottom: 10px; text-align:right;">
-                    總計：<span id="magic-total" style="color: #E74C3C;">0 金幣</span>
+                <div style="font-size: 1.15rem; font-weight: 900; margin-bottom: 12px; text-align: right;">
+                    總計：<span id="magic-total" style="color: var(--primary-dark);">0 金幣</span>
                 </div>
 
-                
+                <button class="btn" onclick="triggerCheckout()">
+                    <i class="fa-solid fa-sparkles"></i> 詠唱結帳咒語
+                </button>
 
-                <button class="btn" onclick="triggerCheckout()"><i class="fa-solid fa-sparkles"></i> 詠唱結帳咒語</button>
-
-                
                 <div class="blessing-box" id="blessing-section">
-                    <h5 id="blessing-title">🔒 滿 20 金幣解鎖精靈評語</h5>
-                    <div id="blessing-display" style="font-weight: bold; margin-top: 5px; color: var(--primary); font-size:0.9rem;"></div>
+                    <h5 id="blessing-title" style="font-size: 0.92rem; color: var(--ink);">🔒 滿 20 金幣解鎖精靈評語</h5>
+                    <div id="blessing-display" style="font-weight: 700; margin-top: 6px; color: var(--primary-dark); font-size: 0.9rem;"></div>
                 </div>
             </div>
-
-        
 
             <!-- 商品展示櫃 -->
             <div class="card area-products">
-                
-                <div class="card-title"><i class="fa-solid fa-broom"></i> 精靈展示櫃 (點選召喚)</div>
+                <div class="card-title">
+                    <span class="doodle-badge">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <rect x="8" y="8" width="8" height="12" rx="3" fill="#7EB59B" stroke="#4A3F35" stroke-width="2"/>
+                            <path d="M10 8V5H14V8" stroke="#4A3F35" stroke-width="2" stroke-linecap="round"/>
+                            <circle cx="12" cy="14" r="1.5" fill="#FFF6E9"/>
+                        </svg>
+                    </span>
+                    <span>精靈展示櫃 (點選召喚)</span>
+                </div>
                 <div class="product-grid" id="dynamic-product-grid"></div>
             </div>
-
-            
-
         </div>
-
-        
-
-        
     </div>
 
     <!-- 結帳彈窗 -->
     <div class="modal-overlay" id="success-modal">
         <div class="modal-window">
-            <i class="fa-solid fa-crown" style="font-size: 3.5rem; color: #F1C40F; margin-bottom: 10px;"></i>
-            <h2>香氛任務達成！</h2>
-            <p style="margin: 12px 0; color:#555;">🎉 恭喜你成功召喚花仙子香氛神器，讓每個角落都充滿迷人好氣味！</p>
+            <i class="fa-solid fa-crown" style="font-size: 3.2rem; color: #E9B44C; margin-bottom: 10px;"></i>
+            <h2 style="color: var(--ink); font-size: 1.4rem;">香氛任務達成！</h2>
+            <p style="margin: 12px 0 18px 0; color: #6B5E53; font-size: 0.95rem;">
+                恭喜你成功召喚花仙子香氛神器，讓每個角落都充滿迷人好氣味！
+            </p>
             <button class="btn" onclick="closeModalWindow()">太棒了！</button>
         </div>
     </div>
@@ -302,8 +491,17 @@
     <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
     <script>
         const CONFIG_MODEL_URL = "https://teachablemachine.withgoogle.com/models/DcJr26jzY/";
-        const configProducts = [{"name":"花仙子花語香膏-檸檬","price":1,"imgUrl":"https://cpaizo.github.io/farcent/photos/01%E9%A6%99%E6%B0%9B%E5%8E%BB%E5%91%B3/01%E8%8A%B1%E4%BB%99%E5%AD%90%E8%8A%B1%E8%AA%9E%E9%A6%99%E8%86%8F-%E6%AA%B8%E6%AA%AC.png"},{"name":"去味大師科技礦晶香包-日月潭紅玉","price":1,"imgUrl":"https://cpaizo.github.io/farcent/photos/01%E9%A6%99%E6%B0%9B%E5%8E%BB%E5%91%B3/02%E5%8E%BB%E5%91%B3%E5%A4%A7%E5%B8%AB%E7%A7%91%E6%8A%80%E7%A4%A6%E6%99%B6%E9%A6%99%E5%8C%85-%E6%97%A5%E6%9C%88%E6%BD%AD%E7%B4%85%E7%8E%89.png"},{"name":"Farcent香水室內擴香-小蒼蘭&英國梨","price":3,"imgUrl":"https://cpaizo.github.io/farcent/photos/01%E9%A6%99%E6%B0%9B%E5%8E%BB%E5%91%B3/03Farcent%E9%A6%99%E6%B0%B4%E5%AE%A4%E5%85%A7%E6%93%B4%E9%A6%99-%E5%B0%8F%E8%92%BC%E8%98%AD&%E8%8B%B1%E5%9C%8B%E6%A2%A8.png"},{"name":"Farcent香水法頌精油擴香-蒼木杜松","price":2,"imgUrl":"https://cpaizo.github.io/farcent/photos/01%E9%A6%99%E6%B0%9B%E5%8E%BB%E5%91%B3/04Farcent%E9%A6%99%E6%B0%B4%E6%B3%95%E9%A0%8C%E7%B2%BE%E6%B2%B9%E6%93%B4%E9%A6%99-%E8%92%BC%E6%9C%A8%E6%9D%9C%E6%9D%BE.png"}];
-        const blessingWords = ["🌸 哇！空氣中散發著迷人花香，房間變得好療癒！","✨ 異味怪獸被香氛魔法嚇得落荒而逃！","🌷 滿屋芬芳，連花草精靈都忍不住駐足跳舞了！"];
+        const configProducts = [
+            {"name":"花仙子花語香膏-檸檬","price":1,"imgUrl":"https://cpaizo.github.io/farcent/photos/01%E9%A6%99%E6%B0%9B%E5%8E%BB%E5%91%B3/01%E8%8A%B1%E4%BB%99%E5%AD%90%E8%8A%B1%E8%AA%9E%E9%A6%99%E8%86%8F-%E6%AA%B8%E6%AA%AC.png"},
+            {"name":"去味大師科技礦晶香包-日月潭紅玉","price":1,"imgUrl":"https://cpaizo.github.io/farcent/photos/01%E9%A6%99%E6%B0%9B%E5%8E%BB%E5%91%B3/02%E5%8E%BB%E5%91%B3%E5%A4%A7%E5%B8%AB%E7%A7%91%E6%8A%80%E7%A4%A6%E6%99%B6%E9%A6%99%E5%8C%85-%E6%97%A5%E6%9C%88%E6%BD%AD%E7%B4%85%E7%8E%89.png"},
+            {"name":"Farcent香水室內擴香-小蒼蘭&英國梨","price":3,"imgUrl":"https://cpaizo.github.io/farcent/photos/01%E9%A6%99%E6%B0%9B%E5%8E%BB%E5%91%B3/03Farcent%E9%A6%99%E6%B0%B4%E5%AE%A4%E5%85%A7%E6%93%B4%E9%A6%99-%E5%B0%8F%E8%92%BC%E8%98%AD&%E8%8B%B1%E5%9C%8B%E6%A2%A8.png"},
+            {"name":"Farcent香水法頌精油擴香-蒼木杜松","price":2,"imgUrl":"https://cpaizo.github.io/farcent/photos/01%E9%A6%99%E6%B0%9B%E5%8E%BB%E5%91%B3/04Farcent%E9%A6%99%E6%B0%B4%E6%B3%95%E9%A0%8C%E7%B2%BE%E6%B2%B9%E6%93%B4%E9%A6%99-%E8%92%BC%E6%9C%A8%E6%9D%9C%E6%9D%BE.png"}
+        ];
+        const blessingWords = [
+            "🌸 哇！空氣中散發著迷人花香，房間變得好療癒！",
+            "✨ 異味怪獸被香氛魔法嚇得落荒而逃！",
+            "🌷 滿屋芬芳，連花草精靈都忍不住駐足跳舞了！"
+        ];
         const CONFIG_CART_EMPTY_MSG = "百寶袋空空如也，快來挑選香氛寶物吧...";
         const CONFIG_EFFECT_ICON = "🌸";
         const CONFIG_CHECKOUT_TITLE = "香氛任務達成！";
@@ -319,9 +517,9 @@
             div.className = 'product-card';
             div.onclick = () => addProductLogic(prod.name);
             div.innerHTML = `
-                <img src="${prod.imgUrl}" class="product-icon">
-                <div style="font-weight:bold; font-size:0.9rem;">${prod.name}</div>
-                <div style="color:#E67E22; font-weight:900; margin-top:3px;">${prod.price} 金幣</div>
+                <img src="${prod.imgUrl}" alt="${prod.name}" class="product-icon">
+                <div style="font-weight: 800; font-size: 0.92rem; color: var(--ink);">${prod.name}</div>
+                <div style="color: var(--primary-dark); font-weight: 900; margin-top: 6px; background: var(--light); padding: 2px 10px; border-radius: 999px; font-size: 0.88rem;">${prod.price} 金幣</div>
             `;
             gridWrapper.appendChild(div);
         });
@@ -333,9 +531,12 @@
         function makeBeepSound() {
             const osc = audioContext.createOscillator();
             const gain = audioContext.createGain();
-            osc.frequency.value = 1000; gain.gain.value = 0.1;
-            osc.connect(gain); gain.connect(audioContext.destination);
-            osc.start(); osc.stop(audioContext.currentTime + 0.1);
+            osc.frequency.value = 1000;
+            gain.gain.value = 0.1;
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.start();
+            osc.stop(audioContext.currentTime + 0.1);
         }
 
         function speakMagicWord(msg) {
@@ -361,8 +562,9 @@
             document.getElementById('webcam-container').style.display = 'block';
             model = await tmImage.load(CONFIG_MODEL_URL + "model.json", CONFIG_MODEL_URL + "metadata.json");
             maxPredictions = model.getTotalClasses();
-            webcam = new tmImage.Webcam(320, 240, true);
-            await webcam.setup(); await webcam.play();
+            webcam = new tmImage.Webcam(180, 180, true);
+            await webcam.setup();
+            await webcam.play();
             window.requestAnimationFrame(webcamLoop);
             document.getElementById("webcam-container").appendChild(webcam.canvas);
             labelContainer = document.getElementById("result-container");
@@ -389,7 +591,8 @@
                     labelContainer.childNodes[i].querySelector('.progress-bar-fill').style.width = (score * 100) + "%";
                 }
                 if (score > 0.90 && itemDatabase[name] && (name !== lastItem || now - lastTime > 4000)) {
-                    lastItem = name; lastTime = now;
+                    lastItem = name;
+                    lastTime = now;
                     addProductLogic(name);
                 }
             }
@@ -410,8 +613,8 @@
                     const item = document.createElement('div');
                     item.className = 'cart-item';
                     item.innerHTML = `
-                        <div><strong>${name}</strong> <span style="font-size:0.8rem; opacity:0.8;">(${price}金幣)</span></div>
-                        <div>
+                        <div><strong>${name}</strong> <span style="font-size:0.82rem; opacity:0.8;">(${price}金幣)</span></div>
+                        <div style="display:flex; align-items:center; gap:4px;">
                             <button class="qty-btn" onclick="modQty('${name}', -1)">-</button>
                             <span style="margin: 0 4px; font-weight:bold;">${qty}</span>
                             <button class="qty-btn" onclick="modQty('${name}', 1)">+</button>
@@ -420,7 +623,9 @@
                     wrapper.appendChild(item);
                 }
             }
-            if (count === 0) wrapper.innerHTML = `<p style="text-align:center; color:#999; padding:15px; font-size:0.85rem;">${CONFIG_CART_EMPTY_MSG}</p>`;
+            if (count === 0) {
+                wrapper.innerHTML = `<p style="text-align:center; color:#9A8C7E; padding:18px; font-size:0.88rem;">${CONFIG_CART_EMPTY_MSG}</p>`;
+            }
             document.getElementById('magic-total').innerText = sum + " 金幣";
 
             const bBox = document.getElementById('blessing-section');
@@ -428,7 +633,7 @@
                 if (sum >= 20) {
                     bBox.classList.add('unlocked');
                     document.getElementById('blessing-title').innerText = "✨ 已獲得精靈評語";
-                    document.getElementById('blessing-display').innerText = blessingWords[Math.floor(Math.random()*blessingWords.length)];
+                    document.getElementById('blessing-display').innerText = blessingWords[Math.floor(Math.random() * blessingWords.length)];
                 } else {
                     bBox.classList.remove('unlocked');
                     document.getElementById('blessing-title').innerText = "🔒 滿 20 金幣解鎖精靈評語";
