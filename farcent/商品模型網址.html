@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teachable Machine 模型網址一覽</title>
+    <style>
+        :root {
+            --bg-paper: #FAF8F5;        /* 和紙米白 */
+            --card-bg: #FFFFFF;         /* 純白卡片 */
+            --ink-main: #3A3A3A;        /* 炭墨灰 */
+            --ink-sub: #7A756E;         /* 暖灰副標 */
+            --accent-green: #6B8E78;    /* 抹茶綠 */
+            --accent-wood: #9C7A54;     /* 原木褐 */
+            --border-soft: #E8E2D8;     /* 細緻邊框 */
+            --row-bg: #FCFBF9;          /* 網址列底色 */
+            --hover-bg: #F5F1EA;        /* 懸停底色 */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+            background-color: var(--bg-paper);
+            color: var(--ink-main);
+            line-height: 1.65;
+            letter-spacing: 0.03em;
+            min-height: 100vh;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .page-wrapper {
+            width: 100%;
+            max-width: 760px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .kicker {
+            font-size: 12px;
+            color: var(--accent-green);
+            letter-spacing: 0.2em;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            color: var(--ink-main);
+        }
+
+        .divider {
+            width: 34px;
+            height: 2px;
+            background-color: var(--accent-green);
+            margin: 14px auto 0 auto;
+            border-radius: 2px;
+        }
+
+        .model-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .model-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-soft);
+            border-radius: 10px;
+            padding: 18px 20px;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .model-card:hover {
+            border-color: #CFC6B8;
+            box-shadow: 0 6px 18px rgba(58, 58, 58, 0.04);
+        }
+
+        .model-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .model-num {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--accent-wood);
+            background-color: #FAF6F0;
+            border: 1px solid var(--border-soft);
+            padding: 2px 8px;
+            border-radius: 4px;
+            letter-spacing: 0.06em;
+        }
+
+        .model-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--ink-main);
+        }
+
+        .url-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            background-color: var(--row-bg);
+            border: 1px solid var(--border-soft);
+            border-radius: 7px;
+            padding: 10px 12px 10px 14px;
+        }
+
+        .url-text {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 13.5px;
+            color: var(--ink-sub);
+            word-break: break-all;
+            user-select: all;
+            flex: 1;
+        }
+
+        .copy-btn {
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: var(--card-bg);
+            color: var(--ink-main);
+            border: 1px solid #D5CEC2;
+            border-radius: 6px;
+            padding: 7px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: 0.04em;
+        }
+
+        .copy-btn:hover {
+            background-color: var(--hover-bg);
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .copy-btn:active {
+            transform: scale(0.98);
+        }
+
+        .copy-btn.copied {
+            background-color: var(--accent-green);
+            border-color: var(--accent-green);
+            color: #FFFFFF;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px 12px 8px 12px;
+            color: var(--ink-sub);
+            font-size: 13px;
+            border-top: 1px solid var(--border-soft);
+        }
+
+        footer .disclaimer-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: var(--ink-main);
+            letter-spacing: 0.06em;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 24px 14px;
+            }
+            h1 {
+                font-size: 20px;
+            }
+            .model-card {
+                padding: 15px;
+            }
+            .url-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            .copy-btn {
+                justify-content: center;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-wrapper">
+        <header>
+            <div class="kicker">TEACHABLE MACHINE MODELS</div>
+            <h1>模型網址一覽與複製</h1>
+            <div class="divider"></div>
+        </header>
+
+        <main class="model-list">
+            <div class="model-card">
+                <div class="model-header">
+                    <span class="model-num">01</span>
+                    <span class="model-title">香氛去味</span>
+                </div>
+                <div class="url-row">
+                    <span class="url-text">https://teachablemachine.withgoogle.com/models/DcJr26jzY/</span>
+                    <button type="button" class="copy-btn" onclick="copyUrl(this, 'https://teachablemachine.withgoogle.com/models/DcJr26jzY/')">
+                        <span class="btn-label">複製網址</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="model-card">
+                <div class="model-header">
+                    <span class="model-num">02</span>
+                    <span class="model-title">天然清潔洗劑</span>
+                </div>
+                <div class="url-row">
+                    <span class="url-text">https://teachablemachine.withgoogle.com/models/mdw4B2IYa/</span>
+                    <button type="button" class="copy-btn" onclick="copyUrl(this, 'https://teachablemachine.withgoogle.com/models/mdw4B2IYa/')">
+                        <span class="btn-label">複製網址</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="model-card">
+                <div class="model-header">
+                    <span class="model-num">03</span>
+                    <span class="model-title">除濕防霉</span>
+                </div>
+                <div class="url-row">
+                    <span class="url-text">https://teachablemachine.withgoogle.com/models/VTvRju9rw/</span>
+                    <button type="button" class="copy-btn" onclick="copyUrl(this, 'https://teachablemachine.withgoogle.com/models/VTvRju9rw/')">
+                        <span class="btn-label">複製網址</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="model-card">
+                <div class="model-header">
+                    <span class="model-num">04</span>
+                    <span class="model-title">居家打掃工具</span>
+                </div>
+                <div class="url-row">
+                    <span class="url-text">https://teachablemachine.withgoogle.com/models/CfAjkqqbw/</span>
+                    <button type="button" class="copy-btn" onclick="copyUrl(this, 'https://teachablemachine.withgoogle.com/models/CfAjkqqbw/')">
+                        <span class="btn-label">複製網址</span>
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div class="disclaimer-title">【教學示範聲明】</div>
+            <p>本網站僅供資訊教學與功能模擬測試使用，非真實營運之網路商店。</p>
+        </footer>
+    </div>
+
+    <script>
+        const timers = new WeakMap();
+
+        async function copyUrl(button, url) {
+            let success = false;
+
+            if (navigator.clipboard && window.isSecureContext) {
+                try {
+                    await navigator.clipboard.writeText(url);
+                    success = true;
+                } catch (err) {
+                    success = fallbackCopy(url);
+                }
+            } else {
+                success = fallbackCopy(url);
+            }
+
+            if (success) {
+                showCopiedState(button);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+
+            let copied = false;
+            try {
+                copied = document.execCommand('copy');
+            } catch (err) {
+                copied = false;
+            }
+
+            document.body.removeChild(textarea);
+            return copied;
+        }
+
+        function showCopiedState(button) {
+            const label = button.querySelector('.btn-label');
+            if (!label) return;
+
+            if (timers.has(button)) {
+                clearTimeout(timers.get(button));
+            }
+
+            button.classList.add('copied');
+            label.textContent = '已複製 ✓';
+
+            const timeoutId = setTimeout(() => {
+                button.classList.remove('copied');
+                label.textContent = '複製網址';
+                timers.delete(button);
+            }, 1800);
+
+            timers.set(button, timeoutId);
+        }
+    </script>
+
+</body>
+</html>
