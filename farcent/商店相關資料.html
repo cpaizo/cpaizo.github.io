@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>教學網頁連結總覽</title>
+    <style>
+        :root {
+            --bg-color: #FAF8F5;        /* 溫潤和紙米白 */
+            --card-bg: #FFFFFF;         /* 純白卡片 */
+            --text-main: #3A3A3A;       /* 炭墨灰 */
+            --text-sub: #7A756E;        /* 暖灰副標 */
+            --accent-green: #6B8E78;    /* 抹茶綠點綴 */
+            --accent-wood: #A68A6D;     /* 原木褐點綴 */
+            --border-color: #EAE5DC;    /* 細緻邊框線 */
+            --hover-bg: #F3EFE8;        /* 懸停微暖色 */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.7;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            letter-spacing: 0.04em;
+        }
+
+        .container {
+            max-width: 680px;
+            width: 100%;
+            margin: 48px auto 32px auto;
+            padding: 0 12px;
+            flex: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--accent-green);
+            letter-spacing: 0.18em;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        h1 {
+            color: var(--text-main);
+            font-size: 26px;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+        }
+
+        .divider {
+            width: 36px;
+            height: 2px;
+            background-color: var(--accent-green);
+            margin: 16px auto 0 auto;
+            border-radius: 2px;
+        }
+
+        .section-label {
+            font-size: 13px;
+            color: var(--text-sub);
+            margin: 28px 0 12px 4px;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+        }
+
+        .link-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .link-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--card-bg);
+            padding: 18px 24px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            text-decoration: none;
+            color: var(--text-main);
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.25s ease;
+        }
+
+        .link-card .item-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .link-card .badge {
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background-color: var(--bg-color);
+            color: var(--accent-green);
+            border: 1px solid var(--border-color);
+            font-weight: 500;
+            letter-spacing: 0.05em;
+        }
+
+        .link-card.featured .badge {
+            color: var(--accent-wood);
+            background-color: #FAF6F0;
+        }
+
+        .link-card:hover {
+            background-color: var(--hover-bg);
+            border-color: var(--accent-green);
+            transform: translateY(-2px);
+        }
+
+        .link-card.featured:hover {
+            border-color: var(--accent-wood);
+        }
+
+        .link-card .arrow {
+            font-size: 16px;
+            color: var(--text-sub);
+            transition: transform 0.25s ease, color 0.25s ease;
+        }
+
+        .link-card:hover .arrow {
+            transform: translateX(4px);
+            color: var(--text-main);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 48px;
+            padding: 24px 10px;
+            color: var(--text-sub);
+            font-size: 13px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        footer .disclaimer-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: var(--text-main);
+            letter-spacing: 0.06em;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 24px auto 20px auto;
+            }
+            h1 {
+                font-size: 22px;
+            }
+            .link-card {
+                padding: 16px 18px;
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <div class="subtitle">CATALOG &amp; GUIDE</div>
+            <h1>教學網頁導覽目錄</h1>
+            <div class="divider"></div>
+        </header>
+
+        <div class="section-label">綜合資訊與總覽</div>
+        <div class="link-list">
+            <a href="https://cpaizo.github.io/farcent/%E7%94%A2%E5%93%81%E7%B6%B2%E5%9D%80%E7%B6%B2%E9%A0%81.html" target="_blank" rel="noopener noreferrer" class="link-card featured">
+                <div class="item-left">
+                    <span class="badge">總覽</span>
+                    <span>產品網址網頁</span>
+                </div>
+                <span class="arrow">→</span>
+            </a>
+
+            <a href="https://cpaizo.github.io/farcent/%E7%94%A2%E5%93%81%E7%89%B9%E8%89%B2.html" target="_blank" rel="noopener noreferrer" class="link-card featured">
+                <div class="item-left">
+                    <span class="badge">介紹</span>
+                    <span>產品特色</span>
+                </div>
+                <span class="arrow">→</span>
+            </a>
+
+            <a href="https://cpaizo.github.io/farcent/%E5%83%B9%E7%9B%AE%E8%A1%A8.html" target="_blank" rel="noopener noreferrer" class="link-card featured">
+                <div class="item-left">
+                    <span class="badge">價格</span>
+                    <span>產品價目表</span>
+                </div>
+                <span class="arrow">→</span>
+            </a>
+        </div>
+
+        <div class="section-label">主題商品分類</div>
+        <div class="link-list">
+            <a href="https://cpaizo.github.io/farcent/01%E9%A6%99%E6%B0%9B%E5%8E%BB%E5%91%B3ver2.html" target="_blank" rel="noopener noreferrer" class="link-card">
+                <div class="item-left">
+                    <span class="badge">01</span>
+                    <span>香氛去味</span>
+                </div>
+                <span class="arrow">→</span>
+            </a>
+
+            <a href="https://cpaizo.github.io/farcent/02%E5%A4%A9%E7%84%B6%E6%B8%85%E6%BD%94%E6%B4%97%E5%8A%91ver2.html" target="_blank" rel="noopener noreferrer" class="link-card">
+                <div class="item-left">
+                    <span class="badge">02</span>
+                    <span>天然清潔洗劑</span>
+                </div>
+                <span class="arrow">→</span>
+            </a>
+
+            <a href="https://cpaizo.github.io/farcent/03%E9%99%A4%E6%BF%95%E9%98%B2%E9%9C%89ver2.html" target="_blank" rel="noopener noreferrer" class="link-card">
+                <div class="item-left">
+                    <span class="badge">03</span>
+                    <span>除濕防黴</span>
+                </div>
+                <span class="arrow">→</span>
+            </a>
+
+            <a href="https://cpaizo.github.io/farcent/04%E5%B1%85%E5%AE%B6%E6%89%93%E6%8E%83%E5%B7%A5%E5%85%B7ver2.html" target="_blank" rel="noopener noreferrer" class="link-card">
+                <div class="item-left">
+                    <span class="badge">04</span>
+                    <span>居家打掃工具</span>
+                </div>
+                <span class="arrow">→</span>
+            </a>
+        </div>
+    </div>
+
+    <footer>
+        <div class="disclaimer-title">【教學示範聲明】</div>
+        <p>本網站僅供資訊教學與功能模擬測試使用，非真實營運之網路商店。</p>
+    </footer>
+
+</body>
+</html>

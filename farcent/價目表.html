@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>商品金幣價目表</title>
     <style>
+        :root {
+            --bg-paper: #FAF8F5;      /* 和紙米白底色 */
+            --card-white: #FFFFFF;    /* 卡片純白 */
+            --ink-main: #3A3A3A;      /* 炭墨灰主文字 */
+            --ink-sub: #7A756E;       /* 暖灰輔助文字 */
+            --wood-accent: #9C7A54;   /* 原木褐點綴 */
+            --sage-tint: #F4F1EA;     /* 淡雅米褐區塊底 */
+            --line-soft: #E5DFD5;     /* 柔和邊框線 */
+            --line-strong: #8C7A65;   /* 群組分隔線 */
+            --hover-tint: #F7F4EE;    /* 滑鼠懸停底色 */
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -12,205 +24,298 @@
         }
 
         body {
-            font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
-            background-color: #f4f6f8;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+            background-color: var(--bg-paper);
+            color: var(--ink-main);
+            line-height: 1.7;
+            letter-spacing: 0.03em;
             min-height: 100vh;
-            padding: 20px;
-            color: #222;
+            padding: 36px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .page-wrapper {
+            width: 100%;
+            max-width: 820px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .page-kicker {
+            font-size: 12px;
+            color: var(--wood-accent);
+            letter-spacing: 0.2em;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 500;
+            color: var(--ink-main);
+            letter-spacing: 0.1em;
+        }
+
+        .page-divider {
+            width: 32px;
+            height: 2px;
+            background-color: var(--wood-accent);
+            margin: 12px auto 0 auto;
+            border-radius: 2px;
         }
 
         .table-container {
             width: 100%;
-            max-width: 780px;
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            background: var(--card-white);
+            border: 1px solid var(--line-soft);
+            border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(58, 58, 58, 0.04);
             overflow-x: auto;
-            padding: 20px;
+            padding: 18px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 16px;
-            background-color: #fff;
+            font-size: 15px;
+            background-color: var(--card-white);
         }
 
         th, td {
-            border: 1px solid #d0d7de;
-            padding: 10px 14px;
+            border: 1px solid var(--line-soft);
+            padding: 11px 14px;
             vertical-align: middle;
         }
 
         /* 表頭樣式 */
         thead th {
-            background-color: #f0f4f8;
-            font-weight: bold;
+            background-color: var(--sage-tint);
+            font-weight: 500;
             text-align: left;
-            color: #1f2328;
-            border-top: 2px solid #333;
-            border-bottom: 2px solid #333;
+            color: var(--ink-main);
+            border-top: 2px solid var(--line-strong);
+            border-bottom: 2px solid var(--line-strong);
+            letter-spacing: 0.06em;
         }
 
         thead th.coin-col {
             text-align: right;
-            width: 90px;
+            width: 88px;
         }
 
         /* 品類（合併儲存格）樣式 */
         td.category {
             text-align: center;
-            font-weight: bold;
-            background-color: #fafbfc;
-            width: 150px;
-            border-top: 2px solid #333;
-            border-bottom: 2px solid #333;
+            font-weight: 500;
+            background-color: #FCFBF8;
+            color: var(--ink-main);
+            width: 145px;
+            border-top: 2px solid var(--line-strong);
+            border-bottom: 2px solid var(--line-strong);
         }
 
-        /* 每個品類的第一列與最後一列加上深色分隔線，呼應原圖區塊感 */
+        /* 每個品類的第一列與最後一列加上柔和深色分隔線 */
         tr.group-start td {
-            border-top: 2px solid #333;
+            border-top: 2px solid var(--line-strong);
         }
 
         tr.group-end td {
-            border-bottom: 2px solid #333;
+            border-bottom: 2px solid var(--line-strong);
         }
 
-        /* 品牌欄位 */
+        /* 品牌與品名欄位：顏色一致 */
         td.brand {
             width: 140px;
             white-space: nowrap;
+            color: var(--ink-main);
+        }
+
+        td.product {
+            color: var(--ink-main);
         }
 
         /* 金幣欄位 */
         td.coin {
             text-align: right;
-            font-weight: bold;
+            font-weight: 600;
             font-family: "Consolas", "Arial", sans-serif;
-            font-size: 17px;
-        }
-
-        /* 紅色重點文字（對應原圖紅字品名） */
-        .highlight-red {
-            color: #e60012;
-            font-weight: 500;
+            font-size: 16px;
+            color: var(--wood-accent);
         }
 
         /* 滑鼠移過列的效果 */
         tbody tr:hover td:not(.category) {
-            background-color: #fffbe6;
+            background-color: var(--hover-tint);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 36px;
+            padding: 20px 12px 8px 12px;
+            color: var(--ink-sub);
+            font-size: 13px;
+            border-top: 1px solid var(--line-soft);
+        }
+
+        footer .disclaimer-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: var(--ink-main);
+            letter-spacing: 0.06em;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 20px 12px;
+            }
+            .page-title {
+                font-size: 20px;
+            }
+            .table-container {
+                padding: 12px;
+            }
+            table {
+                font-size: 14px;
+            }
+            th, td {
+                padding: 9px 10px;
+            }
+            td.category {
+                width: 110px;
+            }
+            td.brand {
+                width: 115px;
+            }
         }
     </style>
 </head>
 <body>
 
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>品類</th>
-                    <th>品牌</th>
-                    <th>品名</th>
-                    <th class="coin-col">金幣</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- 品類 1：香氛去味 -->
-                <tr class="group-start">
-                    <td class="category" rowspan="4">香氛去味</td>
-                    <td class="brand">花仙子</td>
-                    <td class="highlight-red">花語香膏-檸檬</td>
-                    <td class="coin">1</td>
-                </tr>
-                <tr>
-                    <td class="brand">去味大師</td>
-                    <td class="highlight-red">科技礦晶香包-日月潭紅玉</td>
-                    <td class="coin">1</td>
-                </tr>
-                <tr>
-                    <td class="brand">Farcent香水</td>
-                    <td>室內擴香 -小蒼蘭&amp;英國梨</td>
-                    <td class="coin">3</td>
-                </tr>
-                <tr class="group-end">
-                    <td class="brand">Farcent香水</td>
-                    <td class="highlight-red">法頌精油擴香-蒼木杜松</td>
-                    <td class="coin">2</td>
-                </tr>
+    <div class="page-wrapper">
+        <header class="page-header">
+            <div class="page-kicker">PRICE LIST</div>
+            <h1 class="page-title">商品金幣價目表</h1>
+            <div class="page-divider"></div>
+        </header>
 
-                <!-- 品類 2：天然清潔洗劑 -->
-                <tr class="group-start">
-                    <td class="category" rowspan="4">天然清潔洗劑</td>
-                    <td class="brand">茶樹莊園</td>
-                    <td>茶樹檸檬抗菌洗手慕斯</td>
-                    <td class="coin">1</td>
-                </tr>
-                <tr>
-                    <td class="brand">茶樹莊園</td>
-                    <td>茶樹天然濃縮抗菌洗衣精</td>
-                    <td class="coin">2</td>
-                </tr>
-                <tr>
-                    <td class="brand">茶樹莊園</td>
-                    <td>6X濃縮科技洗衣球-抗菌防蟎</td>
-                    <td class="coin">3</td>
-                </tr>
-                <tr class="group-end">
-                    <td class="brand">茶樹莊園</td>
-                    <td class="highlight-red">雙效蔬果食器洗滌液-酵素油切</td>
-                    <td class="coin">1</td>
-                </tr>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>品類</th>
+                        <th>品牌</th>
+                        <th>品名</th>
+                        <th class="coin-col">金幣</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- 品類 1：香氛去味 -->
+                    <tr class="group-start">
+                        <td class="category" rowspan="4">香氛去味</td>
+                        <td class="brand">花仙子</td>
+                        <td class="product">花語香膏-檸檬</td>
+                        <td class="coin">1</td>
+                    </tr>
+                    <tr>
+                        <td class="brand">去味大師</td>
+                        <td class="product">科技礦晶香包-日月潭紅玉</td>
+                        <td class="coin">1</td>
+                    </tr>
+                    <tr>
+                        <td class="brand">Farcent香水</td>
+                        <td class="product">室內擴香 -小蒼蘭&amp;英國梨</td>
+                        <td class="coin">3</td>
+                    </tr>
+                    <tr class="group-end">
+                        <td class="brand">Farcent香水</td>
+                        <td class="product">法頌精油擴香-蒼木杜松</td>
+                        <td class="coin">2</td>
+                    </tr>
 
-                <!-- 品類 3：除濕防霉 -->
-                <tr class="group-start">
-                    <td class="category" rowspan="4">除濕防霉</td>
-                    <td class="brand">克潮靈</td>
-                    <td>櫥櫃用除濕劑-玫瑰香</td>
-                    <td class="coin">3</td>
-                </tr>
-                <tr>
-                    <td class="brand">克潮靈</td>
-                    <td>集水袋除濕盒-去霉味</td>
-                    <td class="coin">2</td>
-                </tr>
-                <tr>
-                    <td class="brand">克潮靈</td>
-                    <td>吊掛式除濕袋-晨露香氛</td>
-                    <td class="coin">1</td>
-                </tr>
-                <tr class="group-end">
-                    <td class="brand">克潮靈</td>
-                    <td>環保除濕桶-無香</td>
-                    <td class="coin">1</td>
-                </tr>
+                    <!-- 品類 2：天然清潔洗劑 -->
+                    <tr class="group-start">
+                        <td class="category" rowspan="4">天然清潔洗劑</td>
+                        <td class="brand">茶樹莊園</td>
+                        <td class="product">茶樹檸檬抗菌洗手慕斯</td>
+                        <td class="coin">1</td>
+                    </tr>
+                    <tr>
+                        <td class="brand">茶樹莊園</td>
+                        <td class="product">茶樹天然濃縮抗菌洗衣精</td>
+                        <td class="coin">2</td>
+                    </tr>
+                    <tr>
+                        <td class="brand">茶樹莊園</td>
+                        <td class="product">6X濃縮科技洗衣球-抗菌防蟎</td>
+                        <td class="coin">3</td>
+                    </tr>
+                    <tr class="group-end">
+                        <td class="brand">茶樹莊園</td>
+                        <td class="product">雙效蔬果食器洗滌液-酵素油切</td>
+                        <td class="coin">1</td>
+                    </tr>
 
-                <!-- 品類 4：居家打掃工具 -->
-                <tr class="group-start">
-                    <td class="category" rowspan="4">居家打掃工具</td>
-                    <td class="brand">驅塵氏</td>
-                    <td>黏塵滾輪</td>
-                    <td class="coin">3</td>
-                </tr>
-                <tr>
-                    <td class="brand">驅塵氏</td>
-                    <td>抗菌濕拖巾-木質麝香</td>
-                    <td class="coin">1</td>
-                </tr>
-                <tr>
-                    <td class="brand">驅塵氏</td>
-                    <td>雙軌密封夾鏈袋(中)</td>
-                    <td class="coin">2</td>
-                </tr>
-                <tr class="group-end">
-                    <td class="brand">驅塵氏</td>
-                    <td class="highlight-red">靜電除塵紙(無香)</td>
-                    <td class="coin">1</td>
-                </tr>
-            </tbody>
-        </table>
+                    <!-- 品類 3：除濕防霉 -->
+                    <tr class="group-start">
+                        <td class="category" rowspan="4">除濕防霉</td>
+                        <td class="brand">克潮靈</td>
+                        <td class="product">櫥櫃用除濕劑-玫瑰香</td>
+                        <td class="coin">3</td>
+                    </tr>
+                    <tr>
+                        <td class="brand">克潮靈</td>
+                        <td class="product">集水袋除濕盒-去霉味</td>
+                        <td class="coin">2</td>
+                    </tr>
+                    <tr>
+                        <td class="brand">克潮靈</td>
+                        <td class="product">吊掛式除濕袋-晨露香氛</td>
+                        <td class="coin">1</td>
+                    </tr>
+                    <tr class="group-end">
+                        <td class="brand">克潮靈</td>
+                        <td class="product">環保除濕桶-無香</td>
+                        <td class="coin">1</td>
+                    </tr>
+
+                    <!-- 品類 4：居家打掃工具 -->
+                    <tr class="group-start">
+                        <td class="category" rowspan="4">居家打掃工具</td>
+                        <td class="brand">驅塵氏</td>
+                        <td class="product">黏塵滾輪</td>
+                        <td class="coin">3</td>
+                    </tr>
+                    <tr>
+                        <td class="brand">驅塵氏</td>
+                        <td class="product">抗菌濕拖巾-木質麝香</td>
+                        <td class="coin">1</td>
+                    </tr>
+                    <tr>
+                        <td class="brand">驅塵氏</td>
+                        <td class="product">雙軌密封夾鏈袋(中)</td>
+                        <td class="coin">2</td>
+                    </tr>
+                    <tr class="group-end">
+                        <td class="brand">驅塵氏</td>
+                        <td class="product">靜電除塵紙(無香)</td>
+                        <td class="coin">1</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <footer>
+            <div class="disclaimer-title">【教學示範聲明】</div>
+            <p>本網站僅供資訊教學與功能模擬測試使用，非真實營運之網路商店。</p>
+        </footer>
     </div>
 
 </body>
