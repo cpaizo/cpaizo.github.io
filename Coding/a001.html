@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>《黃鶴樓》× AI 互動網頁創作｜國小五年級詳細教學手冊</title>
+  <style>
+    :root {
+      --bg: #f6f4ef;
+      --paper: #fffdf9;
+      --ink: #1f2933;
+      --muted: #52606d;
+      --primary: #1d4ed8;
+      --primary-soft: #eff6ff;
+      --accent: #0f766e;
+      --accent-soft: #f0fdfa;
+      --warn: #b45309;
+      --warn-soft: #fffbeb;
+      --purple: #6d28d9;
+      --purple-soft: #f5f3ff;
+      --border: #e2ddd3;
+      --shadow: 0 8px 24px rgba(31, 41, 51, 0.06);
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+    }
+
+    /* 頂部導覽與列印控制 */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(255, 253, 249, 0.92);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--ink);
+    }
+
+    .badge {
+      background: var(--primary-soft);
+      color: var(--primary);
+      border: 1px solid #bfdbfe;
+      font-size: 0.78rem;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 0.9rem;
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .nav-links a:hover {
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--ink);
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #1e40af;
+      color: #fff;
+    }
+
+    /* 主容器 */
+    .container {
+      max-width: 1040px;
+      margin: 28px auto 72px;
+      padding: 0 20px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #1e3a8a 0%, #0f766e 100%);
+      color: #fff;
+      padding: 36px 32px;
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 28px;
+    }
+
+    .hero .kicker {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.18);
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      margin-bottom: 12px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: 1.9rem;
+      line-height: 1.35;
+    }
+
+    .hero p {
+      margin: 0 0 20px;
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 1.02rem;
+      max-width: 780px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .meta-item {
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+
+    .meta-item .label {
+      font-size: 0.78rem;
+      opacity: 0.85;
+      display: block;
+    }
+
+    .meta-item .val {
+      font-weight: 700;
+      font-size: 0.98rem;
+    }
+
+    section {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    section h2 {
+      margin: 0 0 18px;
+      font-size: 1.42rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--bg);
+    }
+
+    h3 {
+      margin: 22px 0 10px;
+      font-size: 1.12rem;
+      color: var(--ink);
+    }
+
+    .poem-box {
+      background: #faf7f0;
+      border-left: 5px solid var(--accent);
+      padding: 18px 22px;
+      border-radius: 10px;
+      margin: 14px 0 20px;
+    }
+
+    .poem-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .poem-lines {
+      font-family: "Kaiti TC", "BiauKai", "DFKai-SB", serif;
+      font-size: 1.25rem;
+      line-height: 1.9;
+      color: #111827;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      background: #fff;
+    }
+
+    .card.blue {
+      background: var(--primary-soft);
+      border-color: #dbeafe;
+    }
+
+    .card.teal {
+      background: var(--accent-soft);
+      border-color: #ccfbf1;
+    }
+
+    .card.amber {
+      background: var(--warn-soft);
+      border-color: #fde68a;
+    }
+
+    .card.purple {
+      background: var(--purple-soft);
+      border-color: #ddd6fe;
+    }
+
+    .card-title {
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    ul, ol {
+      margin: 8px 0 14px;
+      padding-left: 22px;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    /* 表格 */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 20px;
+      font-size: 0.94rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 11px 13px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f3f0e8;
+      font-weight: 700;
+    }
+
+    /* 提示詞區塊 */
+    .prompt-box {
+      position: relative;
+      background: #18202c;
+      color: #f8fafc;
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin: 10px 0 14px;
+      font-size: 0.92rem;
+      line-height: 1.65;
+      white-space: pre-wrap;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.78rem;
+      cursor: pointer;
+    }
+
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    /* 互動發散產生器 */
+    .builder-panel {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 20px;
+      margin-top: 14px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+      color: #334155;
+    }
+
+    select, input[type="text"] {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 14px;
+    }
+
+    .tag {
+      background: #fff;
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    .quote-tip {
+      background: var(--warn-soft);
+      border-left: 4px solid var(--warn);
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin: 12px 0;
+      font-size: 0.94rem;
+    }
+
+    @media print {
+      .topbar, .btn, .copy-btn, .builder-panel {
+        display: none !important;
+      }
+      body {
+        background: #fff;
+      }
+      section, .hero {
+        box-shadow: none;
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <span>📘 教師教學手冊</span>
+      <span class="badge">國小五年級 · 國語＋AI 互動網頁</span>
+    </div>
+    <nav class="nav-links">
+      <a href="#sec1">一、課程總覽與知識點</a>
+      <a href="#sec2">二、打破三選一範例</a>
+      <a href="#sec3">三、引導寫提示詞</a>
+      <a href="#sec4">四、80 分鐘流程</a>
+      <a href="#sec5">五、抓蟲與評量</a>
+    </nav>
+    <div>
+      <button class="btn btn-primary" onclick="window.print()">🖨️ 列印／存成 PDF</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- 封面總覽 -->
+    <div class="hero">
+      <div class="kicker">單堂教案範例｜紙本古詩閱讀 × 提示詞發散 × 單檔 HTML 互動網頁</div>
+      <h1>《黃鶴樓》的千古畫面：用提示詞打造「不撞梗」的互動網頁</h1>
+      <p>
+        本手冊協助國小五年級老師帶領學生閱讀紙本詩詞《黃鶴樓》後，<strong>不陷入「四格漫畫、小遊戲、心得三選一」的定錨效應</strong>。
+        學生先拆解詩詞線索、挑選「互動形式」，再寫出清楚的提示詞請 AI 產出單一 HTML 互動網頁，並學會檢查 AI 有沒有讀懂詩意。
+      </p>
+      <div class="meta-grid">
+        <div class="meta-item">
+          <span class="label">適用年級</span>
+          <span class="val">國小五年級（可微調至六年級）</span>
+        </div>
+        <div class="meta-item">
+          <span class="label">建議節數</span>
+          <span class="val">2 節課（共 80 分鐘）</span>
+        </div>
+        <div class="meta-item">
+          <span class="label">核心文本</span>
+          <span class="val">崔顥《黃鶴樓》（紙本印發）</span>
+        </div>
+        <div class="meta-item">
+          <span class="label">產出形式</span>
+          <span class="val">單檔 HTML 互動網頁（可離線開檔）</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 第一部分：知識點與教學目標 -->
+    <section id="sec1">
+      <h2>一、 教學目標與核心知識點</h2>
+
+      <div class="poem-box">
+        <div class="poem-title">紙本閱讀文本：崔顥《黃鶴樓》</div>
+        <div class="poem-lines">
+          昔人已乘黃鶴去，此地空餘黃鶴樓。<br />
+          黃鶴一去不復返，白雲千載空悠悠。<br />
+          晴川歷歷漢陽樹，芳草萋萋鸚鵡洲。<br />
+          日暮鄉關何處是？煙波江上使人愁。
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card blue">
+          <div class="card-title">📖 國語與文本理解知識點</div>
+          <ul>
+            <li><strong>時空轉換與對比</strong>：「昔人／千載」的久遠時間，對照「此地／日暮」當下的孤獨感；「黃鶴去、樓空存」的物是人非。</li>
+            <li><strong>寫景與抒情連動</strong>：前六句鋪陳江景與登樓所見，最後兩句由「日暮」轉出「鄉關何處」的思鄉與惆悵。</li>
+            <li><strong>關鍵意象辨識</strong>：黃鶴樓、白雲、晴川、漢陽樹、芳草、鸚鵡洲、煙波。</li>
+          </ul>
+        </div>
+
+        <div class="card teal">
+          <div class="card-title">🤖 AI 提示詞與互動設計知識點</div>
+          <ul>
+            <li><strong>打破「範例定錨」</strong>：看到範例是「靈感參考」而非「標準答案」，先決定「想讓讀者做什麼互動」再寫提示詞。</li>
+            <li><strong>結構化提示詞四要素</strong>：<strong>角色／情境 ＋ 互動玩法 ＋ 詩句根據 ＋ 限制條件</strong>。</li>
+            <li><strong>事實與詩意查核（抓蟲）</strong>：檢查 AI 產出的網頁有沒有把詩句張冠李戴、亂加現代元素，或互動按鈕卡死。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 第二部分：為什麼學生只會做 3 種？＆ 打破定錨的範例設計 -->
+    <section id="sec2">
+      <h2>二、 解決「只會做 3 種」：範例展示策略與多元範例</h2>
+
+      <div class="quote-tip">
+        <strong>💡 老師示範心法（防撞梗三招）：</strong><br />
+        1. <strong>只給「互動玩法＋1 個示範」</strong>：不要一次列出四格漫畫、遊戲、心得三種完整成品，否則全班會自動選其一。<br />
+        2. <strong>用「動詞」命名玩法</strong>：例如「放大看、拉時間、改一個字、幫詩人發貼文」，讓學生先想「要怎麼玩」。<br />
+        3. <strong>設定「創意差異規則」</strong>：同組不能用相同玩法，鼓勵做出「老師沒想到的互動方式」。
+      </div>
+
+      <h3>（一） 給學生看的「多元玩法菜單」（6 種方向，打破三選一）</h3>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 18%;">玩法類型</th>
+            <th style="width: 24%;">網頁名稱範例</th>
+            <th style="width: 33%;">學生怎麼互動？</th>
+            <th style="width: 25%;">對應的詩詞理解重點</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>1. 空間探索類</strong></td>
+            <td>《登樓望遠鏡》</td>
+            <td>點擊「看遠方／看腳下／看對岸」按鈕，切換景色描述與詩句。</td>
+            <td>體會登高望遠的空間層次與意象位置。</td>
+          </tr>
+          <tr>
+            <td><strong>2. 時間對比類</strong></td>
+            <td>《千載時光機》</td>
+            <td>切換「仙人乘鶴時／白雲千載後／日暮黃昏時」，看畫面與心情變化。</td>
+            <td>掌握時間推移與「空悠悠」的孤寂感。</td>
+          </tr>
+          <tr>
+            <td><strong>3. 換字實驗室</strong></td>
+            <td>《詩人改字模擬器》</td>
+            <td>把「晴川」改成「暴雨」、或把「日暮」改成「正午」，觀察氛圍改變。</td>
+            <td>理解字詞選擇如何影響全詩情緒。</td>
+          </tr>
+          <tr>
+            <td><strong>4. 角色視角類</strong></td>
+            <td>《詩人的日暮日記》</td>
+            <td>點擊不同時段的心情卡片，看詩人寫給家鄉的一段話與回覆。</td>
+            <td>同理詩人「日暮鄉關何處是」的思鄉情緒。</td>
+          </tr>
+          <tr>
+            <td><strong>5. 色彩與氛圍類</strong></td>
+            <td>《詩句調色盤》</td>
+            <td>點選每一聯詩句，網頁背景色與提示語隨詩意由亮轉暗、由靜轉愁。</td>
+            <td>連結視覺色彩與「晴川／芳草／煙波」意境。</td>
+          </tr>
+          <tr>
+            <td><strong>6. 偵探解謎類</strong></td>
+            <td>《找回消失的線索》</td>
+            <td>根據詩句提示找出「哪一句寫到洲？哪一句在想家？」，答對解鎖小註解。</td>
+            <td>精準檢索文本資訊並做推論。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>（二） 老師可直接複製給 AI 的「2 個示範提示詞」</h3>
+      <p>上課時老師可挑 1～2 個現場跑給學生看，重點是讓學生看到<strong>「同樣一首《黃鶴樓》，可以變成完全不同的網頁」</strong>。</p>
+
+      <div class="card">
+        <div class="card-title">範例 A：空間探索類《黃鶴樓登樓望遠鏡》</div>
+        <div class="prompt-box" id="promptA"><button class="copy-btn" onclick="copyText('promptA', this)">複製提示詞</button>請用繁體中文產生一個單一 HTML 檔案（HTML、CSS、JavaScript 都寫在同一個檔案中，不需要外部圖片或網路套件）。
+主題是國小五年級國語《黃鶴樓》的「登樓望遠鏡」互動網頁。
+功能需求：
+1. 網頁上方顯示崔顥《黃鶴樓》完整詩文與簡單白話解釋切換按鈕。
+2. 中間做一個「望遠鏡視角切換器」，有 4 個按鈕：「看白雲與千載」、「看晴川與漢陽樹」、「看芳草與鸚鵡洲」、「看日暮與煙波江上」。
+3. 點擊不同按鈕時，顯示對應的詩句、景色描寫，以及詩人當下的心情提示。
+4. 介面清爽、字體夠大，適合國小五年級在教室螢幕或平板上操作。</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">範例 B：換字實驗室《黃鶴樓改字變變變》</div>
+        <div class="prompt-box" id="promptB"><button class="copy-btn" onclick="copyText('promptB', this)">複製提示詞</button>請用繁體中文產生一個單一 HTML 檔案（所有程式碼寫在同一個檔案中，不依賴外部套件）。
+主題是國小五年級《黃鶴樓》的「改字實驗室」互動網頁。
+功能需求：
+1. 呈現《黃鶴樓》全詩，並把「晴川」、「芳草」、「日暮」、「煙波」設為可替換的詞語下拉選單。
+2. 學生可以自由更換這些詞語（例如把「日暮」改成「清晨」，或把「晴川」改成「狂風暴雨」）。
+3. 每次更換後，網頁會即時更新詩句，並顯示「這首詩的畫面與心情可能發生什麼變化」的引導分析。
+4. 附上「恢復原詩」按鈕，方便學生對照原作者的寫法。</div>
+      </div>
+    </section>
+
+    <!-- 第三部分：怎麼引導學生寫提示詞 -->
+    <section id="sec3">
+      <h2>三、 怎麼引導國小五年級學生寫提示詞？</h2>
+
+      <p>五年級學生常犯兩種錯：一種是只寫「幫我做一個黃鶴樓網頁」（太籠統，AI 亂猜）；另一種是一口氣塞十幾個特效（容易出錯、抓不到重點）。建議用<strong>「四步鷹架」</strong>帶他們寫：</p>
+
+      <div class="grid-2">
+        <div class="card amber">
+          <div class="card-title">Step 1：先圈出「這首詩我想抓的 1～2 個點」</div>
+          <p>請學生拿紅筆或螢光筆在紙本詩詞上畫記：是要抓<strong>時間變化</strong>、<strong>景色位置</strong>，還是<strong>最後兩句的思鄉情緒</strong>？不求面面俱到，先抓準一個焦點。</p>
+        </div>
+        <div class="card amber">
+          <div class="card-title">Step 2：決定「互動動作」再決定「網頁樣子」</div>
+          <p>問學生：「別人打開你的網頁，<strong>點什麼、選什麼、看什麼</strong>？」先有互動動作，再請 AI 設計版面與顏色。</p>
+        </div>
+        <div class="card amber">
+          <div class="card-title">Step 3：套用「四句式提示詞骨架」</div>
+          <p><strong>① 對象與主題</strong>：給國小五年級看的《黃鶴樓》互動網頁……<br />
+          <strong>② 核心玩法</strong>：我希望有＿＿個按鈕／選項，讓使用者可以＿＿……<br />
+          <strong>③ 詩文根據</strong>：內容要符合《黃鶴樓》的詩句與意思，不要亂編故事……<br />
+          <strong>④ 單檔安全句</strong>：請寫在同一個 HTML 檔案中，不用外部圖片也能正常運作。</p>
+        </div>
+        <div class="card amber">
+          <div class="card-title">Step 4：只改「1 個地方」做第二輪微調</div>
+          <p>第一次產出後，不要整段重寫。教學生挑出最想改的一點（例如「按鈕字太小」、「想多加一個提示」），用一句話請 AI 修改。</p>
+        </div>
+      </div>
+
+      <h3>學生提示詞產生器（老師備課／課堂示範小工具）</h3>
+      <div class="builder-panel">
+        <div class="form-row">
+          <div>
+            <label for="focusSelect">1. 詩詞焦點</label>
+            <select id="focusSelect" onchange="updateStudentPrompt()">
+              <option value="登樓所見的景色位置（晴川、漢陽樹、芳草、鸚鵡洲）">景色位置（晴川、漢陽樹、芳草、鸚鵡洲）</option>
+              <option value="時間推移與物是人非（昔人已去、白雲千載、日暮思鄉）">時間推移與物是人非（昔人去、千載、日暮）</option>
+              <option value="最後兩句「日暮鄉關何處是，煙波江上使人愁」的思鄉心情">最後兩句的思鄉與惆悵心情</option>
+              <option value="關鍵詞語替換對詩意與畫面的影響">關鍵詞語替換對詩意的影響</option>
+            </select>
+          </div>
+          <div>
+            <label for="modeSelect">2. 互動形式</label>
+            <select id="modeSelect" onchange="updateStudentPrompt()">
+              <option value="可切換視角的卡片導覽">可切換視角的卡片導覽</option>
+              <option value="詞語替換與即時心情分析器">詞語替換與即時心情分析器</option>
+              <option value="詩句線索配對與小提示卡">詩句線索配對與小提示卡</option>
+              <option value="詩人心情日記與時段切換頁">詩人心情日記與時段切換頁</option>
+            </select>
+          </div>
+          <div>
+            <label for="extraInput">3. 學生自己的小巧思（選填）</label>
+            <input id="extraInput" type="text" placeholder="例如：加上黃昏橘色系背景、附上小提示" oninput="updateStudentPrompt()" />
+          </div>
+        </div>
+
+        <label>產生的學生版提示詞草稿：</label>
+        <div class="prompt-box" id="studentPromptOut"><button class="copy-btn" onclick="copyText('studentPromptOut', this)">複製草稿</button></div>
+      </div>
+    </section>
+
+    <!-- 第四部分：80 分鐘課堂流程 -->
+    <section id="sec4">
+      <h2>四、 80 分鐘（兩節課）教學流程建議</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 16%;">節次／時間</th>
+            <th style="width: 24%;">教學環節</th>
+            <th style="width: 60%;">老師引導重點與學生活動</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>第一節<br />00–15 分</strong></td>
+            <td>紙本朗讀與意象挖寶</td>
+            <td>發下《黃鶴樓》紙本。帶學生朗讀、圈出地點與時間詞，討論「前面都在寫風景，為什麼最後突然說『使人愁』？」</td>
+          </tr>
+          <tr>
+            <td><strong>第一節<br />15–25 分</strong></td>
+            <td>打破三選一＋示範對照</td>
+            <td>展示 1～2 個不同玩法的示範網頁，引導學生看「它是怎麼互動的」，並公布「6 種玩法菜單＋自創點子加分」。</td>
+          </tr>
+          <tr>
+            <td><strong>第一節<br />25–40 分</strong></td>
+            <td>構思與撰寫第一版提示詞</td>
+            <td>學生在學習單寫出「我的焦點＋我的互動玩法＋四句式提示詞」，老師巡視幫太籠統的提示詞瘦身或聚焦。</td>
+          </tr>
+          <tr>
+            <td><strong>第二節<br />40–60 分</strong></td>
+            <td>AI 產出網頁與一次微調</td>
+            <td>學生將提示詞貼給 AI 產生 HTML 網頁並開檔測試；接著針對「不夠清楚或想更好玩的地方」進行 1 次追問微調。</td>
+          </tr>
+          <tr>
+            <td><strong>第二節<br />60–72 分</strong></td>
+            <td>當「文本偵探」抓蟲</td>
+            <td>兩人一組互相體驗網頁，對照紙本詩詞檢查：有沒有寫錯詩句？有沒有跟原詩意思衝突？按鈕能不能正常運作？</td>
+          </tr>
+          <tr>
+            <td><strong>第二節<br />72–80 分</strong></td>
+            <td>快閃發表與反思收束</td>
+            <td>請 3～4 位做出「不同玩法」的學生上台展示 1 分鐘。老師總結：AI 幫我們把想法變成網頁，但<strong>讀懂詩、決定怎麼表達</strong>的是我們自己。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 第五部分：常見問題、抓蟲與評量 -->
+    <section id="sec5">
+      <h2>五、 常見狀況排除、抓蟲清單與評量建議</h2>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">🛠️ 課堂常見狀況與救命句</div>
+          <ul>
+            <li><strong>AI 產出分成好幾個檔案或要裝套件</strong>：補一句「請把 HTML、CSS、JavaScript 全部寫在同一個 .html 檔裡，不要外部圖片或套件」。</li>
+            <li><strong>AI 自己改寫或拼錯《黃鶴樓》詩句</strong>：把正確詩文貼進提示詞，加上「詩句文字必須一字不差」。</li>
+            <li><strong>網頁排版擠在一起或按鈕沒反應</strong>：把錯誤現象或想改的按鈕名稱告訴 AI，「請只修正＿＿問題，保留原本的互動功能」。</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-title">✅ 簡易觀察評量指標（給老師）</div>
+          <ul>
+            <li><strong>文本掌握度</strong>：網頁內容是否貼合《黃鶴樓》的景物、時間或思鄉情感？</li>
+            <li><strong>發散與原創度</strong>：是否能跳脫單一模仿，提出清楚的互動設計？</li>
+            <li><strong>提示詞與除錯能力</strong>：提示詞是否交代清楚需求，並在遇到問題時能提出具體修改？</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="tag-list">
+        <span class="tag">#國小五年級</span>
+        <span class="tag">#黃鶴樓</span>
+        <span class="tag">#打破範例定錨</span>
+        <span class="tag">#提示詞教學</span>
+        <span class="tag">#單檔HTML互動網頁</span>
+        <span class="tag">#文本查核與抓蟲</span>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function updateStudentPrompt() {
+      const focus = document.getElementById("focusSelect").value;
+      const mode = document.getElementById("modeSelect").value;
+      const extra = document.getElementById("extraInput").value.trim();
+
+      let text = `請用繁體中文幫我做一個給國小五年級看的《黃鶴樓》互動網頁，寫在同一個 HTML 檔案中（不需要外部圖片或網路套件）。\n` +
+                 `1. 我想聚焦在：${focus}。\n` +
+                 `2. 互動方式設計成：${mode}。\n` +
+                 `3. 請使用崔顥《黃鶴樓》的正確詩句，內容要符合詩意，不要亂編故事。`;
+
+      if (extra) {
+        text += `\n4. 我的額外巧思：${extra}。`;
+      }
+
+      const box = document.getElementById("studentPromptOut");
+      const btn = box.querySelector(".copy-btn");
+      box.textContent = text;
+      box.appendChild(btn);
+    }
+
+    function copyText(elementId, btnEl) {
+      const box = document.getElementById(elementId);
+      const clone = box.cloneNode(true);
+      const buttonInClone = clone.querySelector(".copy-btn");
+      if (buttonInClone) buttonInClone.remove();
+      const textToCopy = clone.textContent.trim();
+
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        const original = btnEl.textContent;
+        btnEl.textContent = "已複製！";
+        setTimeout(() => {
+          btnEl.textContent = original;
+        }, 1400);
+      });
+    }
+
+    updateStudentPrompt();
+  </script>
+</body>
+</html>
