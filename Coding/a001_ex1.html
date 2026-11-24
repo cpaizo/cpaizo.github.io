@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>《黃鶴樓》登樓望遠鏡｜國小五年級國語互動網頁</title>
+  <style>
+    :root {
+      --bg: #fdfaf5;
+      --card: #ffffff;
+      --ink: #2b2d42;
+      --muted: #5c6470;
+      --accent: #ffa64d;
+      --accent-dark: #e07a16;
+      --accent-soft: #fff4e8;
+      --teal: #2a9d8f;
+      --teal-soft: #eaf6f4;
+      --border: #eadfce;
+      --shadow: 0 8px 24px rgba(43, 45, 66, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.75;
+      padding: 24px 16px 48px;
+    }
+
+    .container {
+      max-width: 920px;
+      margin: 0 auto;
+    }
+
+    /* 頂部詩詞區 */
+    .poem-card {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      padding: 28px 24px;
+      box-shadow: var(--shadow);
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 4px 14px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 2.1rem;
+      color: var(--ink);
+    }
+
+    .author {
+      color: var(--muted);
+      font-size: 1.1rem;
+      margin-bottom: 18px;
+    }
+
+    .poem-text {
+      font-family: "Kaiti TC", "BiauKai", "DFKai-SB", serif;
+      font-size: 1.75rem;
+      line-height: 2;
+      letter-spacing: 0.06em;
+      background: #faf5ec;
+      padding: 20px 16px;
+      border-radius: 14px;
+      margin: 0 auto 18px;
+      max-width: 680px;
+    }
+
+    .toggle-btn {
+      background: var(--teal);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 24px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s, background 0.2s;
+    }
+
+    .toggle-btn:hover {
+      background: #21867a;
+      transform: translateY(-2px);
+    }
+
+    .vernacular-box {
+      display: none;
+      margin-top: 18px;
+      text-align: left;
+      background: var(--teal-soft);
+      border-left: 6px solid var(--teal);
+      padding: 18px 20px;
+      border-radius: 12px;
+      font-size: 1.12rem;
+    }
+
+    .vernacular-box.show {
+      display: block;
+      animation: fadeIn 0.25s ease;
+    }
+
+    /* 望遠鏡視角切換區 */
+    .telescope-section {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      padding: 28px 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 1.5rem;
+      margin: 0 0 8px;
+    }
+
+    .section-sub {
+      text-align: center;
+      color: var(--muted);
+      font-size: 1.08rem;
+      margin: 0 0 22px;
+    }
+
+    .btn-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(195px, 1fr));
+      gap: 12px;
+      margin-bottom: 26px;
+    }
+
+    .view-btn {
+      background: #fff;
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 12px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--ink);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .view-btn:hover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .view-btn.active {
+      background: var(--accent);
+      border-color: var(--accent-dark);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(224, 122, 22, 0.28);
+    }
+
+    .view-icon {
+      font-size: 1.6rem;
+    }
+
+    /* 望遠鏡視野顯示框 */
+    .lens-frame {
+      border: 6px solid #3d405b;
+      border-radius: 24px;
+      padding: 26px 24px;
+      background: linear-gradient(180deg, #fffdf9 0%, #f8f3ea 100%);
+      position: relative;
+    }
+
+    .lens-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 2px dashed var(--border);
+    }
+
+    .lens-tag {
+      background: #3d405b;
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 999px;
+    }
+
+    .lens-poem {
+      font-family: "Kaiti TC", "BiauKai", "DFKai-SB", serif;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--accent-dark);
+      margin: 0 0 18px;
+      text-align: center;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .info-box {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+    }
+
+    .info-box h3 {
+      margin: 0 0 8px;
+      font-size: 1.18rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .info-box p {
+      margin: 0;
+      font-size: 1.12rem;
+      color: var(--ink);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 600px) {
+      .poem-text {
+        font-size: 1.38rem;
+      }
+      .lens-poem {
+        font-size: 1.42rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <main class="container">
+    <!-- 上方：完整詩文與白話解釋切換 -->
+    <section class="poem-card">
+      <div class="badge">國小五年級國語｜古詩詞互動學習</div>
+      <h1>《黃鶴樓》</h1>
+      <div class="author">唐 · 崔顥</div>
+
+      <div class="poem-text">
+        昔人已乘黃鶴去，此地空餘黃鶴樓。<br />
+        黃鶴一去不復返，白雲千載空悠悠。<br />
+        晴川歷歷漢陽樹，芳草萋萋鸚鵡洲。<br />
+        日暮鄉關何處是？煙波江上使人愁。
+      </div>
+
+      <button class="toggle-btn" id="toggleBtn" onclick="toggleVernacular()">
+        📖 顯示白話解釋
+      </button>
+
+      <div class="vernacular-box" id="vernacularBox">
+        <strong>白話小翻譯：</strong><br />
+        傳說中的仙人早就騎著黃鶴飛走了，這裡只剩下空蕩蕩的黃鶴樓。黃鶴一去就再也不回來了，只有天上的白雲千百年來依然悠閒地飄著。站在樓上往遠處看，陽光下的漢陽樹木看得清清楚楚，鸚鵡洲上的芳草長得十分茂盛。轉眼間太陽下山了，我的家鄉到底在哪裡呢？看著江面上瀰漫的煙霧與波浪，真讓人感到濃濃的思鄉愁緒啊！
+      </div>
+    </section>
+
+    <!-- 中間：望遠鏡視角切換器 -->
+    <section class="telescope-section">
+      <h2 class="section-title">🔭 登樓望遠鏡：切換詩人的視角</h2>
+      <p class="section-sub">請點擊下方四個按鈕，看看詩人崔顥站在黃鶴樓上，分別看到了什麼、心裡在想什麼？</p>
+
+      <div class="btn-grid">
+        <button class="view-btn active" onclick="selectView(0, this)">
+          <span class="view-icon">☁️</span>
+          <span>看白雲與千載</span>
+        </button>
+        <button class="view-btn" onclick="selectView(1, this)">
+          <span class="view-icon">🌳</span>
+          <span>看晴川與漢陽樹</span>
+        </button>
+        <button class="view-btn" onclick="selectView(2, this)">
+          <span class="view-icon">🌿</span>
+          <span>看芳草與鸚鵡洲</span>
+        </button>
+        <button class="view-btn" onclick="selectView(3, this)">
+          <span class="view-icon">🌅</span>
+          <span>看日暮與煙波江上</span>
+        </button>
+      </div>
+
+      <div class="lens-frame" id="lensFrame">
+        <div class="lens-header">
+          <span class="lens-tag" id="lensTag">視角 1：抬頭看天空與時間</span>
+        </div>
+        <div class="lens-poem" id="lensPoem">黃鶴一去不復返，白雲千載空悠悠。</div>
+        <div class="info-grid">
+          <div class="info-box">
+            <h3>👀 望遠鏡裡的景色</h3>
+            <p id="lensScenery"></p>
+          </div>
+          <div class="info-box">
+            <h3>💭 詩人當下的心情</h3>
+            <p id="lensMood"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const views = [
+      {
+        tag: "視角 1：抬頭看天空與時間",
+        poem: "黃鶴一去不復返，白雲千載空悠悠。",
+        scenery: "黃鶴載著仙人飛走後，再也沒有回來過；只有潔白的雲朵，在天空中悠閒地飄過了千百年，沒有任何改變。",
+        mood: "看著天空的白雲，詩人感覺時間過得好快，過去的人事物都不在了，只剩自己站在這裡，心裡覺得空蕩蕩、有點孤單。"
+      },
+      {
+        tag: "視角 2：往遠處對岸看過去",
+        poem: "晴川歷歷漢陽樹",
+        scenery: "在晴朗的陽光照射下，長江對岸漢陽一帶的樹木，一棵一棵排列得清清楚楚，連遠處的樹影都能看見。",
+        mood: "視野非常開闊明亮！剛登上高樓看到這麼清楚美麗的風景，心情原本是感到舒暢、驚喜的。"
+      },
+      {
+        tag: "視角 3：低頭看江心的小島",
+        poem: "芳草萋萋鸚鵡洲",
+        scenery: "長江中間的鸚鵡洲上，長滿了茂密又翠綠的香草，一片生機勃勃的樣子。",
+        mood: "大自然的草木依然長得這麼茂盛，但看著看著，卻讓詩人更感覺到「只有我一個人在外地旅行」的寂寞。"
+      },
+      {
+        tag: "視角 4：黃昏時望向遠方江面",
+        poem: "日暮鄉關何處是？煙波江上使人愁。",
+        scenery: "太陽快下山了，天色漸漸暗下來，江面上起了一層灰濛濛的霧氣與波浪，遠方的家鄉完全看不見。",
+        mood: "傍晚是最容易想家的時候！看著茫茫的江水與煙霧，不知道家鄉在哪個方向，心裡湧起濃濃的思鄉愁緒。"
+      }
+    ];
+
+    function toggleVernacular() {
+      const box = document.getElementById("vernacularBox");
+      const btn = document.getElementById("toggleBtn");
+      const isShown = box.classList.toggle("show");
+      btn.textContent = isShown ? "🙈 隱藏白話解釋" : "📖 顯示白話解釋";
+    }
+
+    function selectView(index, btnElement) {
+      const data = views[index];
+      document.getElementById("lensTag").textContent = data.tag;
+      document.getElementById("lensPoem").textContent = data.poem;
+      document.getElementById("lensScenery").textContent = data.scenery;
+      document.getElementById("lensMood").textContent = data.mood;
+
+      const buttons = document.querySelectorAll(".view-btn");
+      buttons.forEach(btn => btn.classList.remove("active"));
+      btnElement.classList.add("active");
+    }
+
+    // 預設載入第一個視角
+    selectView(0, document.querySelector(".view-btn"));
+  </script>
+</body>
+</html>
