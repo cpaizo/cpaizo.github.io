@@ -37,7 +37,7 @@
     .container {
       max-width: 960px;
       margin: 0 auto;
-      padding: 36px 20px 72px;
+      padding: 36px 20px 36px;
     }
 
     /* 頂部主視覺 */
@@ -323,6 +323,32 @@
       accent-color: var(--primary);
     }
 
+    /* 頁尾版權說明 */
+    .site-footer {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 24px 20px 48px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border);
+      line-height: 1.8;
+    }
+
+    .site-footer p {
+      margin: 4px 0;
+    }
+
+    .site-footer a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .site-footer a:hover {
+      text-decoration: underline;
+    }
+
     @media (max-width: 600px) {
       .hero {
         padding: 24px 20px;
@@ -505,6 +531,11 @@
       </div>
     </section>
   </main>
+
+  <footer class="site-footer">
+    <p>© 2026 CPAIZO STDUIO 版權所有</p>
+    <p>歡迎教師於課堂教學與非營利研習使用，請勿未經同意轉售或作商業用途；教學交流或問題回報請聯繫：<a href="mailto:cpaizo.email@gmail.com">cpaizo.email@gmail.com</a></p>
+  </footer>
 
   <script>
     function switchSimMode(mode) {

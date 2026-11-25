@@ -121,7 +121,7 @@
     /* 主容器 */
     .container {
       max-width: 1040px;
-      margin: 28px auto 72px;
+      margin: 28px auto 32px;
       padding: 0 20px;
     }
 
@@ -388,6 +388,32 @@
       font-size: 0.94rem;
     }
 
+    /* 頁尾版權說明 */
+    .site-footer {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 24px 20px 56px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border);
+      line-height: 1.8;
+    }
+
+    .site-footer p {
+      margin: 4px 0;
+    }
+
+    .site-footer a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .site-footer a:hover {
+      text-decoration: underline;
+    }
+
     @media print {
       .topbar, .btn, .copy-btn, .builder-panel {
         display: none !important;
@@ -395,7 +421,7 @@
       body {
         background: #fff;
       }
-      section, .hero {
+      section, .hero, .site-footer {
         box-shadow: none;
         break-inside: avoid;
       }
@@ -714,6 +740,11 @@
     </section>
   </main>
 
+  <footer class="site-footer">
+    <p>© 2026 CPAIZO STDUIO 版權所有</p>
+    <p>歡迎教師於課堂教學與非營利研習使用，請勿未經同意轉售或作商業用途；教學交流或問題回報請聯繫：<a href="mailto:cpaizo.email@gmail.com">cpaizo.email@gmail.com</a></p>
+  </footer>
+
   <script>
     function updateStudentPrompt() {
       const focus = document.getElementById("focusSelect").value;
@@ -755,3 +786,4 @@
   </script>
 </body>
 </html>
+```[cite: 2]
