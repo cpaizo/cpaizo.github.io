@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>前導課程｜安裝 Sublime Text 與認識 HTML 檔案操作</title>
+  <style>
+    :root {
+      --bg: #faf7f2;
+      --surface: #ffffff;
+      --ink: #1e293b;
+      --muted: #52606d;
+      --primary: #0f766e;
+      --primary-hover: #115e59;
+      --primary-soft: #f0fdfa;
+      --accent: #d97706;
+      --accent-soft: #fffbeb;
+      --danger: #b91c1c;
+      --danger-soft: #fef2f2;
+      --border: #e6dfd3;
+      --radius: 18px;
+      --shadow: 0 10px 30px rgba(30, 41, 59, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.75;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 36px 20px 72px;
+    }
+
+    /* 頂部主視覺 */
+    .hero {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 34px 30px;
+      box-shadow: var(--shadow);
+      margin-bottom: 26px;
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid #fde68a;
+      font-size: 0.88rem;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+    }
+
+    .hero h1 {
+      margin: 0 0 12px;
+      font-size: 1.9rem;
+      line-height: 1.35;
+    }
+
+    .hero h1 span {
+      color: var(--primary);
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.04rem;
+    }
+
+    /* 區塊卡片 */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+
+    .section h2 {
+      margin: 0 0 14px;
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--bg);
+    }
+
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .lead {
+      margin: 0 0 16px;
+      color: var(--muted);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin: 14px 0;
+    }
+
+    .box {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      background: #fffdf9;
+    }
+
+    .box.teal {
+      background: var(--primary-soft);
+      border-color: #ccfbf1;
+    }
+
+    .box.amber {
+      background: var(--accent-soft);
+      border-color: #fde68a;
+    }
+
+    .box.danger {
+      background: var(--danger-soft);
+      border-color: #fecaca;
+    }
+
+    .box h3 {
+      margin: 0 0 8px;
+      font-size: 1.08rem;
+    }
+
+    .box p, .box ul {
+      margin: 0;
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+
+    ul, ol {
+      padding-left: 20px;
+      margin: 8px 0;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    .btn-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 700;
+      padding: 11px 20px;
+      border-radius: 12px;
+      margin: 10px 0 6px;
+      transition: background 0.2s;
+    }
+
+    .btn-link:hover {
+      background: var(--primary-hover);
+    }
+
+    /* 副檔名視覺對照 */
+    .file-compare {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+      margin: 14px 0;
+    }
+
+    .file-badge {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 1.05rem;
+      font-weight: 700;
+      padding: 8px 12px;
+      border-radius: 8px;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+
+    .ok-file {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .bad-file {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    /* 雙模式對照模擬器 */
+    .mode-switch {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 14px 0;
+    }
+
+    .mode-btn {
+      border: 2px solid #cbd5e1;
+      background: #fff;
+      color: var(--ink);
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-size: 0.98rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .mode-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .sim-screen {
+      border: 2px solid #cbd5e1;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #1e293b;
+    }
+
+    .sim-bar {
+      background: #0f172a;
+      color: #cbd5e1;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .sim-body-code {
+      padding: 18px;
+      color: #e2e8f0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.92rem;
+      line-height: 1.65;
+      white-space: pre-wrap;
+    }
+
+    .sim-body-web {
+      display: none;
+      background: #fffdf9;
+      color: var(--ink);
+      padding: 28px 20px;
+      text-align: center;
+    }
+
+    /* 練習程式碼複製區 */
+    .code-wrap {
+      position: relative;
+      background: #18202c;
+      color: #f8fafc;
+      border-radius: 14px;
+      padding: 16px 18px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      margin: 12px 0;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 255, 255, 0.16);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      padding: 5px 12px;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    /* 檢核表 */
+    .checklist label {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      background: #fffdf9;
+      cursor: pointer;
+    }
+
+    .checklist input[type="checkbox"] {
+      margin-top: 5px;
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+    }
+
+    @media (max-width: 600px) {
+      .hero {
+        padding: 24px 20px;
+      }
+      .hero h1 {
+        font-size: 1.5rem;
+      }
+      .section {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <!-- 前導課主視覺 -->
+    <header class="hero">
+      <div class="badge">前導課程（單元 00）｜開課前 15 分鐘暖身</div>
+      <h1>準備工具與認識 HTML：<span>安裝 Sublime Text 與開啟網頁</span></h1>
+      <p>
+        在請 AI 幫我們產生互動網頁之前，老師只需要先學會三件超簡單的小事：
+        <strong>① 安裝輕巧的文字編輯器 Sublime Text</strong>、<strong>② 讓電腦顯示「副檔名」</strong>、<strong>③ 分清楚「改程式碼」與「看網頁」的兩種開法</strong>。
+      </p>
+    </header>
+
+    <!-- 步驟一：下載與安裝 Sublime Text -->
+    <section class="section">
+      <h2><span class="step-num">1</span> 下載與安裝 Sublime Text（免費試用、輕巧免設定）</h2>
+      <p class="lead">
+        為什麼不用 Windows 內建的「記事本」？因為 Sublime Text 會幫程式碼自動上色、排版整齊，老師就算不會寫程式，也能一眼看出哪裡是文字、哪裡可以改題目！
+      </p>
+
+      <a class="btn-link" href="https://www.sublimetext.com/download" target="_blank" rel="noopener noreferrer">
+        ⬇️ 前往 Sublime Text 官方下載頁 ↗
+      </a>
+
+      <div class="grid-2">
+        <div class="box teal">
+          <h3>🪟 Windows 電腦安裝步驟</h3>
+          <ol>
+            <li>進入官網後，點擊 <strong>Windows 64 bit</strong> 下載安裝檔。</li>
+            <li>雙擊下載好的 <code>sublime_text_build_xxxx_x64_setup.exe</code>。</li>
+            <li>一路按 <strong>Next（下一步）→ Install（安裝）→ Finish（完成）</strong> 即可。</li>
+            <li>（選用小技巧）安裝過程中看到 <em>Add to explorer context menu</em> 可打勾，之後對檔案按右鍵就能直接選「Open with Sublime Text」。</li>
+          </ol>
+        </div>
+
+        <div class="box teal">
+          <h3>🍎 Mac 電腦安裝步驟</h3>
+          <ol>
+            <li>進入官網後，點擊 <strong>macOS</strong> 下載 <code>.dmg</code> 映像檔。</li>
+            <li>雙擊打開下載的檔案。</li>
+            <li>將 <strong>Sublime Text</strong> 圖示拖曳進右側的 <strong>Applications（應用程式）</strong> 資料夾即完成安裝。</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- 步驟二：認識副檔名 -->
+    <section class="section">
+      <h2><span class="step-num">2</span> 必學關鍵：認識「副檔名」與打開顯示設定</h2>
+      <p class="lead">
+        電腦是靠檔名最後面的「點（.）＋英文」來決定要用什麼軟體打開檔案。我們做的互動網頁，副檔名一定是 <strong><code>.html</code></strong>。
+      </p>
+
+      <div class="file-compare">
+        <div class="box">
+          <div class="file-badge ok-file">✅ 黃鶴樓.html</div>
+          <p><strong>正確的網頁檔！</strong>圖示通常會變成 Chrome 或 Edge 瀏覽器的樣子，點兩下就能變成互動網頁。</p>
+        </div>
+        <div class="box danger">
+          <div class="file-badge bad-file">❌ 黃鶴樓.html.txt</div>
+          <p><strong>最常見新手地雷！</strong>因為電腦預設把 <code>.txt</code> 藏起來，老師以為存成網頁了，結果點開還是純文字。</p>
+        </div>
+      </div>
+
+      <div class="box amber">
+        <h3>👀 怎麼讓 Windows 電腦顯示副檔名？（只需設定一次）</h3>
+        <ol>
+          <li>打開任意一個資料夾（檔案總管）。</li>
+          <li>Windows 11：點上方工具列的 <strong>「檢視」→「顯示」→ 勾選「副檔名」</strong>。</li>
+          <li>Windows 10：點上方選單的 <strong>「檢視」→ 右側勾選「副檔名」</strong>。</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 步驟三：編輯程式碼 vs 觀看網頁 -->
+    <section class="section">
+      <h2><span class="step-num">3</span> 同一個 <code>.html</code> 檔案，有「兩種打開方式」</h2>
+      <p class="lead">
+        這是最重要也最容易搞混的地方：<strong>同一個檔案，用不同軟體打開，看到的樣子完全不同！</strong>
+      </p>
+
+      <div class="grid-2">
+        <div class="box teal">
+          <h3>✏️ 模式 A：編輯程式碼（改內容、貼上 AI 程式碼）</h3>
+          <ul>
+            <li><strong>怎麼開</strong>：對 <code>.html</code> 檔案按<strong>滑鼠右鍵 → 開啟檔案 → 選擇 Sublime Text</strong>（或先開 Sublime Text 再把檔案拖進去）。</li>
+            <li><strong>看到什麼</strong>：滿滿的英文標籤與文字（例如 <code>&lt;h1&gt;</code>、<code>&lt;button&gt;</code>）。</li>
+            <li><strong>何時用</strong>：要貼上 AI 產生的程式碼，或老師想自己修改題目文字時。</li>
+            <li><strong>重要動作</strong>：改完一定要按 <strong><code>Ctrl + S</code>（Mac 為 <code>Cmd + S</code>）存檔</strong>！</li>
+          </ul>
+        </div>
+
+        <div class="box amber">
+          <h3>🌐 模式 B：觀看網頁（上課投影、給學生操作）</h3>
+          <ul>
+            <li><strong>怎麼開</strong>：直接對 <code>.html</code> 檔案<strong>快速點兩下左鍵</strong>（預設會用 Chrome / Edge 瀏覽器打開）。</li>
+            <li><strong>看到什麼</strong>：漂亮的按鈕、顏色與互動畫面，完全看不到程式碼。</li>
+            <li><strong>何時用</strong>：上課投影在教室大屏，或傳到平板讓學生體驗互動時。</li>
+            <li><strong>重要動作</strong>：如果在 Sublime Text 改了字並存檔，回到瀏覽器按 <strong><code>F5</code>（重新整理）</strong> 就會看到最新畫面！</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>🎮 現場體驗：點按鈕切換同一個檔案的兩種面貌</h3>
+      <div class="mode-switch">
+        <button class="mode-btn active" id="btnCodeMode" onclick="switchSimMode('code')">
+          ✏️ 用 Sublime Text 打開（看程式碼）
+        </button>
+        <button class="mode-btn" id="btnWebMode" onclick="switchSimMode('web')">
+          🌐 用瀏覽器點兩下打開（看網頁畫面）
+        </button>
+      </div>
+
+      <div class="sim-screen">
+        <div class="sim-bar">
+          <span id="simTitle">Sublime Text — hello.html</span>
+          <span id="simHint">編輯模式：可修改文字並按 Ctrl+S 存檔</span>
+        </div>
+        <div class="sim-body-code" id="simCode">&lt;!DOCTYPE html&gt;
+&lt;html lang="zh-Hant"&gt;
+&lt;body&gt;
+  &lt;h1&gt;歡迎來到五年甲班的互動課堂！&lt;/h1&gt;
+  &lt;button onclick="alert('你成功打開第一個 HTML 網頁了！')"&gt;點我測試&lt;/button&gt;
+&lt;/body&gt;
+&lt;/html&gt;</div>
+        <div class="sim-body-web" id="simWeb">
+          <h2 style="margin: 0 0 14px; color: #0f766e;">歡迎來到五年甲班的互動課堂！</h2>
+          <button
+            style="background:#0f766e; color:#fff; border:none; padding:10px 20px; border-radius:10px; font-size:1rem; font-weight:700; cursor:pointer;"
+            onclick="alert('太棒了！這就是瀏覽器觀看網頁的畫面！')"
+          >
+            點我測試
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 步驟四：3 分鐘動手試做 -->
+    <section class="section">
+      <h2><span class="step-num">4</span> 老師 3 分鐘熱身任務：做出你的第一個 <code>test.html</code></h2>
+      <ol>
+        <li>打開剛安裝好的 <strong>Sublime Text</strong>，新增一個空白分頁（<code>Ctrl + N</code>）。</li>
+        <li>點擊下方「複製程式碼」，貼進 Sublime Text 裡。</li>
+        <li>按 <strong><code>Ctrl + S</code> 存檔</strong>，檔名輸入 <strong><code>test.html</code></strong>（存放在桌面最方便找）。</li>
+        <li>回到桌面找到 <code>test.html</code>，<strong>點兩下用瀏覽器打開</strong>，看看是不是變成互動按鈕了！</li>
+      </ol>
+
+      <div class="code-wrap" id="starterCode"><button class="copy-btn" onclick="copyStarter(this)">複製程式碼</button>&lt;!DOCTYPE html&gt;
+&lt;html lang="zh-Hant"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8" /&gt;
+  &lt;title&gt;我的第一個互動網頁&lt;/title&gt;
+&lt;/head&gt;
+&lt;body style="font-family: sans-serif; text-align: center; padding: 50px; background: #faf7f2;"&gt;
+  &lt;h1 style="color: #0f766e;"&gt;🎉 老師成功建立第一個 HTML 網頁！&lt;/h1&gt;
+  &lt;p&gt;試著在 Sublime Text 修改這行字，存檔後回瀏覽器按 F5 重新整理看看！&lt;/p&gt;
+  &lt;button onclick="alert('準備好進入《黃鶴樓》課程囉！')" style="padding: 12px 24px; font-size: 18px; border-radius: 10px; background: #0f766e; color: white; border: none; cursor: pointer;"&gt;
+    點我歡呼一下
+  &lt;/button&gt;
+&lt;/body&gt;
+&lt;/html&gt;</div>
+
+      <h3>✅ 開課前自我檢核表</h3>
+      <div class="checklist">
+        <label><input type="checkbox" /> 我已經成功安裝好 Sublime Text。</label>
+        <label><input type="checkbox" /> 我的電腦資料夾已經看得到檔案後面的 <code>.html</code> 副檔名。</label>
+        <label><input type="checkbox" /> 我知道「右鍵用 Sublime Text 開」是改程式碼，「點兩下直接開」是看網頁。</label>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function switchSimMode(mode) {
+      const btnCode = document.getElementById("btnCodeMode");
+      const btnWeb = document.getElementById("btnWebMode");
+      const simCode = document.getElementById("simCode");
+      const simWeb = document.getElementById("simWeb");
+      const simTitle = document.getElementById("simTitle");
+      const simHint = document.getElementById("simHint");
+
+      if (mode === "code") {
+        btnCode.classList.add("active");
+        btnWeb.classList.remove("active");
+        simCode.style.display = "block";
+        simWeb.style.display = "none";
+        simTitle.textContent = "Sublime Text — hello.html";
+        simHint.textContent = "編輯模式：可修改文字並按 Ctrl+S 存檔";
+      } else {
+        btnWeb.classList.add("active");
+        btnCode.classList.remove("active");
+        simCode.style.display = "none";
+        simWeb.style.display = "block";
+        simTitle.textContent = "Chrome 瀏覽器 — file:///.../hello.html";
+        simHint.textContent = "觀看模式：按 F5 可更新剛剛存檔的修改";
+      }
+    }
+
+    function copyStarter(btn) {
+      const wrap = document.getElementById("starterCode");
+      const clone = wrap.cloneNode(true);
+      const b = clone.querySelector(".copy-btn");
+      if (b) b.remove();
+      navigator.clipboard.writeText(clone.textContent.trim()).then(() => {
+        const old = btn.textContent;
+        btn.textContent = "已複製！";
+        setTimeout(() => (btn.textContent = old), 1400);
+      });
+    }
+  </script>
+</body>
+</html>
