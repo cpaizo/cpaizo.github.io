@@ -1,0 +1,1779 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>3D 珍奶大亨：台灣手搖飲物語</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Three.js r128 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- 引入圓體中文字型 -->
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #2C1E16;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* 玻璃擬態質感 (Glassmorphism) */
+        .glass-panel {
+            background: rgba(255, 250, 242, 0.84);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.75);
+            box-shadow: 0 8px 32px rgba(62, 39, 35, 0.18);
+        }
+
+        .glass-dark {
+            background: rgba(62, 39, 35, 0.78);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1.5px solid rgba(255, 232, 200, 0.35);
+        }
+
+        /* 軟糖按鈕效果 */
+        .btn-3d {
+            transition: all 0.14s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 3px 0 rgba(74, 53, 37, 0.25);
+        }
+        .btn-3d:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 rgba(74, 53, 37, 0.25);
+        }
+        .btn-3d:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        /* 訂單氣泡框動畫 */
+        @keyframes floatBubble {
+            0%, 100% { transform: translate(-50%, 0px); }
+            50% { transform: translate(-50%, -6px); }
+        }
+        .order-bubble {
+            animation: floatBubble 2.6s ease-in-out infinite;
+        }
+
+        @keyframes popScale {
+            0% { transform: scale(0.7); opacity: 0; }
+            80% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop {
+            animation: popScale 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        @keyframes floatMoney {
+            0% { transform: translate(-50%, 0) scale(0.8); opacity: 1; }
+            100% { transform: translate(-50%, -75px) scale(1.25); opacity: 0; }
+        }
+        .floating-money {
+            animation: floatMoney 1.2s ease-out forwards;
+            pointer-events: none;
+        }
+
+        /* 自訂捲軸 */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: rgba(245, 230, 211, 0.5); border-radius: 8px; }
+        ::-webkit-scrollbar-thumb { background: #D4A373; border-radius: 8px; }
+    </style>
+</head>
+<body class="w-screen h-screen relative">
+
+    <!-- 全螢幕 3D 渲染畫布 -->
+    <canvas id="game-canvas" class="block w-full h-full cursor-grab active:cursor-grabbing"></canvas>
+
+    <!-- 頂部玻璃擬態狀態列 -->
+    <header class="fixed top-2 sm:top-3 inset-x-2 sm:inset-x-4 z-20 pointer-events-none">
+        <div class="max-w-7xl mx-auto glass-panel rounded-2xl sm:rounded-3xl px-3 py-2 sm:px-5 sm:py-2.5 flex flex-wrap items-center justify-between gap-2 pointer-events-auto">
+            <!-- 店鋪標題與等級 -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-[#FF9F43] to-[#EE5253] flex items-center justify-center text-xl sm:text-2xl shadow-md text-white">
+                    🧋
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="font-black text-sm sm:text-lg text-[#4A3525] tracking-wide">3D 珍奶大亨：手搖飲物語</h1>
+                        <span id="shop-level-badge" class="hidden md:inline-block bg-[#FFE8C8] text-[#8C5A3C] text-xs font-black px-2.5 py-0.5 rounded-full border border-[#E6C29F]">Lv.1 巷口文青攤</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-[11px] sm:text-xs font-bold text-[#7F5539]">
+                        <span>⭐ 服務客數: <strong id="stat-served" class="text-[#D35400]">0</strong></span>
+                        <span>📈 總營業額: $<strong id="stat-revenue" class="text-[#D35400]">0</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右側金幣、視角與功能按鈕 -->
+            <div class="flex items-center gap-1.5 sm:gap-2.5">
+                <!-- 金幣顯示 -->
+                <div class="bg-white/90 border-2 border-[#F5B041] px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-2xl flex items-center gap-1.5 shadow-xs">
+                    <span class="text-base sm:text-lg">💰</span>
+                    <span id="money-display" class="font-black text-sm sm:text-lg text-[#D35400]">120</span>
+                </div>
+
+                <!-- 原料與設備商店 -->
+                <button onclick="toggleShopModal(true)" class="btn-3d bg-gradient-to-r from-[#FF7675] to-[#FF9F43] text-white font-black px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl text-xs sm:text-sm flex items-center gap-1.5 border border-white/60 relative">
+                    <span>🏪</span>
+                    <span>原料商店</span>
+                    <span id="shop-new-badge" class="hidden -top-1.5 -right-1.5 absolute bg-yellow-300 text-[#4A3525] text-[10px] px-1.5 py-0.2 rounded-full font-black border border-[#4A3525] animate-bounce">NEW</span>
+                </button>
+
+                <!-- 視角重置按鈕 -->
+                <button onclick="resetCameraView()" class="btn-3d bg-white/90 hover:bg-white text-[#5C3A21] font-bold p-2 rounded-2xl text-xs sm:text-sm border border-[#E6C29F]" title="重置 3D 鏡頭視角">
+                    🎥
+                </button>
+
+                <!-- 音效開關 -->
+                <button id="sound-toggle-btn" onclick="toggleSound()" class="btn-3d bg-white/90 hover:bg-white text-[#5C3A21] font-bold p-2 rounded-2xl text-xs sm:text-sm border border-[#E6C29F]" title="切換音效">
+                    🔊
+                </button>
+
+                <!-- 重置存檔 -->
+                <button onclick="openResetModal()" class="btn-3d bg-white/90 hover:bg-white text-[#5C3A21] font-bold p-2 rounded-2xl text-xs sm:text-sm border border-[#E6C29F]" title="重新開始">
+                    🔄
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 浮動提示訊息容器 (取代 alert) -->
+    <div id="toast-container" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none flex flex-col items-center gap-1.5 w-11/12 max-w-md"></div>
+
+    <!-- 3D 客人頭頂訂單氣泡框 (動態定位跟隨 3D 角色) -->
+    <div id="customer-order-hud" class="hidden fixed z-10 pointer-events-none order-bubble w-64 sm:w-72 transition-opacity duration-300" style="left: 50%; top: 15%;">
+        <div class="glass-panel rounded-3xl p-3 sm:p-3.5 border-2 border-[#FF9F43] shadow-xl relative">
+            <div class="flex justify-between items-center border-b border-[#E6C29F]/60 pb-1.5 mb-1.5">
+                <span id="hud-customer-name" class="text-xs font-black text-[#D35400]">💬 客人點餐</span>
+                <span id="hud-order-price" class="text-[11px] font-black bg-[#FFF3E0] text-[#D35400] px-2 py-0.5 rounded-full border border-[#F5B041]">💰 $50+</span>
+            </div>
+
+            <!-- 飲料與小料 -->
+            <div class="text-center">
+                <div id="hud-drink-name" class="text-base sm:text-lg font-black text-[#4A3525]">🧋 招牌錫蘭奶茶</div>
+                <div id="hud-toppings-list" class="mt-1 flex flex-wrap justify-center gap-1">
+                    <!-- 動態填入小料標籤 -->
+                </div>
+            </div>
+
+            <!-- 甜度與冰塊 -->
+            <div class="mt-2 pt-1.5 border-t border-[#E6C29F]/50 flex justify-center gap-1.5">
+                <span id="hud-sugar" class="bg-[#FADBD8] text-[#922B21] text-[11px] font-black px-2.5 py-0.5 rounded-xl">🍬 全糖</span>
+                <span id="hud-ice" class="bg-[#D6EAF8] text-[#1B4F72] text-[11px] font-black px-2.5 py-0.5 rounded-xl">🧊 正常冰</span>
+            </div>
+
+            <!-- 客人耐心條 -->
+            <div class="mt-2 w-full bg-white/80 h-2.5 rounded-full overflow-hidden p-0.5 border border-[#E6C29F]">
+                <div id="hud-patience-bar" class="h-full bg-[#2ECC71] rounded-full transition-all duration-150" style="width: 100%;"></div>
+            </div>
+
+            <!-- 氣泡下方小三角 -->
+            <div class="w-3.5 h-3.5 bg-[#FFFAF2] border-r-2 border-b-2 border-[#FF9F43] transform rotate-45 absolute -bottom-2 left-1/2 -translate-x-1/2"></div>
+        </div>
+    </div>
+
+    <!-- 漂浮獎勵特效層 -->
+    <div id="floating-effects-layer" class="fixed inset-0 pointer-events-none z-30"></div>
+
+    <!-- 底部玻璃擬態手搖飲製作工作台 HUD -->
+    <footer class="fixed bottom-2 sm:bottom-3 inset-x-2 sm:inset-x-4 z-20 pointer-events-none">
+        <div class="max-w-6xl mx-auto glass-panel rounded-3xl p-2.5 sm:p-3.5 pointer-events-auto">
+            
+            <!-- 頂部狀態列：當前杯中配方預覽 + 操作指示 -->
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-2 mb-2 border-b border-[#E6C29F]/60">
+                <div class="flex items-center gap-1.5 flex-wrap" id="workspace-recipe-tags">
+                    <span class="text-xs font-black text-[#8C5A3C] bg-white/70 px-2.5 py-1 rounded-xl">👉 請先點擊「拿取新杯子」開始製作</span>
+                </div>
+                <div class="text-[11px] font-bold text-[#8C5A3C] hidden sm:block">
+                    🖱️ 拖曳畫面可微調 3D 吧台視角
+                </div>
+            </div>
+
+            <!-- 五大製作步驟橫向／響應式網格控制區 -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-2 sm:gap-2.5 items-stretch">
+                
+                <!-- 步驟 1 & 出餐動作 (佔 3 欄) -->
+                <div class="md:col-span-3 flex flex-row md:flex-col gap-1.5 justify-between">
+                    <button id="btn-take-cup" onclick="takeCup()" class="btn-3d flex-1 bg-[#FFD166] hover:bg-[#ffc642] text-[#4A3525] font-black py-2 px-3 rounded-2xl text-xs sm:text-sm border-2 border-[#E0A82E] flex items-center justify-center gap-1.5">
+                        <span>🥤</span> <span>1. 拿取新杯子</span>
+                    </button>
+                    <div class="flex gap-1.5 flex-1">
+                        <button onclick="trashDrink()" class="btn-3d bg-[#FFEAA7] hover:bg-[#ffe07d] text-[#636E72] font-black py-2 px-2.5 rounded-2xl text-xs border-2 border-[#FDCB6E] flex items-center justify-center" title="倒掉重做 (-$5)">
+                            🗑️ 重做
+                        </button>
+                        <button id="btn-serve" onclick="serveDrink()" class="btn-3d flex-1 bg-[#00B894] hover:bg-[#00a383] text-white font-black py-2 px-3 rounded-2xl text-xs sm:text-sm border-2 border-[#00896F] flex items-center justify-center gap-1 shadow-sm">
+                            <span>✨</span> <span>封膜出餐</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 步驟 2：基底茶選擇 (佔 4 欄) -->
+                <div class="md:col-span-4 bg-white/60 rounded-2xl p-2 border border-[#E6C29F]/70 flex flex-col justify-between">
+                    <div class="text-[11px] font-black text-[#7F5539] mb-1 flex justify-between">
+                        <span>2. 注入基底飲品</span>
+                        <span id="unlocked-drink-count" class="text-[#D35400]"></span>
+                    </div>
+                    <div id="drinks-btn-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-1 max-h-[76px] overflow-y-auto pr-0.5">
+                        <!-- JS 動態生成 -->
+                    </div>
+                </div>
+
+                <!-- 步驟 3：小料添加 (佔 3 欄) -->
+                <div class="md:col-span-3 bg-white/60 rounded-2xl p-2 border border-[#E6C29F]/70 flex flex-col justify-between">
+                    <div class="text-[11px] font-black text-[#7F5539] mb-1 flex justify-between">
+                        <span>3. 加入小料 (0~2種)</span>
+                        <span id="topping-count-badge" class="text-[#D35400]">0/2</span>
+                    </div>
+                    <div id="toppings-btn-grid" class="grid grid-cols-2 gap-1 max-h-[76px] overflow-y-auto pr-0.5">
+                        <!-- JS 動態生成 -->
+                    </div>
+                </div>
+
+                <!-- 步驟 4 & 5：甜度與冰塊 (佔 2 欄) -->
+                <div class="md:col-span-2 bg-white/60 rounded-2xl p-2 border border-[#E6C29F]/70 flex flex-col justify-between gap-1">
+                    <div>
+                        <div class="text-[10px] font-black text-[#7F5539] mb-0.5">4. 甜度</div>
+                        <div id="sugar-btn-grid" class="grid grid-cols-5 md:grid-cols-3 gap-0.5">
+                            <!-- JS 動態生成 -->
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] font-black text-[#7F5539] mb-0.5">5. 冰塊</div>
+                        <div id="ice-btn-grid" class="grid grid-cols-4 md:grid-cols-2 gap-0.5">
+                            <!-- JS 動態生成 -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </footer>
+
+    <!-- 原料與設備商店彈窗 -->
+    <div id="shop-modal" class="hidden fixed inset-0 bg-black/55 backdrop-blur-xs z-40 flex items-center justify-center p-3 sm:p-5">
+        <div class="bg-[#FFF8EE] border-4 border-[#E6C29F] rounded-3xl max-w-3xl w-full max-h-[86vh] flex flex-col shadow-2xl animate-pop">
+            <!-- 商店標題列 -->
+            <div class="bg-[#FFE8C8] px-4 py-3.5 sm:px-6 sm:py-4 rounded-t-2xl border-b-2 border-[#E6C29F] flex justify-between items-center">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-2xl sm:text-3xl">🏪</span>
+                    <div>
+                        <h2 class="font-black text-base sm:text-xl text-[#4A3525]">原料批發與店鋪設備中心</h2>
+                        <p class="text-[11px] sm:text-xs text-[#8C5A3C]">解鎖更多台灣經典飲品、配料與店面升級，提升客單價與小費！</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2.5">
+                    <div class="bg-white border-2 border-[#F5B041] px-3 py-1 rounded-xl font-black text-[#D35400] text-xs sm:text-sm">
+                        💰 <span id="modal-money-display">120</span>
+                    </div>
+                    <button onclick="toggleShopModal(false)" class="btn-3d bg-[#FF7675] text-white w-8 h-8 rounded-full font-black flex items-center justify-center border-2 border-[#D63031]">
+                        ✕
+                    </button>
+                </div>
+            </div>
+
+            <!-- 商店分類標籤 -->
+            <div class="flex gap-1.5 px-4 pt-3 bg-[#FFF1DC] overflow-x-auto">
+                <button onclick="switchShopTab('drinks')" id="tab-drinks" class="px-3.5 py-2 rounded-t-xl font-black text-xs sm:text-sm bg-[#FFF8EE] text-[#4A3525] border-t-2 border-x-2 border-[#E6C29F] shrink-0">
+                    🍹 基底茶飲
+                </button>
+                <button onclick="switchShopTab('toppings')" id="tab-toppings" class="px-3.5 py-2 rounded-t-xl font-bold text-xs sm:text-sm bg-[#F5E6D3] text-[#8C5A3C] shrink-0">
+                    🧋 豪華小料
+                </button>
+                <button onclick="switchShopTab('upgrades')" id="tab-upgrades" class="px-3.5 py-2 rounded-t-xl font-bold text-xs sm:text-sm bg-[#F5E6D3] text-[#8C5A3C] shrink-0">
+                    ⚡ 設備與裝潢
+                </button>
+            </div>
+
+            <!-- 商品列表容器 -->
+            <div id="shop-items-container" class="p-4 sm:p-5 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
+                <!-- JS 動態生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 重置遊戲確認視窗 (取代 confirm) -->
+    <div id="reset-modal" class="hidden fixed inset-0 bg-black/55 z-50 flex items-center justify-center p-4">
+        <div class="bg-white border-4 border-[#E6C29F] rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl animate-pop">
+            <div class="text-4xl mb-2">⚠️</div>
+            <h3 class="font-black text-xl text-[#4A3525] mb-2">確定要重置遊戲進度嗎？</h3>
+            <p class="text-xs sm:text-sm text-[#8C5A3C] mb-5">所有的金幣、已解鎖的飲料配方、小料與店鋪裝潢將會全部清空並重新開始！</p>
+            <div class="flex gap-3">
+                <button onclick="closeResetModal()" class="btn-3d flex-1 bg-gray-200 text-gray-700 font-bold py-2.5 rounded-xl">取消</button>
+                <button onclick="confirmResetGame()" class="btn-3d flex-1 bg-[#FF7675] text-white font-bold py-2.5 rounded-xl border-2 border-[#D63031]">確定重置</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ============================================================================
+           1. 遊戲資料庫設定 (飲料基底、小料、甜度、冰塊、店鋪設備升級)
+           ============================================================================ */
+        const DRINKS_DB = [
+            { id: 'ceylon_black', name: '錫蘭紅茶', price: 35, unlockCost: 0, hex: 0x9E3B0E, cssColor: '#9E3B0E', emoji: '🍷', desc: '茶湯紅豔、香氣飽滿的經典紅茶' },
+            { id: 'jasmine_green', name: '茉莉綠茶', price: 35, unlockCost: 0, hex: 0xD4B82A, cssColor: '#D4B82A', emoji: '🍵', desc: '清香回甘的台灣茉莉燻花綠茶' },
+            { id: 'signature_milk', name: '招牌奶茶', price: 50, unlockCost: 0, hex: 0xC99A6B, cssColor: '#C99A6B', emoji: '🧋', desc: '濃郁奶香與錫蘭紅茶的黃金比例' },
+            { id: 'four_seasons', name: '四季春青茶', price: 45, unlockCost: 120, hex: 0x9AB83B, cssColor: '#9AB83B', emoji: '🍃', desc: '台灣南投名茶，自帶清雅蘭花香' },
+            { id: 'brown_sugar_milk', name: '黑糖鮮奶', price: 70, unlockCost: 240, hex: 0x6E3513, cssColor: '#6E3513', emoji: '🥛', desc: '手炒古早味黑糖搭配香醇鮮乳' },
+            { id: 'uji_matcha', name: '宇治抹茶拿鐵', price: 80, unlockCost: 380, hex: 0x5C8D3E, cssColor: '#5C8D3E', emoji: '🌿', desc: '日本靜岡抹茶粉融合綿密鮮奶' },
+            { id: 'taro_milk', name: '大甲芋頭鮮奶', price: 85, unlockCost: 520, hex: 0xB89FD1, cssColor: '#B89FD1', emoji: '🍠', desc: '綿密大甲芋泥與濃純鮮奶絕配' },
+            { id: 'mango_smoothie', name: '愛文芒果冰沙', price: 90, unlockCost: 680, hex: 0xFF9F1C, cssColor: '#FF9F1C', emoji: '🥭', desc: '夏日必喝！香甜濃郁愛文芒果' }
+        ];
+
+        const TOPPINGS_DB = [
+            { id: 'boba', name: '黑糖珍珠', price: 10, unlockCost: 0, type: 'boba', emoji: '⚫', desc: '每日現煮Q彈黑糖波霸珍珠' },
+            { id: 'coconut', name: '椰果', price: 10, unlockCost: 100, type: 'coconut', emoji: '⬜', desc: '清爽脆口的半透明香甜椰果' },
+            { id: 'pudding', name: '焦糖布丁', price: 15, unlockCost: 200, type: 'pudding', emoji: '🍮', desc: '一整顆滑嫩香濃統一布丁' },
+            { id: 'grass_jelly', name: '嫩仙草凍', price: 15, unlockCost: 320, type: 'grass_jelly', emoji: '⬛', desc: '清涼退火的古早味滑溜仙草' },
+            { id: 'agar_pearl', name: '寒天晶球', price: 15, unlockCost: 440, type: 'agar_pearl', emoji: '⚪', desc: '低卡爽脆的透明寒天晶球' },
+            { id: 'cheese_foam', name: '海鹽奶蓋', price: 20, unlockCost: 580, type: 'cheese_foam', emoji: '☁️', desc: '頂層厚實綿密的微鹹起司奶蓋' }
+        ];
+
+        const SUGAR_OPTIONS = [
+            { id: 'zero', name: '無糖' },
+            { id: 'micro', name: '微糖' },
+            { id: 'half', name: '半糖' },
+            { id: 'less', name: '少糖' },
+            { id: 'full', name: '全糖' }
+        ];
+
+        const ICE_OPTIONS = [
+            { id: 'free', name: '去冰' },
+            { id: 'micro', name: '微冰' },
+            { id: 'less', name: '少冰' },
+            { id: 'regular', name: '正常冰' }
+        ];
+
+        const UPGRADES_DB = [
+            { id: 'sealer_1', name: '高速自動封口機', cost: 160, type: 'patience', value: 6, desc: '出餐效率提升，客人等待耐心 +6 秒' },
+            { id: 'tip_1', name: '文青木質招牌燈箱', cost: 240, type: 'tip', value: 0.15, desc: '店面質感大升級，小費加成 +15%' },
+            { id: 'decor_1', name: '招財貓與綠植擺設', cost: 360, type: 'decor', value: 1, desc: '在 3D 吧台擺上可愛招財貓與療癒盆栽，小費 +10%' },
+            { id: 'sealer_2', name: '變頻冷氣與候位椅', cost: 500, type: 'patience', value: 9, desc: '店內涼爽舒適，客人等待耐心再 +9 秒' },
+            { id: 'tip_2', name: '米其林手搖飲推薦獎牌', cost: 720, type: 'tip', value: 0.25, desc: '榮獲美食評鑑肯定，小費加成再 +25%' }
+        ];
+
+        const CUSTOMER_PROFILES = [
+            { name: '女高中生小美', skin: 0xFFE0BD, shirt: 0xFF7675, hair: 0x2D3436, hat: 'ribbon' },
+            { name: '工程師阿宅', skin: 0xF5CBA7, shirt: 0x0984E3, hair: 0x1E272E, hat: 'glasses' },
+            { name: '觀光客艾蜜莉', skin: 0xFFF0DB, shirt: 0xFDCB6E, hair: 0xE1B12C, hat: 'sunhat' },
+            { name: '健身教練巨巨', skin: 0xE0AC69, shirt: 0x00B894, hair: 0x2C3A47, hat: 'none' },
+            { name: '愛貓文青少女', skin: 0xFFE5D9, shirt: 0xA29BFE, hair: 0x6D4C41, hat: 'beret' },
+            { name: '外送員大叔', skin: 0xE5B887, shirt: 0xFF9F43, hair: 0x3D3D3D, hat: 'cap' }
+        ];
+
+        /* ============================================================================
+           2. 遊戲狀態管理與自動存檔 (localStorage)
+           ============================================================================ */
+        const SAVE_KEY = 'tw_3d_boba_tycoon_v1';
+        const DEFAULT_STATE = {
+            money: 120,
+            servedCount: 0,
+            totalRevenue: 0,
+            unlockedDrinks: ['ceylon_black', 'jasmine_green', 'signature_milk'],
+            unlockedToppings: ['boba'],
+            purchasedUpgrades: [],
+            soundEnabled: true
+        };
+
+        let gameState = { ...DEFAULT_STATE };
+        let currentShopTab = 'drinks';
+
+        // 當前工作台飲料製作狀態
+        let workspace = {
+            hasCup: false,
+            drinkId: null,
+            toppings: [], // 0~2 種
+            sugarId: 'full',
+            iceId: 'regular',
+            isSealed: false,
+            isFlyingOut: false
+        };
+
+        function loadGame() {
+            try {
+                const raw = localStorage.getItem(SAVE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    gameState = { ...DEFAULT_STATE, ...parsed };
+                }
+            } catch (e) {
+                console.warn('讀取存檔失敗:', e);
+            }
+        }
+
+        function saveGame() {
+            try {
+                localStorage.setItem(SAVE_KEY, JSON.stringify(gameState));
+            } catch (e) {
+                console.warn('存檔失敗:', e);
+            }
+        }
+
+        /* ============================================================================
+           3. Web Audio API 音效合成器
+           ============================================================================ */
+        const SoundFX = {
+            ctx: null,
+            ensureContext() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioCtx();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+            tone(freq, type, dur, vol = 0.14, delay = 0) {
+                if (!gameState.soundEnabled) return;
+                this.ensureContext();
+                const t = this.ctx.currentTime + delay;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, t);
+                gain.gain.setValueAtTime(vol, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(t);
+                osc.stop(t + dur);
+            },
+            click() {
+                this.tone(540, 'sine', 0.08, 0.12);
+            },
+            pour() {
+                // 模擬倒水氣泡聲
+                for (let i = 0; i < 4; i++) {
+                    this.tone(280 + i * 65, 'triangle', 0.12, 0.12, i * 0.06);
+                }
+            },
+            topping() {
+                this.tone(360, 'sine', 0.07, 0.15, 0);
+                this.tone(640, 'sine', 0.11, 0.15, 0.05);
+            },
+            seal() {
+                // 封口機壓合聲
+                this.tone(180, 'square', 0.12, 0.1, 0);
+                this.tone(720, 'sine', 0.15, 0.14, 0.1);
+            },
+            cash() {
+                // 收銀機叮咚聲
+                this.tone(987.77, 'sine', 0.16, 0.18, 0);
+                this.tone(1318.51, 'sine', 0.36, 0.2, 0.11);
+            },
+            error() {
+                this.tone(210, 'sawtooth', 0.14, 0.12, 0);
+                this.tone(155, 'sawtooth', 0.24, 0.12, 0.12);
+            },
+            doorbell() {
+                this.tone(659.25, 'triangle', 0.2, 0.11, 0);
+                this.tone(523.25, 'triangle', 0.28, 0.11, 0.16);
+            }
+        };
+
+        function toggleSound() {
+            gameState.soundEnabled = !gameState.soundEnabled;
+            saveGame();
+            updateTopHUD();
+            if (gameState.soundEnabled) SoundFX.click();
+        }
+
+        /* ============================================================================
+           4. Three.js 3D 場景建構與動態物件管理
+           ============================================================================ */
+        let scene, camera, renderer;
+        let cupGroup, liquidMesh, foamMesh, lidMesh, strawMesh;
+        let toppingsGroup3D, iceGroup3D;
+        let decorGroup3D;
+        let liquidTargetScaleY = 0.001;
+        let liquidCurrentScaleY = 0.001;
+        let cupBounceVel = 0;
+
+        // 鏡頭控制變數
+        const defaultCamPos = new THREE.Vector3(0, 4.3, 6.8);
+        const defaultCamLookAt = new THREE.Vector3(0, 1.85, -0.5);
+        let camAngleOffset = { x: 0, y: 0 };
+        let isDraggingCam = false;
+        let prevPointer = { x: 0, y: 0 };
+
+        // 3D 客人排隊系統
+        let activeCustomers3D = []; // 最多2位在場（1位點餐中，1位後方排隊）
+        let spawnCooldown = 0;
+
+        function initThreeScene() {
+            const canvas = document.getElementById('game-canvas');
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xFDEBD0);
+            scene.fog = new THREE.FogExp2(0xFDEBD0, 0.032);
+
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.copy(defaultCamPos);
+            camera.lookAt(defaultCamLookAt);
+
+            renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            setupLights();
+            buildShopEnvironment();
+            build3DBobaCup();
+            updateShopDecor3D();
+            setupCameraDragEvents(canvas);
+
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function setupLights() {
+            // 柔和暖色環境光
+            const hemiLight = new THREE.HemisphereLight(0xFFF8EE, 0xD4A373, 0.85);
+            hemiLight.position.set(0, 10, 0);
+            scene.add(hemiLight);
+
+            // 主暖白平行光 (產生柔和陰影)
+            const dirLight = new THREE.DirectionalLight(0xFFF3E0, 0.85);
+            dirLight.position.set(4, 9, 6);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 1024;
+            dirLight.shadow.mapSize.height = 1024;
+            dirLight.shadow.camera.near = 1;
+            dirLight.shadow.camera.far = 25;
+            const d = 7;
+            dirLight.shadow.camera.left = -d;
+            dirLight.shadow.camera.right = d;
+            dirLight.shadow.camera.top = d;
+            dirLight.shadow.camera.bottom = -d;
+            scene.add(dirLight);
+
+            // 吧台上方暖黃吊燈點光源
+            const warmPoint = new THREE.PointLight(0xFFB74D, 0.7, 12);
+            warmPoint.position.set(0, 4.5, 1.5);
+            scene.add(warmPoint);
+        }
+
+        function buildShopEnvironment() {
+            // 1. 地板
+            const floorGeo = new THREE.PlaneGeometry(30, 30);
+            const floorMat = new THREE.MeshStandardMaterial({ color: 0xEED6B8, roughness: 0.85 });
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
+            scene.add(floor);
+
+            // 2. 後方文青淺米色牆面與木條裝飾
+            const backWall = new THREE.Mesh(
+                new THREE.BoxGeometry(22, 10, 0.4),
+                new THREE.MeshStandardMaterial({ color: 0xFFF6E9, roughness: 0.9 })
+            );
+            backWall.position.set(0, 5, -5.5);
+            backWall.receiveShadow = true;
+            scene.add(backWall);
+
+            // 牆上日系手搖店招牌看板
+            const signBoard = new THREE.Mesh(
+                new THREE.BoxGeometry(4.4, 1.1, 0.15),
+                new THREE.MeshStandardMaterial({ color: 0x6F4E37, roughness: 0.6 })
+            );
+            signBoard.position.set(0, 4.8, -5.2);
+            scene.add(signBoard);
+
+            const signInner = new THREE.Mesh(
+                new THREE.BoxGeometry(4.1, 0.85, 0.18),
+                new THREE.MeshStandardMaterial({ color: 0xFFE8C8, roughness: 0.5 })
+            );
+            signInner.position.set(0, 4.8, -5.2);
+            scene.add(signInner);
+
+            // 3. 溫暖木質主吧台 (位於 Z = 1.6，高度 1.4)
+            const counterBase = new THREE.Mesh(
+                new THREE.BoxGeometry(8.5, 1.35, 1.8),
+                new THREE.MeshStandardMaterial({ color: 0xC68B59, roughness: 0.7 })
+            );
+            counterBase.position.set(0, 0.675, 1.6);
+            counterBase.castShadow = true;
+            counterBase.receiveShadow = true;
+            scene.add(counterBase);
+
+            // 吧台白色大理石/淺木桌面
+            const counterTop = new THREE.Mesh(
+                new THREE.BoxGeometry(8.8, 0.14, 2.05),
+                new THREE.MeshStandardMaterial({ color: 0xFFFDF9, roughness: 0.35 })
+            );
+            counterTop.position.set(0, 1.42, 1.6);
+            counterTop.castShadow = true;
+            counterTop.receiveShadow = true;
+            scene.add(counterTop);
+
+            // 4. 吧台右側自動封口機模型
+            const sealerGroup = new THREE.Group();
+            const sealerBody = new THREE.Mesh(
+                new THREE.BoxGeometry(0.85, 1.1, 0.85),
+                new THREE.MeshStandardMaterial({ color: 0xFF9F43, roughness: 0.4 })
+            );
+            sealerBody.position.y = 0.55;
+            sealerBody.castShadow = true;
+            sealerGroup.add(sealerBody);
+
+            const sealerRoll = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.18, 0.18, 0.75, 16),
+                new THREE.MeshStandardMaterial({ color: 0xFFF3E0 })
+            );
+            sealerRoll.rotation.z = Math.PI / 2;
+            sealerRoll.position.set(0, 1.15, 0.1);
+            sealerGroup.add(sealerRoll);
+
+            sealerGroup.position.set(2.3, 1.49, 1.5);
+            scene.add(sealerGroup);
+
+            // 5. 吧台左側配料罐群 (珍珠罐、椰果罐、布丁罐)
+            const jarColors = [0x3E2723, 0xF8F9F9, 0xF7DC6F, 0x1C2833];
+            jarColors.forEach((col, idx) => {
+                const jar = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.24, 0.24, 0.55, 16),
+                    new THREE.MeshStandardMaterial({ color: col, roughness: 0.3 })
+                );
+                jar.position.set(-2.6 + idx * 0.58, 1.76, 1.45);
+                jar.castShadow = true;
+                scene.add(jar);
+
+                const jarLid = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.26, 0.26, 0.08, 16),
+                    new THREE.MeshStandardMaterial({ color: 0xD35400 })
+                );
+                jarLid.position.set(-2.6 + idx * 0.58, 2.06, 1.45);
+                scene.add(jarLid);
+            });
+
+            // 6. 吧台前方溫馨遮陽棚柱子
+            const pillarMat = new THREE.MeshStandardMaterial({ color: 0x8C5A3C });
+            const leftPillar = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 4.5, 12), pillarMat);
+            leftPillar.position.set(-4.1, 2.25, 1.6);
+            scene.add(leftPillar);
+
+            const rightPillar = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 4.5, 12), pillarMat);
+            rightPillar.position.set(4.1, 2.25, 1.6);
+            scene.add(rightPillar);
+
+            // 頂部條紋遮陽棚
+            for (let i = -8; i <= 8; i++) {
+                const stripe = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.5, 0.25, 1.4),
+                    new THREE.MeshStandardMaterial({ color: i % 2 === 0 ? 0xFF9F43 : 0xFFFDF9 })
+                );
+                stripe.position.set(i * 0.5, 4.4, 1.4);
+                stripe.rotation.x = 0.25;
+                scene.add(stripe);
+            }
+
+            // 裝飾物件容器 (商店升級後解鎖)
+            decorGroup3D = new THREE.Group();
+            scene.add(decorGroup3D);
+        }
+
+        function updateShopDecor3D() {
+            if (!decorGroup3D) return;
+            while (decorGroup3D.children.length > 0) {
+                decorGroup3D.remove(decorGroup3D.children[0]);
+            }
+
+            // 若購買「招財貓與綠植擺設」
+            if (gameState.purchasedUpgrades.includes('decor_1')) {
+                // 可愛金色招財貓
+                const catGroup = new THREE.Group();
+                const body = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.22, 0.28, 0.5, 16),
+                    new THREE.MeshStandardMaterial({ color: 0xFFD166, roughness: 0.3 })
+                );
+                body.position.y = 0.25;
+                catGroup.add(body);
+
+                const head = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.24, 16, 16),
+                    new THREE.MeshStandardMaterial({ color: 0xFFD166, roughness: 0.3 })
+                );
+                head.position.y = 0.58;
+                catGroup.add(head);
+
+                // 貓耳朵
+                const earGeo = new THREE.ConeGeometry(0.08, 0.16, 4);
+                const earMat = new THREE.MeshStandardMaterial({ color: 0xFF7675 });
+                const earL = new THREE.Mesh(earGeo, earMat);
+                earL.position.set(-0.13, 0.78, 0);
+                const earR = new THREE.Mesh(earGeo, earMat);
+                earR.position.set(0.13, 0.78, 0);
+                catGroup.add(earL, earR);
+
+                catGroup.position.set(1.4, 1.49, 1.8);
+                decorGroup3D.add(catGroup);
+
+                // 療癒小盆栽
+                const pot = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.2, 0.15, 0.28, 12),
+                    new THREE.MeshStandardMaterial({ color: 0xE17055 })
+                );
+                pot.position.set(-1.35, 1.63, 1.85);
+                decorGroup3D.add(pot);
+
+                const plant = new THREE.Mesh(
+                    new THREE.DodecahedronGeometry(0.25),
+                    new THREE.MeshStandardMaterial({ color: 0x2ECC71 })
+                );
+                plant.position.set(-1.35, 1.88, 1.85);
+                decorGroup3D.add(plant);
+            }
+        }
+
+        /* ============================================================================
+           5. 3D 透明手搖杯與配料即時組裝系統
+           ============================================================================ */
+        function build3DBobaCup() {
+            cupGroup = new THREE.Group();
+            // 吧台桌面高度為 1.49
+            cupGroup.position.set(0, 1.49, 1.75);
+            scene.add(cupGroup);
+
+            // 1. 透明塑膠杯身 (上寬下窄圓台)
+            const cupHeight = 1.45;
+            const cupGeo = new THREE.CylinderGeometry(0.48, 0.34, cupHeight, 28, 1, true);
+            const cupMat = new THREE.MeshPhysicalMaterial({
+                color: 0xFFFFFF,
+                transparent: true,
+                opacity: 0.32,
+                roughness: 0.1,
+                metalness: 0.05,
+                side: THREE.DoubleSide,
+                depthWrite: false
+            });
+            const cupShell = new THREE.Mesh(cupGeo, cupMat);
+            cupShell.position.y = cupHeight / 2;
+            cupGroup.add(cupShell);
+
+            // 杯底圓盤
+            const bottomGeo = new THREE.CircleGeometry(0.34, 24);
+            const bottomMesh = new THREE.Mesh(bottomGeo, cupMat);
+            bottomMesh.rotation.x = -Math.PI / 2;
+            bottomMesh.position.y = 0.01;
+            cupGroup.add(bottomMesh);
+
+            // 杯口白邊環
+            const rimGeo = new THREE.TorusGeometry(0.48, 0.022, 12, 32);
+            const rimMat = new THREE.MeshStandardMaterial({ color: 0xFFFFFF });
+            const rimMesh = new THREE.Mesh(rimGeo, rimMat);
+            rimMesh.rotation.x = Math.PI / 2;
+            rimMesh.position.y = cupHeight;
+            cupGroup.add(rimMesh);
+
+            // 2. 動態液體層 (從底部向上縮放)
+            const liqHeight = 1.25;
+            const liqGeo = new THREE.CylinderGeometry(0.45, 0.325, liqHeight, 24);
+            // 將原點移至底部方便從下往上漲滿
+            liqGeo.translate(0, liqHeight / 2, 0);
+            const liqMat = new THREE.MeshStandardMaterial({
+                color: 0xC99A6B,
+                roughness: 0.25,
+                transparent: true,
+                opacity: 0.9
+            });
+            liquidMesh = new THREE.Mesh(liqGeo, liqMat);
+            liquidMesh.position.y = 0.02;
+            liquidMesh.scale.y = 0.001;
+            cupGroup.add(liquidMesh);
+
+            // 3. 海鹽奶蓋頂層 (預設隱藏)
+            const foamGeo = new THREE.CylinderGeometry(0.465, 0.445, 0.22, 24);
+            const foamMat = new THREE.MeshStandardMaterial({ color: 0xFFFDF9, roughness: 0.6 });
+            foamMesh = new THREE.Mesh(foamGeo, foamMat);
+            foamMesh.position.y = 1.26;
+            foamMesh.visible = false;
+            cupGroup.add(foamMesh);
+
+            // 4. 3D 小料容器 (珍珠、椰果、布丁、仙草、晶球)
+            toppingsGroup3D = new THREE.Group();
+            cupGroup.add(toppingsGroup3D);
+
+            // 5. 3D 冰塊容器
+            iceGroup3D = new THREE.Group();
+            cupGroup.add(iceGroup3D);
+
+            // 6. 封口膜與粗吸管 (封膜出餐時出現)
+            const lidGeo = new THREE.CylinderGeometry(0.495, 0.495, 0.03, 28);
+            const lidMat = new THREE.MeshStandardMaterial({ color: 0xFF9F43, roughness: 0.3 });
+            lidMesh = new THREE.Mesh(lidGeo, lidMat);
+            lidMesh.position.y = cupHeight + 0.015;
+            lidMesh.visible = false;
+            cupGroup.add(lidMesh);
+
+            const strawGeo = new THREE.CylinderGeometry(0.055, 0.055, 1.85, 16);
+            const strawMat = new THREE.MeshStandardMaterial({ color: 0xFF6B6B, roughness: 0.3 });
+            strawMesh = new THREE.Mesh(strawGeo, strawMat);
+            strawMesh.position.set(0.1, 1.15, 0);
+            strawMesh.rotation.z = -0.18;
+            strawMesh.visible = false;
+            cupGroup.add(strawMesh);
+
+            cupGroup.visible = false;
+        }
+
+        function sync3DCupVisuals() {
+            if (!cupGroup) return;
+
+            if (!workspace.hasCup) {
+                cupGroup.visible = false;
+                liquidTargetScaleY = 0.001;
+                liquidCurrentScaleY = 0.001;
+                return;
+            }
+
+            cupGroup.visible = true;
+            if (!workspace.isFlyingOut) {
+                cupGroup.position.set(0, 1.49, 1.75);
+                cupGroup.scale.set(1, 1, 1);
+            }
+
+            // 更新液體高度與顏色
+            if (workspace.drinkId) {
+                const drink = DRINKS_DB.find(d => d.id === workspace.drinkId);
+                liquidMesh.material.color.setHex(drink.hex);
+                liquidTargetScaleY = 1.0;
+            } else {
+                liquidTargetScaleY = 0.001;
+            }
+
+            // 更新封口膜與吸管
+            lidMesh.visible = workspace.isSealed;
+            strawMesh.visible = workspace.isSealed;
+
+            // 重建 3D 小料模型
+            while (toppingsGroup3D.children.length > 0) {
+                toppingsGroup3D.remove(toppingsGroup3D.children[0]);
+            }
+            foamMesh.visible = false;
+
+            workspace.toppings.forEach((tId, layerIdx) => {
+                const tInfo = TOPPINGS_DB.find(t => t.id === tId);
+                if (!tInfo) return;
+
+                if (tInfo.type === 'cheese_foam') {
+                    foamMesh.visible = true;
+                } else if (tInfo.type === 'boba' || tInfo.type === 'agar_pearl') {
+                    // 堆疊 22 顆立體球體
+                    const sphereGeo = new THREE.SphereGeometry(0.062, 10, 10);
+                    const sphereMat = new THREE.MeshStandardMaterial({
+                        color: tInfo.type === 'boba' ? 0x24140E : 0xF4F6F7,
+                        roughness: 0.2,
+                        transparent: tInfo.type === 'agar_pearl',
+                        opacity: tInfo.type === 'agar_pearl' ? 0.85 : 1.0
+                    });
+                    for (let i = 0; i < 22; i++) {
+                        const angle = (i * 137.5) * (Math.PI / 180);
+                        const r = 0.06 + (i % 4) * 0.055;
+                        const yBase = 0.08 + Math.floor(i / 8) * 0.1 + layerIdx * 0.14;
+                        const p = new THREE.Mesh(sphereGeo, sphereMat);
+                        p.position.set(Math.cos(angle) * r, yBase, Math.sin(angle) * r);
+                        toppingsGroup3D.add(p);
+                    }
+                } else if (tInfo.type === 'coconut' || tInfo.type === 'grass_jelly') {
+                    // 堆疊 14 塊立體方塊
+                    const boxGeo = new THREE.BoxGeometry(0.11, 0.09, 0.11);
+                    const boxMat = new THREE.MeshStandardMaterial({
+                        color: tInfo.type === 'coconut' ? 0xFFFFFF : 0x1B2631,
+                        roughness: 0.25,
+                        transparent: tInfo.type === 'coconut',
+                        opacity: tInfo.type === 'coconut' ? 0.85 : 0.95
+                    });
+                    for (let i = 0; i < 14; i++) {
+                        const angle = i * 1.1;
+                        const r = 0.07 + (i % 3) * 0.07;
+                        const yBase = 0.09 + Math.floor(i / 6) * 0.11 + layerIdx * 0.14;
+                        const cube = new THREE.Mesh(boxGeo, boxMat);
+                        cube.position.set(Math.cos(angle) * r, yBase, Math.sin(angle) * r);
+                        cube.rotation.set(Math.random(), Math.random(), Math.random());
+                        toppingsGroup3D.add(cube);
+                    }
+                } else if (tInfo.type === 'pudding') {
+                    // 整顆焦糖布丁圓台
+                    const pudGroup = new THREE.Group();
+                    const pudBody = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.18, 0.23, 0.22, 16),
+                        new THREE.MeshStandardMaterial({ color: 0xF7DC6F, roughness: 0.25 })
+                    );
+                    const caramelTop = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.175, 0.185, 0.05, 16),
+                        new THREE.MeshStandardMaterial({ color: 0x6E2C00, roughness: 0.2 })
+                    );
+                    caramelTop.position.y = 0.12;
+                    pudGroup.add(pudBody, caramelTop);
+                    pudGroup.position.set(0, 0.16 + layerIdx * 0.15, 0);
+                    toppingsGroup3D.add(pudGroup);
+                }
+            });
+
+            // 重建 3D 冰塊模型
+            while (iceGroup3D.children.length > 0) {
+                iceGroup3D.remove(iceGroup3D.children[0]);
+            }
+            let iceCount = 0;
+            if (workspace.iceId === 'regular') iceCount = 7;
+            else if (workspace.iceId === 'less') iceCount = 4;
+            else if (workspace.iceId === 'micro') iceCount = 2;
+
+            if (iceCount > 0) {
+                const iceGeo = new THREE.BoxGeometry(0.15, 0.15, 0.15);
+                const iceMat = new THREE.MeshPhysicalMaterial({
+                    color: 0xEBF5FB,
+                    transparent: true,
+                    opacity: 0.65,
+                    roughness: 0.1
+                });
+                for (let i = 0; i < iceCount; i++) {
+                    const angle = (i * 360 / iceCount) * (Math.PI / 180);
+                    const r = 0.14 + (i % 2) * 0.1;
+                    const ice = new THREE.Mesh(iceGeo, iceMat);
+                    ice.position.set(Math.cos(angle) * r, 1.05 + (i % 2) * 0.08, Math.sin(angle) * r);
+                    ice.rotation.set(i * 0.5, i * 0.8, i * 0.3);
+                    iceGroup3D.add(ice);
+                }
+            }
+        }
+
+        /* ============================================================================
+           6. 3D 可愛客人生成與排隊動畫系統
+           ============================================================================ */
+        function createCustomerMesh(profile) {
+            const group = new THREE.Group();
+
+            // 身體
+            const body = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.32, 0.42, 0.95, 16),
+                new THREE.MeshStandardMaterial({ color: profile.shirt, roughness: 0.6 })
+            );
+            body.position.y = 0.5;
+            body.castShadow = true;
+            group.add(body);
+
+            // 圓圓頭部
+            const head = new THREE.Mesh(
+                new THREE.SphereGeometry(0.38, 20, 20),
+                new THREE.MeshStandardMaterial({ color: profile.skin, roughness: 0.5 })
+            );
+            head.position.y = 1.28;
+            head.castShadow = true;
+            group.add(head);
+
+            // 頭髮後方/頂部
+            const hair = new THREE.Mesh(
+                new THREE.SphereGeometry(0.4, 20, 20, 0, Math.PI * 2, 0, Math.PI * 0.58),
+                new THREE.MeshStandardMaterial({ color: profile.hair, roughness: 0.7 })
+            );
+            hair.position.set(0, 1.31, -0.03);
+            hair.rotation.x = -0.15;
+            group.add(hair);
+
+            // 眼睛 (面對吧台 +Z 方向)
+            const eyeGeo = new THREE.SphereGeometry(0.042, 8, 8);
+            const eyeMat = new THREE.MeshBasicMaterial({ color: 0x2C1E16 });
+            const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
+            eyeL.position.set(-0.13, 1.28, 0.35);
+            const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
+            eyeR.position.set(0.13, 1.28, 0.35);
+            group.add(eyeL, eyeR);
+
+            // 腮紅
+            const blushGeo = new THREE.CircleGeometry(0.055, 12);
+            const blushMat = new THREE.MeshBasicMaterial({ color: 0xFF7675, transparent: true, opacity: 0.6 });
+            const blushL = new THREE.Mesh(blushGeo, blushMat);
+            blushL.position.set(-0.21, 1.21, 0.32);
+            blushL.rotation.y = -0.4;
+            const blushR = new THREE.Mesh(blushGeo, blushMat);
+            blushR.position.set(0.21, 1.21, 0.32);
+            blushR.rotation.y = 0.4;
+            group.add(blushL, blushR);
+
+            // 頭飾配件
+            if (profile.hat === 'cap' || profile.hat === 'sunhat') {
+                const brim = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.55, 0.55, 0.04, 20),
+                    new THREE.MeshStandardMaterial({ color: profile.hat === 'sunhat' ? 0xF5CBA7 : 0xD35400 })
+                );
+                brim.position.set(0, 1.56, 0.05);
+                group.add(brim);
+            } else if (profile.hat === 'ribbon') {
+                const bow = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.28, 0.12, 0.1),
+                    new THREE.MeshStandardMaterial({ color: 0xFF4757 })
+                );
+                bow.position.set(0.24, 1.58, 0.1);
+                bow.rotation.z = -0.3;
+                group.add(bow);
+            }
+
+            return group;
+        }
+
+        function getPatienceBonus() {
+            let bonus = 0;
+            gameState.purchasedUpgrades.forEach(id => {
+                const u = UPGRADES_DB.find(x => x.id === id);
+                if (u && u.type === 'patience') bonus += u.value;
+            });
+            return bonus;
+        }
+
+        function getTipMultiplier() {
+            let mult = 0.30;
+            gameState.purchasedUpgrades.forEach(id => {
+                const u = UPGRADES_DB.find(x => x.id === id);
+                if (u && u.type === 'tip') mult += u.value;
+                if (u && u.type === 'decor') mult += 0.10;
+            });
+            return mult;
+        }
+
+        function generateRandomOrder() {
+            const availDrinks = DRINKS_DB.filter(d => gameState.unlockedDrinks.includes(d.id));
+            const drink = availDrinks[Math.floor(Math.random() * availDrinks.length)];
+
+            const availToppings = TOPPINGS_DB.filter(t => gameState.unlockedToppings.includes(t.id));
+            let toppings = [];
+            if (availToppings.length > 0 && Math.random() < 0.78) {
+                const t1 = availToppings[Math.floor(Math.random() * availToppings.length)];
+                toppings.push(t1.id);
+                if (availToppings.length >= 2 && Math.random() < 0.28) {
+                    const rest = availToppings.filter(t => t.id !== t1.id);
+                    toppings.push(rest[Math.floor(Math.random() * rest.length)].id);
+                }
+            }
+
+            const sugar = SUGAR_OPTIONS[Math.floor(Math.random() * SUGAR_OPTIONS.length)];
+            const ice = ICE_OPTIONS[Math.floor(Math.random() * ICE_OPTIONS.length)];
+
+            let basePrice = drink.price;
+            toppings.forEach(tid => {
+                const tObj = TOPPINGS_DB.find(t => t.id === tid);
+                if (tObj) basePrice += tObj.price;
+            });
+
+            return {
+                drinkId: drink.id,
+                toppings,
+                sugarId: sugar.id,
+                iceId: ice.id,
+                basePrice
+            };
+        }
+
+        function spawnCustomer3D() {
+            if (activeCustomers3D.length >= 2) return;
+
+            const profile = CUSTOMER_PROFILES[Math.floor(Math.random() * CUSTOMER_PROFILES.length)];
+            const mesh = createCustomerMesh(profile);
+            // 從右側走廊走進來，站在吧台後方 Z = 0.15
+            mesh.position.set(5.5, 0, 0.15);
+            scene.add(mesh);
+
+            const orderData = generateRandomOrder();
+            const maxPatience = 35 + getPatienceBonus();
+
+            const customerObj = {
+                id: Date.now() + Math.random(),
+                profile,
+                mesh,
+                order: orderData,
+                state: 'entering', // entering | ordering | leaving
+                targetX: activeCustomers3D.length === 0 ? -0.65 : -2.1,
+                patience: maxPatience,
+                maxPatience,
+                walkPhase: 0
+            };
+
+            activeCustomers3D.push(customerObj);
+            if (activeCustomers3D.length === 1) {
+                SoundFX.doorbell();
+            }
+        }
+
+        function updateCustomers3D(dt) {
+            // 排隊補位邏輯
+            if (activeCustomers3D.length < 2) {
+                spawnCooldown -= dt;
+                if (spawnCooldown <= 0) {
+                    spawnCustomer3D();
+                    spawnCooldown = activeCustomers3D.length === 0 ? 1.0 : 3.5;
+                }
+            }
+
+            for (let i = activeCustomers3D.length - 1; i >= 0; i--) {
+                const c = activeCustomers3D[i];
+                // 確保第一位客人站在櫃檯正前方 (-0.65)，第二位在後方排隊 (-2.1)
+                if (c.state !== 'leaving') {
+                    c.targetX = (i === 0) ? -0.65 : -2.1;
+                } else {
+                    c.targetX = -6.5;
+                }
+
+                const dx = c.targetX - c.mesh.position.x;
+                if (Math.abs(dx) > 0.04) {
+                    const speed = c.state === 'leaving' ? 3.8 : 2.6;
+                    c.mesh.position.x += Math.sign(dx) * Math.min(Math.abs(dx), speed * dt);
+                    c.walkPhase += dt * 12;
+                    c.mesh.position.y = Math.abs(Math.sin(c.walkPhase)) * 0.08;
+                    c.mesh.rotation.z = Math.sin(c.walkPhase) * 0.05;
+                } else {
+                    c.mesh.position.y = 0;
+                    c.mesh.rotation.z = 0;
+                    if (c.state === 'entering') {
+                        c.state = 'ordering';
+                    } else if (c.state === 'leaving') {
+                        scene.remove(c.mesh);
+                        activeCustomers3D.splice(i, 1);
+                        continue;
+                    }
+                }
+
+                // 只有第一位正在點餐的客人會消耗耐心值
+                if (i === 0 && c.state === 'ordering') {
+                    c.patience -= dt;
+                    if (c.patience <= 0) {
+                        SoundFX.error();
+                        showToast('💢 客人等太久生氣離開了！', 'error');
+                        c.state = 'leaving';
+                    }
+                }
+            }
+
+            updateCustomerOrderHUD();
+        }
+
+        function updateCustomerOrderHUD() {
+            const hud = document.getElementById('customer-order-hud');
+            const frontCustomer = activeCustomers3D[0];
+
+            if (!frontCustomer || frontCustomer.state !== 'ordering') {
+                hud.classList.add('hidden');
+                return;
+            }
+
+            hud.classList.remove('hidden');
+
+            // 將 3D 客人頭頂座標投影到 2D 螢幕
+            const headPos = new THREE.Vector3(
+                frontCustomer.mesh.position.x,
+                frontCustomer.mesh.position.y + 2.25,
+                frontCustomer.mesh.position.z
+            );
+            headPos.project(camera);
+
+            const screenX = (headPos.x * 0.5 + 0.5) * window.innerWidth;
+            const screenY = (-(headPos.y * 0.5) + 0.5) * window.innerHeight;
+
+            // 限制氣泡框不超出螢幕邊界
+            const clampedX = Math.max(150, Math.min(window.innerWidth - 150, screenX));
+            const clampedY = Math.max(85, Math.min(window.innerHeight * 0.42, screenY - 115));
+
+            hud.style.left = `${clampedX}px`;
+            hud.style.top = `${clampedY}px`;
+
+            // 更新訂單文字內容
+            const order = frontCustomer.order;
+            const drinkObj = DRINKS_DB.find(d => d.id === order.drinkId);
+            const sugarObj = SUGAR_OPTIONS.find(s => s.id === order.sugarId);
+            const iceObj = ICE_OPTIONS.find(i => i.id === order.iceId);
+
+            document.getElementById('hud-customer-name').innerText = `💬 ${frontCustomer.profile.name}`;
+            document.getElementById('hud-order-price').innerText = `💰 $${order.basePrice}+`;
+            document.getElementById('hud-drink-name').innerText = `${drinkObj.emoji} ${drinkObj.name}`;
+            document.getElementById('hud-sugar').innerText = `🍬 ${sugarObj.name}`;
+            document.getElementById('hud-ice').innerText = `🧊 ${iceObj.name}`;
+
+            const toppingsContainer = document.getElementById('hud-toppings-list');
+            if (order.toppings.length === 0) {
+                toppingsContainer.innerHTML = `<span class="bg-gray-100/90 text-gray-500 text-[10px] font-bold px-2 py-0.5 rounded-full">純飲不加料</span>`;
+            } else {
+                toppingsContainer.innerHTML = order.toppings.map(tid => {
+                    const t = TOPPINGS_DB.find(x => x.id === tid);
+                    return `<span class="bg-[#FFEAA7] text-[#4A3525] text-[10px] font-black px-2 py-0.5 rounded-full border border-[#FDCB6E]">+ ${t.name}</span>`;
+                }).join('');
+            }
+
+            // 更新耐心條寬度與顏色
+            const bar = document.getElementById('hud-patience-bar');
+            const pct = Math.max(0, (frontCustomer.patience / frontCustomer.maxPatience) * 100);
+            bar.style.width = `${pct}%`;
+            if (pct > 50) bar.className = 'h-full bg-[#2ECC71] rounded-full transition-all duration-150';
+            else if (pct > 25) bar.className = 'h-full bg-[#F1C40F] rounded-full transition-all duration-150';
+            else bar.className = 'h-full bg-[#E74C3C] rounded-full transition-all duration-150';
+        }
+
+        /* ============================================================================
+           7. 玩家製作飲料互動操作
+           ============================================================================ */
+        function takeCup() {
+            if (workspace.isFlyingOut) return;
+            if (workspace.hasCup) {
+                showToast('工作台上已經有杯子囉！', 'info');
+                return;
+            }
+            SoundFX.click();
+            workspace.hasCup = true;
+            workspace.drinkId = null;
+            workspace.toppings = [];
+            workspace.sugarId = 'full';
+            workspace.iceId = 'regular';
+            workspace.isSealed = false;
+            cupBounceVel = 0.08;
+            sync3DCupVisuals();
+            renderWorkspaceHUD();
+        }
+
+        function selectDrink(drinkId) {
+            if (workspace.isFlyingOut) return;
+            if (!workspace.hasCup) {
+                SoundFX.error();
+                showToast('請先點擊「1. 拿取新杯子」再倒飲料！', 'warning');
+                return;
+            }
+            SoundFX.pour();
+            workspace.drinkId = drinkId;
+            cupBounceVel = 0.05;
+            sync3DCupVisuals();
+            renderWorkspaceHUD();
+        }
+
+        function toggleTopping(toppingId) {
+            if (workspace.isFlyingOut) return;
+            if (!workspace.hasCup) {
+                SoundFX.error();
+                showToast('請先拿取杯子再加小料喔！', 'warning');
+                return;
+            }
+            const idx = workspace.toppings.indexOf(toppingId);
+            if (idx > -1) {
+                workspace.toppings.splice(idx, 1);
+                SoundFX.click();
+            } else {
+                if (workspace.toppings.length >= 2) {
+                    SoundFX.error();
+                    showToast('一杯最多只能加入 2 種小料喔！', 'warning');
+                    return;
+                }
+                workspace.toppings.push(toppingId);
+                SoundFX.topping();
+                cupBounceVel = 0.06;
+            }
+            sync3DCupVisuals();
+            renderWorkspaceHUD();
+        }
+
+        function selectSugar(sugarId) {
+            if (!workspace.hasCup) {
+                showToast('請先拿取新杯子！', 'warning');
+                return;
+            }
+            SoundFX.click();
+            workspace.sugarId = sugarId;
+            renderWorkspaceHUD();
+        }
+
+        function selectIce(iceId) {
+            if (!workspace.hasCup) {
+                showToast('請先拿取新杯子！', 'warning');
+                return;
+            }
+            SoundFX.click();
+            workspace.iceId = iceId;
+            sync3DCupVisuals();
+            renderWorkspaceHUD();
+        }
+
+        function trashDrink() {
+            if (!workspace.hasCup || workspace.isFlyingOut) {
+                showToast('目前沒有製作中的飲料可以倒掉喔！', 'info');
+                return;
+            }
+            SoundFX.error();
+            if (gameState.money >= 5) {
+                gameState.money -= 5;
+                showToast('🗑️ 已倒掉重做（扣除材料費 $5）', 'warning');
+            } else {
+                showToast('🗑️ 已倒掉重做', 'warning');
+            }
+            resetWorkspaceState();
+            updateTopHUD();
+            saveGame();
+        }
+
+        function resetWorkspaceState() {
+            workspace = {
+                hasCup: false,
+                drinkId: null,
+                toppings: [],
+                sugarId: 'full',
+                iceId: 'regular',
+                isSealed: false,
+                isFlyingOut: false
+            };
+            sync3DCupVisuals();
+            renderWorkspaceHUD();
+        }
+
+        function serveDrink() {
+            if (workspace.isFlyingOut) return;
+            const frontCustomer = activeCustomers3D[0];
+            if (!frontCustomer || frontCustomer.state !== 'ordering') {
+                showToast('目前沒有客人在櫃檯前點餐喔！', 'info');
+                return;
+            }
+            if (!workspace.hasCup || !workspace.drinkId) {
+                SoundFX.error();
+                showToast('飲料還沒做好！請先放杯子並注入基底飲料。', 'warning');
+                return;
+            }
+
+            const order = frontCustomer.order;
+            const drinkMatch = workspace.drinkId === order.drinkId;
+            const sugarMatch = workspace.sugarId === order.sugarId;
+            const iceMatch = workspace.iceId === order.iceId;
+            const toppingsMatch = JSON.stringify([...workspace.toppings].sort()) === JSON.stringify([...order.toppings].sort());
+
+            if (!drinkMatch || !sugarMatch || !iceMatch || !toppingsMatch) {
+                SoundFX.error();
+                let errs = [];
+                if (!drinkMatch) errs.push('基底茶不對');
+                if (!toppingsMatch) errs.push('小料不符');
+                if (!sugarMatch) errs.push('甜度錯了');
+                if (!iceMatch) errs.push('冰塊量錯了');
+                showToast(`❌ 客人搖頭：「這不是我點的！(${errs.join('、')})」`, 'error');
+                return;
+            }
+
+            // 完全正確！封膜並啟動飛向客人的 3D 動畫
+            SoundFX.seal();
+            workspace.isSealed = true;
+            workspace.isFlyingOut = true;
+            sync3DCupVisuals();
+            renderWorkspaceHUD();
+
+            const patienceRatio = Math.max(0, frontCustomer.patience / frontCustomer.maxPatience);
+            const tipAmount = Math.round(order.basePrice * patienceRatio * getTipMultiplier());
+            const totalEarned = order.basePrice + tipAmount;
+
+            setTimeout(() => {
+                SoundFX.cash();
+                gameState.money += totalEarned;
+                gameState.totalRevenue += totalEarned;
+                gameState.servedCount += 1;
+
+                spawnFloatingReward(`+$${totalEarned} ❤️`);
+                showToast(`🎉 完美出餐！收入 $${order.basePrice} + 小費 $${tipAmount}`, 'success');
+
+                frontCustomer.state = 'leaving';
+                resetWorkspaceState();
+                updateTopHUD();
+                saveGame();
+            }, 480);
+        }
+
+        /* ============================================================================
+           8. 商店解鎖系統
+           ============================================================================ */
+        function toggleShopModal(show) {
+            SoundFX.click();
+            const modal = document.getElementById('shop-modal');
+            if (show) {
+                modal.classList.remove('hidden');
+                document.getElementById('modal-money-display').innerText = gameState.money;
+                renderShopItems();
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function switchShopTab(tab) {
+            SoundFX.click();
+            currentShopTab = tab;
+            ['drinks', 'toppings', 'upgrades'].forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                if (t === tab) {
+                    btn.className = 'px-3.5 py-2 rounded-t-xl font-black text-xs sm:text-sm bg-[#FFF8EE] text-[#4A3525] border-t-2 border-x-2 border-[#E6C29F] shrink-0';
+                } else {
+                    btn.className = 'px-3.5 py-2 rounded-t-xl font-bold text-xs sm:text-sm bg-[#F5E6D3] text-[#8C5A3C] shrink-0';
+                }
+            });
+            renderShopItems();
+        }
+
+        function renderShopItems() {
+            const container = document.getElementById('shop-items-container');
+            container.innerHTML = '';
+
+            if (currentShopTab === 'drinks') {
+                DRINKS_DB.forEach(item => {
+                    const unlocked = gameState.unlockedDrinks.includes(item.id);
+                    const canAfford = gameState.money >= item.unlockCost;
+                    container.innerHTML += `
+                        <div class="bg-white border-2 ${unlocked ? 'border-[#A3E4D7]' : 'border-[#E6C29F]'} rounded-2xl p-3 flex flex-col justify-between shadow-xs">
+                            <div class="flex items-start gap-3">
+                                <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-2xl shrink-0" style="background-color: ${item.cssColor}33; border: 2px solid ${item.cssColor}">
+                                    ${item.emoji}
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-center">
+                                        <h4 class="font-black text-sm sm:text-base text-[#4A3525]">${item.name}</h4>
+                                        <span class="text-[11px] font-black bg-[#FFF3E0] text-[#D35400] px-2 py-0.5 rounded-full">售價 $${item.price}</span>
+                                    </div>
+                                    <p class="text-xs text-[#8C5A3C] mt-1">${item.desc}</p>
+                                </div>
+                            </div>
+                            <div class="mt-2.5 pt-2 border-t border-gray-100 flex justify-end">
+                                ${unlocked
+                                    ? `<span class="text-xs font-black text-[#00B894] bg-[#E8F8F5] px-3 py-1 rounded-xl">✔ 已解鎖供應中</span>`
+                                    : `<button onclick="buyShopItem('drink', '${item.id}', ${item.unlockCost})" ${!canAfford ? 'disabled' : ''} class="btn-3d bg-[#FF9F43] hover:bg-[#ff8f24] text-white font-black text-xs px-3.5 py-1.5 rounded-xl border border-[#E67E22]">
+                                        💰 $${item.unlockCost} 解鎖配方
+                                       </button>`
+                                }
+                            </div>
+                        </div>
+                    `;
+                });
+            } else if (currentShopTab === 'toppings') {
+                TOPPINGS_DB.forEach(item => {
+                    const unlocked = gameState.unlockedToppings.includes(item.id);
+                    const canAfford = gameState.money >= item.unlockCost;
+                    container.innerHTML += `
+                        <div class="bg-white border-2 ${unlocked ? 'border-[#A3E4D7]' : 'border-[#E6C29F]'} rounded-2xl p-3 flex flex-col justify-between shadow-xs">
+                            <div class="flex items-start gap-3">
+                                <div class="w-11 h-11 rounded-2xl bg-[#FFF8EE] border-2 border-[#E6C29F] flex items-center justify-center text-2xl shrink-0">
+                                    ${item.emoji}
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-center">
+                                        <h4 class="font-black text-sm sm:text-base text-[#4A3525]">${item.name}</h4>
+                                        <span class="text-[11px] font-black bg-[#FFF3E0] text-[#D35400] px-2 py-0.5 rounded-full">加料 +$${item.price}</span>
+                                    </div>
+                                    <p class="text-xs text-[#8C5A3C] mt-1">${item.desc}</p>
+                                </div>
+                            </div>
+                            <div class="mt-2.5 pt-2 border-t border-gray-100 flex justify-end">
+                                ${unlocked
+                                    ? `<span class="text-xs font-black text-[#00B894] bg-[#E8F8F5] px-3 py-1 rounded-xl">✔ 已進貨供應中</span>`
+                                    : `<button onclick="buyShopItem('topping', '${item.id}', ${item.unlockCost})" ${!canAfford ? 'disabled' : ''} class="btn-3d bg-[#FF9F43] hover:bg-[#ff8f24] text-white font-black text-xs px-3.5 py-1.5 rounded-xl border border-[#E67E22]">
+                                        💰 $${item.unlockCost} 購買小料
+                                       </button>`
+                                }
+                            </div>
+                        </div>
+                    `;
+                });
+            } else if (currentShopTab === 'upgrades') {
+                UPGRADES_DB.forEach(item => {
+                    const bought = gameState.purchasedUpgrades.includes(item.id);
+                    const canAfford = gameState.money >= item.cost;
+                    container.innerHTML += `
+                        <div class="bg-white border-2 ${bought ? 'border-[#A3E4D7]' : 'border-[#E6C29F]'} rounded-2xl p-3 flex flex-col justify-between shadow-xs">
+                            <div class="flex items-start gap-3">
+                                <div class="w-11 h-11 rounded-2xl bg-[#EBF5FB] border-2 border-[#AED6F1] flex items-center justify-center text-2xl shrink-0">
+                                    ⚡
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-black text-sm sm:text-base text-[#4A3525]">${item.name}</h4>
+                                    <p class="text-xs text-[#8C5A3C] mt-1">${item.desc}</p>
+                                </div>
+                            </div>
+                            <div class="mt-2.5 pt-2 border-t border-gray-100 flex justify-end">
+                                ${bought
+                                    ? `<span class="text-xs font-black text-[#00B894] bg-[#E8F8F5] px-3 py-1 rounded-xl">✔ 已升級完成</span>`
+                                    : `<button onclick="buyShopItem('upgrade', '${item.id}', ${item.cost})" ${!canAfford ? 'disabled' : ''} class="btn-3d bg-[#3498DB] hover:bg-[#2980B9] text-white font-black text-xs px-3.5 py-1.5 rounded-xl border border-[#21618C]">
+                                        💰 $${item.cost} 升級設備
+                                       </button>`
+                                }
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        function buyShopItem(category, id, cost) {
+            if (gameState.money < cost) return;
+            gameState.money -= cost;
+            SoundFX.cash();
+
+            if (category === 'drink') {
+                gameState.unlockedDrinks.push(id);
+                const d = DRINKS_DB.find(x => x.id === id);
+                showToast(`🎊 解鎖新茶飲【${d.name}】！客人開始點這杯囉！`, 'success');
+            } else if (category === 'topping') {
+                gameState.unlockedToppings.push(id);
+                const t = TOPPINGS_DB.find(x => x.id === id);
+                showToast(`🎊 進貨新小料【${t.name}】！`, 'success');
+            } else if (category === 'upgrade') {
+                gameState.purchasedUpgrades.push(id);
+                const u = UPGRADES_DB.find(x => x.id === id);
+                showToast(`⚡ 升級完成【${u.name}】！`, 'success');
+                updateShopDecor3D();
+            }
+
+            saveGame();
+            updateTopHUD();
+            document.getElementById('modal-money-display').innerText = gameState.money;
+            renderShopItems();
+            renderWorkspaceHUD();
+        }
+
+        /* ============================================================================
+           9. UI 面板渲染與鏡頭拖拽控制
+           ============================================================================ */
+        function updateTopHUD() {
+            document.getElementById('money-display').innerText = gameState.money;
+            document.getElementById('stat-served').innerText = gameState.servedCount;
+            document.getElementById('stat-revenue').innerText = gameState.totalRevenue;
+            document.getElementById('sound-toggle-btn').innerText = gameState.soundEnabled ? '🔊' : '🔇';
+
+            const unlockedTotal = gameState.unlockedDrinks.length + gameState.unlockedToppings.length + gameState.purchasedUpgrades.length;
+            let title = 'Lv.1 巷口文青攤';
+            if (unlockedTotal >= 15) title = 'Lv.5 國際珍奶霸主';
+            else if (unlockedTotal >= 11) title = 'Lv.4 排隊名店';
+            else if (unlockedTotal >= 8) title = 'Lv.3 商圈人氣王';
+            else if (unlockedTotal >= 6) title = 'Lv.2 溫馨手搖鋪';
+            document.getElementById('shop-level-badge').innerText = title;
+
+            const hasAffordable =
+                DRINKS_DB.some(d => !gameState.unlockedDrinks.includes(d.id) && gameState.money >= d.unlockCost) ||
+                TOPPINGS_DB.some(t => !gameState.unlockedToppings.includes(t.id) && gameState.money >= t.unlockCost) ||
+                UPGRADES_DB.some(u => !gameState.purchasedUpgrades.includes(u.id) && gameState.money >= u.cost);
+
+            const badge = document.getElementById('shop-new-badge');
+            if (hasAffordable) badge.classList.remove('hidden');
+            else badge.classList.add('hidden');
+        }
+
+        function renderWorkspaceHUD() {
+            const takeBtn = document.getElementById('btn-take-cup');
+            takeBtn.disabled = workspace.hasCup;
+
+            // 當前杯中配方標籤列
+            const tagsBox = document.getElementById('workspace-recipe-tags');
+            if (!workspace.hasCup) {
+                tagsBox.innerHTML = `<span class="text-xs font-black text-[#8C5A3C] bg-white/80 px-2.5 py-1 rounded-xl">👉 請先點擊「1. 拿取新杯子」開始調製</span>`;
+            } else {
+                const drinkObj = workspace.drinkId ? DRINKS_DB.find(d => d.id === workspace.drinkId) : null;
+                const sugarObj = SUGAR_OPTIONS.find(s => s.id === workspace.sugarId);
+                const iceObj = ICE_OPTIONS.find(i => i.id === workspace.iceId);
+
+                let html = `<span class="text-xs font-black bg-[#FF9F43] text-white px-2.5 py-0.5 rounded-xl">${drinkObj ? `${drinkObj.emoji} ${drinkObj.name}` : '🥤 空杯（請選基底）'}</span>`;
+                workspace.toppings.forEach(tid => {
+                    const t = TOPPINGS_DB.find(x => x.id === tid);
+                    html += `<span class="text-xs font-black bg-[#FFEAA7] text-[#4A3525] px-2 py-0.5 rounded-xl border border-[#FDCB6E]">+${t.name}</span>`;
+                });
+                html += `<span class="text-xs font-black bg-[#FADBD8] text-[#922B21] px-2 py-0.5 rounded-xl">${sugarObj.name}</span>`;
+                html += `<span class="text-xs font-black bg-[#D6EAF8] text-[#1B4F72] px-2 py-0.5 rounded-xl">${iceObj.name}</span>`;
+                tagsBox.innerHTML = html;
+            }
+
+            // 基底茶按鈕
+            document.getElementById('unlocked-drink-count').innerText = `${gameState.unlockedDrinks.length}/${DRINKS_DB.length}`;
+            const drinksGrid = document.getElementById('drinks-btn-grid');
+            drinksGrid.innerHTML = '';
+            DRINKS_DB.filter(d => gameState.unlockedDrinks.includes(d.id)).forEach(d => {
+                const active = workspace.drinkId === d.id;
+                drinksGrid.innerHTML += `
+                    <button onclick="selectDrink('${d.id}')" class="btn-3d py-1.5 px-1.5 rounded-xl text-[11px] font-black border flex items-center justify-center gap-1 truncate ${active ? 'bg-[#FF9F43] text-white border-[#D35400]' : 'bg-white text-[#4A3525] border-[#E6C29F] hover:bg-[#FFF3E0]'}">
+                        <span>${d.emoji}</span>
+                        <span class="truncate">${d.name}</span>
+                    </button>
+                `;
+            });
+
+            // 小料按鈕
+            document.getElementById('topping-count-badge').innerText = `${workspace.toppings.length}/2`;
+            const toppingsGrid = document.getElementById('toppings-btn-grid');
+            toppingsGrid.innerHTML = '';
+            TOPPINGS_DB.filter(t => gameState.unlockedToppings.includes(t.id)).forEach(t => {
+                const active = workspace.toppings.includes(t.id);
+                toppingsGrid.innerHTML += `
+                    <button onclick="toggleTopping('${t.id}')" class="btn-3d py-1.5 px-1.5 rounded-xl text-[11px] font-black border flex items-center justify-center gap-1 truncate ${active ? 'bg-[#FDCB6E] text-[#4A3525] border-[#E17055]' : 'bg-white text-[#4A3525] border-[#E6C29F] hover:bg-[#FFF3E0]'}">
+                        <span>${t.emoji}</span>
+                        <span class="truncate">${t.name}</span>
+                    </button>
+                `;
+            });
+
+            // 甜度按鈕
+            const sugarGrid = document.getElementById('sugar-btn-grid');
+            sugarGrid.innerHTML = '';
+            SUGAR_OPTIONS.forEach(s => {
+                const active = workspace.sugarId === s.id;
+                sugarGrid.innerHTML += `
+                    <button onclick="selectSugar('${s.id}')" class="btn-3d py-1 px-1 rounded-lg text-[10px] font-black border ${active ? 'bg-[#FF7675] text-white border-[#D63031]' : 'bg-white text-[#4A3525] border-[#E6C29F]'}">
+                        ${s.name}
+                    </button>
+                `;
+            });
+
+            // 冰塊按鈕
+            const iceGrid = document.getElementById('ice-btn-grid');
+            iceGrid.innerHTML = '';
+            ICE_OPTIONS.forEach(i => {
+                const active = workspace.iceId === i.id;
+                iceGrid.innerHTML += `
+                    <button onclick="selectIce('${i.id}')" class="btn-3d py-1 px-1 rounded-lg text-[10px] font-black border ${active ? 'bg-[#74B9FF] text-white border-[#0984E3]' : 'bg-white text-[#4A3525] border-[#E6C29F]'}">
+                        ${i.name}
+                    </button>
+                `;
+            });
+        }
+
+        function setupCameraDragEvents(canvas) {
+            const onStart = (x, y) => {
+                isDraggingCam = true;
+                prevPointer = { x, y };
+            };
+            const onMove = (x, y) => {
+                if (!isDraggingCam) return;
+                const dx = x - prevPointer.x;
+                const dy = y - prevPointer.y;
+                prevPointer = { x, y };
+                camAngleOffset.x = Math.max(-1.6, Math.min(1.6, camAngleOffset.x - dx * 0.005));
+                camAngleOffset.y = Math.max(-0.8, Math.min(1.1, camAngleOffset.y + dy * 0.004));
+            };
+            const onEnd = () => { isDraggingCam = false; };
+
+            canvas.addEventListener('mousedown', e => onStart(e.clientX, e.clientY));
+            window.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
+            window.addEventListener('mouseup', onEnd);
+
+            canvas.addEventListener('touchstart', e => {
+                if (e.touches.length === 1) onStart(e.touches[0].clientX, e.touches[0].clientY);
+            }, { passive: true });
+            window.addEventListener('touchmove', e => {
+                if (e.touches.length === 1) onMove(e.touches[0].clientX, e.touches[0].clientY);
+            }, { passive: true });
+            window.addEventListener('touchend', onEnd);
+        }
+
+        function resetCameraView() {
+            SoundFX.click();
+            camAngleOffset = { x: 0, y: 0 };
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function showToast(msg, type = 'info') {
+            const box = document.getElementById('toast-container');
+            const el = document.createElement('div');
+            let style = 'bg-[#4A3525] text-white border-[#2C1E16]';
+            if (type === 'success') style = 'bg-[#00B894] text-white border-[#00896F]';
+            if (type === 'error') style = 'bg-[#FF7675] text-white border-[#D63031]';
+            if (type === 'warning') style = 'bg-[#FDCB6E] text-[#4A3525] border-[#E17055]';
+
+            el.className = `${style} border-2 px-4 py-1.5 rounded-2xl shadow-lg font-black text-xs sm:text-sm text-center animate-pop`;
+            el.innerText = msg;
+            box.appendChild(el);
+            setTimeout(() => {
+                el.style.opacity = '0';
+                el.style.transition = 'opacity 0.25s';
+                setTimeout(() => el.remove(), 250);
+            }, 2500);
+        }
+
+        function spawnFloatingReward(text) {
+            const layer = document.getElementById('floating-effects-layer');
+            const el = document.createElement('div');
+            el.className = 'floating-money absolute left-1/2 top-1/2 bg-[#FFD166] text-[#4A3525] font-black px-4 py-1.5 rounded-full border-2 border-[#E0A82E] shadow-xl text-base sm:text-xl';
+            el.innerText = text;
+            layer.appendChild(el);
+            setTimeout(() => el.remove(), 1200);
+        }
+
+        function openResetModal() {
+            SoundFX.click();
+            document.getElementById('reset-modal').classList.remove('hidden');
+        }
+        function closeResetModal() {
+            SoundFX.click();
+            document.getElementById('reset-modal').classList.add('hidden');
+        }
+        function confirmResetGame() {
+            SoundFX.error();
+            localStorage.removeItem(SAVE_KEY);
+            gameState = { ...DEFAULT_STATE, soundEnabled: gameState.soundEnabled };
+            saveGame();
+            closeResetModal();
+            resetWorkspaceState();
+            updateShopDecor3D();
+            updateTopHUD();
+
+            activeCustomers3D.forEach(c => scene.remove(c.mesh));
+            activeCustomers3D = [];
+            spawnCooldown = 0.2;
+            showToast('🔄 遊戲進度已重置，重新開張大吉！', 'info');
+        }
+
+        /* ============================================================================
+           10. 主動畫迴圈 (60 FPS 物理與視覺插值)
+           ============================================================================ */
+        let lastTime = performance.now();
+
+        function animate(now) {
+            requestAnimationFrame(animate);
+            const dt = Math.min((now - lastTime) / 1000, 0.1);
+            lastTime = now;
+
+            // 1. 鏡頭平滑跟隨拖曳角度
+            const targetCamX = defaultCamPos.x + camAngleOffset.x;
+            const targetCamY = defaultCamPos.y + camAngleOffset.y;
+            camera.position.x += (targetCamX - camera.position.x) * 0.1;
+            camera.position.y += (targetCamY - camera.position.y) * 0.1;
+            camera.lookAt(defaultCamLookAt);
+
+            // 2. 3D 杯子液體上升插值與彈跳動畫
+            if (cupGroup && cupGroup.visible) {
+                liquidCurrentScaleY += (liquidTargetScaleY - liquidCurrentScaleY) * 0.15;
+                liquidMesh.scale.y = Math.max(0.001, liquidCurrentScaleY);
+
+                if (workspace.isFlyingOut) {
+                    // 封膜後飛向櫃檯前的客人
+                    cupGroup.position.z -= 4.5 * dt;
+                    cupGroup.position.x -= 1.4 * dt;
+                    cupGroup.position.y += Math.sin(now * 0.02) * 0.02;
+                    cupGroup.scale.multiplyScalar(0.97);
+                } else {
+                    // 放置與加料時的彈性微跳
+                    if (cupBounceVel !== 0 || cupGroup.position.y > 1.49) {
+                        cupGroup.position.y += cupBounceVel;
+                        cupBounceVel -= 0.012;
+                        if (cupGroup.position.y <= 1.49) {
+                            cupGroup.position.y = 1.49;
+                            cupBounceVel = 0;
+                        }
+                    }
+                }
+            }
+
+            // 3. 更新 3D 客人排隊與頭頂氣泡位置
+            updateCustomers3D(dt);
+
+            renderer.render(scene, camera);
+        }
+
+        window.onload = function () {
+            loadGame();
+            initThreeScene();
+            updateTopHUD();
+            renderWorkspaceHUD();
+            spawnCustomer3D();
+            lastTime = performance.now();
+            animate(lastTime);
+        };
+    </script>
+</body>
+</html>
