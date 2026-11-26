@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>絕對禁忌：不能說「水」的生存測驗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: radial-gradient(circle at top, #0f172a 0%, #060913 100%);
+            color: #f8fafc;
+            font-family: 'Noto Sans TC', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        .font-orbitron {
+            font-family: 'Orbitron', 'Noto Sans TC', sans-serif;
+        }
+
+        /* 現代俐落卡片外觀 */
+        .quiz-card {
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.75), 0 0 40px rgba(14, 165, 233, 0.08);
+        }
+
+        /* 選項按鈕樣式 */
+        .option-btn {
+            background: rgba(30, 41, 59, 0.72);
+            border: 1.5px solid rgba(148, 163, 184, 0.25);
+            transition: all 0.16s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: rgba(51, 65, 85, 0.9);
+            border-color: #38bdf8;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(2, 132, 199, 0.25);
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+        }
+
+        /* 觸犯禁忌（選到水字）震動與紅光特效 */
+        @keyframes tabooShake {
+            0%, 100% { transform: translateX(0); }
+            15%, 45%, 75% { transform: translateX(-8px); }
+            30%, 60%, 90% { transform: translateX(8px); }
+        }
+
+        .animate-taboo-shake {
+            animation: tabooShake 0.45s ease-in-out;
+        }
+
+        .state-taboo {
+            background: rgba(159, 18, 57, 0.45) !important;
+            border-color: #f43f5e !important;
+            box-shadow: 0 0 25px rgba(244, 63, 94, 0.5) !important;
+        }
+
+        .state-safe {
+            background: rgba(6, 95, 70, 0.48) !important;
+            border-color: #10b981 !important;
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.4) !important;
+        }
+
+        .state-trap-reveal {
+            background: rgba(127, 29, 29, 0.22) !important;
+            border-color: rgba(244, 63, 94, 0.35) !important;
+            opacity: 0.72;
+        }
+
+        /* 禁忌字元高光標記 */
+        .taboo-char-highlight {
+            display: inline-block;
+            background: #e11d48;
+            color: #ffffff;
+            padding: 0 4px;
+            margin: 0 1px;
+            border-radius: 4px;
+            font-weight: 900;
+            box-shadow: 0 0 10px rgba(225, 29, 72, 0.8);
+            transform: scale(1.12);
+        }
+
+        /* 倒數計時條平滑過渡 */
+        #timerBarFill {
+            transition: width 0.05s linear, background-color 0.25s ease;
+        }
+
+        /* 紅光閃爍警告邊框 */
+        @keyframes dangerPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); }
+            50% { box-shadow: 0 0 35px 4px rgba(244, 63, 94, 0.35); }
+        }
+        .danger-glow {
+            animation: dangerPulse 0.8s infinite;
+        }
+    </style>
+</head>
+<body class="p-3 sm:p-5">
+
+    <!-- 主遊戲容器 -->
+    <main id="appContainer" class="quiz-card w-full max-w-2xl rounded-3xl p-5 sm:p-8 relative transition-all">
+
+        <!-- ========================================================= -->
+        <!-- 1. 開始主畫面 (Start Screen)                               -->
+        <!-- ========================================================= -->
+        <section id="startScreen" class="text-center py-2">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-rose-500/15 border border-rose-500/40 text-rose-300 text-xs font-bold tracking-wider mb-4">
+                🚫 禁語生存挑戰・高壓反應測驗
+            </div>
+
+            <h1 class="text-3xl sm:text-4xl font-black tracking-tight text-white mb-3 leading-tight">
+                絕對禁忌：<br class="sm:hidden">不能說<span class="text-rose-500 mx-1 px-2 py-0.5 bg-rose-500/15 rounded-xl border border-rose-500/40">「水」</span>的生存測驗
+            </h1>
+
+            <p class="text-sm sm:text-base text-slate-300 max-w-lg mx-auto mb-6 leading-relaxed">
+                在限時倒數內從 4 個選項中選出回答。<br>
+                只要你選的選項文字裡<strong class="text-rose-400">包含任何一個「水」字</strong>，立刻觸犯禁忌扣命！
+            </p>
+
+            <!-- 規則與陷阱提示卡 -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left mb-7">
+                <div class="bg-slate-900/75 border border-rose-500/25 rounded-2xl p-4">
+                    <div class="text-rose-400 font-black text-sm mb-1.5 flex items-center gap-1.5">
+                        <span>💀</span> 觸犯禁忌（絕對別點）
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        如：<span class="text-rose-300 font-bold">白開水、水果、薪水、汗水、口水、水餃、山水畫</span>……只要字面上出現「水」字一律出局！
+                    </p>
+                </div>
+
+                <div class="bg-slate-900/75 border border-emerald-500/25 rounded-2xl p-4">
+                    <div class="text-emerald-400 font-black text-sm mb-1.5 flex items-center gap-1.5">
+                        <span>🧠</span> 視覺干擾字（安全無害）
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        如：<span class="text-emerald-300 font-bold">冰、永、木、泉、湯、汁、淚、油</span>……長得很像或跟液體有關，但其實<strong class="text-white">沒有「水」字</strong>，放心選！
+                    </p>
+                </div>
+            </div>
+
+            <!-- 難度與節奏說明 -->
+            <div class="flex flex-wrap justify-center gap-3 text-xs text-slate-400 mb-7">
+                <span class="bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700">❤️ 初始 3 顆生命</span>
+                <span class="bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700">⏱️ 8秒 → 縮短至 4秒</span>
+                <span class="bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700">📚 24 題台灣生活陷阱庫</span>
+            </div>
+
+            <div class="flex items-center justify-center gap-3">
+                <button id="startBtn" class="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-black text-base sm:text-lg py-3.5 px-10 rounded-2xl shadow-lg shadow-sky-500/30 transition-all active:scale-95 cursor-pointer">
+                    開始生存測驗 ▶
+                </button>
+                <button id="startMuteBtn" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 p-3.5 rounded-2xl transition-all cursor-pointer" title="切換音效">
+                    <span class="mute-icon text-lg leading-none">🔊</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- 2. 測驗進行中畫面 (Quiz Screen)                            -->
+        <!-- ========================================================= -->
+        <section id="quizScreen" class="hidden">
+            <!-- 頂部狀態欄：生命值、連勝、分數、音效 -->
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-slate-800">
+                <!-- 生命值 (3顆心) -->
+                <div class="flex items-center gap-1.5 bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-700/70">
+                    <span class="text-xs text-slate-400 font-bold mr-1">生命</span>
+                    <div id="heartsContainer" class="flex items-center gap-1 text-lg">
+                        <span>❤️</span><span>❤️</span><span>❤️</span>
+                    </div>
+                </div>
+
+                <!-- 題號進度與連勝 -->
+                <div class="flex items-center gap-2">
+                    <div class="bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-700/70 text-xs font-bold text-slate-300">
+                        第 <span id="qNumDisplay" class="font-orbitron text-sky-400 text-sm">1</span> / <span id="qTotalDisplay" class="font-orbitron">15</span> 題
+                    </div>
+
+                    <div id="streakBadge" class="bg-amber-500/15 border border-amber-500/35 px-3 py-1.5 rounded-xl text-xs font-black text-amber-300 flex items-center gap-1">
+                        <span>🔥</span>
+                        <span id="streakDisplay" class="font-orbitron">0</span> 連勝
+                    </div>
+                </div>
+
+                <!-- 分數與靜音鈕 -->
+                <div class="flex items-center gap-2">
+                    <div class="bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-700/70 text-right">
+                        <span class="text-[11px] text-slate-400 mr-1">分數</span>
+                        <span id="scoreDisplay" class="font-orbitron text-sm sm:text-base font-black text-emerald-400">0</span>
+                    </div>
+                    <button id="quizMuteBtn" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 p-2 rounded-xl transition-all cursor-pointer" title="切換音效">
+                        <span class="mute-icon text-base leading-none">🔊</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 視覺化倒數計時條 -->
+            <div class="mt-4 mb-5">
+                <div class="flex justify-between items-center text-xs font-bold mb-1.5">
+                    <span id="categoryBadge" class="text-sky-300 bg-sky-500/15 border border-sky-500/30 px-2.5 py-0.5 rounded-md">
+                        日常對話誘導
+                    </span>
+                    <span class="text-slate-300 flex items-center gap-1">
+                        ⏱️ 剩餘時間：<span id="timeLeftText" class="font-orbitron text-sm font-black text-sky-400">8.0s</span>
+                    </span>
+                </div>
+                <div class="w-full h-3 bg-slate-900 rounded-full overflow-hidden border border-slate-700/80 p-0.5">
+                    <div id="timerBarFill" class="h-full rounded-full bg-gradient-to-r from-sky-400 to-emerald-400 w-full"></div>
+                </div>
+            </div>
+
+            <!-- 題目敘述區 -->
+            <div class="bg-slate-900/75 border border-slate-700/80 rounded-2xl p-4 sm:p-5 mb-5">
+                <div class="text-xs text-slate-400 font-bold mb-1">請選出安全（不含「水」字）的回答：</div>
+                <h2 id="questionText" class="text-lg sm:text-xl font-black text-white leading-snug">
+                    題目載入中...
+                </h2>
+            </div>
+
+            <!-- 4 個選項網格 -->
+            <div id="optionsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                <!-- 由 JS 動態生成 4 個選項按鈕 -->
+            </div>
+
+            <!-- 答題反饋與毒舌點評面板 -->
+            <div id="feedbackPanel" class="hidden rounded-2xl p-4 border transition-all">
+                <div class="flex items-start gap-3">
+                    <div id="feedbackIcon" class="text-2xl sm:text-3xl leading-none mt-0.5">💥</div>
+                    <div class="flex-1">
+                        <div id="feedbackTitle" class="font-black text-base sm:text-lg mb-1">觸犯禁忌！</div>
+                        <p id="feedbackComment" class="text-xs sm:text-sm text-slate-200 leading-relaxed mb-3">
+                            毒舌點評內容
+                        </p>
+                        <div class="flex justify-end">
+                            <button id="nextQuestionBtn" class="bg-white text-slate-900 hover:bg-slate-200 font-black text-xs sm:text-sm py-2 px-5 rounded-xl shadow transition-all cursor-pointer">
+                                下一題 ▶
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 鍵盤快捷鍵提示 -->
+            <div class="hidden sm:block text-center text-[11px] text-slate-500 mt-3">
+                💡 提示：可使用鍵盤數字鍵 <strong class="text-slate-400">[1] [2] [3] [4]</strong> 快速作答，<strong class="text-slate-400">[Space / Enter]</strong> 進入下一題
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- 3. 結算畫面 (Result Screen)                                -->
+        <!-- ========================================================= -->
+        <section id="resultScreen" class="hidden text-center py-3">
+            <div id="resultBadge" class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black mb-3">
+                測驗結算
+            </div>
+
+            <h2 id="resultTitle" class="text-3xl sm:text-4xl font-black text-white mb-2">
+                生存失敗！你終究還是說了水
+            </h2>
+            <p id="resultRoast" class="text-sm text-slate-300 max-w-md mx-auto mb-6 leading-relaxed">
+                連「水」字都躲不掉，看來你對水分的執著已經深入骨髓了。
+            </p>
+
+            <!-- 數據統計面板 -->
+            <div class="grid grid-cols-3 gap-2.5 sm:gap-4 max-w-lg mx-auto mb-7">
+                <div class="bg-slate-900/80 border border-slate-700/80 rounded-2xl p-3.5">
+                    <div class="text-[11px] text-slate-400 font-bold mb-1">最終得分</div>
+                    <div id="finalScore" class="font-orbitron text-xl sm:text-2xl font-black text-emerald-400">0</div>
+                </div>
+                <div class="bg-slate-900/80 border border-slate-700/80 rounded-2xl p-3.5">
+                    <div class="text-[11px] text-slate-400 font-bold mb-1">最高連勝</div>
+                    <div id="finalMaxStreak" class="font-orbitron text-xl sm:text-2xl font-black text-amber-400">0</div>
+                </div>
+                <div class="bg-slate-900/80 border border-slate-700/80 rounded-2xl p-3.5">
+                    <div class="text-[11px] text-slate-400 font-bold mb-1">存活題數</div>
+                    <div id="finalSurvived" class="font-orbitron text-xl sm:text-2xl font-black text-sky-400">0 / 15</div>
+                </div>
+            </div>
+
+            <!-- 禁語生存稱號 -->
+            <div class="bg-slate-900/70 border border-slate-700/70 rounded-2xl p-4 max-w-md mx-auto mb-7">
+                <div class="text-xs text-slate-400 mb-1">獲得生存稱號</div>
+                <div id="finalRankTitle" class="text-lg sm:text-xl font-black text-amber-300">
+                    🏅 乾燥沙漠小仙人
+                </div>
+            </div>
+
+            <button id="restartBtn" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black text-base sm:text-lg py-3.5 px-10 rounded-2xl shadow-lg shadow-emerald-500/30 transition-all active:scale-95 cursor-pointer">
+                不服氣！重新挑戰 ↻
+            </button>
+        </section>
+
+    </main>
+
+<script>
+/**
+ * ============================================================================
+ * 《絕對禁忌：不能說「水」的生存測驗》完整遊戲邏輯與題庫引擎
+ * ============================================================================
+ */
+
+// ----------------------------------------------------------------------------
+// 1. Web Audio API 即時音效合成器
+// ----------------------------------------------------------------------------
+class TabooAudio {
+    constructor() {
+        this.ctx = null;
+        this.muted = false;
+    }
+
+    init() {
+        if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            this.ctx = new AudioCtx();
+        }
+        if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+    }
+
+    toggleMute() {
+        this.muted = !this.muted;
+        document.querySelectorAll('.mute-icon').forEach(el => {
+            el.textContent = this.muted ? '🔇' : '🔊';
+        });
+        return this.muted;
+    }
+
+    // 倒數計時滴答聲 (剩餘時間越少音調越急促)
+    playTick(urgent = false) {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = urgent ? 'triangle' : 'sine';
+        osc.frequency.setValueAtTime(urgent ? 980 : 660, now);
+        osc.frequency.exponentialRampToValueAtTime(urgent ? 520 : 380, now + 0.045);
+
+        gain.gain.setValueAtTime(urgent ? 0.11 : 0.05, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.055);
+    }
+
+    // 安全過關清脆音效
+    playPass() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        [587.33, 880].forEach((freq, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.07);
+
+            gain.gain.setValueAtTime(0.14, now + idx * 0.07);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.25);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + idx * 0.07);
+            osc.stop(now + idx * 0.07 + 0.27);
+        });
+    }
+
+    // 觸犯禁忌警報聲 (選到水字或超時)
+    playTabooAlarm() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        [0, 0.14].forEach((offset) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(220, now + offset);
+            osc.frequency.linearRampToValueAtTime(135, now + offset + 0.12);
+
+            gain.gain.setValueAtTime(0.18, now + offset);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.13);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + offset);
+            osc.stop(now + offset + 0.14);
+        });
+    }
+
+    // 最終勝利號角
+    playVictory() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + i * 0.09);
+
+            gain.gain.setValueAtTime(0.14, now + i * 0.09);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.09 + 0.42);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + i * 0.09);
+            osc.stop(now + i * 0.09 + 0.45);
+        });
+    }
+}
+
+const audio = new TabooAudio();
+
+// ----------------------------------------------------------------------------
+// 2. 24 題台灣生活化陷阱題庫 (每題僅 1 個不含「水」字的安全選項，其餘 3 個皆藏有「水」字)
+// ----------------------------------------------------------------------------
+const QUESTION_BANK = [
+    {
+        category: '日常對話誘導',
+        question: '夏天跑完大隊接力滿身大汗，你走進超商最想買什麼解渴？',
+        options: ['冰鎮白開水', '無糖綠茶', '運動氣泡水', '檸檬風味水'],
+        safeIndex: 1,
+        safeRoast: '冷靜！你成功繞過了三個「水」字陷阱，「無糖綠茶」安全過關！',
+        tabooRoast: '抓到了！渴到失去理智了嗎？選項裡明明寫著大大的「水」字！'
+    },
+    {
+        category: '台灣小吃攤',
+        question: '晚上十一點肚子超餓，走到巷口宵夜攤你打算點哪一樣？',
+        options: ['韭菜水餃十顆', '滷肉飯加半熟蛋', '貢丸冬粉水湯', '燙青菜淋口水醬'],
+        safeIndex: 1,
+        safeRoast: '「滷肉飯加半熟蛋」不僅不含水字，還是台灣宵夜之王！',
+        tabooRoast: '宵夜還沒吃到就先淘汰！你點的這道菜裡藏著禁忌的「水」字！'
+    },
+    {
+        category: '職場生存指南',
+        question: '月底吃土快活不下去，身為社畜你現在最期待什麼？',
+        options: ['老闆準時發薪水', '業績獎金入帳', '天降意外橫財水', '水漲船高的年終'],
+        safeIndex: 1,
+        safeRoast: '「業績獎金入帳」既賺錢又安全！誰說一定要講「薪水」？',
+        tabooRoast: '想錢想瘋了！你直接把「水」字喊出來，這個月獎金扣光！'
+    },
+    {
+        category: '視覺干擾陷阱',
+        question: '下列哪一個字詞完全沒有包含「水」字，可以安全說出口？',
+        options: ['細水長流', '永保安康', '水落石出', '如魚得水'],
+        safeIndex: 1,
+        safeRoast: '眼力滿分！「永」只是長得像水，其實一點都不犯規！',
+        tabooRoast: '眼睛業障重啊！這句成語裡正大光明躺著一個「水」字！'
+    },
+    {
+        category: '手搖飲點單',
+        question: '下午茶同事問你要不要一起訂手搖飲，你決定點什麼？',
+        options: ['百香果冰沙', '翡翠檸檬水', '蜂蜜蘆薈水', '黑糖珍珠純水'],
+        safeIndex: 0,
+        safeRoast: '「百香果冰沙」用「冰」成功掩護，完全沒有水字，漂亮！',
+        tabooRoast: '點飲料點到出局！其他選項都在誘惑你說出「水」字！'
+    },
+    {
+        category: '台灣夜市美食',
+        question: '逛士林夜市或逢甲夜市時，哪一攤你可以放心大聲點餐？',
+        options: ['大腸包小腸', '爆漿水煎包', '麻辣口水雞', '現切綜合水果'],
+        safeIndex: 0,
+        safeRoast: '「大腸包小腸」安全過關！水煎包跟水果通通都是陷阱！',
+        tabooRoast: '夜市才逛第一攤就陣亡！水煎包、口水雞、水果全都有「水」字！'
+    },
+    {
+        category: '視覺干擾陷阱',
+        question: '快狠準挑戰！請選出唯一「不含水字」的詞彙：',
+        options: ['山水畫作', '木頭雕刻', '水墨丹青', '風水寶地'],
+        safeIndex: 1,
+        safeRoast: '「木」跟「水」在高速倒數下超容易看花眼，你居然撐住了！',
+        tabooRoast: '手滑了吧！「木」跟「水」傻傻分不清楚，直接觸犯禁忌！'
+    },
+    {
+        category: '生活冷知識',
+        question: '醫生常提醒每天都要維持身體健康，以下哪種習慣最安全？',
+        options: ['多喝溫開水', '多吃新鮮水果', '保持充足睡眠', '每天補充水份'],
+        safeIndex: 2,
+        safeRoast: '「保持充足睡眠」安全過關！在這個遊戲裡多喝水反而會出局！',
+        tabooRoast: '養生達人直接陣亡！你把禁忌的「水」字說出口啦！'
+    },
+    {
+        category: '成語大考驗',
+        question: '形容一個人花錢毫無節制、非常浪費，哪個說法不會觸犯禁忌？',
+        options: ['揮金如土', '花錢如流水', '水深火熱', '覆水難收'],
+        safeIndex: 0,
+        safeRoast: '「揮金如土」完美避開「花錢如流水」，國文造詣救了你一命！',
+        tabooRoast: '想用成語賣弄文采，結果一腳踩進「水」字地雷！'
+    },
+    {
+        category: '天氣與氣象',
+        question: '氣象預報說週末會有強烈鋒面報到，出門應該注意什麼？',
+        options: ['小心路面積水', '記得攜帶雨傘', '防範水災淹沒', '注意雨水打滑'],
+        safeIndex: 1,
+        safeRoast: '「記得攜帶雨傘」沒有雨也沒有水字，安全過關！',
+        tabooRoast: '積水、水災、雨水全都有「水」！你被氣象預報給陰了！'
+    },
+    {
+        category: '視覺干擾陷阱',
+        question: '下面四個跟液體有關的詞，哪一個其實「沒有水字」？',
+        options: ['溫泉湯屋', '自來水廠', '礦泉水瓶', '純淨山泉水'],
+        safeIndex: 0,
+        safeRoast: '「溫泉湯屋」有泉也有湯，偏偏就是沒有「水」字，太神啦！',
+        tabooRoast: '被一堆液體字眼搞混了吧？你選的詞裡面真的有「水」字！'
+    },
+    {
+        category: '情感與眼淚',
+        question: '看了一部超感人的電影哭到不行，你會怎麼形容自己的狀態？',
+        options: ['淚流滿面', '哭到口水直流', '眼淚像自來水', '淚水奪眶而出'],
+        safeIndex: 0,
+        safeRoast: '「淚流滿面」雖然很濕潤，但字面上完全沒有「水」字！',
+        tabooRoast: '哭得太慘連視線都模糊了，直接點到「水」字出局！'
+    },
+    {
+        category: '台灣早餐店',
+        question: '早晨走進美而美早餐店，阿姨問：「帥哥美女今天點什麼？」',
+        options: ['培根蛋餅配冰豆漿', '火腿吐司配溫開水', '水煮蛋配水果沙拉', '蘿蔔糕配薏仁水'],
+        safeIndex: 0,
+        safeRoast: '「培根蛋餅配冰豆漿」完美過關！豆漿萬歲！',
+        tabooRoast: '早餐店阿姨都替你尷尬了，你點到了禁忌的「水」字！'
+    },
+    {
+        category: '居家打掃',
+        question: '過年大掃除要把客廳地板弄乾淨，你會拿起哪樣工具？',
+        options: ['一桶清水', '吸塵器與拖把', '高壓水柱機', '抹布沾自來水'],
+        safeIndex: 1,
+        safeRoast: '「吸塵器與拖把」乾爽俐落，完全沒有沾到半個水字！',
+        tabooRoast: '地板還沒拖乾淨，你就先因為說出「水」字被掃地出門了！'
+    },
+    {
+        category: '視覺干擾陷阱',
+        question: '考驗動態視力！請在秒數歸零前選出「不含水字」的選項：',
+        options: ['冰清玉潔', '水乳交融', '車水馬龍', '滴水不漏'],
+        safeIndex: 0,
+        safeRoast: '「冰清玉潔」安全！「冰」字再次立下大功！',
+        tabooRoast: '速度一快就慌了嗎？這句成語裡藏著大大的「水」字！'
+    },
+    {
+        category: '海鮮與水族',
+        question: '去海生館參觀時，小朋友指著玻璃問裡面游的是什麼？',
+        options: ['海豚與小丑魚', '透明大水母', '巨型水獺先生', '深海魔鬼水蛇'],
+        safeIndex: 0,
+        safeRoast: '「海豚與小丑魚」全部都是三點水部首，但就是沒有「水」字！',
+        tabooRoast: '水母、水獺、水蛇全都在釣你上鉤，你居然真的咬餌了！'
+    },
+    {
+        category: '日常對話誘導',
+        question: '朋友打電話問你：「欸你現在正在忙什麼？」你該怎麼回答？',
+        options: ['正在吹頭髮追劇', '剛洗完澡在擦汗水', '正在陽台幫花澆水', '在廚房煮水餃'],
+        safeIndex: 0,
+        safeRoast: '「正在吹頭髮追劇」既合理又安全，成功躲過生活陷阱！',
+        tabooRoast: '聊天聊太順口，結果一不小心就把「水」字講出來啦！'
+    },
+    {
+        category: '水果攤陷阱',
+        question: '老闆熱情招呼：「來喔！現切超甜的，要買哪一種？」',
+        options: ['玉荷包荔枝', '花蓮大西瓜水', '多汁水蜜桃', '紅心火龍果水'],
+        safeIndex: 0,
+        safeRoast: '「玉荷包荔枝」安全過關！水蜜桃天生帶水字根本是死穴！',
+        tabooRoast: '吃個甜頭就大意了，選項裡的「水」字直接讓你淘汰！'
+    },
+    {
+        category: '視覺干擾陷阱',
+        question: '下面四個看起來很像的詞彙，哪一個是絕對安全的？',
+        options: ['千山萬水', '永無止境', '水到渠成', '山窮水盡'],
+        safeIndex: 1,
+        safeRoast: '「永無止境」成功過關！你的大腦已經對「永」字產生抗體了！',
+        tabooRoast: '「永」跟「水」只差一點點，可惜你點到了有「水」的那個！'
+    },
+    {
+        category: '台灣手搖飲配料',
+        question: '點珍奶想加點有嚼勁的配料，下列哪一種可以放心加？',
+        options: ['Q彈椰果與仙草', '晶瑩水晶粉圓', '手工水信玄餅', '蜂蜜水玉凍'],
+        safeIndex: 0,
+        safeRoast: '「Q彈椰果與仙草」安全過關！水晶粉圓這種花俏名字千萬別碰！',
+        tabooRoast: '加料加到出局！你選的配料名稱裡面藏著「水」字！'
+    },
+    {
+        category: '校園生活回憶',
+        question: '學生時代教室裡總會出現的物品，哪一個沒有觸犯禁忌？',
+        options: ['黑板與粉筆擦', '走廊飲水機', '老師的水壺', '講台上的礦泉水'],
+        safeIndex: 0,
+        safeRoast: '「黑板與粉筆擦」安全過關！飲水機跟水壺通通不能提！',
+        tabooRoast: '下課想去裝水嗎？很遺憾，在這裡連想都不能想！'
+    },
+    {
+        category: '料理廚房用語',
+        question: '食譜上寫著要幫食材加熱，哪一個步驟可以安全念出來？',
+        options: ['熱油下鍋快炒', '加入兩碗冷水', '開大火把水煮沸', '淋上太白粉水'],
+        safeIndex: 0,
+        safeRoast: '「熱油下鍋快炒」香氣四溢又安全，太白粉水太陰險了！',
+        tabooRoast: '這道菜還沒煮熟，你的生存測驗就已經先燒焦了！'
+    },
+    {
+        category: '台灣景點地名',
+        question: '週末想去新北或桃園走走，哪個地名說出來完全不會扣命？',
+        options: ['九份老街', '淡水漁人碼頭', '三峽清水祖師廟', '石門水庫風景區'],
+        safeIndex: 0,
+        safeRoast: '「九份老街」安全！淡水跟石門水庫在這個遊戲裡都是禁區！',
+        tabooRoast: '剛出發去旅遊就踩雷，這個地名自帶「水」字屬性！'
+    },
+    {
+        category: '終極文字陷阱',
+        question: '最後考驗！下面哪一個詞彙裡面「完全沒有水字」？',
+        options: ['果汁牛奶', '糖水豆花', '檸檬愛玉水', '冰糖雪梨水'],
+        safeIndex: 0,
+        safeRoast: '「果汁牛奶」安全過關！「汁」跟「奶」都不是水，完美生存！',
+        tabooRoast: '連豆花跟愛玉都加上了「水」字誘餌，你還是忍不住點下去了！'
+    }
+];
+
+// ----------------------------------------------------------------------------
+// 3. 遊戲狀態管理
+// ----------------------------------------------------------------------------
+const TOTAL_ROUNDS = 15; // 每次挑戰隨機抽取 15 題不重複題目
+
+const GameState = {
+    isPlaying: false,
+    isAnswering: false,
+    lives: 3,
+    score: 0,
+    streak: 0,
+    maxStreak: 0,
+    survivedCount: 0,
+    currentIndex: 0,
+    questions: [],
+    timeLimit: 8.0,
+    timeLeft: 8.0,
+    timerId: null,
+    lastTickSecond: 99
+};
+
+// ----------------------------------------------------------------------------
+// 4. DOM 元素快取
+// ----------------------------------------------------------------------------
+const dom = {
+    appContainer: document.getElementById('appContainer'),
+    startScreen: document.getElementById('startScreen'),
+    quizScreen: document.getElementById('quizScreen'),
+    resultScreen: document.getElementById('resultScreen'),
+
+    heartsContainer: document.getElementById('heartsContainer'),
+    qNumDisplay: document.getElementById('qNumDisplay'),
+    qTotalDisplay: document.getElementById('qTotalDisplay'),
+    streakDisplay: document.getElementById('streakDisplay'),
+    scoreDisplay: document.getElementById('scoreDisplay'),
+
+    categoryBadge: document.getElementById('categoryBadge'),
+    timeLeftText: document.getElementById('timeLeftText'),
+    timerBarFill: document.getElementById('timerBarFill'),
+    questionText: document.getElementById('questionText'),
+    optionsGrid: document.getElementById('optionsGrid'),
+
+    feedbackPanel: document.getElementById('feedbackPanel'),
+    feedbackIcon: document.getElementById('feedbackIcon'),
+    feedbackTitle: document.getElementById('feedbackTitle'),
+    feedbackComment: document.getElementById('feedbackComment'),
+    nextQuestionBtn: document.getElementById('nextQuestionBtn'),
+
+    resultBadge: document.getElementById('resultBadge'),
+    resultTitle: document.getElementById('resultTitle'),
+    resultRoast: document.getElementById('resultRoast'),
+    finalScore: document.getElementById('finalScore'),
+    finalMaxStreak: document.getElementById('finalMaxStreak'),
+    finalSurvived: document.getElementById('finalSurvived'),
+    finalRankTitle: document.getElementById('finalRankTitle')
+};
+
+// ----------------------------------------------------------------------------
+// 5. 核心輔助函式：洗牌與「水」字高亮標記
+// ----------------------------------------------------------------------------
+function shuffleArray(arr) {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+}
+
+// 將選項文字中的「水」字用紅色發光標籤高亮顯示
+function highlightWaterChar(text) {
+    return text.replace(/水/g, '<span class="taboo-char-highlight">水</span>');
+}
+
+// ----------------------------------------------------------------------------
+// 6. 遊戲流程控制
+// ----------------------------------------------------------------------------
+function startNewGame() {
+    audio.init();
+    clearInterval(GameState.timerId);
+
+    // 從 24 題題庫中隨機抽取 15 題，並打亂每題的 4 個選項順序
+    const picked = shuffleArray(QUESTION_BANK).slice(0, TOTAL_ROUNDS).map(q => {
+        const indexedOptions = q.options.map((text, idx) => ({
+            text,
+            isSafe: idx === q.safeIndex && !text.includes('水')
+        }));
+        const shuffledOptions = shuffleArray(indexedOptions);
+        return {
+            ...q,
+            shuffledOptions
+        };
+    });
+
+    GameState.isPlaying = true;
+    GameState.isAnswering = false;
+    GameState.lives = 3;
+    GameState.score = 0;
+    GameState.streak = 0;
+    GameState.maxStreak = 0;
+    GameState.survivedCount = 0;
+    GameState.currentIndex = 0;
+    GameState.questions = picked;
+
+    dom.qTotalDisplay.textContent = TOTAL_ROUNDS;
+    updateHud();
+
+    dom.startScreen.classList.add('hidden');
+    dom.resultScreen.classList.add('hidden');
+    dom.quizScreen.classList.remove('hidden');
+    dom.appContainer.classList.remove('danger-glow');
+
+    loadCurrentQuestion();
+}
+
+function updateHud() {
+    // 繪製 3 顆心生命值
+    let heartsHtml = '';
+    for (let i = 0; i < 3; i++) {
+        if (i < GameState.lives) {
+            heartsHtml += '<span class="transition-transform duration-200 inline-block">❤️</span>';
+        } else {
+            heartsHtml += '<span class="opacity-25 grayscale inline-block">🖤</span>';
+        }
+    }
+    dom.heartsContainer.innerHTML = heartsHtml;
+    dom.qNumDisplay.textContent = GameState.currentIndex + 1;
+    dom.streakDisplay.textContent = GameState.streak;
+    dom.scoreDisplay.textContent = GameState.score;
+}
+
+function loadCurrentQuestion() {
+    clearInterval(GameState.timerId);
+    const q = GameState.questions[GameState.currentIndex];
+
+    // 隨關卡推進縮短作答時間：第 1 題 8.0 秒 -> 最後一題縮短至 4.0 秒
+    const progress = GameState.currentIndex / (TOTAL_ROUNDS - 1);
+    GameState.timeLimit = Number((8.0 - progress * 4.0).toFixed(1));
+    GameState.timeLeft = GameState.timeLimit;
+    GameState.lastTickSecond = Math.ceil(GameState.timeLeft);
+    GameState.isAnswering = true;
+
+    // 重置視覺狀態
+    dom.appContainer.classList.remove('animate-taboo-shake', 'danger-glow');
+    dom.feedbackPanel.classList.add('hidden');
+    dom.categoryBadge.textContent = q.category;
+    dom.questionText.textContent = q.question;
+    updateHud();
+    updateTimerUI();
+
+    // 生成 4 個選項按鈕
+    dom.optionsGrid.innerHTML = '';
+    const labels = ['1', '2', '3', '4'];
+
+    q.shuffledOptions.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn rounded-2xl p-4 text-left flex items-center gap-3 group';
+        btn.dataset.index = idx;
+        btn.innerHTML = `
+            <span class="w-7 h-7 rounded-lg bg-slate-800 border border-slate-600 text-slate-300 font-orbitron text-xs font-bold flex items-center justify-center shrink-0 group-hover:border-sky-400 group-hover:text-sky-300">
+                ${labels[idx]}
+            </span>
+            <span class="option-text text-base sm:text-lg font-bold text-slate-100 leading-snug">
+                ${opt.text}
+            </span>
+        `;
+        btn.addEventListener('click', () => handleOptionSelect(idx));
+        dom.optionsGrid.appendChild(btn);
+    });
+
+    // 啟動高精準度倒數計時器
+    let lastTimestamp = performance.now();
+    GameState.timerId = setInterval(() => {
+        if (!GameState.isAnswering) return;
+
+        const now = performance.now();
+        const dt = (now - lastTimestamp) / 1000;
+        lastTimestamp = now;
+
+        GameState.timeLeft = Math.max(0, GameState.timeLeft - dt);
+        updateTimerUI();
+
+        // 每秒播放滴答提示音
+        const currentCeil = Math.ceil(GameState.timeLeft);
+        if (currentCeil < GameState.lastTickSecond && currentCeil > 0) {
+            GameState.lastTickSecond = currentCeil;
+            audio.playTick(GameState.timeLeft <= 2.5);
+        }
+
+        // 時間歸零超時判定
+        if (GameState.timeLeft <= 0) {
+            clearInterval(GameState.timerId);
+            handleTimeout();
+        }
+    }, 40);
+}
+
+function updateTimerUI() {
+    const ratio = Math.max(0, GameState.timeLeft / GameState.timeLimit);
+    dom.timeLeftText.textContent = `${GameState.timeLeft.toFixed(1)}s`;
+    dom.timerBarFill.style.width = `${ratio * 100}%`;
+
+    if (ratio <= 0.35) {
+        dom.timerBarFill.className = 'h-full rounded-full bg-gradient-to-r from-rose-500 to-red-600';
+        dom.timeLeftText.className = 'font-orbitron text-sm font-black text-rose-400 animate-pulse';
+        dom.appContainer.classList.add('danger-glow');
+    } else if (ratio <= 0.65) {
+        dom.timerBarFill.className = 'h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500';
+        dom.timeLeftText.className = 'font-orbitron text-sm font-black text-amber-300';
+    } else {
+        dom.timerBarFill.className = 'h-full rounded-full bg-gradient-to-r from-sky-400 to-emerald-400';
+        dom.timeLeftText.className = 'font-orbitron text-sm font-black text-sky-400';
+    }
+}
+
+// ----------------------------------------------------------------------------
+// 7. 玩家選擇與超時判定
+// ----------------------------------------------------------------------------
+function handleOptionSelect(selectedIndex) {
+    if (!GameState.isAnswering) return;
+    GameState.isAnswering = false;
+    clearInterval(GameState.timerId);
+    dom.appContainer.classList.remove('danger-glow');
+
+    const q = GameState.questions[GameState.currentIndex];
+    const chosen = q.shuffledOptions[selectedIndex];
+    const buttons = dom.optionsGrid.querySelectorAll('.option-btn');
+
+    // 鎖定所有按鈕並揭曉各選項裡的「水」字陷阱
+    buttons.forEach((btn, idx) => {
+        btn.disabled = true;
+        const opt = q.shuffledOptions[idx];
+        const textSpan = btn.querySelector('.option-text');
+
+        if (opt.isSafe) {
+            btn.classList.add('state-safe');
+        } else {
+            textSpan.innerHTML = highlightWaterChar(opt.text);
+            if (idx === selectedIndex) {
+                btn.classList.add('state-taboo');
+            } else {
+                btn.classList.add('state-trap-reveal');
+            }
+        }
+    });
+
+    if (chosen.isSafe) {
+        // 答對（安全避開所有水字）
+        audio.playPass();
+        GameState.streak += 1;
+        GameState.maxStreak = Math.max(GameState.maxStreak, GameState.streak);
+        GameState.survivedCount += 1;
+
+        const speedBonus = Math.round(GameState.timeLeft * 20);
+        const streakBonus = GameState.streak * 30;
+        const gained = 100 + speedBonus + streakBonus;
+        GameState.score += gained;
+
+        updateHud();
+        showFeedback(
+            true,
+            `✅ 安全過關！+${gained} 分`,
+            q.safeRoast
+        );
+    } else {
+        // 觸犯禁忌（選到包含水字的選項）
+        audio.playTabooAlarm();
+        GameState.lives -= 1;
+        GameState.streak = 0;
+        updateHud();
+
+        dom.appContainer.classList.remove('animate-taboo-shake');
+        void dom.appContainer.offsetWidth; // 強制重繪以重新觸發震動動畫
+        dom.appContainer.classList.add('animate-taboo-shake');
+
+        showFeedback(
+            false,
+            `🚫 觸犯禁忌！你選到了「${chosen.text}」`,
+            q.tabooRoast
+        );
+    }
+}
+
+function handleTimeout() {
+    if (!GameState.isAnswering) return;
+    GameState.isAnswering = false;
+    dom.appContainer.classList.remove('danger-glow');
+
+    audio.playTabooAlarm();
+    GameState.lives -= 1;
+    GameState.streak = 0;
+    updateHud();
+
+    const q = GameState.questions[GameState.currentIndex];
+    const buttons = dom.optionsGrid.querySelectorAll('.option-btn');
+
+    buttons.forEach((btn, idx) => {
+        btn.disabled = true;
+        const opt = q.shuffledOptions[idx];
+        const textSpan = btn.querySelector('.option-text');
+        if (opt.isSafe) {
+            btn.classList.add('state-safe');
+        } else {
+            textSpan.innerHTML = highlightWaterChar(opt.text);
+            btn.classList.add('state-trap-reveal');
+        }
+    });
+
+    dom.appContainer.classList.add('animate-taboo-shake');
+    showFeedback(
+        false,
+        '⏰ 思考超時！猶豫就會敗北！',
+        '倒數歸零還沒做出決定，緊張到連口水都吞不下去啦！扣除 1 顆生命值。'
+    );
+}
+
+function showFeedback(isSuccess, title, comment) {
+    dom.feedbackPanel.classList.remove(
+        'hidden',
+        'bg-emerald-950/60', 'border-emerald-500/40',
+        'bg-rose-950/65', 'border-rose-500/50'
+    );
+
+    if (isSuccess) {
+        dom.feedbackPanel.classList.add('bg-emerald-950/60', 'border-emerald-500/40');
+        dom.feedbackIcon.textContent = '🛡️';
+        dom.feedbackTitle.className = 'font-black text-base sm:text-lg mb-1 text-emerald-300';
+    } else {
+        dom.feedbackPanel.classList.add('bg-rose-950/65', 'border-rose-500/50');
+        dom.feedbackIcon.textContent = '💥';
+        dom.feedbackTitle.className = 'font-black text-base sm:text-lg mb-1 text-rose-400';
+    }
+
+    dom.feedbackTitle.textContent = title;
+    dom.feedbackComment.textContent = comment;
+
+    // 判斷下一顆按鈕文字
+    if (GameState.lives <= 0) {
+        dom.nextQuestionBtn.textContent = '查看悲劇結算 ▶';
+    } else if (GameState.currentIndex >= TOTAL_ROUNDS - 1) {
+        dom.nextQuestionBtn.textContent = '查看通關榮耀 ▶';
+    } else {
+        dom.nextQuestionBtn.textContent = '下一題 ▶';
+    }
+}
+
+function proceedNextStep() {
+    if (GameState.lives <= 0 || GameState.currentIndex >= TOTAL_ROUNDS - 1) {
+        endGame();
+    } else {
+        GameState.currentIndex += 1;
+        loadCurrentQuestion();
+    }
+}
+
+// ----------------------------------------------------------------------------
+// 8. 結算畫面與稱號評定
+// ----------------------------------------------------------------------------
+function endGame() {
+    GameState.isPlaying = false;
+    GameState.isAnswering = false;
+    clearInterval(GameState.timerId);
+
+    dom.quizScreen.classList.add('hidden');
+    dom.resultScreen.classList.remove('hidden');
+
+    const clearedAll = GameState.lives > 0;
+    if (clearedAll) {
+        audio.playVictory();
+        dom.resultBadge.textContent = '🏆 禁語生存者・全數通關';
+        dom.resultBadge.className = 'inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black mb-3 bg-emerald-500/20 border border-emerald-400/50 text-emerald-300';
+        dom.resultTitle.textContent = '神級定力！你徹底戰勝了「水」的誘惑！';
+        dom.resultRoast.textContent = '面對排山倒海的文字陷阱與高速倒數，你依然滴水不沾地活到了最後！';
+    } else {
+        dom.resultBadge.textContent = '💀 觸犯禁忌・生存失敗';
+        dom.resultBadge.className = 'inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black mb-3 bg-rose-500/20 border border-rose-400/50 text-rose-300';
+        dom.resultTitle.textContent = '陣亡！你終究還是沒躲過「水」字陷阱';
+        dom.resultRoast.textContent = '看來你的大腦只要一緊張就會自動搜尋水分，調整心態再挑戰一次吧！';
+    }
+
+    dom.finalScore.textContent = GameState.score;
+    dom.finalMaxStreak.textContent = `${GameState.maxStreak} 連勝`;
+    dom.finalSurvived.textContent = `${GameState.survivedCount} / ${TOTAL_ROUNDS}`;
+
+    // 根據存活題數給予趣味稱號
+    const s = GameState.survivedCount;
+    let rank = '💧 移動式人形灑水器';
+    if (s === 15 && GameState.lives === 3) {
+        rank = '👑 撒哈拉沙漠絕對主宰（無傷通關）';
+    } else if (s >= 13) {
+        rank = '🌵 鋼鐵意志仙人掌大師';
+    } else if (s >= 9) {
+        rank = '🔥 乾燥地帶求生專家';
+    } else if (s >= 5) {
+        rank = '💦 容易口渴的見習生';
+    }
+    dom.finalRankTitle.textContent = rank;
+}
+
+// ----------------------------------------------------------------------------
+// 9. 事件監聽綁定 (按鈕與鍵盤快捷鍵)
+// ----------------------------------------------------------------------------
+document.getElementById('startBtn').addEventListener('click', startNewGame);
+document.getElementById('restartBtn').addEventListener('click', startNewGame);
+dom.nextQuestionBtn.addEventListener('click', proceedNextStep);
+
+document.getElementById('startMuteBtn').addEventListener('click', () => {
+    audio.init();
+    audio.toggleMute();
+});
+document.getElementById('quizMuteBtn').addEventListener('click', () => {
+    audio.init();
+    audio.toggleMute();
+});
+
+// 支援鍵盤 1~4 快速作答與 Space/Enter 下一題
+window.addEventListener('keydown', (e) => {
+    if (!GameState.isPlaying) return;
+
+    if (GameState.isAnswering) {
+        if (['1', '2', '3', '4'].includes(e.key)) {
+            const idx = parseInt(e.key, 10) - 1;
+            handleOptionSelect(idx);
+        }
+    } else if (!dom.feedbackPanel.classList.contains('hidden')) {
+        if (e.code === 'Space' || e.key === 'Enter') {
+            e.preventDefault();
+            proceedNextStep();
+        }
+    }
+});
+</script>
+</body>
+</html>

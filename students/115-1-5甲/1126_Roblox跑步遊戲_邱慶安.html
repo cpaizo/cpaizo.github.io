@@ -1,0 +1,2233 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Roblox 3D 極速跑步模擬器</title>
+    <!-- 引入 Tailwind CSS 與 Google Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+    <!-- 引入 Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #38bdf8;
+        }
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+
+        /* Roblox 風格 UI 邊框與陰影 */
+        .rbx-panel {
+            background: rgba(20, 24, 34, 0.85);
+            backdrop-filter: blur(8px);
+            border: 3px solid rgba(255, 255, 255, 0.25);
+            border-radius: 16px;
+            box-shadow: 0 8px 0 rgba(0, 0, 0, 0.35);
+            color: white;
+        }
+        .rbx-btn {
+            transition: all 0.1s ease;
+            border-bottom: 5px solid rgba(0, 0, 0, 0.35);
+            cursor: pointer;
+        }
+        .rbx-btn:active:not(:disabled) {
+            transform: translateY(4px);
+            border-bottom-width: 1px;
+        }
+        .rbx-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            filter: grayscale(80%);
+        }
+
+        /* 浮動加分數字動畫 */
+        .floating-text {
+            position: absolute;
+            pointer-events: none;
+            font-weight: 900;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8), 0 0 2px #000;
+            animation: floatUp 0.9s ease-out forwards;
+            z-index: 30;
+        }
+        @keyframes floatUp {
+            0% { transform: translate(-50%, 0) scale(0.8); opacity: 1; }
+            50% { transform: translate(-50%, -35px) scale(1.15); opacity: 1; }
+            100% { transform: translate(-50%, -70px) scale(1); opacity: 0; }
+        }
+
+        /* 速度線濾鏡特效 (高速移動時顯示) */
+        #speed-lines {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(circle, transparent 55%, rgba(255, 255, 255, 0.25) 100%);
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 5;
+        }
+
+        /* 手機版虛擬搖桿與按鈕 */
+        #joystick-zone {
+            position: absolute;
+            bottom: 24px;
+            left: 24px;
+            width: 130px;
+            height: 130px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            z-index: 25;
+            touch-action: none;
+        }
+        #joystick-knob {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 54px;
+            height: 54px;
+            margin-top: -27px;
+            margin-left: -27px;
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            pointer-events: none;
+        }
+        #mobile-jump-btn {
+            position: absolute;
+            bottom: 36px;
+            right: 28px;
+            width: 84px;
+            height: 84px;
+            border-radius: 50%;
+            background: linear-gradient(180deg, #3b82f6, #1d4ed8);
+            border: 4px solid #93c5fd;
+            box-shadow: 0 6px 0 #1e3a8a;
+            color: white;
+            font-weight: 900;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 25;
+            touch-action: none;
+        }
+        #mobile-jump-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #1e3a8a;
+        }
+
+        /* 隱藏預設捲軸 */
+        ::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <!-- 疾風邊緣特效 -->
+    <div id="speed-lines"></div>
+
+    <!-- 浮動數字容器 -->
+    <div id="floating-container" class="absolute inset-0 pointer-events-none overflow-hidden z-30"></div>
+
+    <!-- 頂部狀態欄 HUD -->
+    <div class="absolute top-4 left-4 right-4 flex flex-wrap justify-between items-start gap-3 pointer-events-none z-20">
+        <!-- 左上角：世界、速度、金幣與倍率資訊 -->
+        <div class="flex flex-col gap-2 pointer-events-auto">
+            <!-- 當前世界標籤 -->
+            <div class="rbx-panel px-3.5 py-1.5 flex items-center justify-between gap-3 border-sky-400">
+                <span id="ui-world-badge" class="text-xs sm:text-sm font-black text-sky-300">🌍 世界 1：陽光綠野</span>
+                <button id="btn-quick-race" class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow">
+                    🏁 開始競速
+                </button>
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+                <!-- 速度面板 -->
+                <div class="rbx-panel px-3.5 py-2.5 flex items-center gap-2.5 min-w-[165px]">
+                    <div class="w-10 h-10 rounded-xl bg-yellow-400 flex items-center justify-center text-xl shadow-inner border-2 border-yellow-200">
+                        ⚡
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-yellow-300 font-bold tracking-wider">當前速度</div>
+                        <div id="ui-speed" class="text-xl sm:text-2xl font-black text-white leading-tight">0</div>
+                    </div>
+                </div>
+
+                <!-- 金幣面板 -->
+                <div class="rbx-panel px-3.5 py-2.5 flex items-center gap-2.5 min-w-[155px]">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center text-xl shadow-inner border-2 border-amber-200">
+                        💰
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-amber-300 font-bold tracking-wider">金幣 (COINS)</div>
+                        <div id="ui-coins" class="text-xl sm:text-2xl font-black text-amber-300 leading-tight">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rbx-panel px-4 py-1.5 flex items-center justify-between gap-4">
+                <div class="flex items-center gap-1.5">
+                    <span class="text-base">🔥</span>
+                    <span class="text-xs text-gray-300 font-bold">總速度倍率</span>
+                </div>
+                <span id="ui-multiplier" class="text-base font-black text-emerald-400">x1.0</span>
+            </div>
+
+            <!-- 狀態提示標籤 (是否正在跑步機上) -->
+            <div id="ui-status-badge" class="hidden rbx-panel px-3 py-1.5 bg-emerald-900/90 border-emerald-400 text-emerald-300 text-xs font-bold flex items-center gap-2">
+                <span class="animate-ping w-2 h-2 rounded-full bg-emerald-400"></span>
+                <span id="ui-status-text">正在跑步機訓練中！</span>
+            </div>
+        </div>
+
+        <!-- 中上方：NPC 競速比賽即時進度條與名次 (比賽中顯示) -->
+        <div id="race-hud" class="hidden pointer-events-auto rbx-panel p-3 w-full max-w-md mx-auto border-amber-400 bg-slate-900/95">
+            <div class="flex justify-between items-center mb-1.5">
+                <span class="text-xs sm:text-sm font-black text-amber-400 flex items-center gap-1.5">
+                    🏆 競速大賽進行中
+                </span>
+                <span id="race-rank-text" class="px-2.5 py-0.5 rounded-full bg-amber-500 text-slate-950 font-black text-xs">
+                    第 1 名 / 4
+                </span>
+            </div>
+            <!-- 賽道進度條 -->
+            <div class="relative w-full h-4 bg-slate-800 rounded-full border border-slate-600 overflow-visible mb-2">
+                <div id="race-player-bar" class="h-full bg-gradient-to-r from-sky-400 to-emerald-400 rounded-full transition-all duration-75" style="width: 0%"></div>
+                <!-- NPC 標記點 -->
+                <div id="race-npc-markers" class="absolute inset-0 pointer-events-none"></div>
+            </div>
+            <div class="flex justify-between items-center text-[11px] text-gray-300">
+                <span id="race-dist-text">距離終點: 240m</span>
+                <button id="btn-quit-race" class="text-rose-400 hover:text-rose-300 font-bold underline">放棄比賽</button>
+            </div>
+        </div>
+
+        <!-- 右上角：重生 (Rebirth)、金幣商店與世界切換 -->
+        <div class="flex flex-col items-end gap-2 pointer-events-auto">
+            <div class="rbx-panel p-3 w-64 sm:w-72">
+                <div class="flex justify-between items-center mb-1.5">
+                    <span class="text-xs font-bold text-purple-300 flex items-center gap-1">
+                        👑 重生進度 (Rebirth <span id="ui-rebirth-count">0</span>)
+                    </span>
+                    <span id="ui-rebirth-progress-text" class="text-xs font-bold text-white">0 / 500</span>
+                </div>
+                <!-- 進度條 -->
+                <div class="w-full h-3 bg-gray-800 rounded-full overflow-hidden border border-gray-600 mb-2">
+                    <div id="ui-rebirth-bar" class="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-400 transition-all duration-200" style="width: 0%"></div>
+                </div>
+                <button id="btn-rebirth" disabled class="rbx-btn w-full py-1.5 px-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 font-black text-xs sm:text-sm text-white flex items-center justify-center gap-1.5">
+                    <span>🔄 立即重生 (+0.5x 倍率)</span>
+                </button>
+            </div>
+
+            <!-- 功能快捷按鈕列 -->
+            <div class="flex flex-wrap justify-end gap-1.5">
+                <button id="btn-open-shop" class="rbx-panel rbx-btn px-3 py-1.5 text-xs font-black bg-amber-500/90 border-amber-300 text-slate-950">
+                    🛒 金幣商店
+                </button>
+                <button id="btn-world-portal" class="rbx-panel rbx-btn px-3 py-1.5 text-xs font-black bg-fuchsia-600/90 border-fuchsia-300 text-white">
+                    🌌 世界傳送 (1~5)
+                </button>
+                <button id="btn-reset-pos" class="rbx-panel rbx-btn px-2.5 py-1.5 text-xs font-bold text-sky-300 hover:text-white">
+                    🏠 起點
+                </button>
+                <button id="btn-toggle-help" class="rbx-panel rbx-btn px-2.5 py-1.5 text-xs font-bold text-gray-200 hover:text-white">
+                    ❓ 說明
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 世界傳送門選單視窗 (世界 1 ~ 世界 5) -->
+    <div id="world-modal" class="hidden fixed inset-0 bg-black/65 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="rbx-panel max-w-lg w-full p-5 relative border-fuchsia-400">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-xl sm:text-2xl font-black text-fuchsia-300 flex items-center gap-2">
+                    🌌 多元宇宙傳送門 (1 ~ 5 世界)
+                </h2>
+                <span class="text-xs text-gray-300 font-bold">目前所在：<span id="world-modal-current" class="text-yellow-300">世界 1</span></span>
+            </div>
+            <div id="world-list-container" class="space-y-2.5 mb-5 max-h-[62vh] overflow-y-auto pr-1">
+                <!-- 由 JS 動態生成世界 1~5 卡片 -->
+            </div>
+            <button id="btn-close-world-modal" class="rbx-btn w-full py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 font-black text-white text-sm">
+                關閉傳送選單
+            </button>
+        </div>
+    </div>
+
+    <!-- 比賽倒數計時大字 (3, 2, 1, GO!) -->
+    <div id="countdown-overlay" class="hidden fixed inset-0 pointer-events-none z-40 flex items-center justify-center">
+        <div id="countdown-text" class="text-7xl sm:text-9xl font-black text-yellow-400 drop-shadow-[0_8px_16px_rgba(0,0,0,0.9)] animate-bounce">
+            3
+        </div>
+    </div>
+
+    <!-- 比賽結算視窗 -->
+    <div id="race-result-modal" class="hidden fixed inset-0 bg-black/65 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="rbx-panel max-w-sm w-full p-6 text-center border-amber-400">
+            <div id="result-trophy" class="text-6xl mb-2">🏆</div>
+            <h2 id="result-title" class="text-2xl sm:text-3xl font-black text-amber-400 mb-1">第 1 名！冠軍！</h2>
+            <p id="result-subtitle" class="text-sm text-gray-300 mb-4">你以驚人的速度擊敗了所有 NPC 對手！</p>
+            <div class="bg-slate-900/90 rounded-xl p-3.5 border border-slate-700 mb-5 space-y-2">
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-400">完賽時間：</span>
+                    <span id="result-time" class="font-bold text-white">12.4 秒</span>
+                </div>
+                <div class="flex justify-between text-base">
+                    <span class="text-amber-300 font-bold">獲得獎金：</span>
+                    <span id="result-reward" class="font-black text-amber-400">+150 💰</span>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button id="btn-race-again" class="rbx-btn flex-1 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-black text-sm">
+                    🏁 再比一場
+                </button>
+                <button id="btn-close-result" class="rbx-btn flex-1 py-2.5 rounded-xl bg-emerald-500 text-white font-black text-sm">
+                    繼續訓練
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 金幣商店視窗 -->
+    <div id="shop-modal" class="hidden fixed inset-0 bg-black/65 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="rbx-panel max-w-md w-full p-5 relative border-amber-400">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl sm:text-2xl font-black text-amber-400 flex items-center gap-2">
+                    🛒 極速金幣商店
+                </h2>
+                <span class="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400 text-amber-300 font-black text-sm">
+                    💰 <span id="shop-coins-display">0</span>
+                </span>
+            </div>
+
+            <div class="space-y-3 mb-5 max-h-[60vh] overflow-y-auto pr-1">
+                <!-- 商品 1：訓練倍率升級 -->
+                <div class="bg-slate-800/90 p-3.5 rounded-xl border border-slate-600 flex items-center justify-between gap-3">
+                    <div>
+                        <div class="font-black text-emerald-400 text-sm sm:text-base">⚡ 專業運動鞋 (Lv.<span id="shop-shoe-lv">1</span>)</div>
+                        <div class="text-xs text-gray-300">永久提升訓練速度倍率 (+0.5x)</div>
+                    </div>
+                    <button id="btn-buy-shoe" class="rbx-btn px-3.5 py-2 rounded-xl bg-amber-500 text-slate-950 font-black text-xs sm:text-sm whitespace-nowrap">
+                        💰 100
+                    </button>
+                </div>
+
+                <!-- 商品 2：黃金能量尾焰 -->
+                <div class="bg-slate-800/90 p-3.5 rounded-xl border border-slate-600 flex items-center justify-between gap-3">
+                    <div>
+                        <div class="font-black text-yellow-400 text-sm sm:text-base">🔥 黃金極速尾焰</div>
+                        <div class="text-xs text-gray-300">奔跑時散發金色粒子，額外 +1.0x 倍率</div>
+                    </div>
+                    <button id="btn-buy-trail-gold" class="rbx-btn px-3.5 py-2 rounded-xl bg-amber-500 text-slate-950 font-black text-xs sm:text-sm whitespace-nowrap">
+                        💰 400
+                    </button>
+                </div>
+
+                <!-- 商品 3：賽博霓虹尾焰 -->
+                <div class="bg-slate-800/90 p-3.5 rounded-xl border border-slate-600 flex items-center justify-between gap-3">
+                    <div>
+                        <div class="font-black text-fuchsia-400 text-sm sm:text-base">🌌 賽博量子光翼尾焰</div>
+                        <div class="text-xs text-gray-300">霓虹紫光特效，額外 +2.5x 巨幅倍率</div>
+                    </div>
+                    <button id="btn-buy-trail-cyber" class="rbx-btn px-3.5 py-2 rounded-xl bg-amber-500 text-slate-950 font-black text-xs sm:text-sm whitespace-nowrap">
+                        💰 2,000
+                    </button>
+                </div>
+
+                <!-- 商品 4：宇宙神光尾焰 (專為第 4~5 世界打造) -->
+                <div class="bg-slate-800/90 p-3.5 rounded-xl border border-amber-400/60 flex items-center justify-between gap-3">
+                    <div>
+                        <div class="font-black text-amber-300 text-sm sm:text-base">👑 創世神域星辰尾焰</div>
+                        <div class="text-xs text-gray-300">七彩神光特效，額外 +8.0x 終極倍率</div>
+                    </div>
+                    <button id="btn-buy-trail-cosmic" class="rbx-btn px-3.5 py-2 rounded-xl bg-amber-500 text-slate-950 font-black text-xs sm:text-sm whitespace-nowrap">
+                        💰 25,000
+                    </button>
+                </div>
+            </div>
+
+            <button id="btn-close-shop" class="rbx-btn w-full py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 font-black text-white text-sm">
+                關閉商店
+            </button>
+        </div>
+    </div>
+
+    <!-- 中央通知橫幅 (解鎖提示/重生成功/門檻不足) -->
+    <div id="toast-banner" class="fixed top-28 left-1/2 -translate-x-1/2 z-40 pointer-events-none transition-all duration-300 opacity-0 -translate-y-4">
+        <div id="toast-content" class="rbx-panel px-6 py-3 text-center font-black text-base sm:text-lg border-yellow-400 text-yellow-300 shadow-2xl">
+            通知訊息
+        </div>
+    </div>
+
+    <!-- 玩法說明彈窗 -->
+    <div id="help-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="rbx-panel max-w-md w-full p-6 relative">
+            <h2 class="text-2xl font-black text-yellow-400 mb-3 flex items-center gap-2">
+                🏃‍♂️ Roblox 極速跑步模擬器
+            </h2>
+            <ul class="space-y-2.5 text-sm text-gray-200 mb-5 leading-relaxed">
+                <li>🔹 <strong class="text-emerald-400">跑步機練速度：</strong>走上發光的跑步機，角色會自動狂奔並持續增加「速度值」！越高級的跑步機增加越快。</li>
+                <li>🔹 <strong class="text-amber-400">NPC 競速賺金幣：</strong>走入「🏁 競速比賽起點」或點擊左上角「開始競速」，與 3 位 Roblox NPC 選手賽跑！跑贏可獲得大量金幣 💰。</li>
+                <li>🔹 <strong class="text-fuchsia-400">五大世界傳送門：</strong>達成速度與金幣門檻後，走入左側傳送門或點擊右上角「🌌 世界傳送 (1~5)」即可前往 <b>第2世界(賽博城)</b>、<b>第3世界(熔岩煉獄)</b>、<b>第4世界(極地神殿)</b> 與 <b>第5世界(星際神域)</b>！</li>
+                <li>🔹 <strong class="text-sky-300">操作方式：</strong><br>
+                    • <b>電腦：</b>WASD 或方向鍵移動、空白鍵跳躍、滑鼠左鍵拖曳旋轉視角。<br>
+                    • <b>手機/平板：</b>左下角虛擬搖桿移動、右下角按鈕跳躍、滑動螢幕旋轉視角。
+                </li>
+            </ul>
+            <button id="btn-close-help" class="rbx-btn w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 font-black text-white text-base">
+                開始訓練！
+            </button>
+        </div>
+    </div>
+
+    <!-- 手機版虛擬控制器 (自動偵測觸控裝置或小螢幕顯示，也可手動操作) -->
+    <div id="mobile-controls" class="md:hidden">
+        <div id="joystick-zone">
+            <div id="joystick-knob"></div>
+        </div>
+        <button id="mobile-jump-btn">跳躍</button>
+    </div>
+</div>
+
+<script>
+/**
+ * ============================================================================
+ * Roblox 3D 極速跑步模擬器 - 核心遊戲邏輯 (含 NPC 競速、金幣商店、第 2 世界)
+ * ============================================================================
+ */
+
+// --- 1. 遊戲狀態與存檔系統 ---
+const WORLD_META = {
+    1: { id: 1, name: '世界 1：陽光綠野', shortName: '陽光綠野', reqSpeed: 0, reqCoins: 0, raceRewards: [150, 75, 35, 15], themeColor: '#4ade80' },
+    2: { id: 2, name: '世界 2：賽博霓虹光速城', shortName: '賽博霓虹城', reqSpeed: 500, reqCoins: 300, raceRewards: [1200, 600, 300, 120], themeColor: '#e879f9' },
+    3: { id: 3, name: '世界 3：熔岩火山煉獄', shortName: '熔岩煉獄', reqSpeed: 8000, reqCoins: 3500, raceRewards: [6500, 3200, 1500, 600], themeColor: '#fb923c' },
+    4: { id: 4, name: '世界 4：極地冰晶神殿', shortName: '極地神殿', reqSpeed: 65000, reqCoins: 20000, raceRewards: [30000, 15000, 7000, 2500], themeColor: '#38bdf8' },
+    5: { id: 5, name: '世界 5：星際神域宇宙', shortName: '星際神域', reqSpeed: 400000, reqCoins: 100000, raceRewards: [150000, 75000, 35000, 12000], themeColor: '#facc15' }
+};
+
+const GameState = {
+    world: 1,                  // 1 ~ 5 世界
+    unlockedWorlds: { 1: true, 2: false, 3: false, 4: false, 5: false },
+    speed: 0,                  // 當前速度值
+    coins: 0,                  // 當前金幣數量
+    rebirths: 0,               // 重生次數
+    shoeLevel: 1,              // 運動鞋升級等級
+    trailType: 'white',        // 'white' | 'gold' | 'cyber' | 'cosmic'
+    ownedTrails: { white: true, gold: false, cyber: false, cosmic: false },
+    multiplier: 1.0,           // 總速度倍率加成
+    rebirthCost: 500,          // 下次重生所需速度
+    activeTreadmill: null,     // 當前所在的跑步機物件
+    trainAccumulator: 0,       // 訓練計時器
+    velocityY: 0,
+    onGround: true
+};
+
+// 計算總倍率 (基礎 1.0 + 重生加成 + 運動鞋等級 + 尾焰加成)
+function recalculateMultiplier() {
+    let mult = 1.0 + GameState.rebirths * 0.5 + (GameState.shoeLevel - 1) * 0.5;
+    if (GameState.trailType === 'gold') mult += 1.0;
+    if (GameState.trailType === 'cyber') mult += 2.5;
+    if (GameState.trailType === 'cosmic') mult += 8.0;
+    GameState.multiplier = mult;
+}
+
+// 讀取本地存檔
+function loadGameData() {
+    try {
+        const saved = localStorage.getItem('rbx_speed_sim_save_v3');
+        if (saved) {
+            const data = JSON.parse(saved);
+            GameState.unlockedWorlds = Object.assign({ 1: true, 2: false, 3: false, 4: false, 5: false }, data.unlockedWorlds);
+            const savedW = Number(data.world) || 1;
+            GameState.world = GameState.unlockedWorlds[savedW] ? savedW : 1;
+            GameState.speed = Number(data.speed) || 0;
+            GameState.coins = Number(data.coins) || 0;
+            GameState.rebirths = Number(data.rebirths) || 0;
+            GameState.shoeLevel = Number(data.shoeLevel) || 1;
+            GameState.trailType = data.trailType || 'white';
+            GameState.ownedTrails = Object.assign({ white: true, gold: false, cyber: false, cosmic: false }, data.ownedTrails);
+            GameState.rebirthCost = Math.floor(500 * Math.pow(2.2, GameState.rebirths));
+            recalculateMultiplier();
+        }
+    } catch (e) {
+        console.warn("無法讀取存檔", e);
+    }
+}
+
+function saveGameData() {
+    try {
+        localStorage.setItem('rbx_speed_sim_save_v3', JSON.stringify({
+            world: GameState.world,
+            unlockedWorlds: GameState.unlockedWorlds,
+            speed: Math.floor(GameState.speed),
+            coins: Math.floor(GameState.coins),
+            rebirths: GameState.rebirths,
+            shoeLevel: GameState.shoeLevel,
+            trailType: GameState.trailType,
+            ownedTrails: GameState.ownedTrails
+        }));
+    } catch (e) {}
+}
+
+// --- 2. Three.js 場景、攝影機與渲染器初始化 ---
+const container = document.getElementById('game-container');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x60c5ff);
+scene.fog = new THREE.FogExp2(0x8cd6ff, 0.0042);
+
+// 動態世界物件群組 (切換世界 1 / 世界 2 時清空重建)
+const worldGroup = new THREE.Group();
+scene.add(worldGroup);
+
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 600);
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+container.insertBefore(renderer.domElement, container.firstChild);
+
+// 燈光設置
+const hemiLight = new THREE.HemisphereLight(0xffffff, 0x4ade80, 0.78);
+hemiLight.position.set(0, 50, 0);
+scene.add(hemiLight);
+
+const dirLight = new THREE.DirectionalLight(0xfffbeb, 0.95);
+dirLight.position.set(45, 85, 35);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.width = 2048;
+dirLight.shadow.mapSize.height = 2048;
+dirLight.shadow.camera.near = 10;
+dirLight.shadow.camera.far = 260;
+const d = 110;
+dirLight.shadow.camera.left = -d;
+dirLight.shadow.camera.right = d;
+dirLight.shadow.camera.top = d;
+dirLight.shadow.camera.bottom = -d;
+scene.add(dirLight);
+
+// --- 3. 動態繪製 Roblox 積木顆粒貼圖、跑步機履帶與 3D 看板 ---
+function createStudTexture(baseColor, studColor) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = baseColor;
+    ctx.fillRect(0, 0, 128, 128);
+
+    ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(0, 0, 128, 128);
+
+    const positions = [[32, 32], [96, 32], [32, 96], [96, 96]];
+    positions.forEach(([x, y]) => {
+        ctx.beginPath();
+        ctx.arc(x, y + 3, 18, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0,0,0,0.25)';
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(x, y, 18, 0, Math.PI * 2);
+        ctx.fillStyle = studColor;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(x - 5, y - 5, 6, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.35)';
+        ctx.fill();
+    });
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    return tex;
+}
+
+function createTreadmillBeltTexture(stripeColor) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(0, 0, 128, 256);
+
+    ctx.fillStyle = stripeColor;
+    for (let y = 0; y < 256; y += 64) {
+        ctx.beginPath();
+        ctx.moveTo(20, y + 40);
+        ctx.lineTo(64, y + 12);
+        ctx.lineTo(108, y + 40);
+        ctx.lineTo(108, y + 54);
+        ctx.lineTo(64, y + 26);
+        ctx.lineTo(20, y + 54);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    return tex;
+}
+
+function createFloatingLabelSprite(title, subtitle, bgColor = 'rgba(15, 23, 42, 0.88)', borderColor = '#38bdf8') {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 192;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = bgColor;
+    ctx.beginPath();
+    ctx.roundRect(12, 12, 488, 168, 28);
+    ctx.fill();
+
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = borderColor;
+    ctx.stroke();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '900 44px "Noto Sans TC", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(title, 256, 82);
+
+    ctx.fillStyle = '#fde047';
+    ctx.font = '700 32px "Noto Sans TC", sans-serif';
+    ctx.fillText(subtitle, 256, 140);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+    const sprite = new THREE.Sprite(mat);
+    sprite.scale.set(6.5, 2.45, 1);
+    return sprite;
+}
+
+function createRobloxFaceTexture(skinColor = '#facc15') {
+    // 經典 Roblox 微笑表情貼圖 (支援自訂不同 NPC 膚色)
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = skinColor;
+    ctx.fillRect(0, 0, 128, 128);
+
+    // 眼睛
+    ctx.fillStyle = '#111827';
+    ctx.beginPath();
+    ctx.arc(44, 52, 7, 0, Math.PI * 2);
+    ctx.arc(84, 52, 7, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 眼睛高光
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(42, 49, 2.5, 0, Math.PI * 2);
+    ctx.arc(82, 49, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 經典微笑弧線
+    ctx.strokeStyle = '#111827';
+    ctx.lineWidth = 6;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(64, 68, 22, 0.18 * Math.PI, 0.82 * Math.PI);
+    ctx.stroke();
+
+    return new THREE.CanvasTexture(canvas);
+}
+
+// --- 4. 建造 3D 遊戲世界 (支援世界 1 ~ 5) ---
+const WORLD_RADIUS = 115;
+const clouds = [];
+const treadmills = [];
+const orbs = [];
+let portalZone = null;      // 世界傳送門座標與半徑
+let raceTriggerZone = null; // 競速起點傳送圈座標
+
+// 五大世界跑步機配置表
+const WORLD_TREADMILLS = {
+    1: [
+        { id: 'w1_basic', name: '初級跑步機', rate: 2, reqSpeed: 0, color: '#22c55e', frameColor: 0x166534, pos: { x: -16, z: -12 }, rotY: Math.PI / 6 },
+        { id: 'w1_bronze', name: '青銅跑步機', rate: 7, reqSpeed: 50, color: '#f97316', frameColor: 0x9a3412, pos: { x: -6, z: -17 }, rotY: Math.PI / 12 },
+        { id: 'w1_gold', name: '黃金跑步機', rate: 22, reqSpeed: 200, color: '#eab308', frameColor: 0x854d0e, pos: { x: 6, z: -17 }, rotY: -Math.PI / 12 },
+        { id: 'w1_diamond', name: '鑽石跑步機', rate: 65, reqSpeed: 650, color: '#06b6d4', frameColor: 0x155e75, pos: { x: 16, z: -12 }, rotY: -Math.PI / 6 },
+        { id: 'w1_hyper', name: '超光速量子機', rate: 180, reqSpeed: 1800, color: '#d946ef', frameColor: 0x701a75, pos: { x: 0, z: -26 }, rotY: 0 }
+    ],
+    2: [
+        { id: 'w2_plasma', name: '等離子跑步機', rate: 500, reqSpeed: 500, color: '#38bdf8', frameColor: 0x0369a1, pos: { x: -15, z: -14 }, rotY: Math.PI / 7 },
+        { id: 'w2_dark', name: '暗物質跑步機', rate: 1500, reqSpeed: 3000, color: '#a855f7', frameColor: 0x581c87, pos: { x: 0, z: -19 }, rotY: 0 },
+        { id: 'w2_star', name: '星際光速機', rate: 4500, reqSpeed: 10000, color: '#f43f5e', frameColor: 0x9f1239, pos: { x: 15, z: -14 }, rotY: -Math.PI / 7 },
+        { id: 'w2_omega', name: '賽博終極核心', rate: 12000, reqSpeed: 25000, color: '#facc15', frameColor: 0x854d0e, pos: { x: 0, z: -29 }, rotY: 0 }
+    ],
+    3: [
+        { id: 'w3_magma', name: '熔岩灼熱機', rate: 18000, reqSpeed: 8000, color: '#fb923c', frameColor: 0x9a3412, pos: { x: -15, z: -14 }, rotY: Math.PI / 7 },
+        { id: 'w3_obsidian', name: '黑曜石重裝機', rate: 48000, reqSpeed: 25000, color: '#ef4444', frameColor: 0x7f1d1d, pos: { x: 0, z: -19 }, rotY: 0 },
+        { id: 'w3_inferno', name: '地心烈焰核心', rate: 130000, reqSpeed: 60000, color: '#facc15', frameColor: 0x854d0e, pos: { x: 15, z: -14 }, rotY: -Math.PI / 7 },
+        { id: 'w3_phoenix', name: '不死鳥焚天機', rate: 350000, reqSpeed: 150000, color: '#f43f5e', frameColor: 0x881337, pos: { x: 0, z: -29 }, rotY: 0 }
+    ],
+    4: [
+        { id: 'w4_frost', name: '寒霜冰晶機', rate: 420000, reqSpeed: 65000, color: '#7dd3fc', frameColor: 0x0369a1, pos: { x: -15, z: -14 }, rotY: Math.PI / 7 },
+        { id: 'w4_glacier', name: '萬年冰川核心', rate: 1100000, reqSpeed: 180000, color: '#38bdf8', frameColor: 0x075985, pos: { x: 0, z: -19 }, rotY: 0 },
+        { id: 'w4_aurora', name: '極光幻影跑道', rate: 2800000, reqSpeed: 400000, color: '#34d399', frameColor: 0x065f46, pos: { x: 15, z: -14 }, rotY: -Math.PI / 7 },
+        { id: 'w4_zero', name: '絕對零度神機', rate: 7500000, reqSpeed: 900000, color: '#e0f2fe', frameColor: 0x1e3a8a, pos: { x: 0, z: -29 }, rotY: 0 }
+    ],
+    5: [
+        { id: 'w5_nebula', name: '星雲超新星機', rate: 12000000, reqSpeed: 400000, color: '#c084fc', frameColor: 0x581c87, pos: { x: -15, z: -14 }, rotY: Math.PI / 7 },
+        { id: 'w5_blackhole', name: '黑洞奇點加速器', rate: 35000000, reqSpeed: 1200000, color: '#f472b6', frameColor: 0x831843, pos: { x: 0, z: -19 }, rotY: 0 },
+        { id: 'w5_galaxy', name: '銀河系創世核心', rate: 95000000, reqSpeed: 3500000, color: '#facc15', frameColor: 0x713f12, pos: { x: 15, z: -14 }, rotY: -Math.PI / 7 },
+        { id: 'w5_god', name: '無限宇宙神速座', rate: 300000000, reqSpeed: 10000000, color: '#ffffff', frameColor: 0x312e81, pos: { x: 0, z: -29 }, rotY: 0 }
+    ]
+};
+
+function clearWorld() {
+    while (worldGroup.children.length > 0) {
+        worldGroup.remove(worldGroup.children[0]);
+    }
+    clouds.length = 0;
+    treadmills.length = 0;
+    orbs.length = 0;
+    portalZone = null;
+    raceTriggerZone = null;
+}
+
+function buildWorld(worldId) {
+    clearWorld();
+
+    // 依照世界 1~5 設定不同視覺主題色系
+    const themes = {
+        1: { bg: 0x60c5ff, fog: 0x8cd6ff, hemiTop: 0xffffff, hemiBot: 0x4ade80, groundA: '#22c55e', groundB: '#4ade80', plazaA: '#cbd5e1', plazaB: '#e2e8f0', track: 0xdc2626, lane: 0xffffff, wall: 0x3b82f6 },
+        2: { bg: 0x090d16, fog: 0x1e1b4b, hemiTop: 0xc084fc, hemiBot: 0x1e1b4b, groundA: '#1e1b4b', groundB: '#312e81', plazaA: '#0f172a', plazaB: '#0284c7', track: 0x1e1b4b, lane: 0x38bdf8, wall: 0xd946ef },
+        3: { bg: 0x2a0808, fog: 0x450a0a, hemiTop: 0xfb923c, hemiBot: 0x7f1d1d, groundA: '#450a0a', groundB: '#9a3412', plazaA: '#1c1917', plazaB: '#ea580c', track: 0x7f1d1d, lane: 0xfacc15, wall: 0xf97316 },
+        4: { bg: 0xbae6fd, fog: 0xe0f2fe, hemiTop: 0xffffff, hemiBot: 0x38bdf8, groundA: '#7dd3fc', groundB: '#e0f2fe', plazaA: '#e0f2fe', plazaB: '#38bdf8', track: 0x0284c7, lane: 0xffffff, wall: 0x0ea5e9 },
+        5: { bg: 0x050314, fog: 0x1e1035, hemiTop: 0xfde047, hemiBot: 0x4c1d95, groundA: '#170f2e', groundB: '#4c1d95', plazaA: '#09090b', plazaB: '#eab308', track: 0x311042, lane: 0xfacc15, wall: 0xfacc15 }
+    };
+    const th = themes[worldId] || themes[1];
+
+    scene.background = new THREE.Color(th.bg);
+    scene.fog = new THREE.FogExp2(th.fog, 0.0042);
+    hemiLight.color.setHex(th.hemiTop);
+    hemiLight.groundColor.setHex(th.hemiBot);
+
+    // 1. 大地坪
+    const groundTex = createStudTexture(th.groundA, th.groundB);
+    groundTex.repeat.set(48, 48);
+    const groundGeo = new THREE.CylinderGeometry(WORLD_RADIUS, WORLD_RADIUS, 2, 64);
+    const groundMat = new THREE.MeshStandardMaterial({ map: groundTex, roughness: 0.55 });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.position.y = -1;
+    ground.receiveShadow = true;
+    worldGroup.add(ground);
+
+    // 2. 中央訓練廣場平台
+    const plazaTex = createStudTexture(th.plazaA, th.plazaB);
+    plazaTex.repeat.set(16, 16);
+    const plazaGeo = new THREE.CylinderGeometry(35, 36, 0.3, 48);
+    const plazaMat = new THREE.MeshStandardMaterial({ map: plazaTex, roughness: 0.45 });
+    const plaza = new THREE.Mesh(plazaGeo, plazaMat);
+    plaza.position.y = 0.15;
+    plaza.receiveShadow = true;
+    worldGroup.add(plaza);
+
+    // 3. 專業直線競速大賽道
+    buildStraightRaceTrack(th);
+
+    // 4. 在廣場右側設置「🏁 競速比賽起點傳送圈」
+    buildRaceStartPad(23, 6, worldId);
+
+    // 5. 在廣場左側設置「🌌 世界傳送門 (1~5)」
+    buildWorldPortalPad(-23, 6, worldId);
+
+    // 6. 各世界專屬 3D 場景裝飾
+    const decorCoords = [[-45, -35], [-48, 25], [-20, 52], [18, 52], [-65, -5], [-35, -65], [12, -68], [-75, 45]];
+    if (worldId === 1) {
+        decorCoords.forEach(([x, z]) => buildBlockyTree(x, z));
+        for (let i = 0; i < 14; i++) {
+            const angle = (i / 14) * Math.PI * 2;
+            const dist = 40 + Math.random() * 65;
+            buildCloud(Math.cos(angle) * dist, 38 + Math.random() * 14, Math.sin(angle) * dist);
+        }
+    } else if (worldId === 2) {
+        decorCoords.forEach(([x, z]) => buildCyberPillar(x, z, 0x38bdf8, 0xe879f9));
+        for (let i = 0; i < 6; i++) {
+            const torus = new THREE.Mesh(
+                new THREE.TorusGeometry(8 + i * 3, 0.35, 8, 48),
+                new THREE.MeshBasicMaterial({ color: i % 2 === 0 ? 0x38bdf8 : 0xe879f9 })
+            );
+            torus.rotation.x = Math.PI / 2;
+            torus.position.set(0, 42 + i * 5, -15);
+            worldGroup.add(torus);
+        }
+    } else if (worldId === 3) {
+        // 第 3 世界：熔岩火山錐與岩漿柱
+        decorCoords.forEach(([x, z]) => buildVolcanoCone(x, z));
+    } else if (worldId === 4) {
+        // 第 4 世界：極地巨型發光冰晶柱
+        decorCoords.forEach(([x, z]) => buildIceCrystal(x, z));
+    } else if (worldId === 5) {
+        // 第 5 世界：星際神域金色神柱與懸浮星體
+        decorCoords.forEach(([x, z]) => buildCyberPillar(x, z, 0xfacc15, 0xc084fc));
+        for (let i = 0; i < 18; i++) {
+            const star = new THREE.Mesh(
+                new THREE.OctahedronGeometry(1.8 + Math.random() * 2, 0),
+                new THREE.MeshBasicMaterial({ color: i % 2 === 0 ? 0xfacc15 : 0xe879f9 })
+            );
+            star.position.set((Math.random() - 0.5) * 180, 35 + Math.random() * 35, (Math.random() - 0.5) * 180);
+            worldGroup.add(star);
+        }
+    }
+
+    // 7. 邊界圍牆
+    const wallGeo = new THREE.TorusGeometry(WORLD_RADIUS - 1, 1.2, 8, 64);
+    wallGeo.rotateX(Math.PI / 2);
+    const wallMat = new THREE.MeshStandardMaterial({ color: th.wall });
+    const wall = new THREE.Mesh(wallGeo, wallMat);
+    wall.position.y = 0.8;
+    worldGroup.add(wall);
+
+    // 8. 建造該世界的跑步機與能量球
+    buildTreadmills(worldId);
+    spawnOrbs(worldId);
+}
+
+// 建造 4 線道專業競速賽道
+const RACE_TRACK_X = 48;
+const RACE_START_Z = 82;
+const RACE_FINISH_Z = -82;
+const RACE_DISTANCE = RACE_START_Z - RACE_FINISH_Z;
+
+function buildStraightRaceTrack(th) {
+    const trackWidth = 18;
+    const trackLength = 178;
+
+    const trackGeo = new THREE.BoxGeometry(trackWidth, 0.25, trackLength);
+    const trackMat = new THREE.MeshStandardMaterial({ color: th.track, roughness: 0.5 });
+    const track = new THREE.Mesh(trackGeo, trackMat);
+    track.position.set(RACE_TRACK_X, 0.15, 0);
+    track.receiveShadow = true;
+    worldGroup.add(track);
+
+    const laneOffsets = [-9, -4.5, 0, 4.5, 9];
+    laneOffsets.forEach(dx => {
+        const lineGeo = new THREE.BoxGeometry(0.25, 0.28, trackLength);
+        const lineMat = new THREE.MeshBasicMaterial({ color: th.lane });
+        const line = new THREE.Mesh(lineGeo, lineMat);
+        line.position.set(RACE_TRACK_X + dx, 0.16, 0);
+        worldGroup.add(line);
+    });
+
+    buildRaceArch(RACE_TRACK_X, RACE_START_Z, "🏁 競速起跑線 (START)", "#22c55e");
+    buildRaceArch(RACE_TRACK_X, RACE_FINISH_Z, "🏆 終點線 (FINISH)", "#facc15");
+}
+
+function buildRaceArch(x, z, text, colorHex) {
+    const group = new THREE.Group();
+    group.position.set(x, 0, z);
+
+    const pillarGeo = new THREE.BoxGeometry(1.4, 9.5, 1.4);
+    const pillarMat = new THREE.MeshStandardMaterial({ color: 0x0f172a });
+    const leftPillar = new THREE.Mesh(pillarGeo, pillarMat);
+    leftPillar.position.set(-9.2, 4.75, 0);
+    const rightPillar = new THREE.Mesh(pillarGeo, pillarMat);
+    rightPillar.position.set(9.2, 4.75, 0);
+
+    const banner = new THREE.Mesh(
+        new THREE.BoxGeometry(20, 2.2, 1.6),
+        new THREE.MeshBasicMaterial({ color: colorHex })
+    );
+    banner.position.set(0, 9.2, 0);
+
+    // 地面起終點白線
+    const groundLine = new THREE.Mesh(
+        new THREE.BoxGeometry(18, 0.3, 1.4),
+        new THREE.MeshBasicMaterial({ color: 0xffffff })
+    );
+    groundLine.position.set(0, 0.18, 0);
+
+    const label = createFloatingLabelSprite(text, "跑贏 NPC 贏取高額金幣！", "rgba(15, 23, 42, 0.92)", colorHex);
+    label.position.set(0, 12.2, 0);
+
+    group.add(leftPillar, rightPillar, banner, groundLine, label);
+    worldGroup.add(group);
+}
+
+// 廣場上的「競速比賽傳送圈」
+function buildRaceStartPad(x, z, worldId) {
+    const group = new THREE.Group();
+    group.position.set(x, 0.32, z);
+
+    const ring = new THREE.Mesh(
+        new THREE.CylinderGeometry(3.6, 3.8, 0.25, 32),
+        new THREE.MeshStandardMaterial({ color: 0xf59e0b, emissive: 0xd97706, emissiveIntensity: 0.4 })
+    );
+    const inner = new THREE.Mesh(
+        new THREE.CylinderGeometry(2.8, 2.8, 0.28, 32),
+        new THREE.MeshBasicMaterial({ color: 0xfef08a })
+    );
+
+    const topReward = WORLD_META[worldId].raceRewards[0];
+    const label = createFloatingLabelSprite("🏁 競速比賽起點", `踩入與 NPC 賽跑 • 第1名獎金: ${formatNumber(topReward)} 💰`, "rgba(15, 23, 42, 0.9)", "#f59e0b");
+    label.position.set(0, 4.2, 0);
+
+    group.add(ring, inner, label);
+    worldGroup.add(group);
+    raceTriggerZone = { x, z, radius: 3.6 };
+}
+
+// 廣場上的「多元世界傳送門 (1~5)」
+function buildWorldPortalPad(x, z, worldId) {
+    const group = new THREE.Group();
+    group.position.set(x, 0.3, z);
+
+    const portalColor = 0xd946ef;
+    const torus = new THREE.Mesh(
+        new THREE.TorusGeometry(3.5, 0.45, 12, 36),
+        new THREE.MeshStandardMaterial({ color: portalColor, emissive: portalColor, emissiveIntensity: 0.75 })
+    );
+    torus.position.y = 3.8;
+
+    const core = new THREE.Mesh(
+        new THREE.CircleGeometry(3.2, 32),
+        new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.5, side: THREE.DoubleSide })
+    );
+    core.position.y = 3.8;
+
+    const label = createFloatingLabelSprite("🌌 多元世界傳送門", "走入開啟世界 1 ~ 5 傳送選單！", "rgba(15, 23, 42, 0.92)", "#e879f9");
+    label.position.set(0, 8.6, 0);
+
+    group.add(torus, core, label);
+    worldGroup.add(group);
+    portalZone = { x, z, radius: 3.6, coreMesh: core };
+}
+
+function buildCyberPillar(x, z, colorA = 0x38bdf8, colorB = 0xe879f9) {
+    const group = new THREE.Group();
+    group.position.set(x, 0, z);
+
+    const pillar = new THREE.Mesh(
+        new THREE.BoxGeometry(3.5, 22, 3.5),
+        new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.3 })
+    );
+    pillar.position.y = 11;
+
+    const neonStrip = new THREE.Mesh(
+        new THREE.BoxGeometry(3.7, 1.2, 3.7),
+        new THREE.MeshBasicMaterial({ color: Math.random() > 0.5 ? colorA : colorB })
+    );
+    neonStrip.position.y = 16;
+
+    group.add(pillar, neonStrip);
+    worldGroup.add(group);
+}
+
+function buildVolcanoCone(x, z) {
+    const group = new THREE.Group();
+    group.position.set(x, 0, z);
+    const cone = new THREE.Mesh(
+        new THREE.ConeGeometry(8, 18, 8),
+        new THREE.MeshStandardMaterial({ color: 0x292524, roughness: 0.9 })
+    );
+    cone.position.y = 9;
+    const lavaTop = new THREE.Mesh(
+        new THREE.CylinderGeometry(2.2, 2.6, 1.2, 8),
+        new THREE.MeshBasicMaterial({ color: 0xf97316 })
+    );
+    lavaTop.position.y = 17.5;
+    group.add(cone, lavaTop);
+    worldGroup.add(group);
+}
+
+function buildIceCrystal(x, z) {
+    const group = new THREE.Group();
+    group.position.set(x, 0, z);
+    const crystal = new THREE.Mesh(
+        new THREE.OctahedronGeometry(4.2, 0),
+        new THREE.MeshStandardMaterial({ color: 0x7dd3fc, emissive: 0x0284c7, emissiveIntensity: 0.35, roughness: 0.15 })
+    );
+    crystal.scale.set(1, 3.2, 1);
+    crystal.position.y = 11;
+    group.add(crystal);
+    worldGroup.add(group);
+}
+
+function buildBlockyTree(x, z) {
+    const tree = new THREE.Group();
+    tree.position.set(x, 0, z);
+
+    const trunk = new THREE.Mesh(
+        new THREE.BoxGeometry(1.6, 5, 1.6),
+        new THREE.MeshStandardMaterial({ color: 0x92400e })
+    );
+    trunk.position.y = 2.5;
+    trunk.castShadow = true;
+
+    const leafMat = new THREE.MeshStandardMaterial({ color: 0x16a34a });
+    const leaf1 = new THREE.Mesh(new THREE.BoxGeometry(5.5, 3.2, 5.5), leafMat);
+    leaf1.position.y = 6;
+    leaf1.castShadow = true;
+
+    const leaf2 = new THREE.Mesh(new THREE.BoxGeometry(3.8, 2.6, 3.8), leafMat);
+    leaf2.position.y = 8.5;
+    leaf2.castShadow = true;
+
+    tree.add(trunk, leaf1, leaf2);
+    worldGroup.add(tree);
+}
+
+function buildCloud(x, y, z) {
+    const cloud = new THREE.Group();
+    cloud.position.set(x, y, z);
+    const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9 });
+    const b1 = new THREE.Mesh(new THREE.BoxGeometry(8, 2.5, 5), mat);
+    const b2 = new THREE.Mesh(new THREE.BoxGeometry(5, 3.5, 4), mat);
+    b2.position.set(1.5, 1, 0.5);
+    cloud.add(b1, b2);
+    worldGroup.add(cloud);
+    clouds.push(cloud);
+}
+
+// --- 5. 建立多等級跑步機 (Treadmills) ---
+function buildTreadmills(worldId) {
+    const configs = WORLD_TREADMILLS[worldId] || WORLD_TREADMILLS[1];
+    configs.forEach(cfg => {
+        const group = new THREE.Group();
+        group.position.set(cfg.pos.x, 0.3, cfg.pos.z);
+        group.rotation.y = cfg.rotY;
+
+        const base = new THREE.Mesh(
+            new THREE.BoxGeometry(4.4, 0.5, 7.6),
+            new THREE.MeshStandardMaterial({ color: cfg.frameColor, roughness: 0.4 })
+        );
+        base.position.y = 0.25;
+        base.castShadow = true;
+        base.receiveShadow = true;
+        group.add(base);
+
+        const beltTex = createTreadmillBeltTexture(cfg.color);
+        beltTex.repeat.set(1, 2);
+        const belt = new THREE.Mesh(
+            new THREE.BoxGeometry(3.4, 0.12, 7.0),
+            new THREE.MeshStandardMaterial({ map: beltTex, roughness: 0.5 })
+        );
+        belt.position.y = 0.52;
+        belt.receiveShadow = true;
+        group.add(belt);
+
+        const postGeo = new THREE.BoxGeometry(0.3, 3.2, 0.3);
+        const postMat = new THREE.MeshStandardMaterial({ color: 0x334155 });
+        const leftPost = new THREE.Mesh(postGeo, postMat);
+        leftPost.position.set(-1.9, 1.8, -3.1);
+        const rightPost = new THREE.Mesh(postGeo, postMat);
+        rightPost.position.set(1.9, 1.8, -3.1);
+
+        const consoleMesh = new THREE.Mesh(
+            new THREE.BoxGeometry(4.2, 0.9, 0.8),
+            new THREE.MeshStandardMaterial({ color: 0x0f172a })
+        );
+        consoleMesh.position.set(0, 3.3, -3.1);
+        consoleMesh.rotation.x = 0.35;
+
+        const screen = new THREE.Mesh(
+            new THREE.PlaneGeometry(3.6, 0.65),
+            new THREE.MeshBasicMaterial({ color: cfg.color })
+        );
+        screen.position.set(0, 3.45, -2.78);
+        screen.rotation.x = -Math.PI / 2 + 0.35;
+
+        group.add(leftPost, rightPost, consoleMesh, screen);
+
+        const subText = cfg.reqSpeed === 0
+            ? `+${formatNumber(cfg.rate)} 速度/秒 (免費開放)`
+            : `+${formatNumber(cfg.rate)} 速度/秒 • 需 ${formatNumber(cfg.reqSpeed)} 速度`;
+        const sprite = createFloatingLabelSprite(cfg.name, subText, "rgba(15, 23, 42, 0.9)", cfg.color);
+        sprite.position.set(0, 5.6, -2.5);
+        group.add(sprite);
+
+        worldGroup.add(group);
+
+        treadmills.push({
+            config: cfg,
+            group: group,
+            beltTex: beltTex,
+            worldPos: new THREE.Vector3(cfg.pos.x, 0.3, cfg.pos.z),
+            rotY: cfg.rotY,
+            halfWidth: 2.1,
+            halfLength: 3.7
+        });
+    });
+}
+
+// --- 6. 建立可收集的能量球 (Speed Orbs) ---
+function spawnOrbs(worldId) {
+    const orbGeo = new THREE.OctahedronGeometry(0.9, 0);
+    const orbBaseTable = { 1: 8, 2: 90, 3: 2500, 4: 45000, 5: 1200000 };
+    const worldBase = orbBaseTable[worldId] || 8;
+
+    for (let i = 0; i < 20; i++) {
+        // 避開右側直線賽道區域 (X > 34)
+        const angle = Math.PI * 0.45 + (i / 20) * Math.PI * 1.1;
+        const dist = 24 + (i % 5) * 14;
+
+        const isSuper = i % 5 === 0;
+        const orbMat = new THREE.MeshStandardMaterial({
+            color: isSuper ? 0xfacc15 : 0x38bdf8,
+            emissive: isSuper ? 0xca8a04 : 0x0284c7,
+            emissiveIntensity: 0.65,
+            roughness: 0.2
+        });
+
+        const mesh = new THREE.Mesh(orbGeo, orbMat);
+        mesh.position.set(Math.cos(angle) * dist, 1.5, Math.sin(angle) * dist);
+        mesh.castShadow = true;
+        worldGroup.add(mesh);
+
+        const baseVal = isSuper ? worldBase * 3.5 : worldBase;
+        orbs.push({
+            mesh: mesh,
+            value: baseVal,
+            baseY: 1.5,
+            phase: Math.random() * Math.PI * 2,
+            active: true,
+            respawnTimer: 0
+        });
+    }
+}
+
+// --- 7. 通用 Roblox 方塊人角色工廠 (玩家與 NPC 共用) ---
+function createRobloxRig(colors) {
+    const group = new THREE.Group();
+    const skinMat = new THREE.MeshStandardMaterial({ color: colors.skin, roughness: 0.5 });
+    const shirtMat = new THREE.MeshStandardMaterial({ color: colors.shirt, roughness: 0.6 });
+    const pantsMat = new THREE.MeshStandardMaterial({ color: colors.pants, roughness: 0.7 });
+
+    const torso = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.8, 0.8), shirtMat);
+    torso.position.y = 2.4;
+    torso.castShadow = true;
+
+    const faceTex = createRobloxFaceTexture(colors.skinHex);
+    const headMaterials = [
+        skinMat, skinMat, skinMat, skinMat,
+        new THREE.MeshStandardMaterial({ map: faceTex, roughness: 0.5 }),
+        skinMat
+    ];
+    const head = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.1, 1.1), headMaterials);
+    head.position.y = 3.95;
+    head.castShadow = true;
+
+    function createLimb(w, h, d, mat, pivotX, pivotY, offsetY) {
+        const pivot = new THREE.Group();
+        pivot.position.set(pivotX, pivotY, 0);
+        const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+        mesh.position.y = offsetY;
+        mesh.castShadow = true;
+        pivot.add(mesh);
+        return pivot;
+    }
+
+    const leftArm = createLimb(0.7, 1.7, 0.7, skinMat, -1.2, 3.1, -0.7);
+    const rightArm = createLimb(0.7, 1.7, 0.7, skinMat, 1.2, 3.1, -0.7);
+    const leftLeg = createLimb(0.72, 1.5, 0.75, pantsMat, -0.42, 1.5, -0.75);
+    const rightLeg = createLimb(0.72, 1.5, 0.75, pantsMat, 0.42, 1.5, -0.75);
+
+    group.add(torso, head, leftArm, rightArm, leftLeg, rightLeg);
+    return { group, torso, head, leftArm, rightArm, leftLeg, rightLeg, runCycle: 0 };
+}
+
+const player = {
+    rig: null,
+    group: null,
+    facingAngle: Math.PI
+};
+
+function buildPlayerCharacter() {
+    player.rig = createRobloxRig({
+        skin: 0xfacc15,
+        skinHex: '#facc15',
+        shirt: 0x2563eb,
+        pants: 0x16a34a
+    });
+    player.group = player.rig.group;
+    player.group.position.set(0, 0.3, 6);
+    scene.add(player.group);
+}
+
+// --- 8. NPC 競速比賽系統 (3 位 NPC 對手同場競技) ---
+const RaceSystem = {
+    state: 'idle', // 'idle' | 'countdown' | 'racing' | 'finished'
+    countdownTimer: 0,
+    raceElapsedTime: 0,
+    playerFinished: false,
+    playerFinishTime: 0,
+    playerRank: 1,
+    npcs: []
+};
+
+// 世界 1 ~ 5 的 NPC 對手設定
+const WORLD_NPCS = {
+    1: [
+        { name: '新手小黃', laneX: RACE_TRACK_X - 2.2, speedUnits: 18, skin: 0xfacc15, skinHex: '#facc15', shirt: 0x22c55e, pants: 0x1e293b, badgeColor: '#4ade80' },
+        { name: '疾風藍衣', laneX: RACE_TRACK_X + 2.2, speedUnits: 32, skin: 0xfde047, skinHex: '#fde047', shirt: 0x0284c7, pants: 0x0f172a, badgeColor: '#38bdf8' },
+        { name: '閃電紅帽', laneX: RACE_TRACK_X + 6.6, speedUnits: 52, skin: 0xfdba74, skinHex: '#fdba74', shirt: 0xdc2626, pants: 0x111827, badgeColor: '#f87171' }
+    ],
+    2: [
+        { name: '賽博機甲', laneX: RACE_TRACK_X - 2.2, speedUnits: 60, skin: 0x94a3b8, skinHex: '#94a3b8', shirt: 0x6366f1, pants: 0x090d16, badgeColor: '#818cf8' },
+        { name: '量子獵豹', laneX: RACE_TRACK_X + 2.2, speedUnits: 72, skin: 0x38bdf8, skinHex: '#38bdf8', shirt: 0xc026d3, pants: 0x090d16, badgeColor: '#e879f9' },
+        { name: '光速戰神', laneX: RACE_TRACK_X + 6.6, speedUnits: 84, skin: 0xfacc15, skinHex: '#facc15', shirt: 0xf43f5e, pants: 0x090d16, badgeColor: '#fb7185' }
+    ],
+    3: [
+        { name: '熔岩巨人', laneX: RACE_TRACK_X - 2.2, speedUnits: 86, skin: 0xf97316, skinHex: '#f97316', shirt: 0x7f1d1d, pants: 0x1c1917, badgeColor: '#fb923c' },
+        { name: '烈焰騎士', laneX: RACE_TRACK_X + 2.2, speedUnits: 98, skin: 0xfde047, skinHex: '#fde047', shirt: 0xdc2626, pants: 0x0f172a, badgeColor: '#f87171' },
+        { name: '炎魔霸主', laneX: RACE_TRACK_X + 6.6, speedUnits: 112, skin: 0xef4444, skinHex: '#ef4444', shirt: 0x09090b, pants: 0x450a0a, badgeColor: '#facc15' }
+    ],
+    4: [
+        { name: '冰霜行者', laneX: RACE_TRACK_X - 2.2, speedUnits: 115, skin: 0xe0f2fe, skinHex: '#e0f2fe', shirt: 0x0284c7, pants: 0x1e3a8a, badgeColor: '#7dd3fc' },
+        { name: '極光幻影', laneX: RACE_TRACK_X + 2.2, speedUnits: 130, skin: 0x7dd3fc, skinHex: '#7dd3fc', shirt: 0x10b981, pants: 0x064e3b, badgeColor: '#34d399' },
+        { name: '寒冰女皇', laneX: RACE_TRACK_X + 6.6, speedUnits: 146, skin: 0xffffff, skinHex: '#ffffff', shirt: 0x3b82f6, pants: 0x172554, badgeColor: '#38bdf8' }
+    ],
+    5: [
+        { name: '星際使者', laneX: RACE_TRACK_X - 2.2, speedUnits: 150, skin: 0xc084fc, skinHex: '#c084fc', shirt: 0x4c1d95, pants: 0x09090b, badgeColor: '#e879f9' },
+        { name: '銀河戰神', laneX: RACE_TRACK_X + 2.2, speedUnits: 168, skin: 0xfacc15, skinHex: '#facc15', shirt: 0xbe185d, pants: 0x09090b, badgeColor: '#f472b6' },
+        { name: '創世神王', laneX: RACE_TRACK_X + 6.6, speedUnits: 185, skin: 0xffffff, skinHex: '#ffffff', shirt: 0xeab308, pants: 0x1e1b4b, badgeColor: '#fde047' }
+    ]
+};
+
+function startNpcRace() {
+    if (RaceSystem.state !== 'idle') return;
+
+    // 清理舊 NPC
+    RaceSystem.npcs.forEach(npc => scene.remove(npc.rig.group));
+    RaceSystem.npcs = [];
+
+    // 將玩家傳送到第 1 跑道起跑線 (X = RACE_TRACK_X - 6.6, Z = RACE_START_Z)
+    player.group.position.set(RACE_TRACK_X - 6.6, 0.3, RACE_START_Z);
+    player.facingAngle = Math.PI; // 面朝 -Z (終點方向)
+    player.group.rotation.y = Math.PI;
+    GameState.velocityY = 0;
+    GameState.onGround = true;
+
+    // 調整攝影機到玩家背後
+    CamControl.yaw = 0;
+    CamControl.pitch = 0.28;
+
+    // 生成 3 位 NPC 選手並加上頭頂名字標籤
+    const npcConfigs = WORLD_NPCS[GameState.world] || WORLD_NPCS[1];
+    const markersContainer = document.getElementById('race-npc-markers');
+    markersContainer.innerHTML = '';
+
+    npcConfigs.forEach((cfg, idx) => {
+        const rig = createRobloxRig(cfg);
+        rig.group.position.set(cfg.laneX, 0.3, RACE_START_Z);
+        rig.group.rotation.y = Math.PI;
+
+        const nameSprite = createFloatingLabelSprite(cfg.name, `速度等級: ${cfg.speedUnits}`, "rgba(15, 23, 42, 0.85)", cfg.badgeColor);
+        nameSprite.scale.set(4.5, 1.7, 1);
+        nameSprite.position.set(0, 5.2, 0);
+        rig.group.add(nameSprite);
+
+        scene.add(rig.group);
+
+        // HUD 進度條小圓點
+        const dot = document.createElement('div');
+        dot.className = 'absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full border-2 border-white shadow';
+        dot.style.backgroundColor = cfg.badgeColor;
+        dot.style.left = '0%';
+        markersContainer.appendChild(dot);
+
+        RaceSystem.npcs.push({
+            config: cfg,
+            rig: rig,
+            dotEl: dot,
+            finished: false,
+            finishTime: 0,
+            // 加入微幅隨機變速讓比賽更刺激
+            speedFactor: 0.96 + Math.random() * 0.08
+        });
+    });
+
+    RaceSystem.state = 'countdown';
+    RaceSystem.countdownTimer = 3.0;
+    RaceSystem.raceElapsedTime = 0;
+    RaceSystem.playerFinished = false;
+    RaceSystem.playerFinishTime = 0;
+
+    document.getElementById('race-hud').classList.remove('hidden');
+    document.getElementById('countdown-overlay').classList.remove('hidden');
+    updateRaceHUD();
+}
+
+function quitNpcRace() {
+    RaceSystem.state = 'idle';
+    RaceSystem.npcs.forEach(npc => scene.remove(npc.rig.group));
+    RaceSystem.npcs = [];
+    document.getElementById('race-hud').classList.add('hidden');
+    document.getElementById('countdown-overlay').classList.add('hidden');
+    player.group.position.set(0, 0.3, 6);
+}
+
+function updateNpcRace(dt) {
+    if (RaceSystem.state === 'idle') return;
+
+    // 1. 倒數計時階段 (玩家與 NPC 鎖定在起跑線)
+    if (RaceSystem.state === 'countdown') {
+        RaceSystem.countdownTimer -= dt;
+        const cdEl = document.getElementById('countdown-text');
+        if (RaceSystem.countdownTimer > 2) cdEl.textContent = '3';
+        else if (RaceSystem.countdownTimer > 1) cdEl.textContent = '2';
+        else if (RaceSystem.countdownTimer > 0) cdEl.textContent = '1';
+        else {
+            cdEl.textContent = 'GO! 衝啊！';
+            RaceSystem.state = 'racing';
+            setTimeout(() => {
+                document.getElementById('countdown-overlay').classList.add('hidden');
+            }, 650);
+        }
+        return;
+    }
+
+    // 2. 比賽進行中
+    if (RaceSystem.state === 'racing') {
+        RaceSystem.raceElapsedTime += dt;
+
+        // 更新 3 位 NPC 移動與跑步動畫
+        RaceSystem.npcs.forEach((npc, idx) => {
+            if (!npc.finished) {
+                const wave = 1 + Math.sin(RaceSystem.raceElapsedTime * 3 + idx) * 0.05;
+                const moveSpd = npc.config.speedUnits * npc.speedFactor * wave;
+                npc.rig.group.position.z -= moveSpd * dt;
+
+                // 擺動手腳動畫
+                npc.rig.runCycle += dt * (14 + moveSpd * 0.3);
+                const swing = Math.sin(npc.rig.runCycle) * 0.85;
+                npc.rig.leftArm.rotation.x = swing;
+                npc.rig.rightArm.rotation.x = -swing;
+                npc.rig.leftLeg.rotation.x = -swing;
+                npc.rig.rightLeg.rotation.x = swing;
+                npc.rig.group.rotation.x = 0.14;
+
+                if (npc.rig.group.position.z <= RACE_FINISH_Z) {
+                    npc.rig.group.position.z = RACE_FINISH_Z;
+                    npc.finished = true;
+                    npc.finishTime = RaceSystem.raceElapsedTime;
+                }
+            } else {
+                npc.rig.group.rotation.x = 0;
+            }
+        });
+
+        // 檢查玩家是否衝過終點線
+        if (!RaceSystem.playerFinished && player.group.position.z <= RACE_FINISH_Z) {
+            RaceSystem.playerFinished = true;
+            RaceSystem.playerFinishTime = RaceSystem.raceElapsedTime;
+
+            // 計算名次 (看已經有幾位 NPC 比玩家先到終點)
+            const fasterNpcs = RaceSystem.npcs.filter(n => n.finished).length;
+            RaceSystem.playerRank = fasterNpcs + 1;
+            finishRaceAndReward();
+        }
+
+        updateRaceHUD();
+    }
+}
+
+function updateRaceHUD() {
+    // 計算玩家與 NPC 的進度百分比 (0% ~ 100%)
+    const playerProgress = Math.max(0, Math.min(1, (RACE_START_Z - player.group.position.z) / RACE_DISTANCE));
+    document.getElementById('race-player-bar').style.width = `${playerProgress * 100}%`;
+
+    const remDist = Math.max(0, Math.round(player.group.position.z - RACE_FINISH_Z));
+    document.getElementById('race-dist-text').textContent = `距離終點: ${remDist}m`;
+
+    // 即時名次計算
+    let currentRank = 1;
+    RaceSystem.npcs.forEach(npc => {
+        const npcProg = Math.max(0, Math.min(1, (RACE_START_Z - npc.rig.group.position.z) / RACE_DISTANCE));
+        npc.dotEl.style.left = `${npcProg * 100}%`;
+        if (npcProg > playerProgress) currentRank++;
+    });
+
+    if (RaceSystem.playerFinished) currentRank = RaceSystem.playerRank;
+    document.getElementById('race-rank-text').textContent = `第 ${currentRank} 名 / 4`;
+}
+
+function finishRaceAndReward() {
+    RaceSystem.state = 'finished';
+    const rank = RaceSystem.playerRank;
+
+    // 依照當前世界 (1~5) 發放對應獎金
+    const baseRewards = WORLD_META[GameState.world].raceRewards;
+    const reward = baseRewards[rank - 1] || 15;
+
+    GameState.coins += reward;
+    saveGameData();
+    updateHUD();
+
+    const titles = ["🏆 第 1 名！極速冠軍！", "🥈 第 2 名！表現優異！", "🥉 第 3 名！獲得季軍！", "🏃 第 4 名！再接再厲！"];
+    const trophies = ["🏆", "🥈", "🥉", "👟"];
+    const subs = [
+        "你以壓倒性的速度甩開了所有 NPC 對手！",
+        "差一點就拿第一了！再多練一下跑步機吧！",
+        "成功登上頒獎台，獲得比賽獎金！",
+        "NPC 跑得太快啦！快去跑步機提升速度再來挑戰！"
+    ];
+
+    document.getElementById('result-trophy').textContent = trophies[rank - 1];
+    document.getElementById('result-title').textContent = titles[rank - 1];
+    document.getElementById('result-subtitle').textContent = subs[rank - 1];
+    document.getElementById('result-time').textContent = `${RaceSystem.playerFinishTime.toFixed(2)} 秒`;
+    document.getElementById('result-reward').textContent = `+${formatNumber(reward)} 💰`;
+
+    document.getElementById('race-result-modal').classList.remove('hidden');
+}
+
+// --- 9. 疾風與尾焰粒子特效系統 (支援金幣商店解鎖金色/賽博光翼尾焰) ---
+const windParticles = [];
+function initWindParticles() {
+    const geo = new THREE.BoxGeometry(0.16, 0.16, 2.0);
+    for (let i = 0; i < 36; i++) {
+        const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.75 });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.visible = false;
+        scene.add(mesh);
+        windParticles.push({ mesh, life: 0 });
+    }
+}
+
+function spawnWindTrail() {
+    const p = windParticles.find(item => !item.mesh.visible);
+    if (!p) return;
+    p.mesh.visible = true;
+    p.life = 0.38;
+
+    // 依照裝備的尾焰變換顏色
+    if (GameState.trailType === 'cosmic') {
+        const colors = [0xfacc15, 0xe879f9, 0x38bdf8, 0x4ade80];
+        p.mesh.material.color.setHex(colors[Math.floor(Math.random() * colors.length)]);
+    } else if (GameState.trailType === 'cyber') {
+        p.mesh.material.color.setHex(Math.random() > 0.5 ? 0xe879f9 : 0x38bdf8);
+    } else if (GameState.trailType === 'gold') {
+        p.mesh.material.color.setHex(0xfacc15);
+    } else {
+        p.mesh.material.color.setHex(0xffffff);
+    }
+
+    const offsetX = (Math.random() - 0.5) * 2.2;
+    const offsetY = 0.5 + Math.random() * 3.5;
+    p.mesh.position.set(
+        player.group.position.x + offsetX,
+        player.group.position.y + offsetY,
+        player.group.position.z + (Math.random() - 0.5) * 2.2
+    );
+    p.mesh.rotation.y = player.facingAngle;
+}
+
+// --- 9. 輸入控制 (鍵盤 + 滑鼠拖曳旋轉視角 + 手機觸控搖桿) ---
+const Keys = { w: false, a: false, s: false, d: false, up: false, down: false, left: false, right: false };
+const Joystick = { active: false, dx: 0, dy: 0 };
+
+// 第三人稱攝影機角度參數
+const CamControl = {
+    yaw: 0,          // 水平旋轉角
+    pitch: 0.35,     // 垂直俯仰角
+    distance: 13,    // 攝影機距離
+    isDragging: false,
+    lastX: 0,
+    lastY: 0
+};
+
+window.addEventListener('keydown', (e) => {
+    const code = e.code;
+    if (code === 'KeyW') Keys.w = true;
+    if (code === 'KeyA') Keys.a = true;
+    if (code === 'KeyS') Keys.s = true;
+    if (code === 'KeyD') Keys.d = true;
+    if (code === 'ArrowUp') Keys.up = true;
+    if (code === 'ArrowDown') Keys.down = true;
+    if (code === 'ArrowLeft') Keys.left = true;
+    if (code === 'ArrowRight') Keys.right = true;
+    if (code === 'Space') triggerJump();
+});
+
+window.addEventListener('keyup', (e) => {
+    const code = e.code;
+    if (code === 'KeyW') Keys.w = false;
+    if (code === 'KeyA') Keys.a = false;
+    if (code === 'KeyS') Keys.s = false;
+    if (code === 'KeyD') Keys.d = false;
+    if (code === 'ArrowUp') Keys.up = false;
+    if (code === 'ArrowDown') Keys.down = false;
+    if (code === 'ArrowLeft') Keys.left = false;
+    if (code === 'ArrowRight') Keys.right = false;
+});
+
+function triggerJump() {
+    if (GameState.onGround) {
+        GameState.velocityY = 14.5;
+        GameState.onGround = false;
+    }
+}
+
+// 滑鼠拖曳旋轉攝影機
+renderer.domElement.addEventListener('mousedown', (e) => {
+    CamControl.isDragging = true;
+    CamControl.lastX = e.clientX;
+    CamControl.lastY = e.clientY;
+});
+window.addEventListener('mousemove', (e) => {
+    if (!CamControl.isDragging) return;
+    const dx = e.clientX - CamControl.lastX;
+    const dy = e.clientY - CamControl.lastY;
+    CamControl.lastX = e.clientX;
+    CamControl.lastY = e.clientY;
+
+    CamControl.yaw -= dx * 0.007;
+    CamControl.pitch = Math.max(0.1, Math.min(1.15, CamControl.pitch + dy * 0.006));
+});
+window.addEventListener('mouseup', () => {
+    CamControl.isDragging = false;
+});
+
+// 觸控螢幕拖曳旋轉視角 (排除搖桿區)
+let touchCamId = null;
+renderer.domElement.addEventListener('touchstart', (e) => {
+    for (let i = 0; i < e.changedTouches.length; i++) {
+        const t = e.changedTouches[i];
+        if (touchCamId === null) {
+            touchCamId = t.identifier;
+            CamControl.lastX = t.clientX;
+            CamControl.lastY = t.clientY;
+        }
+    }
+}, { passive: true });
+
+renderer.domElement.addEventListener('touchmove', (e) => {
+    for (let i = 0; i < e.changedTouches.length; i++) {
+        const t = e.changedTouches[i];
+        if (t.identifier === touchCamId) {
+            const dx = t.clientX - CamControl.lastX;
+            const dy = t.clientY - CamControl.lastY;
+            CamControl.lastX = t.clientX;
+            CamControl.lastY = t.clientY;
+            CamControl.yaw -= dx * 0.008;
+            CamControl.pitch = Math.max(0.1, Math.min(1.15, CamControl.pitch + dy * 0.007));
+        }
+    }
+}, { passive: true });
+
+renderer.domElement.addEventListener('touchend', (e) => {
+    for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === touchCamId) {
+            touchCamId = null;
+        }
+    }
+});
+
+// 手機虛擬搖桿邏輯
+const joyZone = document.getElementById('joystick-zone');
+const joyKnob = document.getElementById('joystick-knob');
+let joyTouchId = null;
+
+joyZone.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const t = e.changedTouches[0];
+    joyTouchId = t.identifier;
+    Joystick.active = true;
+    updateJoystick(t.clientX, t.clientY);
+}, { passive: false });
+
+joyZone.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === joyTouchId) {
+            updateJoystick(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
+        }
+    }
+}, { passive: false });
+
+function resetJoystick() {
+    joyTouchId = null;
+    Joystick.active = false;
+    Joystick.dx = 0;
+    Joystick.dy = 0;
+    joyKnob.style.transform = `translate(0px, 0px)`;
+}
+joyZone.addEventListener('touchend', resetJoystick);
+joyZone.addEventListener('touchcancel', resetJoystick);
+
+function updateJoystick(clientX, clientY) {
+    const rect = joyZone.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const maxDist = rect.width / 2 - 20;
+
+    let dx = clientX - centerX;
+    let dy = clientY - centerY;
+    const dist = Math.hypot(dx, dy);
+    if (dist > maxDist) {
+        dx = (dx / dist) * maxDist;
+        dy = (dy / dist) * maxDist;
+    }
+    joyKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+    Joystick.dx = dx / maxDist;
+    Joystick.dy = dy / maxDist;
+}
+
+document.getElementById('mobile-jump-btn').addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    triggerJump();
+});
+document.getElementById('mobile-jump-btn').addEventListener('click', triggerJump);
+
+// --- 10. UI 互動與視覺反饋 ---
+const uiSpeed = document.getElementById('ui-speed');
+const uiCoins = document.getElementById('ui-coins');
+const uiMultiplier = document.getElementById('ui-multiplier');
+const uiWorldBadge = document.getElementById('ui-world-badge');
+const uiRebirthCount = document.getElementById('ui-rebirth-count');
+const uiRebirthProgressText = document.getElementById('ui-rebirth-progress-text');
+const uiRebirthBar = document.getElementById('ui-rebirth-bar');
+const btnRebirth = document.getElementById('btn-rebirth');
+const uiStatusBadge = document.getElementById('ui-status-badge');
+const uiStatusText = document.getElementById('ui-status-text');
+const speedLinesEl = document.getElementById('speed-lines');
+
+let toastTimer = null;
+function showToast(msg, borderColor = '#facc15', textColor = '#fef08a') {
+    const banner = document.getElementById('toast-banner');
+    const content = document.getElementById('toast-content');
+    content.textContent = msg;
+    content.style.borderColor = borderColor;
+    content.style.color = textColor;
+
+    banner.classList.remove('opacity-0', '-translate-y-4');
+    banner.classList.add('opacity-100', 'translate-y-0');
+
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+        banner.classList.remove('opacity-100', 'translate-y-0');
+        banner.classList.add('opacity-0', '-translate-y-4');
+    }, 2400);
+}
+
+function spawnFloatingScore(amount, color = '#4ade80') {
+    // 將角色頭頂的 3D 座標投影到 2D 螢幕上顯示 "+速度"
+    const headWorldPos = player.group.position.clone().add(new THREE.Vector3(0, 5.2, 0));
+    headWorldPos.project(camera);
+
+    const x = (headWorldPos.x * 0.5 + 0.5) * window.innerWidth;
+    const y = (-(headWorldPos.y * 0.5) + 0.5) * window.innerHeight;
+
+    const el = document.createElement('div');
+    el.className = 'floating-text text-lg sm:text-xl';
+    el.style.left = `${x + (Math.random() - 0.5) * 40}px`;
+    el.style.top = `${y}px`;
+    el.style.color = color;
+    el.textContent = `+${formatNumber(amount)} ⚡`;
+
+    document.getElementById('floating-container').appendChild(el);
+    setTimeout(() => el.remove(), 900);
+}
+
+function formatNumber(num) {
+    const n = Math.floor(num);
+    if (n >= 1000000) return (n / 1000000).toFixed(2) + 'M';
+    if (n >= 10000) return (n / 1000).toFixed(1) + 'K';
+    return n.toLocaleString();
+}
+
+function updateHUD() {
+    uiSpeed.textContent = formatNumber(GameState.speed);
+    uiCoins.textContent = formatNumber(GameState.coins);
+    uiMultiplier.textContent = `x${GameState.multiplier.toFixed(1)}`;
+    uiRebirthCount.textContent = GameState.rebirths;
+
+    const wMeta = WORLD_META[GameState.world] || WORLD_META[1];
+    uiWorldBadge.textContent = wMeta.name;
+    uiWorldBadge.style.color = wMeta.themeColor;
+
+    const btnPortal = document.getElementById('btn-world-portal');
+    btnPortal.textContent = `🌌 世界傳送 (${GameState.world}/5)`;
+
+    const current = Math.floor(GameState.speed);
+    const target = GameState.rebirthCost;
+    uiRebirthProgressText.textContent = `${formatNumber(current)} / ${formatNumber(target)}`;
+
+    const pct = Math.min(100, (current / target) * 100);
+    uiRebirthBar.style.width = `${pct}%`;
+
+    const nextMult = (GameState.multiplier + 0.5).toFixed(1);
+    btnRebirth.innerHTML = `<span>🔄 立即重生 (升級至 x${nextMult})</span>`;
+    btnRebirth.disabled = current < target;
+}
+
+// 重生按鈕事件
+btnRebirth.addEventListener('click', () => {
+    if (GameState.speed >= GameState.rebirthCost) {
+        GameState.speed = 0;
+        GameState.rebirths += 1;
+        recalculateMultiplier();
+        GameState.rebirthCost = Math.floor(500 * Math.pow(2.2, GameState.rebirths));
+        saveGameData();
+        updateHUD();
+        showToast(`🎉 重生成功！總倍率提升至 x${GameState.multiplier.toFixed(1)}！`, '#c084fc', '#f3e8ff');
+    }
+});
+
+// 多元世界傳送選單邏輯 (支援世界 1 ~ 5)
+const worldModal = document.getElementById('world-modal');
+function openWorldSelectModal() {
+    if (RaceSystem.state !== 'idle') {
+        showToast("⚠️ 競速比賽進行中無法傳送！", '#ef4444', '#fecaca');
+        return;
+    }
+    renderWorldList();
+    worldModal.classList.remove('hidden');
+}
+
+function renderWorldList() {
+    document.getElementById('world-modal-current').textContent = WORLD_META[GameState.world].name;
+    const containerEl = document.getElementById('world-list-container');
+    containerEl.innerHTML = '';
+
+    [1, 2, 3, 4, 5].forEach(wId => {
+        const meta = WORLD_META[wId];
+        const isUnlocked = Boolean(GameState.unlockedWorlds[wId]);
+        const isCurrent = GameState.world === wId;
+        const canUnlock = GameState.speed >= meta.reqSpeed && GameState.coins >= meta.reqCoins;
+
+        const card = document.createElement('div');
+        card.className = `bg-slate-800/90 p-3.5 rounded-xl border flex items-center justify-between gap-3 ${isCurrent ? 'border-yellow-400' : 'border-slate-600'}`;
+
+        const infoDiv = document.createElement('div');
+        infoDiv.innerHTML = `
+            <div class="font-black text-sm sm:text-base" style="color:${meta.themeColor}">${meta.name}</div>
+            <div class="text-xs text-gray-300 mt-0.5">
+                ${isUnlocked
+                    ? `冠軍獎金：<span class="text-amber-300 font-bold">${formatNumber(meta.raceRewards[0])} 💰</span>`
+                    : `解鎖條件：${formatNumber(meta.reqSpeed)} ⚡ + ${formatNumber(meta.reqCoins)} 💰`}
+            </div>
+        `;
+
+        const actionBtn = document.createElement('button');
+        actionBtn.className = 'rbx-btn px-3.5 py-2 rounded-xl font-black text-xs sm:text-sm whitespace-nowrap';
+
+        if (isCurrent) {
+            actionBtn.textContent = '✅ 目前所在';
+            actionBtn.className += ' bg-slate-600 text-gray-200';
+            actionBtn.disabled = true;
+        } else if (isUnlocked) {
+            actionBtn.textContent = '🌀 立即傳送';
+            actionBtn.className += ' bg-emerald-500 text-slate-950';
+            actionBtn.onclick = () => teleportToWorld(wId);
+        } else {
+            actionBtn.textContent = '🔓 支付解鎖';
+            actionBtn.className += ' bg-fuchsia-600 text-white';
+            actionBtn.disabled = !canUnlock;
+            actionBtn.onclick = () => unlockAndTeleportWorld(wId);
+        }
+
+        card.appendChild(infoDiv);
+        card.appendChild(actionBtn);
+        containerEl.appendChild(card);
+    });
+}
+
+function unlockAndTeleportWorld(wId) {
+    const meta = WORLD_META[wId];
+    if (GameState.speed >= meta.reqSpeed && GameState.coins >= meta.reqCoins) {
+        GameState.coins -= meta.reqCoins;
+        GameState.unlockedWorlds[wId] = true;
+        teleportToWorld(wId);
+        showToast(`🎊 恭喜解鎖【${meta.name}】！`, meta.themeColor, '#ffffff');
+    } else {
+        showToast(`🔒 需要 ${formatNumber(meta.reqSpeed)} 速度 + ${formatNumber(meta.reqCoins)} 💰！`, '#f43f5e', '#fecdd3');
+    }
+}
+
+function teleportToWorld(wId) {
+    GameState.world = wId;
+    buildWorld(wId);
+    player.group.position.set(0, 0.3, 6);
+    saveGameData();
+    updateHUD();
+    worldModal.classList.add('hidden');
+    showToast(`🌌 已傳送至【${WORLD_META[wId].name}】！`, WORLD_META[wId].themeColor, '#ffffff');
+}
+
+document.getElementById('btn-world-portal').addEventListener('click', openWorldSelectModal);
+document.getElementById('btn-close-world-modal').addEventListener('click', () => worldModal.classList.add('hidden'));
+
+// 金幣商店邏輯
+const shopModal = document.getElementById('shop-modal');
+function updateShopUI() {
+    document.getElementById('shop-coins-display').textContent = formatNumber(GameState.coins);
+    document.getElementById('shop-shoe-lv').textContent = GameState.shoeLevel;
+
+    const shoeCost = Math.floor(100 * Math.pow(1.8, GameState.shoeLevel - 1));
+    const btnShoe = document.getElementById('btn-buy-shoe');
+    btnShoe.textContent = `💰 ${formatNumber(shoeCost)}`;
+    btnShoe.disabled = GameState.coins < shoeCost;
+
+    const btnGold = document.getElementById('btn-buy-trail-gold');
+    if (GameState.ownedTrails.gold) {
+        btnGold.textContent = GameState.trailType === 'gold' ? '✅ 裝備中' : '點擊裝備';
+        btnGold.disabled = GameState.trailType === 'gold';
+    } else {
+        btnGold.textContent = '💰 400';
+        btnGold.disabled = GameState.coins < 400;
+    }
+
+    const btnCyber = document.getElementById('btn-buy-trail-cyber');
+    if (GameState.ownedTrails.cyber) {
+        btnCyber.textContent = GameState.trailType === 'cyber' ? '✅ 裝備中' : '點擊裝備';
+        btnCyber.disabled = GameState.trailType === 'cyber';
+    } else {
+        btnCyber.textContent = '💰 2,000';
+        btnCyber.disabled = GameState.coins < 2000;
+    }
+
+    const btnCosmic = document.getElementById('btn-buy-trail-cosmic');
+    if (GameState.ownedTrails.cosmic) {
+        btnCosmic.textContent = GameState.trailType === 'cosmic' ? '✅ 裝備中' : '點擊裝備';
+        btnCosmic.disabled = GameState.trailType === 'cosmic';
+    } else {
+        btnCosmic.textContent = '💰 25,000';
+        btnCosmic.disabled = GameState.coins < 25000;
+    }
+}
+
+document.getElementById('btn-open-shop').addEventListener('click', () => {
+    updateShopUI();
+    shopModal.classList.remove('hidden');
+});
+document.getElementById('btn-close-shop').addEventListener('click', () => shopModal.classList.add('hidden'));
+
+document.getElementById('btn-buy-shoe').addEventListener('click', () => {
+    const cost = Math.floor(100 * Math.pow(1.8, GameState.shoeLevel - 1));
+    if (GameState.coins >= cost) {
+        GameState.coins -= cost;
+        GameState.shoeLevel += 1;
+        recalculateMultiplier();
+        saveGameData();
+        updateHUD();
+        updateShopUI();
+        showToast(`⚡ 運動鞋升級至 Lv.${GameState.shoeLevel}！總倍率 x${GameState.multiplier.toFixed(1)}`, '#4ade80', '#dcfce7');
+    }
+});
+
+document.getElementById('btn-buy-trail-gold').addEventListener('click', () => {
+    if (!GameState.ownedTrails.gold) {
+        if (GameState.coins < 400) return;
+        GameState.coins -= 400;
+        GameState.ownedTrails.gold = true;
+    }
+    GameState.trailType = 'gold';
+    recalculateMultiplier();
+    saveGameData();
+    updateHUD();
+    updateShopUI();
+    showToast("🔥 已裝備【黃金極速尾焰】！額外 +1.0x 倍率！", '#facc15', '#fef08a');
+});
+
+document.getElementById('btn-buy-trail-cyber').addEventListener('click', () => {
+    if (!GameState.ownedTrails.cyber) {
+        if (GameState.coins < 2000) return;
+        GameState.coins -= 2000;
+        GameState.ownedTrails.cyber = true;
+    }
+    GameState.trailType = 'cyber';
+    recalculateMultiplier();
+    saveGameData();
+    updateHUD();
+    updateShopUI();
+    showToast("🌌 已裝備【賽博量子光翼尾焰】！額外 +2.5x 倍率！", '#e879f9', '#fae8ff');
+});
+
+document.getElementById('btn-buy-trail-cosmic').addEventListener('click', () => {
+    if (!GameState.ownedTrails.cosmic) {
+        if (GameState.coins < 25000) return;
+        GameState.coins -= 25000;
+        GameState.ownedTrails.cosmic = true;
+    }
+    GameState.trailType = 'cosmic';
+    recalculateMultiplier();
+    saveGameData();
+    updateHUD();
+    updateShopUI();
+    showToast("👑 已裝備【創世神域星辰尾焰】！額外 +8.0x 終極倍率！", '#facc15', '#fef08a');
+});
+
+// 競速比賽按鈕事件綁定
+document.getElementById('btn-quick-race').addEventListener('click', () => {
+    if (RaceSystem.state === 'idle') startNpcRace();
+});
+document.getElementById('btn-quit-race').addEventListener('click', quitNpcRace);
+document.getElementById('btn-race-again').addEventListener('click', () => {
+    document.getElementById('race-result-modal').classList.add('hidden');
+    RaceSystem.state = 'idle';
+    startNpcRace();
+});
+document.getElementById('btn-close-result').addEventListener('click', () => {
+    document.getElementById('race-result-modal').classList.add('hidden');
+    quitNpcRace();
+});
+
+// 回到起點按鈕
+document.getElementById('btn-reset-pos').addEventListener('click', () => {
+    if (RaceSystem.state !== 'idle') quitNpcRace();
+    player.group.position.set(0, 0.3, 6);
+    GameState.velocityY = 0;
+    GameState.onGround = true;
+    showToast("🏠 已傳送回中央訓練廣場！", '#38bdf8', '#e0f2fe');
+});
+
+// 玩法說明視窗開關
+const helpModal = document.getElementById('help-modal');
+document.getElementById('btn-toggle-help').addEventListener('click', () => helpModal.classList.remove('hidden'));
+document.getElementById('btn-close-help').addEventListener('click', () => helpModal.classList.add('hidden'));
+
+// --- 11. 跑步機、傳送門與比賽起點碰撞檢測 ---
+let lastLockedWarnTime = 0;
+let lastPortalWarnTime = 0;
+
+function checkWorldTriggersAndTreadmills(dt) {
+    const px = player.group.position.x;
+    const py = player.group.position.y;
+    const pz = player.group.position.z;
+
+    // 1. 檢查是否踩中廣場上的「競速比賽起點傳送圈」
+    if (RaceSystem.state === 'idle' && raceTriggerZone) {
+        const distToRace = Math.hypot(px - raceTriggerZone.x, pz - raceTriggerZone.z);
+        if (distToRace <= raceTriggerZone.radius) {
+            startNpcRace();
+            return;
+        }
+    }
+
+    // 2. 檢查是否走入「多元世界傳送門」
+    if (RaceSystem.state === 'idle' && portalZone) {
+        portalZone.coreMesh.rotation.z += dt * 1.5;
+        const distToPortal = Math.hypot(px - portalZone.x, pz - portalZone.z);
+        if (distToPortal <= portalZone.radius) {
+            const now = performance.now();
+            if (now - lastPortalWarnTime > 2500) {
+                lastPortalWarnTime = now;
+                openWorldSelectModal();
+            }
+            return;
+        }
+    }
+
+    // 3. 跑步機檢測
+    let foundTreadmill = null;
+    if (py <= 1.2 && RaceSystem.state === 'idle') {
+        for (const tm of treadmills) {
+            const dx = px - tm.worldPos.x;
+            const dz = pz - tm.worldPos.z;
+            const cos = Math.cos(-tm.rotY);
+            const sin = Math.sin(-tm.rotY);
+            const localX = dx * cos - dz * sin;
+            const localZ = dx * sin + dz * cos;
+
+            if (Math.abs(localX) <= tm.halfWidth && Math.abs(localZ) <= tm.halfLength) {
+                foundTreadmill = tm;
+                break;
+            }
+        }
+    }
+
+    if (foundTreadmill) {
+        const cfg = foundTreadmill.config;
+        if (GameState.speed < cfg.reqSpeed) {
+            const pushDir = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), foundTreadmill.rotY);
+            player.group.position.addScaledVector(pushDir, 0.45);
+
+            const now = performance.now();
+            if (now - lastLockedWarnTime > 1500) {
+                lastLockedWarnTime = now;
+                showToast(`🔒 需要 ${formatNumber(cfg.reqSpeed)} 速度才能使用【${cfg.name}】！`, '#ef4444', '#fecaca');
+            }
+            GameState.activeTreadmill = null;
+            uiStatusBadge.classList.add('hidden');
+            return;
+        }
+
+        GameState.activeTreadmill = foundTreadmill;
+        uiStatusBadge.classList.remove('hidden');
+        const gainPerSec = cfg.rate * GameState.multiplier;
+        uiStatusText.textContent = `${cfg.name}訓練中 (+${formatNumber(gainPerSec)}/秒)`;
+
+        foundTreadmill.beltTex.offset.y -= dt * (2.5 + Math.log10(cfg.rate + 1) * 2.5);
+
+        const gained = gainPerSec * dt;
+        GameState.speed += gained;
+        GameState.trainAccumulator += dt;
+
+        if (GameState.trainAccumulator >= 0.45) {
+            const displayGain = Math.max(1, Math.round(gainPerSec * GameState.trainAccumulator));
+            spawnFloatingScore(displayGain, cfg.color);
+            GameState.trainAccumulator = 0;
+        }
+    } else {
+        GameState.activeTreadmill = null;
+        GameState.trainAccumulator = 0;
+        uiStatusBadge.classList.add('hidden');
+
+        treadmills.forEach(tm => {
+            tm.beltTex.offset.y -= dt * 0.4;
+        });
+    }
+}
+
+// --- 12. 角色移動與動畫更新 ---
+function updatePlayer(dt) {
+    // 若正在比賽倒數 3,2,1 階段，鎖定玩家在起跑線
+    if (RaceSystem.state === 'countdown') {
+        player.rig.leftArm.rotation.x = 0;
+        player.rig.rightArm.rotation.x = 0;
+        player.rig.leftLeg.rotation.x = 0;
+        player.rig.rightLeg.rotation.x = 0;
+        return;
+    }
+
+    let moveForward = 0;
+    let moveRight = 0;
+
+    if (Keys.w || Keys.up) moveForward += 1;
+    if (Keys.s || Keys.down) moveForward -= 1;
+    if (Keys.d || Keys.right) moveRight += 1;
+    if (Keys.a || Keys.left) moveRight -= 1;
+
+    if (Joystick.active) {
+        moveForward -= Joystick.dy;
+        moveRight += Joystick.dx;
+    }
+
+    const inputLen = Math.hypot(moveForward, moveRight);
+    const isMoving = inputLen > 0.05;
+
+    // 計算實際移動速度 (支援高速突破，可一路戰勝第 5 世界創世神王)
+    const speedBonus = Math.min(185, Math.pow(GameState.speed, 0.34) * 1.15);
+    const currentMoveSpeed = 12 + speedBonus;
+
+    if (isMoving) {
+        const normF = moveForward / Math.max(1, inputLen);
+        const normR = moveRight / Math.max(1, inputLen);
+
+        const sinY = Math.sin(CamControl.yaw);
+        const cosY = Math.cos(CamControl.yaw);
+
+        const dirX = normR * cosY - normF * sinY;
+        const dirZ = -normR * sinY - normF * cosY;
+
+        player.group.position.x += dirX * currentMoveSpeed * dt;
+        player.group.position.z += dirZ * currentMoveSpeed * dt;
+
+        // 限制在地圖圓形圍牆內
+        const distFromCenter = Math.hypot(player.group.position.x, player.group.position.z);
+        const maxDist = WORLD_RADIUS - 3.2;
+        if (distFromCenter > maxDist) {
+            const ratio = maxDist / distFromCenter;
+            player.group.position.x *= ratio;
+            player.group.position.z *= ratio;
+        }
+
+        const targetAngle = Math.atan2(dirX, dirZ);
+        let diff = targetAngle - player.facingAngle;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        player.facingAngle += diff * Math.min(1, dt * 14);
+        player.group.rotation.y = player.facingAngle;
+    } else if (GameState.activeTreadmill) {
+        const targetAngle = GameState.activeTreadmill.rotY + Math.PI;
+        player.facingAngle = targetAngle;
+        player.group.rotation.y = targetAngle;
+    }
+
+    // 重力與跳躍物理
+    const groundHeight = GameState.activeTreadmill ? 0.85 : 0.3;
+    if (!GameState.onGround) {
+        GameState.velocityY -= 38 * dt;
+        player.group.position.y += GameState.velocityY * dt;
+        if (player.group.position.y <= groundHeight) {
+            player.group.position.y = groundHeight;
+            GameState.velocityY = 0;
+            GameState.onGround = true;
+        }
+    } else {
+        player.group.position.y = groundHeight;
+    }
+
+    // Roblox 方塊人手腳擺動動畫
+    const rig = player.rig;
+    const isRunning = isMoving || Boolean(GameState.activeTreadmill);
+    if (isRunning && GameState.onGround) {
+        const animSpeed = GameState.activeTreadmill
+            ? 16 + Math.min(20, Math.log10(GameState.activeTreadmill.config.rate + 1) * 8)
+            : 12 + speedBonus * 0.35;
+
+        rig.runCycle += dt * animSpeed;
+        const swing = Math.sin(rig.runCycle) * 0.85;
+
+        rig.leftArm.rotation.x = swing;
+        rig.rightArm.rotation.x = -swing;
+        rig.leftLeg.rotation.x = -swing;
+        rig.rightLeg.rotation.x = swing;
+
+        rig.torso.position.y = 2.4 + Math.abs(Math.cos(rig.runCycle)) * 0.14;
+        rig.head.position.y = 3.95 + Math.abs(Math.cos(rig.runCycle)) * 0.14;
+        player.group.rotation.x = 0.12;
+    } else if (!GameState.onGround) {
+        rig.leftArm.rotation.x = Math.PI * 0.85;
+        rig.rightArm.rotation.x = Math.PI * 0.85;
+        rig.leftLeg.rotation.x = 0.35;
+        rig.rightLeg.rotation.x = -0.35;
+        player.group.rotation.x = 0;
+    } else {
+        rig.runCycle += dt * 2.5;
+        rig.leftArm.rotation.x = Math.sin(rig.runCycle) * 0.06;
+        rig.rightArm.rotation.x = -Math.sin(rig.runCycle) * 0.06;
+        rig.leftLeg.rotation.x = 0;
+        rig.rightLeg.rotation.x = 0;
+        player.group.rotation.x = 0;
+    }
+
+    // 高速奔跑或裝備高級尾焰時噴發粒子特效
+    if (isMoving && (speedBonus > 12 || GameState.trailType !== 'white')) {
+        speedLinesEl.style.opacity = speedBonus > 16 ? Math.min(0.85, (speedBonus - 16) / 40) : 0;
+        if (Math.random() < 0.65) spawnWindTrail();
+    } else {
+        speedLinesEl.style.opacity = 0;
+    }
+}
+
+// --- 13. 能量球旋轉與收集檢測 ---
+function updateOrbs(dt, elapsed) {
+    const playerPos = player.group.position;
+    for (const orb of orbs) {
+        if (!orb.active) {
+            orb.respawnTimer -= dt;
+            if (orb.respawnTimer <= 0) {
+                orb.active = true;
+                orb.mesh.visible = true;
+            }
+            continue;
+        }
+
+        // 上下漂浮與自轉
+        orb.mesh.rotation.y += dt * 2.5;
+        orb.mesh.position.y = orb.baseY + Math.sin(elapsed * 3 + orb.phase) * 0.3;
+
+        // 碰撞吃球判定
+        const dist = Math.hypot(playerPos.x - orb.mesh.position.x, playerPos.z - orb.mesh.position.z);
+        if (dist < 2.2 && Math.abs(playerPos.y - orb.mesh.position.y) < 3.0) {
+            orb.active = false;
+            orb.mesh.visible = false;
+            orb.respawnTimer = 8; // 8秒後重生
+
+            const gained = Math.round(orb.value * GameState.multiplier);
+            GameState.speed += gained;
+            spawnFloatingScore(gained, orb.value > 10 ? '#facc15' : '#38bdf8');
+        }
+    }
+}
+
+// --- 14. 更新第三人稱跟隨攝影機與粒子 ---
+function updateCameraAndEffects(dt) {
+    const target = player.group.position.clone().add(new THREE.Vector3(0, 2.6, 0));
+
+    const horizDist = CamControl.distance * Math.cos(CamControl.pitch);
+    const vertDist = CamControl.distance * Math.sin(CamControl.pitch);
+
+    const camX = target.x + horizDist * Math.sin(CamControl.yaw);
+    const camZ = target.z + horizDist * Math.cos(CamControl.yaw);
+    const camY = target.y + vertDist;
+
+    camera.position.lerp(new THREE.Vector3(camX, camY, camZ), Math.min(1, dt * 15));
+    camera.lookAt(target);
+
+    // 白雲緩慢飄動
+    clouds.forEach(c => {
+        c.position.x += dt * 0.8;
+        if (c.position.x > 110) c.position.x = -110;
+    });
+
+    // 疾風粒子生命週期
+    windParticles.forEach(p => {
+        if (p.mesh.visible) {
+            p.life -= dt;
+            if (p.life <= 0) p.mesh.visible = false;
+        }
+    });
+}
+
+// --- 15. 視窗大小自適應 ---
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// --- 16. 遊戲主迴圈與啟動 ---
+let lastTime = performance.now();
+let autoSaveTimer = 0;
+
+function gameLoop(now) {
+    requestAnimationFrame(gameLoop);
+
+    const dt = Math.min(0.05, (now - lastTime) / 1000);
+    lastTime = now;
+    const elapsed = now / 1000;
+
+    checkWorldTriggersAndTreadmills(dt);
+    updatePlayer(dt);
+    updateNpcRace(dt);
+    updateOrbs(dt, elapsed);
+    updateCameraAndEffects(dt);
+    updateHUD();
+
+    autoSaveTimer += dt;
+    if (autoSaveTimer >= 5) {
+        saveGameData();
+        autoSaveTimer = 0;
+    }
+
+    renderer.render(scene, camera);
+}
+
+window.onload = function () {
+    loadGameData();
+    buildWorld(GameState.world);
+    buildPlayerCharacter();
+    initWindParticles();
+    updateHUD();
+
+    showToast("👟 走上綠色跑步機練速度，或踩入「🏁 競速起點」與 NPC 賽跑賺金幣！", '#4ade80', '#dcfce7');
+    lastTime = performance.now();
+    requestAnimationFrame(gameLoop);
+};
+</script>
+</body>
+</html>

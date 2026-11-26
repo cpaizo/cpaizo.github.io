@@ -1,0 +1,1956 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>《杏林廢墟：大夜班全紀錄》 | 台灣民俗恐怖生存</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #030404;
+            color: #d4d4d8;
+            font-family: 'Noto Serif TC', serif;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .font-mono-tech {
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        #app-shell {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 1120px;
+            max-height: 760px;
+            background: #070809;
+            overflow: hidden;
+            box-shadow: 0 0 90px rgba(0, 0, 0, 0.98);
+            border: 1px solid #1f2226;
+        }
+
+        @media (min-width: 1121px) {
+            #app-shell {
+                height: 94vh;
+                border-radius: 6px;
+            }
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* CRT 掃描線與暗角濾鏡 */
+        .crt-scanlines {
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%,
+                rgba(0, 0, 0, 0.42) 50%
+            ), linear-gradient(
+                90deg,
+                rgba(255, 0, 0, 0.03),
+                rgba(0, 255, 0, 0.015),
+                rgba(0, 0, 255, 0.03)
+            );
+            background-size: 100% 3px, 6px 100%;
+            pointer-events: none;
+        }
+
+        .vignette-heavy {
+            box-shadow: inset 0 0 110px rgba(0, 0, 0, 0.95);
+            pointer-events: none;
+        }
+
+        /* 閃爍錄影紅點 */
+        @keyframes recPulse {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0.1; }
+        }
+        .rec-blink {
+            animation: recPulse 1.2s infinite;
+        }
+
+        /* 泛黃老舊紙張質感 (規則手冊) */
+        .yellowed-paper {
+            background-color: #d6c7a9;
+            background-image: radial-gradient(rgba(120, 95, 60, 0.18) 1px, transparent 0),
+                              linear-gradient(180deg, rgba(168, 145, 108, 0.35) 0%, rgba(110, 88, 56, 0.45) 100%);
+            background-size: 16px 16px, 100% 100%;
+            color: #1f1912;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.95), inset 0 0 40px rgba(82, 60, 32, 0.55);
+            border: 1px solid #8c7352;
+        }
+
+        /* 寫實微顫特效 */
+        @keyframes horrorShake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            20% { transform: translate(-4px, 2px) rotate(-0.6deg); }
+            40% { transform: translate(4px, -3px) rotate(0.7deg); }
+            60% { transform: translate(-3px, -2px) rotate(-0.4deg); }
+            80% { transform: translate(3px, 3px) rotate(0.5deg); }
+        }
+        .shake-intense {
+            animation: horrorShake 0.18s infinite;
+        }
+
+        /* 鐵鏽金屬按鈕 */
+        .industrial-btn {
+            background: linear-gradient(180deg, #23272c 0%, #121417 100%);
+            border: 1px solid #3f444c;
+            color: #e4e4e7;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            transition: all 0.15s ease;
+            cursor: pointer;
+        }
+        .industrial-btn:hover:not(:disabled) {
+            border-color: #a1a1aa;
+            background: linear-gradient(180deg, #2e333a 0%, #181b20 100%);
+        }
+        .industrial-btn:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+        .industrial-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .industrial-btn.active-cam {
+            border-color: #22c55e;
+            background: linear-gradient(180deg, #143622 0%, #0a1c12 100%);
+            color: #86efac;
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.28);
+        }
+
+        .industrial-btn.danger-btn {
+            border-color: #991b1b;
+            background: linear-gradient(180deg, #451212 0%, #210808 100%);
+            color: #fca5a5;
+        }
+        .industrial-btn.danger-btn:hover:not(:disabled) {
+            border-color: #ef4444;
+            box-shadow: 0 0 18px rgba(220, 38, 38, 0.45);
+        }
+
+        /* 觸控虛擬按鈕 */
+        .mobile-pad-btn {
+            background: rgba(15, 18, 22, 0.78);
+            border: 1px solid rgba(161, 161, 170, 0.35);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+        .mobile-pad-btn:active {
+            background: rgba(153, 27, 27, 0.55);
+            border-color: #f87171;
+        }
+
+        /* 自訂捲軸 */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.25); }
+        ::-webkit-scrollbar-thumb { background: #5c4932; border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+<div id="app-shell">
+    <!-- 主渲染畫布 (負責繪製 CCTV 畫面與第一人稱手電筒走廊) -->
+    <canvas id="mainCanvas"></canvas>
+
+    <!-- CRT 掃描線與四周暗角 -->
+    <div id="crtOverlay" class="crt-scanlines absolute inset-0 z-10"></div>
+    <div id="vignetteOverlay" class="vignette-heavy absolute inset-0 z-10"></div>
+
+    <!-- 理智過低時的血絲/壓迫邊緣濾鏡 -->
+    <div id="sanityFilter" class="hidden absolute inset-0 z-10 pointer-events-none transition-opacity duration-300"
+         style="box-shadow: inset 0 0 90px rgba(153, 27, 27, 0.78); background: radial-gradient(circle, transparent 52%, rgba(80, 0, 0, 0.35) 100%);"></div>
+
+    <!-- 頂部核心狀態列 (HUD) -->
+    <div id="topHud" class="hidden absolute top-0 left-0 w-full p-2.5 sm:p-3.5 flex flex-wrap justify-between items-start gap-2 z-20 pointer-events-none">
+        <!-- 左上：時間、地點與錄影狀態 -->
+        <div class="bg-black/85 border border-zinc-800 px-3 py-1.5 rounded flex items-center gap-3.5 shadow-xl">
+            <div>
+                <div class="flex items-center gap-1.5 text-[10px] font-mono-tech text-zinc-400">
+                    <span class="rec-blink inline-block w-2 h-2 rounded-full bg-red-600"></span>
+                    <span id="hudLocationLabel">警衛室監控台 // 杏林舊院區</span>
+                </div>
+                <div class="flex items-baseline gap-2">
+                    <span id="clockDisplay" class="font-mono-tech text-2xl sm:text-3xl font-bold text-zinc-100 tracking-wider">00:00</span>
+                    <span class="text-xs text-zinc-500 font-mono-tech">/ 06:00 交班</span>
+                </div>
+            </div>
+            <div class="h-8 w-[1px] bg-zinc-800"></div>
+            <div class="text-xs">
+                <div class="text-zinc-400">鎮煞黃符</div>
+                <div class="font-mono-tech text-base font-bold text-amber-400"><span id="talismanDisplay">3</span> 張</div>
+            </div>
+        </div>
+
+        <!-- 右上：理智值、備用電力與功能鍵 -->
+        <div class="flex items-start gap-2 pointer-events-auto">
+            <div class="bg-black/85 border border-zinc-800 px-3 py-1.5 rounded flex flex-col gap-1.5 min-w-[165px] sm:min-w-[205px] shadow-xl">
+                <!-- 理智值 (Sanity) -->
+                <div>
+                    <div class="flex justify-between text-[11px] mb-0.5">
+                        <span class="text-zinc-300 font-bold">🧠 精神理智</span>
+                        <span id="sanityText" class="font-mono-tech font-bold text-emerald-400">100%</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-zinc-900 rounded-sm overflow-hidden border border-zinc-700">
+                        <div id="sanityBar" class="h-full bg-emerald-500 w-full transition-all duration-200"></div>
+                    </div>
+                </div>
+                <!-- 系統電力 / 手電筒電量 (Power) -->
+                <div>
+                    <div class="flex justify-between text-[11px] mb-0.5">
+                        <span class="text-zinc-300 font-bold">⚡ 備用電力</span>
+                        <span id="powerText" class="font-mono-tech font-bold text-amber-300">100%</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-zinc-900 rounded-sm overflow-hidden border border-zinc-700">
+                        <div id="powerBar" class="h-full bg-amber-400 w-full transition-all duration-200"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 查閱禁忌守則按鈕 -->
+            <button id="openRulebookBtn" class="industrial-btn px-2.5 py-2 rounded flex flex-col items-center justify-center text-amber-300 border-amber-700/60" title="翻閱大夜班禁忌守則">
+                <span class="text-base leading-none">📜</span>
+                <span class="text-[10px] font-bold mt-1">守則</span>
+            </button>
+
+            <!-- 靜音切換按鈕 -->
+            <button id="muteToggleBtn" class="industrial-btn px-2.5 py-2 rounded flex flex-col items-center justify-center text-zinc-300" title="切換恐怖環境音效">
+                <span id="muteIcon" class="text-base leading-none">🔊</span>
+                <span class="text-[10px] font-bold mt-1">音效</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 中央異常系統提示條 -->
+    <div id="alertBanner" class="hidden absolute top-20 left-1/2 -translate-x-1/2 z-20 pointer-events-none w-[92%] max-w-lg text-center">
+        <div id="alertBannerText" class="bg-red-950/90 border border-red-600/80 text-red-200 text-xs sm:text-sm font-bold px-4 py-1.5 rounded shadow-2xl tracking-wider">
+            ⚠️ 警告：三樓長廊電箱跳電，請立即前往走廊復歸！
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- 模式一控制面板：警衛室監視器操作台 (Mode 1: CCTV Controls) -->
+    <!-- ========================================================= -->
+    <div id="cctvControls" class="hidden absolute bottom-0 left-0 w-full p-2.5 sm:p-4 bg-gradient-to-t from-black via-black/95 to-transparent z-20">
+        <div class="max-w-4xl mx-auto flex flex-col gap-2">
+            <!-- 4 支監視器頻道切換列 -->
+            <div class="grid grid-cols-4 gap-1.5 sm:gap-2.5">
+                <button data-cam="0" class="cam-btn industrial-btn active-cam py-2 px-2 rounded text-left relative">
+                    <div class="flex justify-between items-center">
+                        <span class="font-mono-tech text-[11px] font-bold">CAM-01</span>
+                        <span id="camWarn0" class="hidden w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+                    </div>
+                    <div class="text-xs sm:text-sm font-bold truncate">一樓神明廳</div>
+                </button>
+                <button data-cam="1" class="cam-btn industrial-btn py-2 px-2 rounded text-left relative">
+                    <div class="flex justify-between items-center">
+                        <span class="font-mono-tech text-[11px] font-bold">CAM-02</span>
+                        <span id="camWarn1" class="hidden w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+                    </div>
+                    <div class="text-xs sm:text-sm font-bold truncate">二樓廢棄產房</div>
+                </button>
+                <button data-cam="2" class="cam-btn industrial-btn py-2 px-2 rounded text-left relative">
+                    <div class="flex justify-between items-center">
+                        <span class="font-mono-tech text-[11px] font-bold">CAM-03</span>
+                        <span id="camWarn2" class="hidden w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+                    </div>
+                    <div class="text-xs sm:text-sm font-bold truncate">三樓陰暗長廊</div>
+                </button>
+                <button data-cam="3" class="cam-btn industrial-btn py-2 px-2 rounded text-left relative">
+                    <div class="flex justify-between items-center">
+                        <span class="font-mono-tech text-[11px] font-bold">CAM-04</span>
+                        <span id="camWarn3" class="hidden w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+                    </div>
+                    <div class="text-xs sm:text-sm font-bold truncate">地下太平間</div>
+                </button>
+            </div>
+
+            <!-- 警衛室功能操作列 -->
+            <div class="grid grid-cols-3 gap-2">
+                <!-- 關閉/開啟螢幕 (防禦紅衣小女孩直視詛咒) -->
+                <button id="toggleMonitorBtn" class="industrial-btn py-2.5 px-3 rounded text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5">
+                    <span>🖥️</span>
+                    <span id="toggleMonitorLabel">關閉螢幕 (省電/避視線)</span>
+                </button>
+
+                <!-- 遠端驅邪鈴/線香脈衝 (驅散魔神仔白霧與輪椅異動) -->
+                <button id="incensePulseBtn" class="industrial-btn py-2.5 px-3 rounded text-xs sm:text-sm font-bold text-amber-300 border-amber-700/50 flex items-center justify-center gap-1.5">
+                    <span>🔔</span>
+                    <span>遠端三清鈴驅邪 (-6%電)</span>
+                </button>
+
+                <!-- 切換至模式二：起身拿手電筒進入走廊巡邏 -->
+                <button id="enterCorridorBtn" class="industrial-btn danger-btn py-2.5 px-3 rounded text-xs sm:text-sm font-black flex items-center justify-center gap-1.5">
+                    <span>🔦</span>
+                    <span id="enterCorridorLabel">起身巡邏走廊</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- 模式二控制面板：第一人稱手電筒走廊探索 (Mode 2: Corridor) -->
+    <!-- ========================================================= -->
+    <div id="corridorControls" class="hidden absolute bottom-0 left-0 w-full p-3 sm:p-4 z-20 pointer-events-none">
+        <div class="max-w-4xl mx-auto flex flex-col gap-2.5">
+            <!-- 走廊互動提示與行動進度條 -->
+            <div id="corridorActionBox" class="mx-auto bg-black/85 border border-zinc-700 px-4 py-2 rounded text-center pointer-events-auto">
+                <div id="corridorPromptText" class="text-xs sm:text-sm text-zinc-200 font-bold mb-1">
+                    移動滑鼠或手指控制手電筒照射方向 ｜ [A/D] 左右移動巡邏
+                </div>
+                <div id="interactProgressWrap" class="hidden w-56 mx-auto h-2 bg-zinc-900 rounded overflow-hidden border border-amber-600">
+                    <div id="interactProgressBar" class="h-full bg-amber-400 w-0"></div>
+                </div>
+            </div>
+
+            <!-- 底部走廊操作按鈕列 (同時支援滑鼠點擊與手機觸控) -->
+            <div class="flex justify-between items-center gap-2 pointer-events-auto">
+                <!-- 左側移動鍵 (手機/滑鼠可用) -->
+                <div class="flex gap-2">
+                    <button id="walkLeftBtn" class="mobile-pad-btn px-4 py-3 rounded-lg text-zinc-200 font-bold text-sm">
+                        ◀ 往左走
+                    </button>
+                    <button id="walkRightBtn" class="mobile-pad-btn px-4 py-3 rounded-lg text-zinc-200 font-bold text-sm">
+                        往右走 ▶
+                    </button>
+                </div>
+
+                <!-- 中間核心動作：開關手電筒 / 長按修復或貼符 -->
+                <div class="flex gap-2">
+                    <button id="flashlightToggleBtn" class="industrial-btn px-3.5 py-3 rounded-lg text-xs sm:text-sm font-bold text-amber-300">
+                        🔦 開關手電筒 [F]
+                    </button>
+                    <button id="corridorInteractBtn" class="industrial-btn danger-btn px-4 py-3 rounded-lg text-xs sm:text-sm font-black">
+                        ✋ 長按修復/貼符 [E]
+                    </button>
+                </div>
+
+                <!-- 右側：退回警衛室 -->
+                <button id="returnBoothBtn" class="industrial-btn px-3.5 py-3 rounded-lg text-xs sm:text-sm font-bold text-emerald-300 border-emerald-800">
+                    🚪 退回警衛室
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- 模式三：突發台灣民俗「規則怪談」抉擇視窗 (Mode 3: Narrative) -->
+    <!-- ========================================================= -->
+    <div id="folkloreEventModal" class="hidden absolute inset-0 z-30 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="max-w-lg w-full bg-zinc-950 border-2 border-red-900/80 rounded-lg p-5 sm:p-6 shadow-[0_0_60px_rgba(153,27,27,0.5)]">
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-2.5 mb-3">
+                <span class="text-xs font-mono-tech text-red-500 tracking-widest font-bold">⚠️ 突發靈異異常 // 民俗禁忌判定</span>
+                <span id="eventTimerText" class="font-mono-tech text-sm font-bold text-amber-400">剩餘 12s</span>
+            </div>
+            <h3 id="folkloreEventTitle" class="text-xl sm:text-2xl font-black text-zinc-100 mb-2.5">
+                警衛室鐵窗外的童聲
+            </h3>
+            <p id="folkloreEventDesc" class="text-sm text-zinc-300 leading-relaxed mb-5 bg-zinc-900/80 p-3.5 rounded border border-zinc-800">
+                深夜三點，起霧的鐵窗外突然傳來清脆的小女孩聲音，一字一句準確地喊著你的名字：「大哥哥，外面好冷，幫我開門好不好……」
+            </p>
+            <div id="folkloreChoicesList" class="flex flex-col gap-2.5">
+                <!-- 動態填入選項 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- 泛黃《大夜班值班禁忌守則》視窗 (Rulebook Modal)             -->
+    <!-- ========================================================= -->
+    <div id="rulebookModal" class="hidden absolute inset-0 z-40 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="yellowed-paper max-w-xl w-full max-h-[86vh] overflow-y-auto rounded p-5 sm:p-7 relative">
+            <div class="flex justify-between items-start border-b-2 border-[#6e5638] pb-3 mb-4">
+                <div>
+                    <div class="text-xs font-bold tracking-widest text-[#7c2d12]">杏林舊院區管理處 // 民國八十七年手抄本</div>
+                    <h2 class="text-2xl sm:text-3xl font-black text-[#1c160e] mt-0.5">《大夜班值班禁忌守則》</h2>
+                </div>
+                <button id="closeRulebookBtn" class="px-3 py-1 bg-[#292015] text-[#e7dcc6] rounded text-sm font-bold hover:bg-[#451a1a] cursor-pointer">
+                    闔上手冊 ✕
+                </button>
+            </div>
+
+            <div class="space-y-3.5 text-sm leading-relaxed text-[#241c13]">
+                <p class="font-bold text-[#7f1d1d] bg-[#c7b38e] p-2.5 rounded border border-[#9c8259]">
+                    ※ 給新來的夜班保全：只要撐到早上 06:00 太陽出來就能領雙倍日薪。但請務必死守以下五條保命規矩，千萬別鐵齒：
+                </p>
+
+                <div class="border-b border-[#9c8259]/60 pb-2.5">
+                    <h4 class="font-black text-base text-[#1c160e]">一、【紅衣小女孩 — 忌直視】</h4>
+                    <p>若在任何一支監視器角落看見穿紅衣的小女孩剪影，<strong>絕對不可盯著看超過 2 秒！</strong>請立刻切換其他頻道，或直接按下「關閉螢幕」避開視線，直到聽見雜訊消失。</p>
+                </div>
+
+                <div class="border-b border-[#9c8259]/60 pb-2.5">
+                    <h4 class="font-black text-base text-[#1c160e]">二、【魔神仔白霧與輪椅自移 — 搖鈴驅煞】</h4>
+                    <p>當神明廳香爐發黑、或二樓產房輪椅自行移動並冒出濃霧時，代表陰氣正在聚集。請切換到該頻道並點擊<strong>「遠端三清鈴驅邪」</strong>將其震散；若放任不管，該區域將會發生跳電。</p>
+                </div>
+
+                <div class="border-b border-[#9c8259]/60 pb-2.5">
+                    <h4 class="font-black text-base text-[#1c160e]">三、【跳電與吹狗螺 — 出門巡邏禁忌】</h4>
+                    <p>一旦聽到遠處傳來悽厲的「吹狗螺」且監視器斷訊，必須點擊<strong>「起身巡邏走廊」</strong>，拿手電筒走到閃火花的電箱或鬼門前長按修復／貼上黃符。<br>
+                    <span class="text-[#991b1b] font-bold">★ 走廊保命鐵則：若手電筒光束不小心照到「紅衣身影」，必須立刻按 [F] 關燈並將光線移開！用強光照她會瞬間喪命。</span></p>
+                </div>
+
+                <div class="border-b border-[#9c8259]/60 pb-2.5">
+                    <h4 class="font-black text-base text-[#1c160e]">四、【夜半呼名與送肉粽煞氣】</h4>
+                    <p>深夜若聽見窗外有人喊你的全名，<strong>絕對不可回頭、也不可應聲「有」</strong>，應低頭默念佛號。若遇見紙紮人或送煞隊伍經過，務必迴避視線並貼符鎮宅。</p>
+                </div>
+
+                <div>
+                    <h4 class="font-black text-base text-[#1c160e]">五、【警衛室備用電力】</h4>
+                    <p>全棟大樓發電機只剩最後一點油量。不看監視器時記得關閉螢幕省電；一旦電力歸零，警衛室鐵門鎖失效，後果自負。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- 開始標題畫面 (Title Screen)                                 -->
+    <!-- ========================================================= -->
+    <div id="titleScreen" class="absolute inset-0 z-30 bg-black/92 backdrop-blur-sm flex flex-col items-center justify-center p-5 sm:p-8 text-center">
+        <div class="text-xs font-mono-tech tracking-[0.35em] text-red-500/90 mb-2">
+            XINGLIN RUINS // NIGHT SHIFT RECORDING
+        </div>
+        <h1 class="text-3xl sm:text-5xl font-black text-zinc-100 tracking-wider mb-2 drop-shadow-[0_4px_20px_rgba(185,28,28,0.5)]">
+            《杏林廢墟：<span class="text-red-700">大夜班全紀錄</span>》
+        </h1>
+        <p class="text-xs sm:text-sm text-zinc-400 max-w-lg mb-6 leading-relaxed">
+            廢棄二十年的台灣老醫院大夜班保全實錄。<br>
+            結合<strong class="text-zinc-200">「監視器值班」</strong>、<strong class="text-zinc-200">「第一人稱手電筒走廊巡邏」</strong>與<strong class="text-zinc-200">「台灣民俗規則怪談」</strong>。
+        </p>
+
+        <!-- 三大玩法核心提示卡 -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 max-w-2xl w-full mb-6 text-left text-xs">
+            <div class="bg-zinc-950/90 border border-zinc-800 p-3 rounded">
+                <div class="text-emerald-400 font-bold mb-1">📹 1. 四路監視器值班</div>
+                <p class="text-zinc-400">監控神明廳與太平間。見紅衣女孩立刻轉台避視線；見白霧搖鈴驅邪。</p>
+            </div>
+            <div class="bg-zinc-950/90 border border-zinc-800 p-3 rounded">
+                <div class="text-amber-400 font-bold mb-1">🔦 2. 第一人稱走廊巡邏</div>
+                <p class="text-zinc-400">跳電時親自持手電筒走入漆黑長廊修電箱、貼黃符。照到鬼影務必關燈！</p>
+            </div>
+            <div class="bg-zinc-950/90 border border-zinc-800 p-3 rounded">
+                <div class="text-red-400 font-bold mb-1">📜 3. 台灣民俗規則怪談</div>
+                <p class="text-zinc-400">夜半呼名、吹狗螺、紙紮人突發事件，依手冊禁忌做出生死抉擇。</p>
+            </div>
+        </div>
+
+        <!-- 難度選擇 -->
+        <div class="flex items-center gap-2 mb-6">
+            <span class="text-xs text-zinc-400">值班難度：</span>
+            <button data-diff="normal" class="diff-btn industrial-btn active-cam px-3.5 py-1.5 rounded text-xs font-bold">
+                頭七試膽 (標準)
+            </button>
+            <button data-diff="nightmare" class="diff-btn industrial-btn px-3.5 py-1.5 rounded text-xs font-bold">
+                鬼門大開 (高壓)
+            </button>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3 w-full max-w-md">
+            <button id="startGameBtn" class="industrial-btn danger-btn flex-1 py-3.5 px-6 rounded text-base sm:text-lg font-black tracking-widest">
+                簽到上工 (00:00)
+            </button>
+            <button id="titleRulebookBtn" class="industrial-btn py-3.5 px-5 rounded text-sm font-bold text-amber-300 border-amber-800/70">
+                📜 先看禁忌守則
+            </button>
+        </div>
+        <div class="mt-4 text-[11px] text-zinc-500">🎧 強烈建議開啟聲音並戴上耳機，體驗真實環境音效與吹狗螺</div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- 突發驚嚇與死亡結局畫面 (Jump Scare / Game Over Screen)       -->
+    <!-- ========================================================= -->
+    <div id="gameOverScreen" class="hidden absolute inset-0 z-50 bg-black flex flex-col items-center justify-center p-6 text-center">
+        <div class="text-xs font-mono-tech tracking-[0.3em] text-red-600 mb-2">CAMERA FEED TERMINATED // 員工失蹤</div>
+        <h2 class="text-3xl sm:text-5xl font-black text-red-600 mb-3 tracking-wider">
+            你違反了夜班禁忌
+        </h2>
+        <p id="deathReasonDisplay" class="text-sm sm:text-base text-zinc-200 bg-red-950/40 border border-red-800/80 px-5 py-3 rounded max-w-lg mb-6 leading-relaxed">
+            死因：直視監視器中的紅衣小女孩超過兩秒，她已經順著螢幕爬進了警衛室。
+        </p>
+        <div class="text-xs font-mono-tech text-zinc-400 mb-7">
+            存活時間：<span id="survivedTimeDisplay" class="text-zinc-100 font-bold text-base">02:45</span> / 06:00
+        </div>
+        <div class="flex gap-3">
+            <button id="retryGameBtn" class="industrial-btn danger-btn py-3 px-7 rounded text-base font-black tracking-wider">
+                重新簽到值班
+            </button>
+            <button id="gameoverRuleBtn" class="industrial-btn py-3 px-5 rounded text-sm font-bold text-amber-300">
+                📜 檢視禁忌守則
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- 06:00 天亮通關畫面 (Victory Screen)                         -->
+    <!-- ========================================================= -->
+    <div id="victoryScreen" class="hidden absolute inset-0 z-50 bg-zinc-950/95 flex flex-col items-center justify-center p-6 text-center">
+        <div class="text-xs font-mono-tech tracking-[0.3em] text-amber-400 mb-2">06:00 AM // DAWN HAS ARRIVED</div>
+        <h2 class="text-3xl sm:text-5xl font-black text-amber-300 mb-3">
+            清晨六點，你活著下班了
+        </h2>
+        <p class="text-sm sm:text-base text-zinc-300 max-w-lg mb-6 leading-relaxed">
+            第一道陽光穿透杏林廢墟斑駁的鐵窗，遠處的吹狗螺聲終於停歇。<br>
+            你顫抖著在簽到簿寫下交班時間，頭也不回地走出了這座被詛咒的醫院……
+        </p>
+        <div class="grid grid-cols-2 gap-4 max-w-sm w-full mb-7">
+            <div class="bg-black/80 border border-zinc-800 p-3 rounded">
+                <div class="text-xs text-zinc-500">剩餘精神理智</div>
+                <div id="winSanityDisplay" class="font-mono-tech text-2xl font-bold text-emerald-400">78%</div>
+            </div>
+            <div class="bg-black/80 border border-zinc-800 p-3 rounded">
+                <div class="text-xs text-zinc-500">剩餘備用電力</div>
+                <div id="winPowerDisplay" class="font-mono-tech text-2xl font-bold text-amber-400">34%</div>
+            </div>
+        </div>
+        <button id="playAgainWinBtn" class="industrial-btn py-3.5 px-8 rounded text-base font-black text-amber-300 border-amber-600">
+            再次挑戰大夜班
+        </button>
+    </div>
+</div>
+
+<script>
+/**
+ * ============================================================================
+ * 《杏林廢墟：大夜班全紀錄》核心引擎
+ * 結合：
+ * 1. 四路寫實夜視監視器監控 (CCTV Surveillance)
+ * 2. 第一人稱手電筒光束走廊巡邏與修電箱/貼符 (First-Person Flashlight Exploration)
+ * 3. 台灣民俗「規則怪談」突發事件抉擇 (Rule-Based Folklore Choices)
+ * 4. Web Audio API 程序化恐怖音效合成器 (環境低鳴、心跳、吹狗螺、木屐聲、突發驚嚇)
+ * ============================================================================
+ */
+
+// ----------------------------------------------------------------------------
+// 1. Web Audio API 寫實恐怖音效引擎 (無外部音效檔依賴)
+// ----------------------------------------------------------------------------
+class HorrorSoundEngine {
+    constructor() {
+        this.ctx = null;
+        this.muted = false;
+        this.droneOsc = null;
+        this.droneGain = null;
+        this.lastHeartbeatTime = 0;
+        this.lastFootstepTime = 0;
+    }
+
+    init() {
+        if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            this.ctx = new AudioCtx();
+        }
+        if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+        this.startAmbientDrone();
+    }
+
+    toggleMute() {
+        this.muted = !this.muted;
+        if (this.droneGain && this.ctx) {
+            this.droneGain.gain.setTargetAtTime(this.muted ? 0 : 0.055, this.ctx.currentTime, 0.1);
+        }
+        return this.muted;
+    }
+
+    // 持續低頻壓迫底噪
+    startAmbientDrone() {
+        if (!this.ctx || this.droneOsc) return;
+        try {
+            const osc1 = this.ctx.createOscillator();
+            const osc2 = this.ctx.createOscillator();
+            const filter = this.ctx.createBiquadFilter();
+            const gain = this.ctx.createGain();
+
+            osc1.type = 'sawtooth';
+            osc1.frequency.value = 46; // 低沉建築共振
+            osc2.type = 'sine';
+            osc2.frequency.value = 48.5; // 產生微弱拍頻不安感
+
+            filter.type = 'lowpass';
+            filter.frequency.value = 115;
+
+            gain.gain.value = this.muted ? 0 : 0.055;
+
+            osc1.connect(filter);
+            osc2.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            osc1.start();
+            osc2.start();
+            this.droneOsc = [osc1, osc2];
+            this.droneGain = gain;
+        } catch (e) {}
+    }
+
+    // 監視器切換白噪音雜訊
+    playStaticBurst(duration = 0.16, volume = 0.12) {
+        if (this.muted || !this.ctx) return;
+        try {
+            const bufferSize = Math.floor(this.ctx.sampleRate * duration);
+            const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.6));
+            }
+            const noise = this.ctx.createBufferSource();
+            noise.buffer = buffer;
+
+            const filter = this.ctx.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.value = 1400;
+
+            const gain = this.ctx.createGain();
+            gain.gain.value = volume;
+
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.ctx.destination);
+            noise.start();
+        } catch (e) {}
+    }
+
+    // 三清鈴 / 驅邪銅鈴清脆聲響
+    playBellChime() {
+        if (this.muted || !this.ctx) return;
+        try {
+            const now = this.ctx.currentTime;
+            [1320, 2640, 3960].forEach((freq, idx) => {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now);
+                gain.gain.setValueAtTime(0.14 / (idx + 1), now);
+                gain.gain.exponentialRampToValueAtTime(0.0008, now + 1.3);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 1.35);
+            });
+        } catch (e) {}
+    }
+
+    // 遠處悽厲「吹狗螺」音效
+    playDogHowl() {
+        if (this.muted || !this.ctx) return;
+        try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const filter = this.ctx.createBiquadFilter();
+            const gain = this.ctx.createGain();
+
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(240, now);
+            osc.frequency.exponentialRampToValueAtTime(430, now + 0.75);
+            osc.frequency.exponentialRampToValueAtTime(310, now + 2.4);
+            osc.frequency.exponentialRampToValueAtTime(190, now + 3.2);
+
+            filter.type = 'bandpass';
+            filter.frequency.value = 480;
+            filter.Q.value = 4;
+
+            gain.gain.setValueAtTime(0.001, now);
+            gain.gain.linearRampToValueAtTime(0.14, now + 0.7);
+            gain.gain.exponentialRampToValueAtTime(0.0008, now + 3.3);
+
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            osc.start(now);
+            osc.stop(now + 3.4);
+        } catch (e) {}
+    }
+
+    // 理智過低或遇險時的心跳聲
+    playHeartbeat(intensity = 1) {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        if (now - this.lastHeartbeatTime < 0.72) return;
+        this.lastHeartbeatTime = now;
+
+        [0, 0.16].forEach((offset, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(i === 0 ? 68 : 54, now + offset);
+            osc.frequency.exponentialRampToValueAtTime(28, now + offset + 0.14);
+
+            gain.gain.setValueAtTime(0.22 * intensity, now + offset);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.16);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + offset);
+            osc.stop(now + offset + 0.18);
+        });
+    }
+
+    // 走廊巡邏沉重腳步聲
+    playFootstep() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        if (now - this.lastFootstepTime < 0.34) return;
+        this.lastFootstepTime = now;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(110, now);
+        osc.frequency.exponentialRampToValueAtTime(38, now + 0.09);
+
+        gain.gain.setValueAtTime(0.14, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.11);
+    }
+
+    // 突發驚嚇刺耳不和諧音 (Jump Scare Sting)
+    playJumpScare() {
+        if (this.muted || !this.ctx) return;
+        try {
+            const now = this.ctx.currentTime;
+            [135, 143, 412, 880, 1245].forEach((freq) => {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(freq, now);
+                osc.frequency.linearRampToValueAtTime(freq * 0.72, now + 0.85);
+
+                gain.gain.setValueAtTime(0.18, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.95);
+            });
+            this.playStaticBurst(0.75, 0.28);
+        } catch (e) {}
+    }
+}
+
+const soundFX = new HorrorSoundEngine();
+
+// ----------------------------------------------------------------------------
+// 2. 遊戲核心狀態與台灣民俗規則怪談資料庫
+// ----------------------------------------------------------------------------
+const CAMERAS = [
+    { id: 0, code: 'CAM-01', name: '一樓神明廳', desc: '供奉舊院守護神與無主牌位，香爐常年積灰' },
+    { id: 1, code: 'CAM-02', name: '二樓廢棄產房', desc: '鏽蝕產檯與老舊輪椅，傳聞半夜有嬰啼聲' },
+    { id: 2, code: 'CAM-03', name: '三樓陰暗長廊', desc: '剝落磁磚與總配電箱所在，盡頭是封死鐵門' },
+    { id: 3, code: 'CAM-04', name: '地下太平間', desc: '冷氣早已斷電，停屍櫃門偶爾會從內部反鎖' }
+];
+
+const FOLKLORE_EVENTS = [
+    {
+        title: '鐵窗外的稚嫩呼喚聲',
+        desc: '凌晨風聲驟停，警衛室後方的氣窗外傳來小女孩清脆的聲音，一字不差地喊出你的名字：「大哥哥，我找不到媽媽，幫我開門好不好……」',
+        choices: [
+            { text: '低頭緊閉雙眼，雙手合十默念佛號，絕不應聲也絕不轉頭', correct: true, feedback: '你死死咬住牙關不發一語。窗外的腳步聲徘徊了十幾秒後，發出一聲不甘的嘆息漸漸遠去。' },
+            { text: '拿手電筒往氣窗外照過去，大喊「誰在那裡！」', correct: false, penaltySanity: 32, feedback: '光束照見一張蒼白無瞳的臉正貼在玻璃上對你微笑！你答應了她的呼喚，魂魄彷彿被抽走一半！' },
+            { text: '翻開桌上的《大夜班禁忌守則》確認應對方式', correct: true, feedback: '你迅速瞥見第四條守則：「夜半呼名，絕不應聲」。你立刻捂住耳朵低頭，成功躲過一劫。' }
+        ]
+    },
+    {
+        title: '午夜「送肉粽」煞氣隊伍',
+        desc: '遠處醫院大門外突然傳來沉悶的法鼓聲與銅鑼聲，一隊打著白燈籠的模糊人影正沿著圍牆緩緩經過，陰風直接灌進了警衛室！',
+        choices: [
+            { text: '立刻背對大門面壁蹲下，消耗 1 張鎮煞黃符貼在警衛室門上', correct: true, useTalisman: true, feedback: '黃符在門板上無風自燃起微弱金光，將「送煞」的陰氣擋在了門外。' },
+            { text: '好奇湊到玻璃窗前偷看隊伍抬著什麼東西', correct: false, penaltySanity: 35, feedback: '隊伍最後一名法師猛然回頭瞪向你！沖煞之氣瞬間讓你頭暈目眩、冷汗直流！' },
+            { text: '直接背對窗戶低頭不看，靜待鑼鼓聲徹底消失', correct: true, feedback: '生人迴避，不沖不犯。你屏住呼吸背對窗戶，直到遠處鑼鼓聲徹底消散。' }
+        ]
+    },
+    {
+        title: '值班桌下的無名紙紮人',
+        desc: '你低頭檢查電線時，赫然發現警衛室桌腳邊不知何時多了一尊穿著紅綠紙衣、臉上畫著腮紅的紙紮童男，正歪著頭看著你。',
+        choices: [
+            { text: '絕不用手直接碰觸，拿手電筒關燈默數十秒再看', correct: true, feedback: '遵守「不隨意撿拾廢墟無主之物」的禁忌。十秒後你再看桌下，紙紮人已憑空消失。' },
+            { text: '一腳把紙紮人踢出警衛室外', correct: false, penaltySanity: 30, feedback: '你的腳踢了個空，腳踝卻傳來一陣刺骨冰冷的抓握感，留下一圈青紫手印！' },
+            { text: '撕下紙紮人的頭丟進垃圾桶', correct: false, penaltySanity: 38, feedback: '紙人撕裂的瞬間傳出凄厲的嬰兒啼哭，整間警衛室燈管炸裂閃爍！' }
+        ]
+    },
+    {
+        title: '門縫下遞進來的冥紙',
+        desc: '警衛室厚重的鐵門下方門縫，突然被一隻青白色的細長手指塞進了幾張印著銀箔的冥紙，門外傳來指甲刮擦鐵門的聲音。',
+        choices: [
+            { text: '假裝沒看見，退到警衛室最內側角落保持安靜', correct: true, feedback: '只要你不收下、不回應，門外的東西就無法判定屋裡有人。刮門聲不久後便停止了。' },
+            { text: '把門縫的冥紙撿起來塞回去門外', correct: false, penaltySanity: 32, feedback: '你的手指剛碰到冥紙，門縫外那隻冰冷的手猛然反扣住你的手腕！' },
+            { text: '大聲喝斥並用力踹鐵門嚇阻', correct: false, penaltySanity: 28, feedback: '門外傳來整齊的木屐踏步聲，彷彿有好幾個人同時貼在了門板上……' }
+        ]
+    }
+];
+
+const GameState = {
+    mode: 'TITLE', // 'TITLE' | 'CCTV' | 'CORRIDOR' | 'EVENT' | 'GAMEOVER' | 'VICTORY'
+    difficulty: 'normal', // 'normal' | 'nightmare'
+    timeMinutes: 0, // 0 = 00:00, 360 = 06:00
+    sanity: 100,
+    power: 100,
+    talismans: 3,
+
+    // 模式一：CCTV 監視器狀態
+    currentCam: 0,
+    monitorOff: false,
+    staticTimer: 0,
+    rooms: [
+        { mistLevel: 0, redGirlActive: false, redGirlTimer: 0, redGirlStareTime: 0, lockedCorrupt: false },
+        { mistLevel: 0, redGirlActive: false, redGirlTimer: 0, redGirlStareTime: 0, lockedCorrupt: false },
+        { mistLevel: 0, redGirlActive: false, redGirlTimer: 0, redGirlStareTime: 0, lockedCorrupt: false },
+        { mistLevel: 0, redGirlActive: false, redGirlTimer: 0, redGirlStareTime: 0, lockedCorrupt: false }
+    ],
+    powerOutage: false, // 是否發生全棟跳電（必須去走廊修電箱）
+
+    // 模式二：第一人稱手電筒走廊探索狀態
+    corridor: {
+        playerX: 0.18, // 0.05 ~ 0.95 在長廊中的水平位置
+        aimX: 0.5,     // 手電筒瞄準 X (0 ~ 1)
+        aimY: 0.5,     // 手電筒瞄準 Y (0 ~ 1)
+        flashlightOn: true,
+        breakerPos: 0.52, // 電箱位置
+        hauntedDoorPos: 0.82, // 鬼門/貼符位置
+        interactProgress: 0, // 0 ~ 100
+        isInteracting: false,
+        ghostPresent: false,
+        ghostX: 0.72,
+        ghostIlluminatedTime: 0, // 手電筒照到紅衣鬼影的時間（超過 1.4 秒觸發死亡）
+        ghostCooldown: 0
+    },
+
+    // 模式三：突發規則怪談事件
+    activeEvent: null,
+    eventCountdown: 12,
+    nextEventAtMinute: 55,
+
+    // 視覺特效與震動
+    shakeTime: 0,
+    jumpScareActive: false,
+    jumpScareTimer: 0,
+    jumpScareReason: '',
+    particles: []
+};
+
+// ----------------------------------------------------------------------------
+// 3. DOM 參照與 UI 綁定
+// ----------------------------------------------------------------------------
+const canvas = document.getElementById('mainCanvas');
+const ctx = canvas.getContext('2d');
+
+const ui = {
+    appShell: document.getElementById('app-shell'),
+    topHud: document.getElementById('topHud'),
+    hudLocationLabel: document.getElementById('hudLocationLabel'),
+    clockDisplay: document.getElementById('clockDisplay'),
+    talismanDisplay: document.getElementById('talismanDisplay'),
+    sanityText: document.getElementById('sanityText'),
+    sanityBar: document.getElementById('sanityBar'),
+    powerText: document.getElementById('powerText'),
+    powerBar: document.getElementById('powerBar'),
+    sanityFilter: document.getElementById('sanityFilter'),
+    alertBanner: document.getElementById('alertBanner'),
+    alertBannerText: document.getElementById('alertBannerText'),
+
+    cctvControls: document.getElementById('cctvControls'),
+    toggleMonitorBtn: document.getElementById('toggleMonitorBtn'),
+    toggleMonitorLabel: document.getElementById('toggleMonitorLabel'),
+    incensePulseBtn: document.getElementById('incensePulseBtn'),
+    enterCorridorBtn: document.getElementById('enterCorridorBtn'),
+    enterCorridorLabel: document.getElementById('enterCorridorLabel'),
+
+    corridorControls: document.getElementById('corridorControls'),
+    corridorPromptText: document.getElementById('corridorPromptText'),
+    interactProgressWrap: document.getElementById('interactProgressWrap'),
+    interactProgressBar: document.getElementById('interactProgressBar'),
+
+    folkloreEventModal: document.getElementById('folkloreEventModal'),
+    eventTimerText: document.getElementById('eventTimerText'),
+    folkloreEventTitle: document.getElementById('folkloreEventTitle'),
+    folkloreEventDesc: document.getElementById('folkloreEventDesc'),
+    folkloreChoicesList: document.getElementById('folkloreChoicesList'),
+
+    rulebookModal: document.getElementById('rulebookModal'),
+    titleScreen: document.getElementById('titleScreen'),
+    gameOverScreen: document.getElementById('gameOverScreen'),
+    deathReasonDisplay: document.getElementById('deathReasonDisplay'),
+    survivedTimeDisplay: document.getElementById('survivedTimeDisplay'),
+    victoryScreen: document.getElementById('victoryScreen'),
+    winSanityDisplay: document.getElementById('winSanityDisplay'),
+    winPowerDisplay: document.getElementById('winPowerDisplay')
+};
+
+// 初始化漂浮灰燼與香火煙塵粒子
+function initParticles() {
+    GameState.particles = [];
+    for (let i = 0; i < 45; i++) {
+        GameState.particles.push({
+            x: Math.random(),
+            y: Math.random(),
+            size: 1 + Math.random() * 2.2,
+            speedY: -0.015 - Math.random() * 0.03,
+            driftX: (Math.random() - 0.5) * 0.02,
+            alpha: 0.15 + Math.random() * 0.45
+        });
+    }
+}
+
+// 響應式畫布尺寸調整
+function resizeCanvas() {
+    const rect = ui.appShell.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', resizeCanvas);
+
+// ----------------------------------------------------------------------------
+// 4. 遊戲流程控制與模式切換
+// ----------------------------------------------------------------------------
+function formatClock(totalMins) {
+    const mins = Math.floor(totalMins);
+    const hh = String(Math.floor(mins / 60)).padStart(2, '0');
+    const mm = String(mins % 60).padStart(2, '0');
+    return `${hh}:${mm}`;
+}
+
+function showAlert(msg, duration = 4000) {
+    ui.alertBannerText.textContent = msg;
+    ui.alertBanner.classList.remove('hidden');
+    clearTimeout(showAlert._timer);
+    showAlert._timer = setTimeout(() => {
+        ui.alertBanner.classList.add('hidden');
+    }, duration);
+}
+
+function startNewGame() {
+    soundFX.init();
+    soundFX.playStaticBurst(0.25, 0.16);
+
+    GameState.mode = 'CCTV';
+    GameState.timeMinutes = 0;
+    GameState.sanity = 100;
+    GameState.power = 100;
+    GameState.talismans = 3;
+    GameState.currentCam = 0;
+    GameState.monitorOff = false;
+    GameState.staticTimer = 0.35;
+    GameState.powerOutage = false;
+    GameState.jumpScareActive = false;
+    GameState.shakeTime = 0;
+    GameState.nextEventAtMinute = 48 + Math.random() * 25;
+
+    GameState.rooms.forEach(r => {
+        r.mistLevel = 0;
+        r.redGirlActive = false;
+        r.redGirlTimer = 0;
+        r.redGirlStareTime = 0;
+        r.lockedCorrupt = false;
+    });
+
+    GameState.corridor.playerX = 0.16;
+    GameState.corridor.flashlightOn = true;
+    GameState.corridor.interactProgress = 0;
+    GameState.corridor.ghostPresent = false;
+    GameState.corridor.ghostIlluminatedTime = 0;
+
+    initParticles();
+
+    ui.titleScreen.classList.add('hidden');
+    ui.gameOverScreen.classList.add('hidden');
+    ui.victoryScreen.classList.add('hidden');
+    ui.folkloreEventModal.classList.add('hidden');
+    ui.topHud.classList.remove('hidden');
+    ui.cctvControls.classList.remove('hidden');
+    ui.corridorControls.classList.add('hidden');
+
+    updateCamButtonsUI();
+    showAlert('00:00 交班完成。請隨時留意監視器角落與《大夜班禁忌守則》！', 4500);
+}
+
+// 切換模式一（警衛室 CCTV）與模式二（第一人稱走廊巡邏）
+function enterCorridorMode() {
+    if (GameState.mode !== 'CCTV') return;
+    soundFX.playFootstep();
+    GameState.mode = 'CORRIDOR';
+    GameState.corridor.playerX = 0.15;
+    GameState.corridor.flashlightOn = true;
+    GameState.corridor.interactProgress = 0;
+    GameState.corridor.ghostPresent = Math.random() < 0.65;
+    GameState.corridor.ghostX = 0.62 + Math.random() * 0.22;
+    GameState.corridor.ghostIlluminatedTime = 0;
+
+    ui.cctvControls.classList.add('hidden');
+    ui.corridorControls.classList.remove('hidden');
+    ui.hudLocationLabel.textContent = '三樓廢棄長廊 // 實地手電筒巡邏';
+    showAlert('⚠️ 走廊陰氣極重！若燈光照到紅衣身影，請立刻按 [F] 關燈並移開視線！', 5000);
+}
+
+function returnToSecurityBooth() {
+    if (GameState.mode !== 'CORRIDOR') return;
+    soundFX.playFootstep();
+    GameState.mode = 'CCTV';
+    GameState.staticTimer = 0.25;
+    GameState.corridor.isInteracting = false;
+
+    ui.corridorControls.classList.add('hidden');
+    ui.cctvControls.classList.remove('hidden');
+    ui.hudLocationLabel.textContent = '警衛室監控台 // 杏林舊院區';
+}
+
+// 觸發模式三：台灣民俗規則怪談突發抉擇
+function triggerFolkloreEvent() {
+    if (GameState.mode !== 'CCTV' && GameState.mode !== 'CORRIDOR') return;
+    const prevMode = GameState.mode;
+    GameState.mode = 'EVENT';
+    GameState.eventCountdown = 14;
+
+    const ev = FOLKLORE_EVENTS[Math.floor(Math.random() * FOLKLORE_EVENTS.length)];
+    GameState.activeEvent = { ...ev, returnMode: prevMode };
+
+    soundFX.playDogHowl();
+    ui.folkloreEventTitle.textContent = ev.title;
+    ui.folkloreEventDesc.textContent = ev.desc;
+    ui.folkloreChoicesList.innerHTML = '';
+
+    ev.choices.forEach((choice) => {
+        const btn = document.createElement('button');
+        btn.className = 'industrial-btn text-left px-4 py-3 rounded text-xs sm:text-sm font-bold leading-snug hover:border-amber-400';
+        if (choice.useTalisman) {
+            btn.textContent = `📜 ${choice.text} (剩餘 ${GameState.talismans} 張)`;
+            if (GameState.talismans <= 0) btn.disabled = true;
+        } else {
+            btn.textContent = `▸ ${choice.text}`;
+        }
+        btn.addEventListener('click', () => resolveFolkloreChoice(choice));
+        ui.folkloreChoicesList.appendChild(btn);
+    });
+
+    ui.folkloreEventModal.classList.remove('hidden');
+}
+
+function resolveFolkloreChoice(choice) {
+    if (GameState.mode !== 'EVENT' || !GameState.activeEvent) return;
+    const returnMode = GameState.activeEvent.returnMode;
+    ui.folkloreEventModal.classList.add('hidden');
+    GameState.mode = returnMode;
+    GameState.activeEvent = null;
+
+    if (choice.useTalisman && GameState.talismans > 0) {
+        GameState.talismans--;
+        soundFX.playBellChime();
+    }
+
+    if (choice.correct) {
+        GameState.sanity = Math.min(100, GameState.sanity + 6);
+        showAlert(`✓ ${choice.feedback}`, 4800);
+    } else {
+        GameState.sanity = Math.max(0, GameState.sanity - (choice.penaltySanity || 30));
+        GameState.shakeTime = 0.7;
+        soundFX.playJumpScare();
+        showAlert(`✕ ${choice.feedback}`, 5200);
+        if (GameState.sanity <= 0) {
+            triggerDeath('精神理智徹底崩潰，你在幻覺中自己打開了警衛室大門……');
+        }
+    }
+}
+
+// 觸發突發驚嚇與死亡結局
+function triggerDeath(reason) {
+    if (GameState.jumpScareActive || GameState.mode === 'GAMEOVER') return;
+    GameState.jumpScareActive = true;
+    GameState.jumpScareTimer = 1.25;
+    GameState.jumpScareReason = reason;
+    GameState.shakeTime = 1.25;
+    soundFX.playJumpScare();
+
+    ui.folkloreEventModal.classList.add('hidden');
+    ui.rulebookModal.classList.add('hidden');
+}
+
+function finalizeGameOver() {
+    GameState.jumpScareActive = false;
+    GameState.mode = 'GAMEOVER';
+    ui.topHud.classList.add('hidden');
+    ui.cctvControls.classList.add('hidden');
+    ui.corridorControls.classList.add('hidden');
+    ui.deathReasonDisplay.textContent = GameState.jumpScareReason;
+    ui.survivedTimeDisplay.textContent = formatClock(GameState.timeMinutes);
+    ui.gameOverScreen.classList.remove('hidden');
+}
+
+function triggerVictory() {
+    GameState.mode = 'VICTORY';
+    soundFX.playBellChime();
+    ui.topHud.classList.add('hidden');
+    ui.cctvControls.classList.add('hidden');
+    ui.corridorControls.classList.add('hidden');
+    ui.folkloreEventModal.classList.add('hidden');
+    ui.winSanityDisplay.textContent = `${Math.ceil(GameState.sanity)}%`;
+    ui.winPowerDisplay.textContent = `${Math.ceil(GameState.power)}%`;
+    ui.victoryScreen.classList.remove('hidden');
+}
+
+// ----------------------------------------------------------------------------
+// 5. 輸入控制 (鍵盤 + 滑鼠 + 手機觸控)
+// ----------------------------------------------------------------------------
+const Keys = { left: false, right: false, interact: false };
+
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') Keys.left = true;
+    if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') Keys.right = true;
+    if (e.key === 'e' || e.key === 'E' || e.key === ' ') Keys.interact = true;
+
+    if ((e.key === 'f' || e.key === 'F') && GameState.mode === 'CORRIDOR') {
+        GameState.corridor.flashlightOn = !GameState.corridor.flashlightOn;
+        soundFX.playStaticBurst(0.06, 0.08);
+    }
+    if (e.key >= '1' && e.key <= '4' && GameState.mode === 'CCTV') {
+        switchCamera(parseInt(e.key, 10) - 1);
+    }
+});
+
+window.addEventListener('keyup', (e) => {
+    if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') Keys.left = false;
+    if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') Keys.right = false;
+    if (e.key === 'e' || e.key === 'E' || e.key === ' ') Keys.interact = false;
+});
+
+// 滑鼠與觸控控制第一人稱手電筒光束瞄準
+function updateAimFromPointer(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    GameState.corridor.aimX = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    GameState.corridor.aimY = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+}
+
+canvas.addEventListener('mousemove', (e) => {
+    if (GameState.mode === 'CORRIDOR') updateAimFromPointer(e.clientX, e.clientY);
+});
+canvas.addEventListener('touchstart', (e) => {
+    if (GameState.mode === 'CORRIDOR' && e.touches[0]) {
+        updateAimFromPointer(e.touches[0].clientX, e.touches[0].clientY);
+    }
+}, { passive: true });
+canvas.addEventListener('touchmove', (e) => {
+    if (GameState.mode === 'CORRIDOR' && e.touches[0]) {
+        updateAimFromPointer(e.touches[0].clientX, e.touches[0].clientY);
+    }
+}, { passive: true });
+
+// 監視器頻道切換
+function switchCamera(index) {
+    if (GameState.mode !== 'CCTV') return;
+    GameState.currentCam = index;
+    GameState.monitorOff = false;
+    GameState.staticTimer = 0.22;
+    soundFX.playStaticBurst(0.14, 0.12);
+    updateCamButtonsUI();
+}
+
+function updateCamButtonsUI() {
+    document.querySelectorAll('.cam-btn').forEach((btn, idx) => {
+        if (idx === GameState.currentCam && !GameState.monitorOff) {
+            btn.classList.add('active-cam');
+        } else {
+            btn.classList.remove('active-cam');
+        }
+        const room = GameState.rooms[idx];
+        const warnDot = document.getElementById(`camWarn${idx}`);
+        if (room.mistLevel > 45 || room.lockedCorrupt) {
+            warnDot.classList.remove('hidden');
+        } else {
+            warnDot.classList.add('hidden');
+        }
+    });
+    ui.toggleMonitorLabel.textContent = GameState.monitorOff ? '開啟監視器螢幕' : '關閉螢幕 (省電/避視線)';
+}
+
+document.querySelectorAll('.cam-btn').forEach((btn) => {
+    btn.addEventListener('click', () => switchCamera(parseInt(btn.dataset.cam, 10)));
+});
+
+// 關閉/開啟螢幕
+ui.toggleMonitorBtn.addEventListener('click', () => {
+    if (GameState.mode !== 'CCTV') return;
+    GameState.monitorOff = !GameState.monitorOff;
+    soundFX.playStaticBurst(0.1, 0.09);
+    updateCamButtonsUI();
+});
+
+// 遠端三清鈴驅邪
+ui.incensePulseBtn.addEventListener('click', () => {
+    if (GameState.mode !== 'CCTV' || GameState.monitorOff || GameState.powerOutage) return;
+    if (GameState.power < 6) {
+        showAlert('⚠️ 備用電力不足，無法啟動遠端驅邪鈴！', 2500);
+        return;
+    }
+    GameState.power -= 6;
+    soundFX.playBellChime();
+    GameState.staticTimer = 0.2;
+
+    const room = GameState.rooms[GameState.currentCam];
+    if (room.mistLevel > 0) {
+        room.mistLevel = Math.max(0, room.mistLevel - 65);
+        showAlert(`🔔 三清鈴聲響徹${CAMERAS[GameState.currentCam].name}，濃霧暫時退散！`, 3000);
+    } else {
+        showAlert(`🔔 鈴聲迴盪在空蕩的${CAMERAS[GameState.currentCam].name}中……`, 2200);
+    }
+    updateCamButtonsUI();
+});
+
+ui.enterCorridorBtn.addEventListener('click', enterCorridorMode);
+document.getElementById('returnBoothBtn').addEventListener('click', returnToSecurityBooth);
+
+// 手機與滑鼠走廊按鈕綁定
+function bindHoldButton(btnId, onStart, onEnd) {
+    const el = document.getElementById(btnId);
+    el.addEventListener('mousedown', (e) => { e.preventDefault(); onStart(); });
+    el.addEventListener('mouseup', onEnd);
+    el.addEventListener('mouseleave', onEnd);
+    el.addEventListener('touchstart', (e) => { e.preventDefault(); onStart(); });
+    el.addEventListener('touchend', onEnd);
+}
+
+bindHoldButton('walkLeftBtn', () => { Keys.left = true; }, () => { Keys.left = false; });
+bindHoldButton('walkRightBtn', () => { Keys.right = true; }, () => { Keys.right = false; });
+bindHoldButton('corridorInteractBtn', () => { Keys.interact = true; }, () => { Keys.interact = false; });
+
+document.getElementById('flashlightToggleBtn').addEventListener('click', () => {
+    GameState.corridor.flashlightOn = !GameState.corridor.flashlightOn;
+    soundFX.playStaticBurst(0.06, 0.08);
+});
+
+// 規則手冊與標題畫面按鈕
+document.getElementById('openRulebookBtn').addEventListener('click', () => ui.rulebookModal.classList.remove('hidden'));
+document.getElementById('titleRulebookBtn').addEventListener('click', () => ui.rulebookModal.classList.remove('hidden'));
+document.getElementById('gameoverRuleBtn').addEventListener('click', () => ui.rulebookModal.classList.remove('hidden'));
+document.getElementById('closeRulebookBtn').addEventListener('click', () => ui.rulebookModal.classList.add('hidden'));
+
+document.querySelectorAll('.diff-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active-cam'));
+        btn.classList.add('active-cam');
+        GameState.difficulty = btn.dataset.diff;
+    });
+});
+
+document.getElementById('startGameBtn').addEventListener('click', startNewGame);
+document.getElementById('retryGameBtn').addEventListener('click', startNewGame);
+document.getElementById('playAgainWinBtn').addEventListener('click', startNewGame);
+
+document.getElementById('muteToggleBtn').addEventListener('click', () => {
+    soundFX.init();
+    const muted = soundFX.toggleMute();
+    document.getElementById('muteIcon').textContent = muted ? '🔇' : '🔊';
+});
+
+// ----------------------------------------------------------------------------
+// 6. 遊戲主邏輯更新 (Update Loop)
+// ----------------------------------------------------------------------------
+function updateGame(dt) {
+    // 震動與粒子更新
+    if (GameState.shakeTime > 0) GameState.shakeTime = Math.max(0, GameState.shakeTime - dt);
+    if (GameState.staticTimer > 0) GameState.staticTimer = Math.max(0, GameState.staticTimer - dt);
+
+    GameState.particles.forEach(p => {
+        p.y += p.speedY * dt;
+        p.x += p.driftX * dt;
+        if (p.y < 0) { p.y = 1; p.x = Math.random(); }
+    });
+
+    // 突發驚嚇過場計時
+    if (GameState.jumpScareActive) {
+        GameState.jumpScareTimer -= dt;
+        if (GameState.jumpScareTimer <= 0) {
+            finalizeGameOver();
+        }
+        return;
+    }
+
+    if (GameState.mode !== 'CCTV' && GameState.mode !== 'CORRIDOR' && GameState.mode !== 'EVENT') {
+        return;
+    }
+
+    const diffMult = GameState.difficulty === 'nightmare' ? 1.45 : 1.0;
+
+    // 時間推進：真實 1 秒 = 遊戲 2.2 分鐘（約 2 分 45 秒撐完 6 小時）
+    if (GameState.mode !== 'EVENT') {
+        GameState.timeMinutes += dt * 2.25;
+        if (GameState.timeMinutes >= 360) {
+            triggerVictory();
+            return;
+        }
+    }
+
+    // 觸發模式三：突發台灣民俗規則怪談
+    if (GameState.mode !== 'EVENT' && GameState.timeMinutes >= GameState.nextEventAtMinute) {
+        GameState.nextEventAtMinute += (68 + Math.random() * 35) / diffMult;
+        triggerFolkloreEvent();
+        return;
+    }
+
+    if (GameState.mode === 'EVENT') {
+        GameState.eventCountdown -= dt;
+        ui.eventTimerText.textContent = `剩餘 ${Math.ceil(Math.max(0, GameState.eventCountdown))}s`;
+        if (GameState.eventCountdown <= 0) {
+            // 超時猶豫不決視為違規
+            resolveFolkloreChoice({
+                correct: false,
+                penaltySanity: 30,
+                feedback: '你在極度恐懼中僵在原地錯過了應對時機，陰氣順著脊椎爬了上來！'
+            });
+        }
+        return;
+    }
+
+    // 電力消耗計算
+    let powerDrain = 0.28 * diffMult; // 基礎警衛室微弱耗電
+    if (GameState.mode === 'CCTV' && !GameState.monitorOff) powerDrain += 0.42;
+    if (GameState.mode === 'CORRIDOR' && GameState.corridor.flashlightOn) powerDrain += 0.55;
+    GameState.power = Math.max(0, GameState.power - powerDrain * dt);
+
+    if (GameState.power <= 0) {
+        triggerDeath('全棟備用發電機油料耗盡，警衛室鐵捲門自動升起，黑暗中的東西走了進來……');
+        return;
+    }
+
+    // 四個房間的靈異事件演化
+    GameState.rooms.forEach((room, idx) => {
+        // 1. 魔神仔白霧 / 輪椅自移積聚
+        if (!room.lockedCorrupt) {
+            if (Math.random() < 0.14 * diffMult * dt) {
+                room.mistLevel = Math.min(100, room.mistLevel + 18);
+            }
+            if (room.mistLevel > 0) {
+                room.mistLevel = Math.min(100, room.mistLevel + 4.8 * diffMult * dt);
+            }
+            if (room.mistLevel >= 100) {
+                room.lockedCorrupt = true;
+                GameState.powerOutage = true;
+                soundFX.playDogHowl();
+                showAlert(`⚠️ 警報：${CAMERAS[idx].name}陰氣失控導致跳電！必須點擊「起身巡邏走廊」修復電箱！`, 6000);
+            }
+        }
+
+        // 2. 紅衣小女孩隨機出現在監視器角落
+        if (!room.redGirlActive && Math.random() < 0.055 * diffMult * dt) {
+            room.redGirlActive = true;
+            room.redGirlTimer = 7.5;
+            room.redGirlStareTime = 0;
+        }
+
+        if (room.redGirlActive) {
+            room.redGirlTimer -= dt;
+            // 判定玩家是否正在 CCTV 模式下直視這個房間的紅衣小女孩
+            const isBeingWatched = (GameState.mode === 'CCTV' && !GameState.monitorOff && !GameState.powerOutage && GameState.currentCam === idx);
+            if (isBeingWatched) {
+                room.redGirlStareTime += dt;
+                GameState.sanity = Math.max(0, GameState.sanity - 12 * dt);
+                soundFX.playHeartbeat(1.3);
+                if (room.redGirlStareTime >= 2.15) {
+                    triggerDeath('你違反了第一條守則：直視監視器中的紅衣小女孩超過兩秒，她從螢幕裡爬出來了！');
+                    return;
+                }
+            } else {
+                // 玩家有切換頻道或關閉螢幕避開視線，計時快速消退
+                room.redGirlStareTime = Math.max(0, room.redGirlStareTime - dt * 2);
+            }
+
+            if (room.redGirlTimer <= 0) {
+                room.redGirlActive = false;
+                room.redGirlStareTime = 0;
+            }
+        }
+    });
+
+    // 若跳電發生，持續降低理智值逼迫玩家出門巡邏修復
+    const anyCorrupt = GameState.rooms.some(r => r.lockedCorrupt);
+    if (GameState.powerOutage || anyCorrupt) {
+        GameState.sanity = Math.max(0, GameState.sanity - 2.6 * diffMult * dt);
+        ui.enterCorridorLabel.textContent = '⚠️ 立即巡邏修復！';
+    } else {
+        ui.enterCorridorLabel.textContent = '起身巡邏走廊';
+    }
+
+    // 模式二：第一人稱走廊巡邏邏輯
+    if (GameState.mode === 'CORRIDOR') {
+        const c = GameState.corridor;
+        const moveSpeed = 0.28;
+        if (Keys.left) {
+            c.playerX = Math.max(0.08, c.playerX - moveSpeed * dt);
+            soundFX.playFootstep();
+        }
+        if (Keys.right) {
+            c.playerX = Math.min(0.92, c.playerX + moveSpeed * dt);
+            soundFX.playFootstep();
+        }
+
+        // 紅衣鬼影在走廊中的判定（忌用手電筒光束照射！）
+        if (c.ghostPresent) {
+            const distToAim = Math.abs(c.ghostX - c.aimX);
+            if (c.flashlightOn && distToAim < 0.13) {
+                c.ghostIlluminatedTime += dt;
+                GameState.sanity = Math.max(0, GameState.sanity - 22 * dt);
+                GameState.shakeTime = 0.12;
+                soundFX.playHeartbeat(1.5);
+                ui.corridorPromptText.textContent = '⚠️ 照到紅衣身影了！快按 [F] 關燈並移開滑鼠/手指！';
+                ui.corridorPromptText.classList.add('text-red-400');
+
+                if (c.ghostIlluminatedTime >= 1.45) {
+                    triggerDeath('你用手電筒強光直射走廊上的紅衣身影，她在瞬間閃現到了你臉前……');
+                    return;
+                }
+            } else {
+                c.ghostIlluminatedTime = Math.max(0, c.ghostIlluminatedTime - dt * 1.5);
+                ui.corridorPromptText.classList.remove('text-red-400');
+                // 若玩家關燈靜待 2.2 秒，紅衣鬼影會自行消散
+                if (!c.flashlightOn) {
+                    c.ghostCooldown += dt;
+                    if (c.ghostCooldown >= 2.0) {
+                        c.ghostPresent = false;
+                        c.ghostCooldown = 0;
+                        showAlert('✓ 你熄燈屏息，走廊盡頭的腳步聲消失了。', 3000);
+                    }
+                }
+            }
+        }
+
+        // 檢查是否靠近電箱或鬼門進行互動（修復跳電 / 貼鎮煞黃符）
+        const nearBreaker = Math.abs(c.playerX - c.breakerPos) < 0.11;
+        const nearDoor = Math.abs(c.playerX - c.hauntedDoorPos) < 0.11;
+
+        if (nearBreaker || nearDoor) {
+            ui.interactProgressWrap.classList.remove('hidden');
+            if (!c.ghostPresent || !c.flashlightOn) {
+                ui.corridorPromptText.textContent = nearBreaker
+                    ? '⚡ 已抵達總配電箱！長按 [E] 或下方按鈕修復跳電並恢復 15% 電力'
+                    : '🚪 已抵達封鎖鐵門！長按 [E] 貼上鎮煞黃符淨化全棟陰氣';
+            }
+
+            if (Keys.interact) {
+                c.interactProgress = Math.min(100, c.interactProgress + 42 * dt);
+                ui.interactProgressBar.style.width = `${c.interactProgress}%`;
+                if (c.interactProgress >= 100) {
+                    c.interactProgress = 0;
+                    Keys.interact = false;
+                    if (nearBreaker) {
+                        GameState.powerOutage = false;
+                        GameState.rooms.forEach(r => { r.lockedCorrupt = false; r.mistLevel = 0; });
+                        GameState.power = Math.min(100, GameState.power + 15);
+                        soundFX.playBellChime();
+                        showAlert('✓ 總配電箱復歸成功！監視器畫面已恢復正常！', 3800);
+                    } else if (nearDoor) {
+                        if (GameState.talismans > 0) {
+                            GameState.talismans--;
+                            GameState.powerOutage = false;
+                            GameState.rooms.forEach(r => { r.lockedCorrupt = false; r.mistLevel = 0; r.redGirlActive = false; });
+                            GameState.sanity = Math.min(100, GameState.sanity + 15);
+                            soundFX.playBellChime();
+                            showAlert('📜 鎮煞黃符貼上鐵門！金光驅散了整層樓的怨氣！', 4000);
+                        } else {
+                            showAlert('⚠️ 身上已經沒有鎮煞黃符了！', 2500);
+                        }
+                    }
+                }
+            } else {
+                c.interactProgress = Math.max(0, c.interactProgress - 35 * dt);
+                ui.interactProgressBar.style.width = `${c.interactProgress}%`;
+            }
+        } else {
+            ui.interactProgressWrap.classList.add('hidden');
+            c.interactProgress = 0;
+            if (!c.ghostPresent) {
+                ui.corridorPromptText.textContent = '移動滑鼠/手指控制手電筒 ｜ 往右走到 [電箱] 或 [鐵門] 處理異常';
+            }
+        }
+    }
+
+    // 理智歸零判定
+    if (GameState.sanity <= 0) {
+        triggerDeath('長夜的恐懼徹底擊垮了你的精神防線，你永遠留在了杏林廢墟……');
+        return;
+    }
+
+    // 更新 HUD 數值顯示
+    updateHUD();
+}
+
+function updateHUD() {
+    ui.clockDisplay.textContent = formatClock(GameState.timeMinutes);
+    ui.talismanDisplay.textContent = GameState.talismans;
+
+    const s = Math.ceil(GameState.sanity);
+    ui.sanityText.textContent = `${s}%`;
+    ui.sanityBar.style.width = `${s}%`;
+    ui.sanityBar.className = `h-full transition-all duration-200 ${s > 50 ? 'bg-emerald-500' : s > 25 ? 'bg-amber-500' : 'bg-red-600'}`;
+    ui.sanityText.className = `font-mono-tech font-bold ${s > 50 ? 'text-emerald-400' : s > 25 ? 'text-amber-400' : 'text-red-500'}`;
+
+    if (s < 35) {
+        ui.sanityFilter.classList.remove('hidden');
+        soundFX.playHeartbeat(0.9);
+    } else {
+        ui.sanityFilter.classList.add('hidden');
+    }
+
+    const p = Math.ceil(GameState.power);
+    ui.powerText.textContent = `${p}%`;
+    ui.powerBar.style.width = `${p}%`;
+    ui.powerBar.className = `h-full transition-all duration-200 ${p > 30 ? 'bg-amber-400' : 'bg-red-600'}`;
+
+    if (GameState.mode === 'CCTV') {
+        updateCamButtonsUI();
+    }
+}
+
+// ----------------------------------------------------------------------------
+// 7. 寫實視覺渲染引擎 (CCTV 夜視鏡頭 + 第一人稱手電筒光束 + 恐怖鬼影)
+// ----------------------------------------------------------------------------
+function render() {
+    const w = ui.appShell.clientWidth;
+    const h = ui.appShell.clientHeight;
+
+    ctx.save();
+
+    // 鏡頭劇烈震動偏移
+    if (GameState.shakeTime > 0) {
+        const mag = GameState.jumpScareActive ? 18 : 6;
+        ctx.translate((Math.random() - 0.5) * mag, (Math.random() - 0.5) * mag);
+    }
+
+    // 突發驚嚇全螢幕特寫 (Jump Scare Visual)
+    if (GameState.jumpScareActive) {
+        drawJumpScareFrame(w, h);
+        ctx.restore();
+        return;
+    }
+
+    if (GameState.mode === 'CORRIDOR') {
+        drawCorridorFirstPerson(w, h);
+    } else {
+        drawCCTVMonitorView(w, h);
+    }
+
+    ctx.restore();
+}
+
+// 繪製模式一：四路寫實夜視監視器畫面
+function drawCCTVMonitorView(w, h) {
+    ctx.fillStyle = '#040605';
+    ctx.fillRect(0, 0, w, h);
+
+    // 若玩家主動關閉螢幕或發生跳電斷訊
+    if (GameState.monitorOff || GameState.powerOutage) {
+        ctx.fillStyle = '#050607';
+        ctx.fillRect(0, 0, w, h);
+        drawAnalogNoise(w, h, GameState.powerOutage ? 0.25 : 0.04);
+
+        ctx.fillStyle = GameState.powerOutage ? '#ef4444' : '#71717a';
+        ctx.font = 'bold 18px "Share Tech Mono", "Noto Serif TC", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(
+            GameState.powerOutage ? 'NO SIGNAL // 區域跳電斷訊，請立即起身巡邏修復電箱' : 'MONITOR STANDBY // 螢幕已關閉（節省電力並避開視線）',
+            w / 2,
+            h / 2
+        );
+        return;
+    }
+
+    const camIdx = GameState.currentCam;
+    const room = GameState.rooms[camIdx];
+
+    // 夜視綠灰調環境底色
+    const bgGrad = ctx.createRadialGradient(w * 0.5, h * 0.45, 40, w * 0.5, h * 0.5, w * 0.72);
+    bgGrad.addColorStop(0, '#132419');
+    bgGrad.addColorStop(0.65, '#09120c');
+    bgGrad.addColorStop(1, '#030604');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, w, h);
+
+    // 繪製透視建築房間結構 (天花板、地板、斑駁牆壁)
+    ctx.strokeStyle = 'rgba(134, 239, 172, 0.14)';
+    ctx.lineWidth = 1.5;
+    const insetX = w * 0.18;
+    const insetY = h * 0.2;
+    ctx.strokeRect(insetX, insetY, w - insetX * 2, h - insetY * 2.1);
+    ctx.beginPath();
+    ctx.moveTo(0, 0); ctx.lineTo(insetX, insetY);
+    ctx.moveTo(w, 0); ctx.lineTo(w - insetX, insetY);
+    ctx.moveTo(0, h); ctx.lineTo(insetX, h - insetY * 1.1);
+    ctx.moveTo(w, h); ctx.lineTo(w - insetX, h - insetY * 1.1);
+    ctx.stroke();
+
+    // 依不同房間繪製寫實台灣廢棄醫院場景物件
+    if (camIdx === 0) {
+        // CAM-01 一樓神明廳：供桌、香爐、牌位與燭火
+        ctx.fillStyle = '#0c1710';
+        ctx.fillRect(w * 0.36, h * 0.48, w * 0.28, h * 0.16);
+        ctx.strokeStyle = 'rgba(134, 239, 172, 0.25)';
+        ctx.strokeRect(w * 0.36, h * 0.48, w * 0.28, h * 0.16);
+        // 牌位與香爐
+        ctx.fillStyle = '#182b1f';
+        ctx.fillRect(w * 0.48, h * 0.36, w * 0.04, h * 0.12);
+        ctx.fillRect(w * 0.47, h * 0.44, w * 0.06, h * 0.04);
+        // 兩側微弱紅燭光
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.65)';
+        ctx.beginPath();
+        ctx.arc(w * 0.41, h * 0.45, 4 + Math.sin(Date.now() * 0.015), 0, Math.PI * 2);
+        ctx.arc(w * 0.59, h * 0.45, 4 + Math.cos(Date.now() * 0.015), 0, Math.PI * 2);
+        ctx.fill();
+    } else if (camIdx === 1) {
+        // CAM-02 二樓廢棄產房：生鏽產檯與老舊輪椅（隨霧氣濃度自行移動！）
+        ctx.fillStyle = '#0d1811';
+        ctx.fillRect(w * 0.28, h * 0.5, w * 0.22, h * 0.12);
+        const chairOffsetX = (room.mistLevel / 100) * (w * 0.18);
+        const cx = w * 0.56 + chairOffsetX;
+        const cy = h * 0.52;
+        ctx.strokeStyle = 'rgba(167, 243, 208, 0.35)';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(cx, cy + 28, 22, 0, Math.PI * 2); // 輪椅大輪
+        ctx.moveTo(cx - 10, cy + 20); ctx.lineTo(cx - 10, cy - 25); // 椅背
+        ctx.moveTo(cx - 10, cy + 5); ctx.lineTo(cx + 18, cy + 5); // 椅墊
+        ctx.stroke();
+    } else if (camIdx === 2) {
+        // CAM-03 三樓陰暗長廊：深邃走廊與閃爍日光燈
+        const flicker = Math.random() > 0.08 ? 0.25 : 0.04;
+        ctx.fillStyle = `rgba(134, 239, 172, ${flicker})`;
+        ctx.fillRect(w * 0.44, h * 0.23, w * 0.12, 5);
+        // 盡頭封死鐵門
+        ctx.fillStyle = '#070d09';
+        ctx.fillRect(w * 0.43, h * 0.32, w * 0.14, h * 0.32);
+        ctx.strokeStyle = 'rgba(234, 179, 8, 0.35)';
+        ctx.strokeRect(w * 0.43, h * 0.32, w * 0.14, h * 0.32);
+    } else if (camIdx === 3) {
+        // CAM-04 地下太平間：兩排冷櫃門（陰氣高時櫃門會微開）
+        for (let row = 0; row < 2; row++) {
+            for (let col = 0; col < 3; col++) {
+                const bx = w * (0.28 + col * 0.15);
+                const by = h * (0.32 + row * 0.16);
+                ctx.fillStyle = (room.mistLevel > 50 && row === 0 && col === 1) ? '#020403' : '#0f1c14';
+                ctx.fillRect(bx, by, w * 0.13, h * 0.13);
+                ctx.strokeStyle = 'rgba(134, 239, 172, 0.25)';
+                ctx.strokeRect(bx, by, w * 0.13, h * 0.13);
+            }
+        }
+    }
+
+    // 繪製「魔神仔白霧」靈異積聚效果
+    if (room.mistLevel > 5) {
+        const mistAlpha = (room.mistLevel / 100) * 0.52;
+        const mistGrad = ctx.createRadialGradient(w * 0.5, h * 0.65, 20, w * 0.5, h * 0.65, w * 0.48);
+        mistGrad.addColorStop(0, `rgba(210, 235, 220, ${mistAlpha})`);
+        mistGrad.addColorStop(1, 'rgba(210, 235, 220, 0)');
+        ctx.fillStyle = mistGrad;
+        ctx.fillRect(0, 0, w, h);
+    }
+
+    // 繪製「紅衣小女孩」出現在監視器角落（寫實陰森剪影＋微弱紅衣反光）
+    if (room.redGirlActive) {
+        const gx = w * 0.24;
+        const gy = h * 0.58;
+        const stareRatio = Math.min(1, room.redGirlStareTime / 2.15);
+
+        ctx.save();
+        // 恐怖壓迫紅光暈
+        const aura = ctx.createRadialGradient(gx, gy - 20, 5, gx, gy - 20, 95 + stareRatio * 60);
+        aura.addColorStop(0, `rgba(185, 28, 28, ${0.35 + stareRatio * 0.45})`);
+        aura.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = aura;
+        ctx.fillRect(0, 0, w, h);
+
+        // 紅衣裙擺與長髮剪影
+        ctx.fillStyle = '#7f1d1d';
+        ctx.beginPath();
+        ctx.moveTo(gx, gy - 35);
+        ctx.lineTo(gx - 22, gy + 38);
+        ctx.lineTo(gx + 22, gy + 38);
+        ctx.closePath();
+        ctx.fill();
+
+        // 蒼白臉龐與長髮
+        ctx.fillStyle = '#09090b';
+        ctx.beginPath();
+        ctx.arc(gx, gy - 44, 15, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#d4d4d8';
+        ctx.beginPath();
+        ctx.arc(gx + 2, gy - 43, 9, 0, Math.PI * 2);
+        ctx.fill();
+        // 漆黑空洞雙眼
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(gx - 1, gy - 44, 2.2, 0, Math.PI * 2);
+        ctx.arc(gx + 5, gy - 44, 2.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // 直視警告雜訊干擾
+        drawAnalogNoise(w, h, 0.12 + stareRatio * 0.35);
+    }
+
+    // 飄浮香灰粒子
+    GameState.particles.forEach(p => {
+        ctx.fillStyle = `rgba(167, 243, 208, ${p.alpha * 0.5})`;
+        ctx.fillRect(p.x * w, p.y * h, p.size, p.size);
+    });
+
+    // 切換頻道時的類比雪花雜訊
+    if (GameState.staticTimer > 0) {
+        drawAnalogNoise(w, h, 0.45);
+    }
+
+    // 監視器右上角頻道資訊浮水印
+    ctx.fillStyle = 'rgba(134, 239, 172, 0.85)';
+    ctx.font = 'bold 14px "Share Tech Mono", monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(`${CAMERAS[camIdx].code} // ${CAMERAS[camIdx].name}`, 24, h - 135);
+    ctx.fillStyle = 'rgba(161, 161, 170, 0.75)';
+    ctx.font = '12px "Noto Serif TC", serif';
+    ctx.fillText(CAMERAS[camIdx].desc, 24, h - 115);
+}
+
+// 繪製模式二：第一人稱手電筒光束走廊探索
+function drawCorridorFirstPerson(w, h) {
+    const c = GameState.corridor;
+
+    // 1. 先繪製走廊內部真實細節（稍後再用黑暗遮罩＋手電筒錐形光束照亮）
+    ctx.fillStyle = '#121316';
+    ctx.fillRect(0, 0, w, h);
+
+    // 視角隨 playerX 產生橫向視差移動
+    const panOffset = (0.5 - c.playerX) * (w * 0.55);
+
+    ctx.save();
+    ctx.translate(panOffset, 0);
+
+    // 斑駁混凝土牆壁與剝落磁磚腰牆
+    ctx.fillStyle = '#1c1e22';
+    ctx.fillRect(-w * 0.4, h * 0.15, w * 1.8, h * 0.72);
+    ctx.fillStyle = '#131618';
+    ctx.fillRect(-w * 0.4, h * 0.52, w * 1.8, h * 0.35);
+
+    // 牆面磁磚分割線
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.lineWidth = 1;
+    for (let x = -w * 0.3; x < w * 1.3; x += 48) {
+        ctx.beginPath();
+        ctx.moveTo(x, h * 0.52);
+        ctx.lineTo(x, h * 0.85);
+        ctx.stroke();
+    }
+
+    // 物件 A：三樓總配電箱 (Electrical Breaker Box)
+    const bx = w * c.breakerPos;
+    const by = h * 0.46;
+    ctx.fillStyle = '#272a30';
+    ctx.fillRect(bx - 34, by - 45, 68, 90);
+    ctx.strokeStyle = GameState.powerOutage ? '#ef4444' : '#52525b';
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(bx - 34, by - 45, 68, 90);
+
+    ctx.fillStyle = '#d4d4d8';
+    ctx.font = 'bold 11px "Noto Serif TC", serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('總配電箱', bx, by - 52);
+
+    // 跳電時電箱冒出電火花
+    if (GameState.powerOutage && Math.random() > 0.35) {
+        ctx.fillStyle = '#facc15';
+        ctx.beginPath();
+        ctx.arc(bx + (Math.random() - 0.5) * 26, by + (Math.random() - 0.5) * 30, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // 物件 B：走廊盡頭封鎖鬼門 (可貼鎮煞黃符)
+    const dx = w * c.hauntedDoorPos;
+    const dy = h * 0.52;
+    ctx.fillStyle = '#1f1512';
+    ctx.fillRect(dx - 46, dy - 110, 92, 185);
+    ctx.strokeStyle = '#78350f';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(dx - 46, dy - 110, 92, 185);
+
+    // 門上的黃色警戒封條與鎮煞符
+    ctx.fillStyle = '#eab308';
+    ctx.save();
+    ctx.translate(dx, dy - 30);
+    ctx.rotate(-0.18);
+    ctx.fillRect(-52, -7, 104, 14);
+    ctx.fillStyle = '#18181b';
+    ctx.font = 'bold 10px "Noto Serif TC", serif';
+    ctx.fillText('禁止進入 // 陰氣封鎖', 0, 3.5);
+    ctx.restore();
+
+    // 物件 C：走廊中的紅衣身影（若存在）
+    if (c.ghostPresent) {
+        const gx = w * c.ghostX;
+        const gy = h * 0.56;
+        ctx.fillStyle = '#7f1d1d';
+        ctx.beginPath();
+        ctx.moveTo(gx, gy - 55);
+        ctx.lineTo(gx - 28, gy + 55);
+        ctx.lineTo(gx + 28, gy + 55);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#09090b';
+        ctx.beginPath();
+        ctx.arc(gx, gy - 66, 17, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#e4e4e7';
+        ctx.beginPath();
+        ctx.arc(gx, gy - 65, 11, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    ctx.restore();
+
+    // 2. 第一人稱手電筒光影遮罩（核心寫實光影技術）
+    // 建立離屏或複合遮罩，讓手電筒以外區域陷入伸手不見五指的黑暗
+    ctx.save();
+    const beamX = c.aimX * w;
+    const beamY = c.aimY * h;
+
+    if (c.flashlightOn) {
+        // 使用 radialGradient 模擬真實暖白光手電筒光圈與外部全黑
+        const lightGrad = ctx.createRadialGradient(beamX, beamY, 25, beamX, beamY, Math.min(w, h) * 0.34);
+        lightGrad.addColorStop(0, 'rgba(0, 0, 0, 0.05)');
+        lightGrad.addColorStop(0.55, 'rgba(0, 0, 0, 0.45)');
+        lightGrad.addColorStop(0.88, 'rgba(2, 3, 5, 0.94)');
+        lightGrad.addColorStop(1, 'rgba(2, 3, 5, 0.99)');
+        ctx.fillStyle = lightGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        // 微弱暖色手電筒光暈
+        const tintGrad = ctx.createRadialGradient(beamX, beamY, 10, beamX, beamY, Math.min(w, h) * 0.28);
+        tintGrad.addColorStop(0, 'rgba(254, 243, 199, 0.14)');
+        tintGrad.addColorStop(1, 'rgba(254, 243, 199, 0)');
+        ctx.fillStyle = tintGrad;
+        ctx.fillRect(0, 0, w, h);
+    } else {
+        // 關燈狀態：幾乎全黑，僅有微弱月光輪廓
+        ctx.fillStyle = 'rgba(2, 3, 5, 0.96)';
+        ctx.fillRect(0, 0, w, h);
+    }
+    ctx.restore();
+
+    // 底部走廊位置指示尺規，方便玩家確認自己與電箱/鐵門的距離
+    const barW = Math.min(320, w * 0.65);
+    const barX = (w - barW) / 2;
+    const barY = 92;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(barX, barY, barW, 8);
+    // 電箱標記
+    ctx.fillStyle = '#facc15';
+    ctx.fillRect(barX + barW * c.breakerPos - 3, barY - 2, 6, 12);
+    // 鬼門標記
+    ctx.fillStyle = '#ef4444';
+    ctx.fillRect(barX + barW * c.hauntedDoorPos - 3, barY - 2, 6, 12);
+    // 玩家自身位置
+    ctx.fillStyle = '#38bdf8';
+    ctx.beginPath();
+    ctx.arc(barX + barW * c.playerX, barY + 4, 5, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+// 繪製類比監視器雪花雜訊
+function drawAnalogNoise(w, h, alpha) {
+    ctx.save();
+    ctx.fillStyle = `rgba(212, 212, 216, ${alpha})`;
+    for (let i = 0; i < 160; i++) {
+        const nx = Math.random() * w;
+        const ny = Math.random() * h;
+        const nw = 2 + Math.random() * 18;
+        ctx.fillRect(nx, ny, nw, 1.5);
+    }
+    ctx.restore();
+}
+
+// 繪製突發驚嚇瞬間特寫畫面
+function drawJumpScareFrame(w, h) {
+    ctx.fillStyle = Math.random() > 0.5 ? '#1c0303' : '#050505';
+    ctx.fillRect(0, 0, w, h);
+    drawAnalogNoise(w, h, 0.35);
+
+    const cx = w / 2 + (Math.random() - 0.5) * 30;
+    const cy = h / 2 + (Math.random() - 0.5) * 30;
+
+    // 巨大蒼白鬼臉特寫
+    ctx.fillStyle = '#e4e4e7';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 115, 145, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 凌亂黑髮
+    ctx.strokeStyle = '#09090b';
+    ctx.lineWidth = 14;
+    for (let i = -5; i <= 5; i++) {
+        ctx.beginPath();
+        ctx.moveTo(cx + i * 22, cy - 150);
+        ctx.lineTo(cx + i * 32, cy + 160);
+        ctx.stroke();
+    }
+
+    // 空洞漆黑雙眼與血紅瞳點
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.arc(cx - 42, cy - 20, 26, 0, Math.PI * 2);
+    ctx.arc(cx + 42, cy - 20, 26, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#dc2626';
+    ctx.beginPath();
+    ctx.arc(cx - 42, cy - 20, 4, 0, Math.PI * 2);
+    ctx.arc(cx + 42, cy - 20, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 張大的漆黑嘴部
+    ctx.fillStyle = '#09090b';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy + 58, 34, 52, 0, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+// ----------------------------------------------------------------------------
+// 8. 啟動主迴圈
+// ----------------------------------------------------------------------------
+let lastFrameTime = performance.now();
+
+function gameLoop(now) {
+    const dt = Math.min(0.05, (now - lastFrameTime) / 1000);
+    lastFrameTime = now;
+
+    updateGame(dt);
+    render();
+
+    requestAnimationFrame(gameLoop);
+}
+
+window.onload = function () {
+    resizeCanvas();
+    initParticles();
+    requestAnimationFrame(gameLoop);
+};
+</script>
+</body>
+</html>

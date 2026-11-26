@@ -1,0 +1,1682 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>潛行神偷：神秘巨蛋大作戰</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #070b12;
+            color: #f8fafc;
+            font-family: 'Noto Sans TC', sans-serif;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .font-orbitron {
+            font-family: 'Orbitron', 'Noto Sans TC', sans-serif;
+        }
+
+        #game-shell {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 1080px;
+            max-height: 760px;
+            background: #0c131d;
+            overflow: hidden;
+            box-shadow: 0 0 70px rgba(0, 0, 0, 0.95);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+        }
+
+        @media (min-width: 1081px) {
+            #game-shell {
+                height: 94vh;
+                border-radius: 16px;
+            }
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.82);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            transition: transform 0.12s ease, border-color 0.15s ease, background 0.15s ease;
+            cursor: pointer;
+        }
+        .action-btn:hover:not(:disabled) {
+            border-color: #fbbf24;
+            transform: translateY(-1px);
+        }
+        .action-btn:active:not(:disabled) {
+            transform: scale(0.96);
+        }
+        .action-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .gold-btn {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: #0f172a;
+            border: 1px solid #fde68a;
+            box-shadow: 0 0 22px rgba(245, 158, 11, 0.45);
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .gold-btn:hover {
+            filter: brightness(1.08);
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(245, 158, 11, 0.65);
+        }
+        .gold-btn:active {
+            transform: scale(0.97);
+        }
+
+        /* 警戒紅光脈衝邊框 */
+        @keyframes alarmPulse {
+            0%, 100% { box-shadow: inset 0 0 45px rgba(220, 38, 38, 0.25); }
+            50% { box-shadow: inset 0 0 95px rgba(220, 38, 38, 0.65); }
+        }
+        .alarm-overlay {
+            animation: alarmPulse 1.1s infinite ease-in-out;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-shell">
+    <!-- 主遊戲畫布 -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- 奪蛋後的警戒全螢幕邊框光暈 -->
+    <div id="alarmEdgeOverlay" class="hidden alarm-overlay absolute inset-0 z-10"></div>
+
+    <!-- ========================================================= -->
+    <!-- 頂部狀態資訊列 (HUD)                                       -->
+    <!-- ========================================================= -->
+    <div id="hud" class="hidden absolute top-0 left-0 w-full p-3 sm:p-4 flex flex-wrap justify-between items-start gap-2 z-20 pointer-events-none">
+        <!-- 左上：關卡進度與任務目標 -->
+        <div class="glass-card rounded-xl px-3.5 py-2 flex items-center gap-3 shadow-lg">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span id="stageBadge" class="bg-amber-500/20 text-amber-300 border border-amber-400/40 text-[11px] font-bold px-2 py-0.5 rounded">
+                        第 1 / 3 關
+                    </span>
+                    <span id="stageTitleHud" class="text-sm sm:text-base font-black text-slate-100">森林遺跡前哨</span>
+                </div>
+                <div id="objectiveText" class="text-xs text-emerald-300 font-bold mt-0.5">
+                    🎯 目標：潛入中央祭壇偷走「神秘巨蛋」
+                </div>
+            </div>
+        </div>
+
+        <!-- 中上：潛行狀態指示徽章 -->
+        <div id="stealthStatusPill" class="glass-card rounded-full px-4 py-1.5 flex items-center gap-2 text-xs sm:text-sm font-bold border-slate-600/50 transition-all">
+            <span id="stealthDot" class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
+            <span id="stealthLabel" class="text-sky-200">潛行移動中</span>
+        </div>
+
+        <!-- 右上：小石子冷卻、計時與音效切換 -->
+        <div class="flex items-center gap-2 pointer-events-auto">
+            <div class="glass-card rounded-xl px-3 py-1.5 text-right">
+                <div class="text-[10px] text-slate-400">耗時</div>
+                <div id="timerDisplay" class="font-orbitron text-sm sm:text-base font-bold text-slate-100">00:00</div>
+            </div>
+
+            <button id="muteBtn" class="action-btn rounded-xl p-2.5 flex items-center justify-center text-slate-200" title="開啟/關閉音效">
+                <span id="muteIcon" class="text-lg leading-none">🔊</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 底部提示與電腦/手機操作面板 -->
+    <div id="bottomControls" class="hidden absolute bottom-0 left-0 w-full p-3 sm:p-4 flex justify-between items-end z-20 pointer-events-none">
+        <!-- 左下：觸控虛擬搖桿區 (手機/平板與滑鼠拖曳皆可用) -->
+        <div id="joystickZone" class="pointer-events-auto relative w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-slate-900/55 border border-slate-500/35 flex items-center justify-center backdrop-blur-xs">
+            <div class="text-[10px] text-slate-400/70 font-bold pointer-events-none">移動搖桿</div>
+            <div id="joystickKnob" class="absolute w-12 h-12 rounded-full bg-amber-400/80 border-2 border-amber-200 shadow-lg pointer-events-none transition-transform duration-75"></div>
+        </div>
+
+        <!-- 中下：鍵盤操作提示 (桌面端顯示) -->
+        <div class="hidden md:flex glass-card rounded-full px-4 py-1.5 text-xs text-slate-300 gap-4 items-center">
+            <span><strong class="text-amber-300">[WASD / 方向鍵]</strong> 潛行移動</span>
+            <span><strong class="text-amber-300">[空白鍵 Space]</strong> 投擲小石子引開守衛</span>
+            <span><strong class="text-amber-300">[Shift]</strong> 敏捷衝刺</span>
+        </div>
+
+        <!-- 右下：投擲小石子與敏捷衝刺技能鈕 -->
+        <div class="flex items-center gap-2.5 pointer-events-auto">
+            <!-- 敏捷衝刺按鈕 -->
+            <button id="sprintBtn" class="action-btn w-16 h-16 sm:w-18 sm:h-18 rounded-2xl flex flex-col items-center justify-center text-sky-300 border-sky-500/40 relative overflow-hidden">
+                <span class="text-xl">💨</span>
+                <span class="text-[11px] font-bold mt-0.5">衝刺</span>
+                <div id="sprintBar" class="absolute bottom-0 left-0 h-1 bg-sky-400 w-full"></div>
+            </button>
+
+            <!-- 投擲小石子按鈕 -->
+            <button id="pebbleBtn" class="action-btn w-20 h-20 sm:w-22 sm:h-22 rounded-2xl flex flex-col items-center justify-center text-amber-300 border-amber-500/50 relative overflow-hidden">
+                <span class="text-2xl">🪨</span>
+                <span class="text-xs font-black mt-0.5">丟石子</span>
+                <span id="pebbleCdText" class="text-[10px] font-orbitron text-slate-300">就緒</span>
+                <div id="pebbleCdOverlay" class="hidden absolute inset-0 bg-slate-950/75 flex items-center justify-center font-orbitron text-sm font-bold text-amber-400"></div>
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- 開始主選單畫面 (Start Screen)                               -->
+    <!-- ========================================================= -->
+    <div id="startScreen" class="absolute inset-0 z-30 bg-slate-950/88 backdrop-blur-sm flex flex-col items-center justify-center p-5 text-center">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-400/40 text-amber-300 text-xs font-bold tracking-wider mb-3">
+            🦊 原創潛行動作小遊戲
+        </div>
+        <h1 class="text-3xl sm:text-5xl font-black text-white tracking-tight mb-2 drop-shadow-[0_4px_24px_rgba(245,158,11,0.35)]">
+            潛行神偷：<span class="text-amber-400">神秘巨蛋大作戰</span>
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-300 max-w-lg mb-6 leading-relaxed">
+            化身敏捷的小狐狸神偷，趁著夜色潛入守衛森嚴的遠古遺跡，<br>
+            避開巡邏燈光、偷走發光的<strong class="text-amber-300">神秘巨蛋</strong>並安全逃回綠色傳送陣！
+        </p>
+
+        <!-- 核心機制說明卡 -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 max-w-2xl w-full mb-6 text-left text-xs">
+            <div class="glass-card p-3.5 rounded-xl">
+                <div class="text-emerald-400 font-black mb-1">🌿 草叢完全隱身</div>
+                <p class="text-slate-300">躲進深綠色高草叢中會進入「隱藏中」狀態，只要不撞到守衛就不會被發現。</p>
+            </div>
+            <div class="glass-card p-3.5 rounded-xl">
+                <div class="text-amber-400 font-black mb-1">🪨 聲東擊西小石子</div>
+                <p class="text-slate-300">按空白鍵或右下角按鈕朝前方丟出石子，聲波會吸引附近的守衛轉身前去查看。</p>
+            </div>
+            <div class="glass-card p-3.5 rounded-xl">
+                <div class="text-rose-400 font-black mb-1">🥚 奪蛋逃亡警報</div>
+                <p class="text-slate-300">抱起巨蛋後移動會變慢且守衛巡邏加速！善用石牆死角衝回綠色撤離點。</p>
+            </div>
+        </div>
+
+        <!-- 關卡快速選擇 -->
+        <div class="flex flex-wrap justify-center gap-2 mb-6">
+            <button data-stage="0" class="stage-select-btn action-btn border-amber-400 px-3.5 py-2 rounded-xl text-xs font-bold text-amber-300">
+                第 1 關：森林遺跡前哨
+            </button>
+            <button data-stage="1" class="stage-select-btn action-btn px-3.5 py-2 rounded-xl text-xs font-bold text-slate-300">
+                第 2 關：雙衛中庭迷陣
+            </button>
+            <button data-stage="2" class="stage-select-btn action-btn px-3.5 py-2 rounded-xl text-xs font-bold text-slate-300">
+                第 3 關：遠古巨龍聖殿
+            </button>
+        </div>
+
+        <button id="startBtn" class="gold-btn py-3.5 px-10 rounded-2xl text-base sm:text-lg tracking-wider">
+            開始潛行行動 ▶
+        </button>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- 被守衛發現失敗畫面 (Caught Modal)                           -->
+    <!-- ========================================================= -->
+    <div id="caughtModal" class="hidden absolute inset-0 z-40 bg-slate-950/88 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
+        <div class="w-16 h-16 rounded-full bg-rose-500/20 border-2 border-rose-500 flex items-center justify-center text-3xl mb-3 animate-bounce">
+            🚨
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-black text-rose-400 mb-2">行蹤敗露！被守衛抓住了</h2>
+        <p id="caughtSubText" class="text-sm text-slate-300 max-w-md mb-6">
+            手電筒強光鎖定了你的位置！善用草叢隱匿與丟石子轉移守衛注意力再試一次。
+        </p>
+        <div class="flex gap-3">
+            <button id="retryStageBtn" class="gold-btn py-3 px-8 rounded-xl text-base">
+                重新挑戰本關 ↻
+            </button>
+            <button id="backMenuFromCaughtBtn" class="action-btn py-3 px-5 rounded-xl text-sm font-bold text-slate-300">
+                返回主選單
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- 關卡過關畫面 (Stage Clear / Victory Modal)                  -->
+    <!-- ========================================================= -->
+    <div id="victoryModal" class="hidden absolute inset-0 z-40 bg-slate-950/88 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
+        <div class="w-16 h-16 rounded-full bg-amber-400/20 border-2 border-amber-400 flex items-center justify-center text-3xl mb-3">
+            🥚✨
+        </div>
+        <h2 id="victoryTitle" class="text-3xl sm:text-4xl font-black text-amber-300 mb-2">
+            成功偷走神秘巨蛋！
+        </h2>
+        <p id="victoryDesc" class="text-sm text-slate-300 max-w-md mb-5">
+            神不知鬼不覺地帶著發光巨蛋安全撤離！
+        </p>
+        <div class="glass-card rounded-xl px-6 py-3 mb-6 flex gap-6 text-center">
+            <div>
+                <div class="text-[11px] text-slate-400">通關耗時</div>
+                <div id="clearTimeStat" class="font-orbitron text-xl font-bold text-emerald-400">00:24</div>
+            </div>
+            <div class="w-[1px] bg-slate-700"></div>
+            <div>
+                <div class="text-[11px] text-slate-400">神偷評價</div>
+                <div id="clearRankStat" class="font-orbitron text-xl font-black text-amber-400">S 級鬼影</div>
+            </div>
+        </div>
+        <div class="flex gap-3">
+            <button id="nextStageBtn" class="gold-btn py-3 px-8 rounded-xl text-base">
+                潛入下一座遺跡 ▶
+            </button>
+            <button id="backMenuFromWinBtn" class="action-btn py-3 px-5 rounded-xl text-sm font-bold text-slate-300">
+                返回主選單
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+/**
+ * ============================================================================
+ * 《潛行神偷：神秘巨蛋大作戰》核心遊戲引擎
+ * 包含：
+ * 1. Raycasting 障礙物遮擋視線錐計算 (石牆會真實阻擋守衛與瞭望塔手電筒光束)
+ * 2. 草叢完全隱身系統 & 投擲小石子擴散聲波誘敵 AI
+ * 3. 抱蛋逃脫第二階段 (警戒升級、巡邏加速、負重減速)
+ * 4. 3 個漸進難度關卡設計
+ * 5. Web Audio API 程序化音效合成器
+ * ============================================================================
+ */
+
+// ----------------------------------------------------------------------------
+// 1. Web Audio API 音效合成器
+// ----------------------------------------------------------------------------
+class StealthAudio {
+    constructor() {
+        this.ctx = null;
+        this.muted = false;
+        this.lastStepTime = 0;
+        this.lastHeartTime = 0;
+    }
+
+    init() {
+        if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            this.ctx = new AudioCtx();
+        }
+        if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+    }
+
+    toggleMute() {
+        this.muted = !this.muted;
+        return this.muted;
+    }
+
+    playStep(isSprinting = false) {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const interval = isSprinting ? 0.21 : 0.34;
+        if (now - this.lastStepTime < interval) return;
+        this.lastStepTime = now;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(isSprinting ? 145 : 105, now);
+        osc.frequency.exponentialRampToValueAtTime(45, now + 0.06);
+
+        gain.gain.setValueAtTime(isSprinting ? 0.09 : 0.045, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.08);
+    }
+
+    // 小石子落地清脆彈跳聲
+    playPebbleClink() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        [0, 0.09].forEach((offset, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(i === 0 ? 1480 : 1920, now + offset);
+            osc.frequency.exponentialRampToValueAtTime(620, now + offset + 0.07);
+
+            gain.gain.setValueAtTime(0.14 / (i + 1), now + offset);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.08);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + offset);
+            osc.stop(now + offset + 0.09);
+        });
+    }
+
+    // 守衛起疑「？」提示音
+    playSuspiciousChirp() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.exponentialRampToValueAtTime(660, now + 0.14);
+
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.17);
+    }
+
+    // 靠近守衛時的心跳聲
+    playHeartbeat() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        if (now - this.lastHeartTime < 0.65) return;
+        this.lastHeartTime = now;
+
+        [0, 0.14].forEach((offset, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(idx === 0 ? 72 : 56, now + offset);
+            osc.frequency.exponentialRampToValueAtTime(30, now + offset + 0.12);
+
+            gain.gain.setValueAtTime(0.16, now + offset);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.14);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + offset);
+            osc.stop(now + offset + 0.15);
+        });
+    }
+
+    // 抱起神秘巨蛋的奇幻和弦＋警報提示
+    playEggPickup() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + i * 0.06);
+            gain.gain.setValueAtTime(0.12, now + i * 0.06);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.45);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + i * 0.06);
+            osc.stop(now + i * 0.06 + 0.48);
+        });
+    }
+
+    // 被抓到警報音效
+    playCaughtAlert() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        [0, 0.16].forEach((offset) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(620, now + offset);
+            osc.frequency.linearRampToValueAtTime(240, now + offset + 0.15);
+            gain.gain.setValueAtTime(0.15, now + offset);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.16);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + offset);
+            osc.stop(now + offset + 0.17);
+        });
+    }
+
+    // 過關勝利旋律
+    playVictoryFanfare() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5];
+        notes.forEach((freq, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + i * 0.09);
+            gain.gain.setValueAtTime(0.14, now + i * 0.09);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.09 + 0.5);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + i * 0.09);
+            osc.stop(now + i * 0.09 + 0.52);
+        });
+    }
+}
+
+const audio = new StealthAudio();
+
+// ----------------------------------------------------------------------------
+// 2. 三大關卡地圖配置 (虛擬世界座標 1000 x 700)
+// ----------------------------------------------------------------------------
+const WORLD_W = 1000;
+const WORLD_H = 700;
+
+const STAGES = [
+    {
+        name: '森林遺跡前哨',
+        subtitle: '熟悉草叢隱匿與丟石子聲東擊西',
+        spawn: { x: 110, y: 580 },
+        extraction: { x: 110, y: 580, r: 42 },
+        egg: { x: 840, y: 150 },
+        walls: [
+            // 外圍邊界牆
+            { x: 0, y: 0, w: 1000, h: 24 },
+            { x: 0, y: 676, w: 1000, h: 24 },
+            { x: 0, y: 0, w: 24, h: 700 },
+            { x: 976, y: 0, w: 24, h: 700 },
+            // 遺跡石牆掩體
+            { x: 240, y: 420, w: 190, h: 32 },
+            { x: 240, y: 200, w: 32, h: 220 },
+            { x: 520, y: 260, w: 210, h: 32 },
+            { x: 640, y: 440, w: 32, h: 236 }
+        ],
+        bushes: [
+            { x: 290, y: 530, r: 44 },
+            { x: 430, y: 330, r: 46 },
+            { x: 560, y: 520, r: 44 },
+            { x: 740, y: 340, r: 45 }
+        ],
+        torches: [
+            { x: 235, y: 195 },
+            { x: 735, y: 255 },
+            { x: 635, y: 435 }
+        ],
+        guards: [
+            {
+                type: 'patrol',
+                waypoints: [{ x: 380, y: 150 }, { x: 660, y: 150 }],
+                speed: 95,
+                visionRange: 215,
+                visionAngle: 0.62
+            },
+            {
+                type: 'patrol',
+                waypoints: [{ x: 480, y: 480 }, { x: 820, y: 480 }],
+                speed: 90,
+                visionRange: 210,
+                visionAngle: 0.62
+            }
+        ]
+    },
+    {
+        name: '雙衛中庭迷陣',
+        subtitle: '交叉巡邏網與旋轉瞭望塔',
+        spawn: { x: 100, y: 350 },
+        extraction: { x: 100, y: 350, r: 42 },
+        egg: { x: 880, y: 350 },
+        walls: [
+            { x: 0, y: 0, w: 1000, h: 24 },
+            { x: 0, y: 676, w: 1000, h: 24 },
+            { x: 0, y: 0, w: 24, h: 700 },
+            { x: 976, y: 0, w: 24, h: 700 },
+            // 中庭對稱石壁
+            { x: 240, y: 150, w: 34, h: 150 },
+            { x: 240, y: 400, w: 34, h: 150 },
+            { x: 470, y: 240, w: 60, h: 220 },
+            { x: 710, y: 130, w: 34, h: 160 },
+            { x: 710, y: 410, w: 34, h: 160 }
+        ],
+        bushes: [
+            { x: 180, y: 140, r: 42 },
+            { x: 180, y: 560, r: 42 },
+            { x: 380, y: 350, r: 46 },
+            { x: 620, y: 180, r: 44 },
+            { x: 620, y: 520, r: 44 },
+            { x: 810, y: 160, r: 40 }
+        ],
+        torches: [
+            { x: 235, y: 305 },
+            { x: 235, y: 395 },
+            { x: 705, y: 295 },
+            { x: 705, y: 405 }
+        ],
+        guards: [
+            {
+                type: 'patrol',
+                waypoints: [{ x: 350, y: 110 }, { x: 350, y: 590 }],
+                speed: 110,
+                visionRange: 225,
+                visionAngle: 0.64
+            },
+            {
+                type: 'patrol',
+                waypoints: [{ x: 630, y: 590 }, { x: 630, y: 110 }],
+                speed: 110,
+                visionRange: 225,
+                visionAngle: 0.64
+            },
+            {
+                type: 'tower',
+                waypoints: [{ x: 820, y: 350 }],
+                speed: 0,
+                rotSpeed: 1.05,
+                visionRange: 235,
+                visionAngle: 0.56
+            }
+        ]
+    },
+    {
+        name: '遠古巨龍聖殿',
+        subtitle: '三重警戒防線！奪蛋後全力衝刺逃脫',
+        spawn: { x: 95, y: 605 },
+        extraction: { x: 95, y: 605, r: 42 },
+        egg: { x: 890, y: 110 },
+        walls: [
+            { x: 0, y: 0, w: 1000, h: 24 },
+            { x: 0, y: 676, w: 1000, h: 24 },
+            { x: 0, y: 0, w: 24, h: 700 },
+            { x: 976, y: 0, w: 24, h: 700 },
+            // 聖殿神柱與迷宮牆
+            { x: 200, y: 460, w: 220, h: 30 },
+            { x: 200, y: 210, w: 30, h: 250 },
+            { x: 400, y: 160, w: 220, h: 30 },
+            { x: 470, y: 330, w: 30, h: 210 },
+            { x: 670, y: 280, w: 180, h: 30 },
+            { x: 720, y: 450, w: 30, h: 226 }
+        ],
+        bushes: [
+            { x: 130, y: 350, r: 42 },
+            { x: 310, y: 330, r: 44 },
+            { x: 320, y: 580, r: 44 },
+            { x: 580, y: 440, r: 45 },
+            { x: 580, y: 240, r: 42 },
+            { x: 850, y: 380, r: 44 }
+        ],
+        torches: [
+            { x: 195, y: 205 },
+            { x: 625, y: 165 },
+            { x: 665, y: 285 },
+            { x: 840, y: 165 }
+        ],
+        guards: [
+            {
+                type: 'patrol',
+                waypoints: [{ x: 290, y: 100 }, { x: 700, y: 100 }],
+                speed: 120,
+                visionRange: 235,
+                visionAngle: 0.64
+            },
+            {
+                type: 'patrol',
+                waypoints: [{ x: 370, y: 580 }, { x: 650, y: 580 }],
+                speed: 115,
+                visionRange: 225,
+                visionAngle: 0.64
+            },
+            {
+                type: 'tower',
+                waypoints: [{ x: 560, y: 355 }],
+                speed: 0,
+                rotSpeed: -1.15,
+                visionRange: 230,
+                visionAngle: 0.55
+            },
+            {
+                type: 'patrol',
+                waypoints: [{ x: 885, y: 220 }, { x: 885, y: 570 }],
+                speed: 115,
+                visionRange: 225,
+                visionAngle: 0.62
+            }
+        ]
+    }
+];
+
+// ----------------------------------------------------------------------------
+// 3. 遊戲狀態管理
+// ----------------------------------------------------------------------------
+const Game = {
+    state: 'MENU', // 'MENU' | 'PLAYING' | 'CAUGHT' | 'VICTORY'
+    stageIndex: 0,
+    elapsedTime: 0,
+    hasEgg: false,
+    alarmActive: false,
+
+    player: {
+        x: 110,
+        y: 580,
+        r: 15,
+        angle: -0.5,
+        baseSpeed: 185,
+        sprintStamina: 100,
+        isSprinting: false,
+        isHidden: false,
+        pebbleCooldown: 0,
+        pebbleMaxCd: 3.5,
+        tailPhase: 0
+    },
+
+    walls: [],
+    bushes: [],
+    torches: [],
+    guards: [],
+    pebbles: [],    // 投擲出的石子與擴散聲波
+    particles: [],  // 螢火蟲與金蛋星塵
+    extraction: { x: 110, y: 580, r: 42 },
+    egg: { x: 840, y: 150, taken: false }
+};
+
+// ----------------------------------------------------------------------------
+// 4. DOM 元素與事件綁定
+// ----------------------------------------------------------------------------
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const shell = document.getElementById('game-shell');
+
+const ui = {
+    hud: document.getElementById('hud'),
+    bottomControls: document.getElementById('bottomControls'),
+    alarmEdgeOverlay: document.getElementById('alarmEdgeOverlay'),
+    stageBadge: document.getElementById('stageBadge'),
+    stageTitleHud: document.getElementById('stageTitleHud'),
+    objectiveText: document.getElementById('objectiveText'),
+    stealthStatusPill: document.getElementById('stealthStatusPill'),
+    stealthDot: document.getElementById('stealthDot'),
+    stealthLabel: document.getElementById('stealthLabel'),
+    timerDisplay: document.getElementById('timerDisplay'),
+    sprintBar: document.getElementById('sprintBar'),
+    pebbleBtn: document.getElementById('pebbleBtn'),
+    pebbleCdText: document.getElementById('pebbleCdText'),
+    pebbleCdOverlay: document.getElementById('pebbleCdOverlay'),
+
+    startScreen: document.getElementById('startScreen'),
+    caughtModal: document.getElementById('caughtModal'),
+    victoryModal: document.getElementById('victoryModal'),
+    victoryTitle: document.getElementById('victoryTitle'),
+    victoryDesc: document.getElementById('victoryDesc'),
+    clearTimeStat: document.getElementById('clearTimeStat'),
+    clearRankStat: document.getElementById('clearRankStat'),
+    nextStageBtn: document.getElementById('nextStageBtn')
+};
+
+function resizeCanvas() {
+    const rect = shell.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+}
+window.addEventListener('resize', resizeCanvas);
+
+// 載入指定關卡
+function loadStage(idx) {
+    audio.init();
+    Game.stageIndex = idx;
+    const data = STAGES[idx];
+
+    Game.state = 'PLAYING';
+    Game.elapsedTime = 0;
+    Game.hasEgg = false;
+    Game.alarmActive = false;
+
+    Game.player.x = data.spawn.x;
+    Game.player.y = data.spawn.y;
+    Game.player.angle = -Math.PI / 4;
+    Game.player.sprintStamina = 100;
+    Game.player.isSprinting = false;
+    Game.player.isHidden = false;
+    Game.player.pebbleCooldown = 0;
+
+    Game.extraction = { ...data.extraction };
+    Game.egg = { x: data.egg.x, y: data.egg.y, taken: false };
+    Game.walls = data.walls.map(w => ({ ...w }));
+    Game.bushes = data.bushes.map(b => ({ ...b }));
+    Game.torches = data.torches.map(t => ({ ...t }));
+    Game.pebbles = [];
+
+    // 初始化守衛
+    Game.guards = data.guards.map((g, i) => {
+        const startPt = g.waypoints[0];
+        const nextPt = g.waypoints[1] || startPt;
+        const initAngle = Math.atan2(nextPt.y - startPt.y, nextPt.x - startPt.x);
+        return {
+            id: i,
+            type: g.type,
+            x: startPt.x,
+            y: startPt.y,
+            angle: initAngle,
+            waypoints: g.waypoints.map(p => ({ ...p })),
+            wpIndex: g.waypoints.length > 1 ? 1 : 0,
+            speed: g.speed,
+            rotSpeed: g.rotSpeed || 0,
+            visionRange: g.visionRange,
+            visionAngle: g.visionAngle,
+            state: 'PATROL', // 'PATROL' | 'INVESTIGATE'
+            investigateTarget: null,
+            investigateTimer: 0,
+            suspicion: 0 // 0 ~ 1
+        };
+    });
+
+    // 環境螢火蟲粒子
+    Game.particles = [];
+    for (let i = 0; i < 36; i++) {
+        Game.particles.push({
+            x: Math.random() * WORLD_W,
+            y: Math.random() * WORLD_H,
+            vx: (Math.random() - 0.5) * 18,
+            vy: (Math.random() - 0.5) * 18,
+            phase: Math.random() * Math.PI * 2
+        });
+    }
+
+    // 更新 UI
+    ui.startScreen.classList.add('hidden');
+    ui.caughtModal.classList.add('hidden');
+    ui.victoryModal.classList.add('hidden');
+    ui.alarmEdgeOverlay.classList.add('hidden');
+    ui.hud.classList.remove('hidden');
+    ui.bottomControls.classList.remove('hidden');
+
+    ui.stageBadge.textContent = `第 ${idx + 1} / ${STAGES.length} 關`;
+    ui.stageTitleHud.textContent = data.name;
+    ui.objectiveText.textContent = '🎯 目標：潛入中央祭壇偷走「神秘巨蛋」';
+    ui.objectiveText.className = 'text-xs text-emerald-300 font-bold mt-0.5';
+}
+
+// ----------------------------------------------------------------------------
+// 5. 輸入控制 (鍵盤 + 觸控虛擬搖桿 + 技能按鈕)
+// ----------------------------------------------------------------------------
+const Input = {
+    up: false,
+    down: false,
+    left: false,
+    right: false,
+    sprint: false,
+    joyX: 0,
+    joyY: 0,
+    joyActive: false
+};
+
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') Input.up = true;
+    if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') Input.down = true;
+    if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') Input.left = true;
+    if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') Input.right = true;
+    if (e.key === 'Shift') Input.sprint = true;
+    if (e.code === 'Space' && Game.state === 'PLAYING') {
+        e.preventDefault();
+        throwPebble();
+    }
+});
+
+window.addEventListener('keyup', (e) => {
+    if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') Input.up = false;
+    if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') Input.down = false;
+    if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') Input.left = false;
+    if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') Input.right = false;
+    if (e.key === 'Shift') Input.sprint = false;
+});
+
+// 觸控虛擬搖桿邏輯
+const joyZone = document.getElementById('joystickZone');
+const joyKnob = document.getElementById('joystickKnob');
+
+function handleJoystickMove(clientX, clientY) {
+    const rect = joyZone.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const maxRadius = rect.width * 0.36;
+
+    let dx = clientX - centerX;
+    let dy = clientY - centerY;
+    const dist = Math.hypot(dx, dy);
+    if (dist > maxRadius) {
+        dx = (dx / dist) * maxRadius;
+        dy = (dy / dist) * maxRadius;
+    }
+
+    joyKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+    Input.joyX = dx / maxRadius;
+    Input.joyY = dy / maxRadius;
+}
+
+function resetJoystick() {
+    Input.joyActive = false;
+    Input.joyX = 0;
+    Input.joyY = 0;
+    joyKnob.style.transform = 'translate(0px, 0px)';
+}
+
+joyZone.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    Input.joyActive = true;
+    if (e.touches[0]) handleJoystickMove(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: false });
+
+joyZone.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (Input.joyActive && e.touches[0]) {
+        handleJoystickMove(e.touches[0].clientX, e.touches[0].clientY);
+    }
+}, { passive: false });
+
+joyZone.addEventListener('touchend', resetJoystick);
+joyZone.addEventListener('touchcancel', resetJoystick);
+
+// 滑鼠拖曳搖桿支援
+joyZone.addEventListener('mousedown', (e) => {
+    Input.joyActive = true;
+    handleJoystickMove(e.clientX, e.clientY);
+});
+window.addEventListener('mousemove', (e) => {
+    if (Input.joyActive) handleJoystickMove(e.clientX, e.clientY);
+});
+window.addEventListener('mouseup', () => {
+    if (Input.joyActive) resetJoystick();
+});
+
+// 投擲小石子技能
+function throwPebble() {
+    if (Game.state !== 'PLAYING' || Game.player.pebbleCooldown > 0) return;
+
+    const p = Game.player;
+    p.pebbleCooldown = p.pebbleMaxCd;
+
+    const throwDist = 145;
+    let tx = p.x + Math.cos(p.angle) * throwDist;
+    let ty = p.y + Math.sin(p.angle) * throwDist;
+    tx = Math.max(40, Math.min(WORLD_W - 40, tx));
+    ty = Math.max(40, Math.min(WORLD_H - 40, ty));
+
+    audio.playPebbleClink();
+
+    const pebble = {
+        x: tx,
+        y: ty,
+        age: 0,
+        maxAge: 3.2,
+        soundRadius: 270
+    };
+    Game.pebbles.push(pebble);
+
+    // 吸引聲波範圍內的守衛前來調查
+    Game.guards.forEach(g => {
+        const d = Math.hypot(g.x - tx, g.y - ty);
+        if (d <= pebble.soundRadius) {
+            g.state = 'INVESTIGATE';
+            g.investigateTarget = { x: tx, y: ty };
+            g.investigateTimer = 3.6;
+            audio.playSuspiciousChirp();
+        }
+    });
+}
+
+ui.pebbleBtn.addEventListener('click', throwPebble);
+
+const sprintBtn = document.getElementById('sprintBtn');
+sprintBtn.addEventListener('touchstart', (e) => { e.preventDefault(); Input.sprint = true; });
+sprintBtn.addEventListener('touchend', () => { Input.sprint = false; });
+sprintBtn.addEventListener('mousedown', () => { Input.sprint = true; });
+sprintBtn.addEventListener('mouseup', () => { Input.sprint = false; });
+sprintBtn.addEventListener('mouseleave', () => { Input.sprint = false; });
+
+// 選單按鈕綁定
+let selectedStartStage = 0;
+document.querySelectorAll('.stage-select-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.stage-select-btn').forEach(b => {
+            b.classList.remove('border-amber-400', 'text-amber-300');
+            b.classList.add('text-slate-300');
+        });
+        btn.classList.add('border-amber-400', 'text-amber-300');
+        btn.classList.remove('text-slate-300');
+        selectedStartStage = parseInt(btn.dataset.stage, 10);
+    });
+});
+
+document.getElementById('startBtn').addEventListener('click', () => loadStage(selectedStartStage));
+document.getElementById('retryStageBtn').addEventListener('click', () => loadStage(Game.stageIndex));
+document.getElementById('backMenuFromCaughtBtn').addEventListener('click', () => {
+    Game.state = 'MENU';
+    ui.caughtModal.classList.add('hidden');
+    ui.hud.classList.add('hidden');
+    ui.bottomControls.classList.add('hidden');
+    ui.startScreen.classList.remove('hidden');
+});
+document.getElementById('backMenuFromWinBtn').addEventListener('click', () => {
+    Game.state = 'MENU';
+    ui.victoryModal.classList.add('hidden');
+    ui.hud.classList.add('hidden');
+    ui.bottomControls.classList.add('hidden');
+    ui.startScreen.classList.remove('hidden');
+});
+ui.nextStageBtn.addEventListener('click', () => {
+    const next = (Game.stageIndex + 1) % STAGES.length;
+    loadStage(next);
+});
+
+document.getElementById('muteBtn').addEventListener('click', () => {
+    audio.init();
+    const m = audio.toggleMute();
+    document.getElementById('muteIcon').textContent = m ? '🔇' : '🔊';
+});
+
+// ----------------------------------------------------------------------------
+// 6. 幾何碰撞與 Raycasting 視線遮擋演算法
+// ----------------------------------------------------------------------------
+function resolveCircleWallCollision(entity, radius) {
+    for (const w of Game.walls) {
+        const closestX = Math.max(w.x, Math.min(entity.x, w.x + w.w));
+        const closestY = Math.max(w.y, Math.min(entity.y, w.y + w.h));
+        const dx = entity.x - closestX;
+        const dy = entity.y - closestY;
+        const distSq = dx * dx + dy * dy;
+
+        if (distSq < radius * radius) {
+            const dist = Math.sqrt(distSq) || 0.001;
+            const overlap = radius - dist;
+            entity.x += (dx / dist) * overlap;
+            entity.y += (dy / dist) * overlap;
+        }
+    }
+}
+
+// 射線與矩形相交檢測，回傳最近交點距離
+function castRayAgainstWalls(ox, oy, dirX, dirY, maxDist) {
+    let minT = maxDist;
+
+    for (const w of Game.walls) {
+        const t1 = (w.x - ox) / (dirX || 1e-6);
+        const t2 = (w.x + w.w - ox) / (dirX || 1e-6);
+        const t3 = (w.y - oy) / (dirY || 1e-6);
+        const t4 = (w.y + w.h - oy) / (dirY || 1e-6);
+
+        const tmin = Math.max(Math.min(t1, t2), Math.min(t3, t4));
+        const tmax = Math.min(Math.max(t1, t2), Math.max(t3, t4));
+
+        if (tmax >= 0 && tmin <= tmax && tmin >= 0 && tmin < minT) {
+            minT = tmin;
+        }
+    }
+    return minT;
+}
+
+// ----------------------------------------------------------------------------
+// 7. 遊戲邏輯更新 (Update Loop)
+// ----------------------------------------------------------------------------
+function formatTime(sec) {
+    const s = Math.floor(sec);
+    const mm = String(Math.floor(s / 60)).padStart(2, '0');
+    const ss = String(s % 60).padStart(2, '0');
+    return `${mm}:${ss}`;
+}
+
+function update(dt) {
+    // 背景螢火蟲粒子持續飄動
+    Game.particles.forEach(pt => {
+        pt.x += pt.vx * dt;
+        pt.y += pt.vy * dt;
+        pt.phase += dt * 2.5;
+        if (pt.x < 20) pt.x = WORLD_W - 20;
+        if (pt.x > WORLD_W - 20) pt.x = 20;
+        if (pt.y < 20) pt.y = WORLD_H - 20;
+        if (pt.y > WORLD_H - 20) pt.y = 20;
+    });
+
+    if (Game.state !== 'PLAYING') return;
+
+    Game.elapsedTime += dt;
+    ui.timerDisplay.textContent = formatTime(Game.elapsedTime);
+
+    const p = Game.player;
+
+    // 1. 小石子冷卻與擴散聲波更新
+    if (p.pebbleCooldown > 0) {
+        p.pebbleCooldown = Math.max(0, p.pebbleCooldown - dt);
+        ui.pebbleBtn.disabled = true;
+        ui.pebbleCdOverlay.classList.remove('hidden');
+        ui.pebbleCdOverlay.textContent = `${p.pebbleCooldown.toFixed(1)}s`;
+        ui.pebbleCdText.textContent = '冷卻中';
+    } else {
+        ui.pebbleBtn.disabled = false;
+        ui.pebbleCdOverlay.classList.add('hidden');
+        ui.pebbleCdText.textContent = '就緒';
+    }
+
+    Game.pebbles = Game.pebbles.filter(pb => {
+        pb.age += dt;
+        return pb.age < pb.maxAge;
+    });
+
+    // 2. 玩家移動與敏捷衝刺計算
+    let moveX = (Input.right ? 1 : 0) - (Input.left ? 1 : 0) + Input.joyX;
+    let moveY = (Input.down ? 1 : 0) - (Input.up ? 1 : 0) + Input.joyY;
+    const mag = Math.hypot(moveX, moveY);
+
+    if (mag > 0.08) {
+        moveX /= Math.max(1, mag);
+        moveY /= Math.max(1, mag);
+        p.angle = Math.atan2(moveY, moveX);
+        p.tailPhase += dt * 14;
+
+        // 衝刺耐力判定
+        if (Input.sprint && p.sprintStamina > 5) {
+            p.isSprinting = true;
+            p.sprintStamina = Math.max(0, p.sprintStamina - 45 * dt);
+        } else {
+            p.isSprinting = false;
+            p.sprintStamina = Math.min(100, p.sprintStamina + 25 * dt);
+        }
+
+        // 抱蛋後移動略微沉重 (-14%)，衝刺可提升 48% 速度
+        const eggFactor = Game.hasEgg ? 0.86 : 1.0;
+        const sprintFactor = p.isSprinting ? 1.48 : 1.0;
+        const speed = p.baseSpeed * eggFactor * sprintFactor;
+
+        p.x += moveX * speed * dt;
+        p.y += moveY * speed * dt;
+        resolveCircleWallCollision(p, p.r);
+        audio.playStep(p.isSprinting);
+    } else {
+        p.isSprinting = false;
+        p.sprintStamina = Math.min(100, p.sprintStamina + 32 * dt);
+        p.tailPhase += dt * 3;
+    }
+
+    ui.sprintBar.style.width = `${p.sprintStamina}%`;
+
+    // 3. 檢查玩家是否躲在草叢中
+    let insideBush = false;
+    for (const b of Game.bushes) {
+        if (Math.hypot(p.x - b.x, p.y - b.y) < b.r - 4) {
+            insideBush = true;
+            break;
+        }
+    }
+    // 躲在草叢中且沒有正在衝刺即進入完全隱身
+    p.isHidden = insideBush && !p.isSprinting;
+
+    if (p.isHidden) {
+        ui.stealthDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse';
+        ui.stealthLabel.textContent = '🌿 草叢隱藏中（完全隱身）';
+        ui.stealthLabel.className = 'text-emerald-300';
+    } else if (Game.hasEgg) {
+        ui.stealthDot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping';
+        ui.stealthLabel.textContent = '🥚 攜帶巨蛋逃亡中！';
+        ui.stealthLabel.className = 'text-amber-300';
+    } else {
+        ui.stealthDot.className = 'w-2.5 h-2.5 rounded-full bg-sky-400';
+        ui.stealthLabel.textContent = p.isSprinting ? '💨 衝刺移動中' : '🦊 潛行移動中';
+        ui.stealthLabel.className = 'text-sky-200';
+    }
+
+    // 4. 偷取「神秘巨蛋」觸發警報階段
+    if (!Game.hasEgg && Math.hypot(p.x - Game.egg.x, p.y - Game.egg.y) < p.r + 22) {
+        Game.hasEgg = true;
+        Game.egg.taken = true;
+        Game.alarmActive = true;
+        audio.playEggPickup();
+
+        ui.alarmEdgeOverlay.classList.remove('hidden');
+        ui.objectiveText.textContent = '🚨 警報響起！快背著巨蛋衝回綠色「撤離傳送陣」！';
+        ui.objectiveText.className = 'text-xs text-rose-400 font-black mt-0.5 animate-pulse';
+    }
+
+    // 5. 攜帶巨蛋抵達綠色撤離傳送陣 -> 過關！
+    if (Game.hasEgg && Math.hypot(p.x - Game.extraction.x, p.y - Game.extraction.y) < Game.extraction.r - 4) {
+        triggerStageVictory();
+        return;
+    }
+
+    // 6. 守衛 AI 巡邏、調查石子與視線偵測
+    const alarmSpeedMult = Game.alarmActive ? 1.28 : 1.0;
+    let closestGuardDist = 999;
+
+    for (const g of Game.guards) {
+        const distToPlayer = Math.hypot(g.x - p.x, g.y - p.y);
+        if (distToPlayer < closestGuardDist) closestGuardDist = distToPlayer;
+
+        if (g.type === 'tower') {
+            // 旋轉瞭望塔
+            g.angle += g.rotSpeed * alarmSpeedMult * dt;
+        } else {
+            // 巡邏守衛移動邏輯
+            let target = g.waypoints[g.wpIndex];
+            if (g.state === 'INVESTIGATE' && g.investigateTarget) {
+                target = g.investigateTarget;
+                g.investigateTimer -= dt;
+                if (g.investigateTimer <= 0) {
+                    g.state = 'PATROL';
+                    g.investigateTarget = null;
+                }
+            }
+
+            const dx = target.x - g.x;
+            const dy = target.y - g.y;
+            const d = Math.hypot(dx, dy);
+
+            if (d > 6) {
+                const desiredAngle = Math.atan2(dy, dx);
+                // 平滑轉向
+                let diff = desiredAngle - g.angle;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                g.angle += diff * Math.min(1, dt * 7);
+
+                const spd = g.speed * alarmSpeedMult * (g.state === 'INVESTIGATE' ? 1.18 : 1.0);
+                g.x += (dx / d) * spd * dt;
+                g.y += (dy / d) * spd * dt;
+            } else if (g.state === 'PATROL') {
+                g.wpIndex = (g.wpIndex + 1) % g.waypoints.length;
+            } else if (g.state === 'INVESTIGATE') {
+                // 到達石子落點後左右張望
+                g.angle += Math.sin(Game.elapsedTime * 5) * 1.8 * dt;
+            }
+        }
+
+        // 視線錐偵測玩家（若玩家躲在草叢裡且沒貼臉碰撞則安全）
+        if (distToPlayer < 26) {
+            // 實體直接撞到守衛必定被抓
+            triggerPlayerCaught();
+            return;
+        }
+
+        if (!p.isHidden && distToPlayer <= g.visionRange) {
+            const angleToPlayer = Math.atan2(p.y - g.y, p.x - g.x);
+            let angleDiff = angleToPlayer - g.angle;
+            while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+            while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+
+            if (Math.abs(angleDiff) <= g.visionAngle * 0.5) {
+                // 確認中間沒有被石牆擋住視線
+                const wallHitDist = castRayAgainstWalls(g.x, g.y, Math.cos(angleToPlayer), Math.sin(angleToPlayer), distToPlayer);
+                if (wallHitDist >= distToPlayer - 6) {
+                    triggerPlayerCaught();
+                    return;
+                }
+            }
+        }
+    }
+
+    // 靠近守衛時播放緊張心跳聲
+    if (closestGuardDist < 165 && !p.isHidden) {
+        audio.playHeartbeat();
+    }
+}
+
+function triggerPlayerCaught() {
+    Game.state = 'CAUGHT';
+    audio.playCaughtAlert();
+    ui.alarmEdgeOverlay.classList.add('hidden');
+    ui.caughtModal.classList.remove('hidden');
+}
+
+function triggerStageVictory() {
+    Game.state = 'VICTORY';
+    audio.playVictoryFanfare();
+    ui.alarmEdgeOverlay.classList.add('hidden');
+
+    const t = Game.elapsedTime;
+    const rank = t < 24 ? 'S 級幻影神偷' : t < 40 ? 'A 級夜行高手' : 'B 級潛行新星';
+    ui.clearTimeStat.textContent = formatTime(t);
+    ui.clearRankStat.textContent = rank;
+
+    if (Game.stageIndex === STAGES.length - 1) {
+        ui.victoryTitle.textContent = '傳奇誕生！三座遺跡巨蛋全數制霸！';
+        ui.victoryDesc.textContent = '你已成為森林裡最令守衛聞風喪膽的神秘巨蛋神偷！';
+        ui.nextStageBtn.textContent = '從第 1 關重新遊玩 ↻';
+    } else {
+        ui.victoryTitle.textContent = `第 ${Game.stageIndex + 1} 關突破！成功偷走神秘巨蛋`;
+        ui.victoryDesc.textContent = `神不知鬼不覺地帶著發光巨蛋逃出了「${STAGES[Game.stageIndex].name}」！`;
+        ui.nextStageBtn.textContent = '潛入下一座遺跡 ▶';
+    }
+
+    ui.victoryModal.classList.remove('hidden');
+}
+
+// ----------------------------------------------------------------------------
+// 8. 畫面渲染引擎 (Render Loop)
+// ----------------------------------------------------------------------------
+function render() {
+    const cw = canvas.width;
+    const ch = canvas.height;
+
+    ctx.save();
+    ctx.fillStyle = '#090f18';
+    ctx.fillRect(0, 0, cw, ch);
+
+    // 等比例縮放並置中虛擬世界 (1000x700)
+    const scale = Math.min(cw / WORLD_W, ch / WORLD_H);
+    const offsetX = (cw - WORLD_W * scale) / 2;
+    const offsetY = (ch - WORLD_H * scale) / 2;
+    ctx.translate(offsetX, offsetY);
+    ctx.scale(scale, scale);
+
+    // 1. 繪製夜色森林與遺跡石板地磚
+    drawFloorTiles();
+
+    // 2. 繪製綠色撤離傳送陣 (Extraction Zone)
+    drawExtractionZone();
+
+    // 3. 繪製投擲石子擴散聲波
+    drawPebbleRipples();
+
+    // 4. 繪製守衛視線光錐 (Raycasting 動態遮擋多邊形)
+    Game.guards.forEach(g => drawGuardVisionCone(g));
+
+    // 5. 繪製石牆掩體與火把光暈
+    drawWallsAndTorches();
+
+    // 6. 繪製中央祭壇與神秘巨蛋
+    drawEggPedestal();
+
+    // 7. 繪製小狐狸神偷玩家
+    drawFoxPlayer();
+
+    // 8. 繪製高草叢 (覆蓋在玩家上方以呈現躲入草叢的層次感)
+    drawBushes();
+
+    // 9. 繪製守衛與瞭望塔本體
+    Game.guards.forEach(g => drawGuardEntity(g));
+
+    // 10. 繪製飄浮螢火蟲星塵
+    drawFireflies();
+
+    ctx.restore();
+}
+
+function drawFloorTiles() {
+    ctx.fillStyle = '#0f1924';
+    ctx.fillRect(0, 0, WORLD_W, WORLD_H);
+
+    // 遺跡石板格線
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.055)';
+    ctx.lineWidth = 1;
+    const gridSize = 50;
+    for (let x = 0; x <= WORLD_W; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, WORLD_H);
+        ctx.stroke();
+    }
+    for (let y = 0; y <= WORLD_H; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(WORLD_W, y);
+        ctx.stroke();
+    }
+}
+
+function drawExtractionZone() {
+    const ex = Game.extraction;
+    const pulse = 1 + Math.sin(Game.elapsedTime * 4) * 0.08;
+
+    ctx.save();
+    const grad = ctx.createRadialGradient(ex.x, ex.y, 6, ex.x, ex.y, ex.r * pulse);
+    grad.addColorStop(0, Game.hasEgg ? 'rgba(52, 211, 153, 0.48)' : 'rgba(52, 211, 153, 0.2)');
+    grad.addColorStop(1, 'rgba(16, 185, 129, 0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(ex.x, ex.y, ex.r * pulse, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = Game.hasEgg ? '#34d399' : 'rgba(52, 211, 153, 0.45)';
+    ctx.lineWidth = Game.hasEgg ? 3 : 1.5;
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath();
+    ctx.arc(ex.x, ex.y, ex.r - 4, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = Game.hasEgg ? '#6ee7b7' : 'rgba(110, 231, 183, 0.65)';
+    ctx.font = 'bold 11px "Noto Sans TC", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(Game.hasEgg ? '▲ 抱蛋撤離點 ▲' : '撤離點', ex.x, ex.y + ex.r + 14);
+    ctx.restore();
+}
+
+function drawPebbleRipples() {
+    Game.pebbles.forEach(pb => {
+        const progress = pb.age / pb.maxAge;
+        // 小石子本體
+        ctx.fillStyle = '#cbd5e1';
+        ctx.beginPath();
+        ctx.arc(pb.x, pb.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 擴散聲波圓環
+        for (let i = 0; i < 2; i++) {
+            const waveP = (progress * 2 + i * 0.4) % 1;
+            const r = waveP * pb.soundRadius;
+            ctx.strokeStyle = `rgba(251, 191, 36, ${(1 - waveP) * 0.45 * (1 - progress)})`;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(pb.x, pb.y, r, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+    });
+}
+
+function drawGuardVisionCone(g) {
+    const rays = 36;
+    const startAngle = g.angle - g.visionAngle * 0.5;
+    const step = g.visionAngle / rays;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(g.x, g.y);
+
+    for (let i = 0; i <= rays; i++) {
+        const a = startAngle + step * i;
+        const dx = Math.cos(a);
+        const dy = Math.sin(a);
+        const dist = castRayAgainstWalls(g.x, g.y, dx, dy, g.visionRange);
+        ctx.lineTo(g.x + dx * dist, g.y + dy * dist);
+    }
+    ctx.closePath();
+
+    const grad = ctx.createRadialGradient(g.x, g.y, 12, g.x, g.y, g.visionRange);
+    if (Game.alarmActive) {
+        grad.addColorStop(0, 'rgba(244, 63, 94, 0.46)');
+        grad.addColorStop(1, 'rgba(244, 63, 94, 0.03)');
+    } else if (g.state === 'INVESTIGATE') {
+        grad.addColorStop(0, 'rgba(251, 191, 36, 0.42)');
+        grad.addColorStop(1, 'rgba(251, 191, 36, 0.03)');
+    } else {
+        grad.addColorStop(0, 'rgba(253, 224, 71, 0.32)');
+        grad.addColorStop(1, 'rgba(253, 224, 71, 0.02)');
+    }
+
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.restore();
+}
+
+function drawWallsAndTorches() {
+    // 繪製立體石牆
+    for (const w of Game.walls) {
+        // 陰影
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+        ctx.fillRect(w.x + 5, w.y + 6, w.w, w.h);
+
+        // 主體石塊
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(w.x, w.y, w.w, w.h);
+
+        // 頂部高光邊緣
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(w.x + 0.5, w.y + 0.5, w.w - 1, w.h - 1);
+    }
+
+    // 繪製壁掛火把溫暖火光
+    for (const t of Game.torches) {
+        const flicker = 55 + Math.sin(Game.elapsedTime * 16 + t.x) * 8;
+        const glow = ctx.createRadialGradient(t.x, t.y, 2, t.x, t.y, flicker);
+        glow.addColorStop(0, 'rgba(251, 146, 60, 0.45)');
+        glow.addColorStop(1, 'rgba(251, 146, 60, 0)');
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, flicker, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#fb923c';
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+function drawEggPedestal() {
+    const eg = Game.egg;
+
+    // 古代石祭壇底座
+    ctx.save();
+    ctx.fillStyle = '#1e293b';
+    ctx.beginPath();
+    ctx.arc(eg.x, eg.y, 28, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    if (!eg.taken) {
+        const floatY = Math.sin(Game.elapsedTime * 3.5) * 3;
+        // 金色神秘光暈
+        const aura = ctx.createRadialGradient(eg.x, eg.y + floatY, 4, eg.x, eg.y + floatY, 56);
+        aura.addColorStop(0, 'rgba(253, 224, 71, 0.65)');
+        aura.addColorStop(1, 'rgba(245, 158, 11, 0)');
+        ctx.fillStyle = aura;
+        ctx.beginPath();
+        ctx.arc(eg.x, eg.y + floatY, 56, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 神秘巨蛋本體
+        ctx.fillStyle = '#fef08a';
+        ctx.beginPath();
+        ctx.ellipse(eg.x, eg.y + floatY, 12, 16, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#d97706';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // 蛋殼神秘花紋
+        ctx.fillStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.arc(eg.x - 3, eg.y + floatY - 3, 2.5, 0, Math.PI * 2);
+        ctx.arc(eg.x + 4, eg.y + floatY + 4, 3, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.restore();
+}
+
+function drawFoxPlayer() {
+    const p = Game.player;
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    if (p.isHidden) ctx.globalAlpha = 0.52;
+
+    ctx.rotate(p.angle);
+
+    // 搖擺蓬鬆狐狸大尾巴
+    const tailSwing = Math.sin(p.tailPhase) * 0.25;
+    ctx.save();
+    ctx.rotate(tailSwing);
+    ctx.fillStyle = '#ea580c';
+    ctx.beginPath();
+    ctx.ellipse(-16, 0, 11, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff7ed';
+    ctx.beginPath();
+    ctx.arc(-24, 0, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // 狐狸身體與小披風
+    ctx.fillStyle = '#f97316';
+    ctx.beginPath();
+    ctx.arc(0, 0, p.r, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 尖尖狐狸雙耳
+    ctx.fillStyle = '#9a3412';
+    ctx.beginPath();
+    ctx.moveTo(4, -12); ctx.lineTo(13, -7); ctx.lineTo(3, -5);
+    ctx.moveTo(4, 12); ctx.lineTo(13, 7); ctx.lineTo(3, 5);
+    ctx.fill();
+
+    // 鼻子與機靈雙眼
+    ctx.fillStyle = '#fff7ed';
+    ctx.beginPath();
+    ctx.arc(9, 0, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.arc(14, 0, 2.2, 0, Math.PI * 2);
+    ctx.arc(8, -4, 1.8, 0, Math.PI * 2);
+    ctx.arc(8, 4, 1.8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 若已偷得巨蛋，背在背上發光！
+    if (Game.hasEgg) {
+        ctx.fillStyle = '#fef08a';
+        ctx.beginPath();
+        ctx.ellipse(-4, 0, 8, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+    }
+
+    ctx.restore();
+}
+
+function drawBushes() {
+    for (const b of Game.bushes) {
+        ctx.save();
+        ctx.fillStyle = 'rgba(6, 78, 59, 0.78)';
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 葉片層次細節
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.35)';
+        ctx.beginPath();
+        ctx.arc(b.x - 10, b.y - 8, b.r * 0.55, 0, Math.PI * 2);
+        ctx.arc(b.x + 12, b.y + 6, b.r * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgba(52, 211, 153, 0.35)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+    }
+}
+
+function drawGuardEntity(g) {
+    ctx.save();
+    ctx.translate(g.x, g.y);
+
+    if (g.type === 'tower') {
+        // 旋轉石造瞭望塔
+        ctx.fillStyle = '#475569';
+        ctx.beginPath();
+        ctx.arc(0, 0, 20, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.rotate(g.angle);
+        ctx.fillStyle = '#facc15';
+        ctx.fillRect(8, -5, 14, 10);
+    } else {
+        // 巡邏遺跡守衛士兵
+        ctx.rotate(g.angle);
+        ctx.fillStyle = Game.alarmActive ? '#e11d48' : '#3b82f6';
+        ctx.beginPath();
+        ctx.arc(0, 0, 16, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // 手電筒與頭盔方向指示
+        ctx.fillStyle = '#fef08a';
+        ctx.fillRect(10, -4, 9, 8);
+    }
+    ctx.restore();
+
+    // 若守衛正在調查石子聲響，頭頂顯示驚嘆/問號標記
+    if (g.state === 'INVESTIGATE') {
+        ctx.fillStyle = '#fbbf24';
+        ctx.font = '900 18px "Orbitron", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('?', g.x, g.y - 24);
+    }
+}
+
+function drawFireflies() {
+    Game.particles.forEach(pt => {
+        const alpha = 0.25 + (Math.sin(pt.phase) + 1) * 0.25;
+        ctx.fillStyle = `rgba(167, 243, 208, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 2, 0, Math.PI * 2);
+        ctx.fill();
+    });
+}
+
+// ----------------------------------------------------------------------------
+// 9. 主遊戲迴圈啟動
+// ----------------------------------------------------------------------------
+let lastTime = performance.now();
+
+function loop(now) {
+    const dt = Math.min(0.05, (now - lastTime) / 1000);
+    lastTime = now;
+
+    update(dt);
+    render();
+
+    requestAnimationFrame(loop);
+}
+
+window.onload = function () {
+    resizeCanvas();
+    // 預載第 1 關背景畫面作為主選單動態背景
+    const preview = STAGES[0];
+    Game.walls = preview.walls;
+    Game.bushes = preview.bushes;
+    Game.torches = preview.torches;
+    Game.extraction = preview.extraction;
+    Game.egg = { ...preview.egg, taken: false };
+    Game.guards = preview.guards.map(g => ({
+        ...g,
+        x: g.waypoints[0].x,
+        y: g.waypoints[0].y,
+        angle: 0,
+        state: 'PATROL'
+    }));
+    for (let i = 0; i < 36; i++) {
+        Game.particles.push({
+            x: Math.random() * WORLD_W,
+            y: Math.random() * WORLD_H,
+            vx: (Math.random() - 0.5) * 18,
+            vy: (Math.random() - 0.5) * 18,
+            phase: Math.random() * Math.PI * 2
+        });
+    }
+    requestAnimationFrame(loop);
+};
+</script>
+</body>
+</html>
