@@ -1,0 +1,2610 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>黑藍霓虹星海：深海微光紓壓空間</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #020617;
+      font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #e0f2fe;
+      touch-action: none;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .glass-panel {
+      background: rgba(6, 16, 38, 0.62);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(56, 189, 248, 0.24);
+      box-shadow: 0 8px 32px rgba(2, 6, 23, 0.72), inset 0 0 18px rgba(56, 189, 248, 0.08);
+    }
+    .mode-btn {
+      transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+      border: 1px solid rgba(56, 189, 248, 0.16);
+      background: rgba(15, 23, 42, 0.55);
+      color: #bae6fd;
+    }
+    .mode-btn:hover {
+      background: rgba(30, 58, 138, 0.5);
+      border-color: rgba(125, 211, 252, 0.45);
+      transform: translateY(-1px);
+    }
+    .mode-btn.active {
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.45), rgba(99, 102, 241, 0.48));
+      border-color: #7dd3fc;
+      color: #ffffff;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.48);
+    }
+    .sub-pill {
+      transition: all 0.2s ease;
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      color: #e0f2fe;
+    }
+    .sub-pill:hover, .sub-pill.active {
+      background: rgba(14, 165, 233, 0.38);
+      border-color: #38bdf8;
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+    }
+  </style>
+</head>
+<body class="relative w-full h-full overflow-hidden">
+
+  <!-- 主全螢幕互動畫布 -->
+  <canvas id="zenCanvas"></canvas>
+
+  <!-- 頂部狀態與工具列 -->
+  <header class="fixed top-0 left-0 w-full p-3 sm:p-5 flex items-start justify-between pointer-events-none z-20">
+    <!-- 左上標題與呼吸提示 -->
+    <div class="glass-panel rounded-2xl px-4 py-2.5 max-w-[68%] sm:max-w-md pointer-events-auto">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_10px_#22d3ee]"></span>
+        <h1 class="text-sm sm:text-base font-bold tracking-wider text-sky-100">黑藍霓虹星海 · 深海微光</h1>
+      </div>
+      <p id="modeSubtitle" class="text-xs text-sky-300/85 mt-1 leading-relaxed">
+        輕觸或滑動螢幕，引導星塵在黑藍深海中匯聚流轉
+      </p>
+    </div>
+
+    <!-- 右上音效與清屏控制 -->
+    <div class="flex items-center gap-2 pointer-events-auto">
+      <button id="clearBtn" title="重新整理星海"
+              class="glass-panel hover:bg-sky-500/25 active:scale-95 transition rounded-2xl px-3 py-2.5 text-xs sm:text-sm font-medium text-sky-200 flex items-center gap-1.5 cursor-pointer">
+        <span>✨</span>
+        <span class="hidden sm:inline">重置</span>
+      </button>
+
+      <button id="ambientBtn" title="深海白噪音"
+              class="glass-panel hover:bg-sky-500/25 active:scale-95 transition rounded-2xl px-3 py-2.5 text-xs sm:text-sm font-medium text-sky-200 flex items-center gap-1.5 cursor-pointer">
+        <span id="ambientIcon">🌊</span>
+        <span id="ambientLabel" class="hidden sm:inline">海浪聲：關</span>
+      </button>
+
+      <button id="soundBtn" title="音效開關"
+              class="glass-panel hover:bg-sky-500/25 active:scale-95 transition rounded-2xl p-2.5 text-sky-200 cursor-pointer">
+        <svg id="iconSoundOn" class="w-5 h-5 text-cyan-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+        </svg>
+        <svg id="iconSoundOff" class="w-5 h-5 hidden text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- 模式專屬微調控制列 -->
+  <div id="subControls" class="fixed bottom-28 sm:bottom-32 left-1/2 -translate-x-1/2 z-20 flex flex-wrap justify-center gap-2 max-w-[95vw] pointer-events-auto">
+  </div>
+
+  <!-- 拼豆 75 色完整調色盤彈出視窗 -->
+  <div id="perlerPaletteDrawer" class="hidden fixed bottom-44 sm:bottom-48 left-1/2 -translate-x-1/2 z-30 glass-panel rounded-2xl p-3 w-[92vw] max-w-md pointer-events-auto">
+    <div class="flex items-center justify-between mb-2 px-1">
+      <span class="text-xs font-bold text-sky-200">🎨 75 色拼豆色卡（點擊選色）</span>
+      <span id="perlerColorIndexLabel" class="text-[11px] text-cyan-300 font-medium">#01</span>
+    </div>
+    <div id="perlerColorGrid" class="grid grid-cols-15 gap-1 max-h-32 overflow-y-auto p-1" style="grid-template-columns: repeat(15, minmax(0, 1fr));">
+    </div>
+  </div>
+
+  <!-- 底部 15 大主題完整展開導航列 -->
+  <nav class="fixed bottom-3 left-1/2 -translate-x-1/2 z-20 w-[96vw] max-w-5xl pointer-events-auto">
+    <div id="modeBar" class="glass-panel rounded-3xl p-2 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
+      <button data-mode="stardust" class="mode-btn active rounded-2xl px-3 py-1.5 text-xs sm:text-sm font-medium cursor-pointer">✨ 星塵引力</button>
+      <button data-mode="constellation" class="mode-btn rounded-2xl px-3 py-1.5 text-xs sm:text-sm font-medium cursor-pointer">🌌 星空連線</button>
+      <button data-mode="slime" class="mode-btn rounded-2xl px-3 py-1.5 text-xs sm:text-sm font-medium cursor-pointer">🍮 起泡史萊姆</button>
+      <button data-mode="crispy" class="mode-btn rounded-2xl px-3 py-1.5 text-xs sm:text-sm font-medium cursor-pointer">🤏 脆皮捏捏</button>
+      <button data-mode="shinobu" class="mode-btn rounded-2xl px-3 py-1.5 text-xs sm:text-sm font-medium cursor-pointer">🦋 蟲之呼吸 · 蝶舞</button>
+      <button data-mode="fidget" class="mode-btn rounded-2xl px-3 py-1.5 text-xs sm:text-sm font-medium cursor-pointer">🎛️ 舒壓按鍵盤</button>
+      <button data-mode="chimes" class="mode-btn rounded-2xl px-3 py-1.5 text-xs sm:text-sm font-medium cursor-pointer">🎐 深海琉璃風鈴</button>
+      <button data-mode="jellyfish" class="mode-btn rounded-2xl px-3 py-1.5 text-xs sm:text-sm font-medium cursor-pointer">🪼 發光水母</button>
+      <button data-mode="bubbles" class="mode-btn rounded-2xl px-3 py-1.5 text-xs sm:text-sm font-medium cursor-pointer">🫧 氣泡捏捏樂</button>
+      <button data-mode="perler" class="mode-btn rounded-2xl px-3 py-1.5 text-xs sm:text-sm font-medium cursor-pointer">🧩 霓虹拼豆</button>
+      <button data-mode="breathe" class="mode-btn rounded-2xl px-3 py-1.5 text-xs sm:text-sm font-medium cursor-pointer">🫁 4-7-8 呼吸</button>
+      <button data-mode="sand" class="mode-btn rounded-2xl px-3 py-1.5 text-xs sm:text-sm font-medium cursor-pointer">⏳ 星光流沙</button>
+      <button data-mode="rain" class="mode-btn rounded-2xl px-3 py-1.5 text-xs sm:text-sm font-medium cursor-pointer">🌧️ 深海雨夜</button>
+      <button data-mode="ferro" class="mode-btn rounded-2xl px-3 py-1.5 text-xs sm:text-sm font-medium cursor-pointer">🧲 磁力流體</button>
+      <button data-mode="lotus" class="mode-btn rounded-2xl px-3 py-1.5 text-xs sm:text-sm font-medium cursor-pointer">🪷 夜光蓮池</button>
+    </div>
+  </nav>
+
+<script>
+(() => {
+  // =========================================================================
+  // 1. 畫布與全域狀態初始化
+  // =========================================================================
+  const canvas = document.getElementById('zenCanvas');
+  const ctx = canvas.getContext('2d');
+
+  let width = window.innerWidth;
+  let height = window.innerHeight;
+  let dpr = Math.min(window.devicePixelRatio || 1, 2);
+  let currentMode = 'stardust';
+  let globalTime = 0;
+
+  const pointer = {
+    x: width * 0.5,
+    y: height * 0.5,
+    px: width * 0.5,
+    py: height * 0.5,
+    vx: 0,
+    vy: 0,
+    down: false
+  };
+
+  function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    onResizeRebuild();
+  }
+
+  // =========================================================================
+  // 2. Web Audio API 深海療癒合成音效系統 (零外部音檔依賴)
+  // =========================================================================
+  class DeepOceanAudio {
+    constructor() {
+      this.ctx = null;
+      this.muted = false;
+      this.ambientOn = false;
+      this.ambientGain = null;
+      this.scale = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00];
+    }
+
+    init() {
+      if (!this.ctx) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioCtx();
+      }
+      if (this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
+    }
+
+    toggleMute() {
+      this.muted = !this.muted;
+      if (this.ambientGain && this.ctx) {
+        this.ambientGain.gain.setTargetAtTime(this.muted || !this.ambientOn ? 0 : 0.08, this.ctx.currentTime, 0.2);
+      }
+      return this.muted;
+    }
+
+    toggleAmbient() {
+      this.init();
+      this.ambientOn = !this.ambientOn;
+      if (this.ambientOn && !this.ambientGain) {
+        const bufferSize = this.ctx.sampleRate * 3;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        let lastOut = 0;
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          data[i] = (lastOut + 0.02 * white) / 1.02;
+          lastOut = data[i];
+          data[i] *= 2.5;
+        }
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+        noise.loop = true;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 320;
+
+        this.ambientGain = this.ctx.createGain();
+        this.ambientGain.gain.value = 0;
+
+        noise.connect(filter);
+        filter.connect(this.ambientGain);
+        this.ambientGain.connect(this.ctx.destination);
+        noise.start();
+      }
+      if (this.ambientGain) {
+        this.ambientGain.gain.setTargetAtTime(this.ambientOn && !this.muted ? 0.08 : 0, this.ctx.currentTime, 0.35);
+      }
+      return this.ambientOn;
+    }
+
+    playChime(noteIndex = null, duration = 1.6, vol = 0.09) {
+      if (this.muted) return;
+      this.init();
+      const now = this.ctx.currentTime;
+      const idx = noteIndex !== null ? (noteIndex % this.scale.length) : Math.floor(Math.random() * this.scale.length);
+      const freq = this.scale[idx];
+
+      const osc = this.ctx.createOscillator();
+      const subOsc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+      subOsc.type = 'triangle';
+      subOsc.frequency.setValueAtTime(freq * 2, now);
+
+      const subGain = this.ctx.createGain();
+      subGain.gain.value = 0.16;
+
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(vol, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0008, now + duration);
+
+      osc.connect(gain);
+      subOsc.connect(subGain);
+      subGain.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(now);
+      subOsc.start(now);
+      osc.stop(now + duration + 0.05);
+      subOsc.stop(now + duration + 0.05);
+    }
+
+    playPop(pitch = 1.0) {
+      if (this.muted) return;
+      this.init();
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(240 * pitch, now);
+      osc.frequency.exponentialRampToValueAtTime(620 * pitch, now + 0.075);
+
+      gain.gain.setValueAtTime(0.14, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.085);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.09);
+    }
+
+    playClick(high = true) {
+      if (this.muted) return;
+      this.init();
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(high ? 820 : 520, now);
+      osc.frequency.exponentialRampToValueAtTime(140, now + 0.032);
+
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.036);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.04);
+    }
+  }
+
+  const audio = new DeepOceanAudio();
+
+  // =========================================================================
+  // 3. 深海夜空、極光微光、流星雨與背景繁星
+  // =========================================================================
+  const bgStars = [];
+  const shootingStars = [];
+  let shootingStarTimer = 1.8;
+
+  function initBgStars() {
+    bgStars.length = 0;
+    const count = Math.min(240, Math.floor((width * height) / 4800));
+    for (let i = 0; i < count; i++) {
+      bgStars.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        r: Math.random() * 1.6 + 0.35,
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.5 + Math.random() * 1.8,
+        hue: Math.random() < 0.72 ? 200 : (Math.random() < 0.5 ? 255 : 180)
+      });
+    }
+  }
+
+  function spawnShootingStar() {
+    const startX = width * (0.18 + Math.random() * 0.78);
+    const startY = Math.random() * height * 0.38;
+    const angle = Math.PI * (0.64 + Math.random() * 0.14);
+    const speed = 11 + Math.random() * 8;
+    const hueRoll = Math.random();
+    const hue = hueRoll < 0.5 ? 195 : (hueRoll < 0.82 ? 265 : 46);
+    shootingStars.push({
+      x: startX,
+      y: startY,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      len: 85 + Math.random() * 95,
+      life: 1.0,
+      decay: 0.014 + Math.random() * 0.01,
+      hue
+    });
+  }
+
+  function drawDeepOceanBackdrop(ctx, time, dtScale) {
+    const bgGrad = ctx.createRadialGradient(
+      width * 0.5, height * 0.38, 20,
+      width * 0.5, height * 0.5, Math.max(width, height) * 0.85
+    );
+    bgGrad.addColorStop(0, '#071b3d');
+    bgGrad.addColorStop(0.52, '#030c22');
+    bgGrad.addColorStop(1, '#01040d');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    const auroraX = width * (0.5 + Math.sin(time * 0.18) * 0.22);
+    const auroraY = height * (0.28 + Math.cos(time * 0.14) * 0.12);
+    const aurora = ctx.createRadialGradient(auroraX, auroraY, 10, auroraX, auroraY, Math.max(width, height) * 0.45);
+    aurora.addColorStop(0, 'rgba(14, 165, 233, 0.13)');
+    aurora.addColorStop(0.5, 'rgba(79, 70, 229, 0.07)');
+    aurora.addColorStop(1, 'rgba(2, 6, 23, 0)');
+    ctx.fillStyle = aurora;
+    ctx.fillRect(0, 0, width, height);
+    ctx.restore();
+
+    for (let i = 0; i < bgStars.length; i++) {
+      const s = bgStars[i];
+      const twinkle = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(time * s.speed + s.phase));
+      ctx.fillStyle = `hsla(${s.hue}, 95%, 82%, ${twinkle * 0.82})`;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    shootingStarTimer -= 0.016 * dtScale;
+    if (shootingStarTimer <= 0) {
+      spawnShootingStar();
+      shootingStarTimer = 1.6 + Math.random() * 2.8;
+    }
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = shootingStars.length - 1; i >= 0; i--) {
+      const st = shootingStars[i];
+      st.x += st.vx * dtScale;
+      st.y += st.vy * dtScale;
+      st.life -= st.decay * dtScale;
+
+      if (st.life <= 0 || st.x < -150 || st.y > height + 150) {
+        shootingStars.splice(i, 1);
+        continue;
+      }
+
+      const norm = Math.hypot(st.vx, st.vy) || 1;
+      const tailX = st.x - (st.vx / norm) * st.len * st.life;
+      const tailY = st.y - (st.vy / norm) * st.len * st.life;
+
+      const tailGrad = ctx.createLinearGradient(st.x, st.y, tailX, tailY);
+      tailGrad.addColorStop(0, `hsla(${st.hue}, 100%, 92%, ${st.life * 0.95})`);
+      tailGrad.addColorStop(0.35, `hsla(${st.hue}, 95%, 68%, ${st.life * 0.55})`);
+      tailGrad.addColorStop(1, `hsla(${st.hue}, 90%, 50%, 0)`);
+
+      ctx.strokeStyle = tailGrad;
+      ctx.lineWidth = 2.4;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(st.x, st.y);
+      ctx.lineTo(tailX, tailY);
+      ctx.stroke();
+
+      ctx.fillStyle = `rgba(255, 255, 255, ${st.life})`;
+      ctx.beginPath();
+      ctx.arc(st.x, st.y, 2.3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // =========================================================================
+  // 4. 蝴蝶忍 (蟲柱) 紫白青綠蝶群繪製與觸控蝶舞特效
+  // =========================================================================
+  const touchButterflies = [];
+
+  function drawShinobuButterfly(ctx, x, y, size, angle, flapPhase, alpha = 0.95) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.globalAlpha = alpha;
+    const wingScaleX = 0.32 + 0.68 * Math.abs(Math.cos(flapPhase));
+    ctx.scale(wingScaleX, 1);
+
+    for (const side of [-1, 1]) {
+      ctx.save();
+      ctx.scale(side, 1);
+
+      const upperGrad = ctx.createRadialGradient(size * 0.35, -size * 0.25, 1, size * 0.45, -size * 0.25, size * 0.95);
+      upperGrad.addColorStop(0, 'rgba(255, 255, 255, 0.96)');
+      upperGrad.addColorStop(0.55, 'rgba(216, 180, 254, 0.9)');
+      upperGrad.addColorStop(0.88, 'rgba(147, 51, 234, 0.85)');
+      upperGrad.addColorStop(1, 'rgba(15, 23, 42, 0.95)');
+
+      ctx.fillStyle = upperGrad;
+      ctx.strokeStyle = '#090d16';
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(0, -size * 0.08);
+      ctx.bezierCurveTo(size * 0.42, -size * 0.98, size * 1.18, -size * 0.72, size * 0.95, -size * 0.04);
+      ctx.bezierCurveTo(size * 0.68, size * 0.14, size * 0.24, size * 0.08, 0, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      const lowerGrad = ctx.createRadialGradient(size * 0.25, size * 0.28, 1, size * 0.3, size * 0.3, size * 0.75);
+      lowerGrad.addColorStop(0, 'rgba(255, 255, 255, 0.94)');
+      lowerGrad.addColorStop(0.6, 'rgba(192, 132, 252, 0.88)');
+      lowerGrad.addColorStop(1, 'rgba(15, 23, 42, 0.95)');
+
+      ctx.fillStyle = lowerGrad;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(size * 0.58, size * 0.05, size * 0.84, size * 0.58, size * 0.42, size * 0.78);
+      ctx.bezierCurveTo(size * 0.14, size * 0.86, 0, size * 0.48, 0, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#34d399';
+      ctx.beginPath();
+      ctx.arc(size * 0.74, -size * 0.34, size * 0.075, 0, Math.PI * 2);
+      ctx.arc(size * 0.46, size * 0.52, size * 0.065, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    ctx.fillStyle = '#1e1b4b';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, size * 0.08, size * 0.34, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function spawnTouchButterfly(x, y) {
+    touchButterflies.push({
+      x,
+      y,
+      vx: (Math.random() - 0.5) * 2.8,
+      vy: -1.4 - Math.random() * 2.0,
+      size: 11 + Math.random() * 8,
+      phase: Math.random() * Math.PI * 2,
+      life: 1.0
+    });
+    if (touchButterflies.length > 45) touchButterflies.shift();
+  }
+
+  function updateAndDrawTouchButterflies(ctx, time, dtScale) {
+    for (let i = touchButterflies.length - 1; i >= 0; i--) {
+      const b = touchButterflies[i];
+      b.x += (b.vx + Math.sin(time * 5 + b.phase) * 0.9) * dtScale;
+      b.y += b.vy * dtScale;
+      b.life -= 0.014 * dtScale;
+      if (b.life <= 0) {
+        touchButterflies.splice(i, 1);
+        continue;
+      }
+      const angle = Math.atan2(b.vy, b.vx) + Math.PI * 0.5;
+      drawShinobuButterfly(ctx, b.x, b.y, b.size, angle, time * 14 + b.phase, b.life);
+    }
+  }
+
+  // =========================================================================
+  // 5. 模式一：✨ 星塵引力 (極密繁星粒子漩渦)
+  // =========================================================================
+  const stardustParticles = [];
+  let stardustRepel = false;
+
+  function initStardust() {
+    stardustParticles.length = 0;
+    const count = width < 640 ? 480 : 780;
+    for (let i = 0; i < count; i++) {
+      stardustParticles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 1.4,
+        vy: (Math.random() - 0.5) * 1.4,
+        size: Math.random() * 2.3 + 0.9,
+        hue: 185 + Math.random() * 95
+      });
+    }
+  }
+
+  function spawnClickStarburst(x, y) {
+    for (let i = 0; i < 42; i++) {
+      const a = (i / 42) * Math.PI * 2 + Math.random() * 0.2;
+      const spd = 2.5 + Math.random() * 6.5;
+      stardustParticles.push({
+        x,
+        y,
+        vx: Math.cos(a) * spd,
+        vy: Math.sin(a) * spd,
+        size: Math.random() * 2.5 + 1.0,
+        hue: 185 + Math.random() * 100
+      });
+    }
+    if (stardustParticles.length > 920) {
+      stardustParticles.splice(0, stardustParticles.length - 920);
+    }
+    audio.playChime(null, 1.3, 0.06);
+  }
+
+  function updateAndDrawStardust(ctx, time, dtScale) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < stardustParticles.length; i++) {
+      const p = stardustParticles[i];
+      if (pointer.down) {
+        const dx = pointer.x - p.x;
+        const dy = pointer.y - p.y;
+        const dist = Math.max(24, Math.hypot(dx, dy));
+        const force = Math.min(2.6, 220 / (dist * dist)) * dtScale;
+        const dir = stardustRepel ? -1 : 1;
+        p.vx += (dx / dist) * force * dir - (dy / dist) * force * 0.42;
+        p.vy += (dy / dist) * force * dir + (dx / dist) * force * 0.42;
+      }
+
+      p.vx *= Math.pow(0.965, dtScale);
+      p.vy *= Math.pow(0.965, dtScale);
+      p.x += p.vx * dtScale;
+      p.y += p.vy * dtScale;
+
+      if (p.x < 0) p.x += width;
+      if (p.x > width) p.x -= width;
+      if (p.y < 0) p.y += height;
+      if (p.y > height) p.y -= height;
+
+      ctx.fillStyle = `hsla(${p.hue}, 96%, 72%, 0.85)`;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // =========================================================================
+  // 6. 模式二：🌌 星空連線 (支援手指或滑鼠直接連續滑過星辰自動連線)
+  // =========================================================================
+  const constellationStars = [];
+  const constellationLinks = [];
+  let activeStarIdx = -1;
+
+  function initConstellation() {
+    constellationStars.length = 0;
+    constellationLinks.length = 0;
+    activeStarIdx = -1;
+    const count = width < 640 ? 22 : 34;
+    for (let i = 0; i < count; i++) {
+      constellationStars.push({
+        x: 50 + Math.random() * (width - 100),
+        y: 90 + Math.random() * (height - 230),
+        r: 4 + Math.random() * 2.5,
+        lit: false,
+        pulse: Math.random() * Math.PI * 2
+      });
+    }
+  }
+
+  function connectStarAt(x, y, allowCreate = false) {
+    let hitIdx = -1;
+    let bestDist = 42;
+    for (let i = 0; i < constellationStars.length; i++) {
+      const s = constellationStars[i];
+      const d = Math.hypot(x - s.x, y - s.y);
+      if (d < bestDist) {
+        bestDist = d;
+        hitIdx = i;
+      }
+    }
+
+    if (hitIdx === -1 && allowCreate) {
+      constellationStars.push({ x, y, r: 5, lit: true, pulse: 0 });
+      hitIdx = constellationStars.length - 1;
+    }
+
+    if (hitIdx !== -1 && hitIdx !== activeStarIdx) {
+      constellationStars[hitIdx].lit = true;
+      if (activeStarIdx !== -1) {
+        const exists = constellationLinks.some(
+          l => (l[0] === activeStarIdx && l[1] === hitIdx) || (l[0] === hitIdx && l[1] === activeStarIdx)
+        );
+        if (!exists) {
+          constellationLinks.push([activeStarIdx, hitIdx]);
+        }
+      }
+      activeStarIdx = hitIdx;
+      audio.playChime(hitIdx % 10, 1.8, 0.09);
+    }
+  }
+
+  function handleConstellationDown(x, y) {
+    connectStarAt(x, y, true);
+  }
+
+  function handleConstellationMove(x, y) {
+    connectStarAt(x, y, false);
+  }
+
+  function updateAndDrawConstellation(ctx, time) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.78)';
+    ctx.shadowColor = '#38bdf8';
+    ctx.shadowBlur = 14;
+    ctx.lineWidth = 2.4;
+
+    for (const [a, b] of constellationLinks) {
+      const sa = constellationStars[a];
+      const sb = constellationStars[b];
+      if (!sa || !sb) continue;
+      ctx.beginPath();
+      ctx.moveTo(sa.x, sa.y);
+      ctx.lineTo(sb.x, sb.y);
+      ctx.stroke();
+    }
+
+    if (pointer.down && activeStarIdx !== -1 && constellationStars[activeStarIdx]) {
+      const sa = constellationStars[activeStarIdx];
+      ctx.strokeStyle = 'rgba(186, 230, 253, 0.45)';
+      ctx.setLineDash([6, 6]);
+      ctx.beginPath();
+      ctx.moveTo(sa.x, sa.y);
+      ctx.lineTo(pointer.x, pointer.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    for (let i = 0; i < constellationStars.length; i++) {
+      const s = constellationStars[i];
+      const glowR = s.r + (s.lit ? 3.5 : 1.5) + Math.sin(time * 3 + s.pulse) * 1.2;
+      ctx.fillStyle = s.lit ? '#ffffff' : 'rgba(125, 211, 252, 0.72)';
+      ctx.shadowColor = s.lit ? '#38bdf8' : 'transparent';
+      ctx.shadowBlur = s.lit ? 18 : 0;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, glowR, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // =========================================================================
+  // 7. 模式三：🍮 呆萌豆豆眼起泡脆皮史萊姆
+  // =========================================================================
+  const slimeThemes = [
+    { name: '深海極光藍', c1: 'rgba(14, 165, 233, 0.78)', c2: 'rgba(30, 58, 138, 0.88)', stroke: '#7dd3fc' },
+    { name: '星雲幻紫晶', c1: 'rgba(168, 85, 247, 0.78)', c2: 'rgba(76, 29, 149, 0.88)', stroke: '#e879f9' },
+    { name: '薄荷冰川綠', c1: 'rgba(20, 184, 166, 0.78)', c2: 'rgba(17, 94, 89, 0.88)', stroke: '#5eead4' },
+    { name: '櫻花蜜桃粉', c1: 'rgba(244, 114, 182, 0.78)', c2: 'rgba(157, 23, 77, 0.88)', stroke: '#fbcfe8' }
+  ];
+
+  const slimeState = {
+    themeIdx: 0,
+    points: [],
+    toppings: [],
+    hasGlaze: false,
+    glazeCracks: [],
+    blinkTimer: 2.5,
+    isBlinking: false
+  };
+
+  function initSlime() {
+    slimeState.points = [];
+    slimeState.toppings = [];
+    slimeState.hasGlaze = false;
+    slimeState.glazeCracks = [];
+    const N = 36;
+    const baseR = Math.min(width, height) * 0.24;
+    for (let i = 0; i < N; i++) {
+      const a = (i / N) * Math.PI * 2;
+      slimeState.points.push({ angle: a, r: baseR, targetR: baseR, vr: 0 });
+    }
+    addSlimeToppings('glitter', 18);
+    addSlimeToppings('bead', 8);
+    addSlimeToppings('jelly', 5);
+  }
+
+  function addSlimeToppings(kind, count) {
+    const maxR = Math.min(width, height) * 0.17;
+    const colors = ['#fef08a', '#f472b6', '#38bdf8', '#a78bfa', '#34d399', '#fb923c'];
+    for (let i = 0; i < count; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const dist = Math.sqrt(Math.random()) * maxR;
+      slimeState.toppings.push({
+        kind,
+        ox: Math.cos(a) * dist,
+        oy: Math.sin(a) * dist,
+        size: kind === 'glitter' ? (3.2 + Math.random() * 2.2) : (kind === 'bead' ? 6.5 : 10),
+        rot: Math.random() * Math.PI * 2,
+        shape: i % 3,
+        color: colors[Math.floor(Math.random() * colors.length)]
+      });
+    }
+    if (slimeState.toppings.length > 90) {
+      slimeState.toppings.splice(0, slimeState.toppings.length - 90);
+    }
+  }
+
+  function applySlimeGlaze() {
+    slimeState.hasGlaze = true;
+    slimeState.glazeCracks = [];
+    audio.playChime(8, 1.4, 0.08);
+  }
+
+  function pokeSlime(x, y, force = 18) {
+    const cx = width * 0.5;
+    const cy = height * 0.47;
+    const pokeAngle = Math.atan2(y - cy, x - cx);
+    for (const pt of slimeState.points) {
+      let diff = Math.abs(pt.angle - pokeAngle);
+      if (diff > Math.PI) diff = Math.PI * 2 - diff;
+      if (diff < 0.75) {
+        pt.vr -= Math.cos((diff / 0.75) * Math.PI * 0.5) * force * 0.35;
+      }
+    }
+    if (slimeState.hasGlaze) {
+      slimeState.glazeCracks.push({
+        x: x - cx,
+        y: y - cy,
+        angle: Math.random() * Math.PI * 2,
+        len: 18 + Math.random() * 26
+      });
+      audio.playClick(true);
+      if (slimeState.glazeCracks.length > 14) {
+        slimeState.hasGlaze = false;
+        slimeState.glazeCracks = [];
+        audio.playPop(1.4);
+      }
+    } else {
+      audio.playPop(0.85 + Math.random() * 0.3);
+    }
+  }
+
+  function updateAndDrawSlime(ctx, time, dtScale) {
+    const cx = width * 0.5;
+    const cy = height * 0.47;
+    const baseR = Math.min(width, height) * 0.24;
+    const theme = slimeThemes[slimeState.themeIdx];
+
+    slimeState.blinkTimer -= 0.016 * dtScale;
+    if (slimeState.blinkTimer <= 0) {
+      slimeState.isBlinking = !slimeState.isBlinking;
+      slimeState.blinkTimer = slimeState.isBlinking ? 0.14 : (2.4 + Math.random() * 2.2);
+    }
+
+    const pts = slimeState.points;
+    for (let i = 0; i < pts.length; i++) {
+      const p = pts[i];
+      const wobble = Math.sin(time * 2.6 + i * 0.5) * 4;
+      p.targetR = baseR + wobble;
+      p.vr += (p.targetR - p.r) * 0.08 * dtScale;
+      p.vr *= Math.pow(0.86, dtScale);
+      p.r += p.vr * dtScale;
+    }
+
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    const grad = ctx.createRadialGradient(-baseR * 0.25, -baseR * 0.25, 10, 0, 0, baseR * 1.15);
+    grad.addColorStop(0, theme.c1);
+    grad.addColorStop(1, theme.c2);
+
+    ctx.fillStyle = grad;
+    ctx.strokeStyle = theme.stroke;
+    ctx.lineWidth = 3;
+    ctx.shadowColor = theme.stroke;
+    ctx.shadowBlur = 22;
+
+    ctx.beginPath();
+    for (let i = 0; i <= pts.length; i++) {
+      const p0 = pts[i % pts.length];
+      const p1 = pts[(i + 1) % pts.length];
+      const x0 = Math.cos(p0.angle) * p0.r;
+      const y0 = Math.sin(p0.angle) * p0.r;
+      const x1 = Math.cos(p1.angle) * p1.r;
+      const y1 = Math.sin(p1.angle) * p1.r;
+      const mx = (x0 + x1) * 0.5;
+      const my = (y0 + y1) * 0.5;
+      if (i === 0) ctx.moveTo(mx, my);
+      else ctx.quadraticCurveTo(x0, y0, mx, my);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // 繪製精緻配料（四角星芒亮片、立體高光糖果珠、Q彈果凍配料）
+    for (const tp of slimeState.toppings) {
+      ctx.save();
+      ctx.translate(tp.ox, tp.oy);
+      if (tp.kind === 'glitter') {
+        const s = tp.size * (0.75 + 0.35 * Math.sin(time * 5 + tp.rot));
+        ctx.fillStyle = tp.color;
+        ctx.beginPath();
+        ctx.moveTo(0, -s);
+        ctx.lineTo(s * 0.28, -s * 0.28);
+        ctx.lineTo(s, 0);
+        ctx.lineTo(s * 0.28, s * 0.28);
+        ctx.lineTo(0, s);
+        ctx.lineTo(-s * 0.28, s * 0.28);
+        ctx.lineTo(-s, 0);
+        ctx.lineTo(-s * 0.28, -s * 0.28);
+        ctx.closePath();
+        ctx.fill();
+      } else if (tp.kind === 'bead') {
+        const bGrad = ctx.createRadialGradient(-2, -2, 1, 0, 0, tp.size);
+        bGrad.addColorStop(0, '#ffffff');
+        bGrad.addColorStop(0.45, tp.color);
+        bGrad.addColorStop(1, 'rgba(15, 23, 42, 0.7)');
+        ctx.fillStyle = bGrad;
+        ctx.beginPath();
+        ctx.arc(0, 0, tp.size, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.rotate(tp.rot);
+        ctx.fillStyle = tp.color;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.65)';
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.roundRect(-tp.size * 0.6, -tp.size * 0.6, tp.size * 1.2, tp.size * 1.2, 4);
+        ctx.fill();
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // 冰晶糖霜脆皮與裂紋
+    if (slimeState.hasGlaze) {
+      ctx.strokeStyle = 'rgba(224, 242, 254, 0.9)';
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.arc(0, 0, baseR * 0.94, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+      ctx.lineWidth = 2;
+      for (const ck of slimeState.glazeCracks) {
+        ctx.beginPath();
+        ctx.moveTo(ck.x - Math.cos(ck.angle) * ck.len, ck.y - Math.sin(ck.angle) * ck.len);
+        ctx.lineTo(ck.x, ck.y);
+        ctx.lineTo(ck.x + Math.cos(ck.angle + 0.5) * ck.len, ck.y + Math.sin(ck.angle + 0.5) * ck.len);
+        ctx.stroke();
+      }
+    }
+
+    // 呆萌黑白反光豆豆眼、粉嫩腮紅與可愛小嘴
+    const eyeOffsetX = baseR * 0.28;
+    const eyeOffsetY = -baseR * 0.05;
+
+    ctx.fillStyle = 'rgba(244, 114, 182, 0.45)';
+    ctx.beginPath();
+    ctx.ellipse(-eyeOffsetX - 6, eyeOffsetY + 14, 11, 6, 0, 0, Math.PI * 2);
+    ctx.ellipse(eyeOffsetX + 6, eyeOffsetY + 14, 11, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    for (const dir of [-1, 1]) {
+      const ex = dir * eyeOffsetX;
+      if (slimeState.isBlinking) {
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(ex - 7, eyeOffsetY);
+        ctx.lineTo(ex + 7, eyeOffsetY);
+        ctx.stroke();
+      } else {
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.arc(ex, eyeOffsetY, 8.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(ex - 2.6, eyeOffsetY - 2.8, 3.1, 0, Math.PI * 2);
+        ctx.arc(ex + 2.5, eyeOffsetY + 2.4, 1.4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 2.6;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(0, eyeOffsetY + 12, 7, 0.15 * Math.PI, 0.85 * Math.PI);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  // =========================================================================
+  // 8. 模式四：🤏 脆皮捏捏 (可反覆按壓回彈與發光細紋癒合)
+  // =========================================================================
+  const crispyThemes = [
+    { name: '極光幻紫', core: '#9333ea', shell: '#e9d5ff', glow: '#c084fc' },
+    { name: '深海冰晶', core: '#0284c7', shell: '#e0f2fe', glow: '#38bdf8' },
+    { name: '櫻花糖霜', core: '#db2777', shell: '#fce7f3', glow: '#f472b6' },
+    { name: '流金焦糖', core: '#d97706', shell: '#fef3c7', glow: '#fbbf24' }
+  ];
+
+  const crispyState = {
+    themeIdx: 0,
+    squishY: 0,
+    velY: 0,
+    cracks: []
+  };
+
+  function squishCrispyBall(x, y) {
+    const cx = width * 0.5;
+    const cy = height * 0.46;
+    const r = Math.min(width, height) * 0.22;
+    if (Math.hypot(x - cx, y - cy) < r * 1.35) {
+      crispyState.velY = 0.22;
+      crispyState.cracks.push({
+        a: Math.random() * Math.PI * 2,
+        len: 0.3 + Math.random() * 0.45,
+        alpha: 1.0
+      });
+      if (crispyState.cracks.length > 18) crispyState.cracks.shift();
+      audio.playClick(true);
+      audio.playPop(1.2);
+    }
+  }
+
+  function updateAndDrawCrispyMode(ctx, time, dtScale) {
+    const cx = width * 0.5;
+    const cy = height * 0.46;
+    const r = Math.min(width, height) * 0.22;
+    const theme = crispyThemes[crispyState.themeIdx];
+
+    crispyState.velY += -0.09 * crispyState.squishY * dtScale;
+    crispyState.velY *= Math.pow(0.84, dtScale);
+    crispyState.squishY += crispyState.velY * dtScale;
+
+    const sx = 1 + crispyState.squishY * 0.65;
+    const sy = 1 - crispyState.squishY * 0.55;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(sx, sy);
+
+    const grad = ctx.createRadialGradient(-r * 0.3, -r * 0.3, 12, 0, 0, r);
+    grad.addColorStop(0, theme.shell);
+    grad.addColorStop(0.55, theme.core);
+    grad.addColorStop(1, '#0f172a');
+
+    ctx.shadowColor = theme.glow;
+    ctx.shadowBlur = 26;
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = theme.shell;
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    for (let i = crispyState.cracks.length - 1; i >= 0; i--) {
+      const ck = crispyState.cracks[i];
+      ck.alpha -= 0.008 * dtScale;
+      if (ck.alpha <= 0) {
+        crispyState.cracks.splice(i, 1);
+        continue;
+      }
+      ctx.strokeStyle = `rgba(255, 255, 255, ${ck.alpha * 0.85})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(ck.a) * r * 0.2, Math.sin(ck.a) * r * 0.2);
+      ctx.lineTo(Math.cos(ck.a + 0.2) * r * (0.2 + ck.len), Math.sin(ck.a + 0.2) * r * (0.2 + ck.len));
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
+  // =========================================================================
+  // 14. 模式十：🧩 霓虹拼豆 (Perler Beads - 75色調色盤 + 立體吊飾掛件)
+  // =========================================================================
+  const perlerColors = (() => {
+    const list = [];
+    // 1. 經典純白與灰階 (5色)
+    const neutrals = [
+      { name: '純淨雪白', hex: '#ffffff' },
+      { name: '奶油象牙', hex: '#fef9c3' },
+      { name: '星雲銀灰', hex: '#cbd5e1' },
+      { name: '深海岩灰', hex: '#64748b' },
+      { name: '曜石濃黑', hex: '#1e293b' }
+    ];
+    list.push(...neutrals);
+
+    // 2. 70種細膩色相與明度漸層 (14色相 x 5明度 = 70色，總計75色)
+    const hueFamilies = [
+      { name: '緋紅', h: 355 },
+      { name: '珊瑚橘', h: 16 },
+      { name: '琥珀橙', h: 32 },
+      { name: '流金黃', h: 48 },
+      { name: '檸檬綠', h: 78 },
+      { name: '翡翠綠', h: 142 },
+      { name: '薄荷青', h: 168 },
+      { name: '天際藍', h: 192 },
+      { name: '深海藍', h: 212 },
+      { name: '星夜靛', h: 235 },
+      { name: '極光紫', h: 268 },
+      { name: '薰衣草', h: 292 },
+      { name: '櫻花粉', h: 326 },
+      { name: '焦糖棕', h: 24, s: 58 }
+    ];
+    const tones = [
+      { suffix: '柔光', l: 84, s: 92 },
+      { suffix: '粉彩', l: 72, s: 95 },
+      { suffix: '亮彩', l: 60, s: 96 },
+      { suffix: '濃郁', l: 48, s: 90 },
+      { suffix: '深邃', l: 35, s: 82 }
+    ];
+    for (const fam of hueFamilies) {
+      for (const tone of tones) {
+        const sat = fam.s || tone.s;
+        list.push({
+          name: `${fam.name}${tone.suffix}`,
+          hex: `hsl(${fam.h}, ${sat}%, ${tone.l}%)`
+        });
+      }
+    }
+    return list; // 共 75 種顏色
+  })();
+
+  const charmStyles = ['銀色珠鍊扣', '星月金鑰扣', '霓虹編織繩'];
+
+  const perlerState = {
+    size: 11,
+    grid: [],
+    colorIdx: 0,
+    eraser: false,
+    paletteOpen: false,
+    ironProgress: -1,
+    fused: false,
+    charmMode: false,
+    charmStyleIdx: 0,
+    charmAngle: 0,
+    charmVel: 0
+  };
+
+  function initPerler(template = 'heart') {
+    const N = perlerState.size;
+    perlerState.grid = Array.from({ length: N }, () => Array(N).fill(null));
+    perlerState.ironProgress = -1;
+    perlerState.fused = false;
+    perlerState.charmMode = false;
+    perlerState.charmAngle = 0;
+    perlerState.charmVel = 0;
+
+    const heartPattern = [
+      '..O.....O..',
+      '.XXX...XXX.',
+      'XXXXXXXXXXX',
+      'XXXXXXXXXXX',
+      'XXXXXXXXXXX',
+      '.XXXXXXXXX.',
+      '..XXXXXXX..',
+      '...XXXXX...',
+      '....XXX....',
+      '.....X.....',
+      '...........'
+    ];
+    const starPattern = [
+      '.....O.....',
+      '.....X.....',
+      '....XXX....',
+      '.XXXXXXXXX.',
+      '..XXXXXXX..',
+      '...XXXXX...',
+      '..XXX.XXX..',
+      '.XX.....XX.',
+      '...........',
+      '...........',
+      '...........'
+    ];
+
+    const pat = template === 'heart' ? heartPattern : (template === 'star' ? starPattern : null);
+    if (pat) {
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          if (pat[r][c] === 'O') {
+            perlerState.grid[r][c] = perlerColors[2].hex; // 頂部吊飾金屬孔位拼豆
+          } else if (pat[r][c] === 'X') {
+            perlerState.grid[r][c] = template === 'heart' ? perlerColors[67].hex : perlerColors[22].hex;
+          }
+        }
+      }
+    }
+  }
+
+  function triggerPerlerIron() {
+    perlerState.ironProgress = 0;
+    audio.playChime(8, 1.8, 0.08);
+  }
+
+  function togglePerlerCharm() {
+    const hasAnyBead = perlerState.grid.some(row => row.some(cell => cell !== null));
+    if (!hasAnyBead) {
+      initPerler('heart');
+    }
+    perlerState.fused = true;
+    perlerState.charmMode = !perlerState.charmMode;
+    perlerState.charmAngle = perlerState.charmMode ? 0.16 : 0;
+    perlerState.charmVel = 0;
+    audio.playChime(9, 1.6, 0.09);
+    updateSubControls();
+  }
+
+  function getPerlerBoardMetrics() {
+    const N = perlerState.size;
+    const boardSize = Math.min(width * 0.84, height * 0.48, 320);
+    const bx = width * 0.5 - boardSize * 0.5;
+    const by = height * 0.47 - boardSize * 0.5;
+    const cell = boardSize / N;
+    return { N, boardSize, bx, by, cell };
+  }
+
+  function interactPerlerAt(x, y) {
+    if (perlerState.charmMode) {
+      // 吊飾模式下輕撥或滑動會讓拼豆吊飾清脆擺動！
+      perlerState.charmVel += (x - width * 0.5) * 0.00045;
+      audio.playChime(null, 1.1, 0.05);
+      return;
+    }
+    const { N, bx, by, cell } = getPerlerBoardMetrics();
+    const col = Math.floor((x - bx) / cell);
+    const row = Math.floor((y - by) / cell);
+    if (row >= 0 && row < N && col >= 0 && col < N) {
+      const nextVal = perlerState.eraser ? null : perlerColors[perlerState.colorIdx].hex;
+      if (perlerState.grid[row][col] !== nextVal) {
+        perlerState.grid[row][col] = nextVal;
+        perlerState.fused = false;
+        audio.playPop(perlerState.eraser ? 0.8 : 1.25);
+      }
+    }
+  }
+
+  function updateAndDrawPerler(ctx, time, dtScale) {
+    const { N, boardSize, bx, by, cell } = getPerlerBoardMetrics();
+
+    if (perlerState.ironProgress >= 0) {
+      perlerState.ironProgress += 0.018 * dtScale;
+      if (perlerState.ironProgress >= 1) {
+        perlerState.ironProgress = -1;
+        perlerState.fused = true;
+        perlerState.charmMode = true;
+        perlerState.charmAngle = 0.14;
+        perlerState.charmVel = 0;
+        audio.playChime(9, 2.0, 0.1);
+        updateSubControls();
+      }
+    }
+
+    ctx.save();
+
+    if (perlerState.charmMode) {
+      // 吊飾模式：單擺物理晃動 + 頂部金屬扣環與珠鍊
+      const wind = Math.sin(time * 1.5) * 0.0012;
+      perlerState.charmVel += (-0.045 * perlerState.charmAngle + wind) * dtScale;
+      perlerState.charmVel *= Math.pow(0.955, dtScale);
+      perlerState.charmAngle += perlerState.charmVel * dtScale;
+
+      const anchorX = width * 0.5;
+      const anchorY = by - 36;
+
+      ctx.translate(anchorX, anchorY);
+      ctx.rotate(perlerState.charmAngle);
+
+      // 繪製頂部鑰匙圈大圓環與珠鍊
+      const styleIdx = perlerState.charmStyleIdx;
+      const metalColor = styleIdx === 1 ? '#fcd34d' : (styleIdx === 2 ? '#f472b6' : '#e2e8f0');
+      ctx.strokeStyle = metalColor;
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.arc(0, -14, 14, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // 連接珠鍊 / 龍蝦扣
+      for (let b = 0; b < 4; b++) {
+        ctx.fillStyle = metalColor;
+        ctx.beginPath();
+        ctx.arc(0, 4 + b * 7, 2.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // 繪製已熨燙融合的立體拼豆吊飾主體 (帶透明壓克力光澤外框)
+      const charmTopY = 34;
+      const charmLeftX = -boardSize * 0.5;
+
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          const color = perlerState.grid[r][c];
+          if (!color) continue;
+          const cx = charmLeftX + (c + 0.5) * cell;
+          const cy = charmTopY + (r + 0.5) * cell;
+
+          // 白色壓克力厚底描邊
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.28)';
+          ctx.beginPath();
+          ctx.roundRect(cx - cell * 0.56, cy - cell * 0.56, cell * 1.12, cell * 1.12, 7);
+          ctx.fill();
+        }
+      }
+
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          const color = perlerState.grid[r][c];
+          if (!color) continue;
+          const cx = charmLeftX + (c + 0.5) * cell;
+          const cy = charmTopY + (r + 0.5) * cell;
+
+          ctx.fillStyle = color;
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 14;
+          ctx.beginPath();
+          ctx.roundRect(cx - cell * 0.48, cy - cell * 0.48, cell * 0.96, cell * 0.96, 5);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+
+          // 表面光滑高光
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+          ctx.beginPath();
+          ctx.arc(cx - cell * 0.18, cy - cell * 0.18, cell * 0.12, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    } else {
+      // 釘板擺放模式
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.82)';
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(bx - 10, by - 10, boardSize + 20, boardSize + 20, 20);
+      ctx.fill();
+      ctx.stroke();
+
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          const cx = bx + (c + 0.5) * cell;
+          const cy = by + (r + 0.5) * cell;
+          const color = perlerState.grid[r][c];
+
+          ctx.fillStyle = 'rgba(148, 163, 184, 0.35)';
+          ctx.beginPath();
+          ctx.arc(cx, cy, cell * 0.12, 0, Math.PI * 2);
+          ctx.fill();
+
+          if (color) {
+            ctx.fillStyle = color;
+            ctx.shadowColor = color;
+            ctx.shadowBlur = perlerState.fused ? 12 : 4;
+            if (perlerState.fused) {
+              ctx.beginPath();
+              ctx.roundRect(cx - cell * 0.48, cy - cell * 0.48, cell * 0.96, cell * 0.96, 5);
+              ctx.fill();
+            } else {
+              ctx.beginPath();
+              ctx.arc(cx, cy, cell * 0.42, 0, Math.PI * 2);
+              ctx.fill();
+
+              ctx.fillStyle = '#0f172a';
+              ctx.beginPath();
+              ctx.arc(cx, cy, cell * 0.15, 0, Math.PI * 2);
+              ctx.fill();
+            }
+            ctx.shadowBlur = 0;
+          }
+        }
+      }
+
+      if (perlerState.ironProgress >= 0) {
+        const ix = bx + perlerState.ironProgress * boardSize;
+        const ironGrad = ctx.createLinearGradient(ix - 35, by, ix + 35, by);
+        ironGrad.addColorStop(0, 'rgba(251, 191, 36, 0)');
+        ironGrad.addColorStop(0.5, 'rgba(251, 191, 36, 0.48)');
+        ironGrad.addColorStop(1, 'rgba(251, 191, 36, 0)');
+        ctx.fillStyle = ironGrad;
+        ctx.fillRect(bx, by, boardSize, boardSize);
+      }
+    }
+
+    ctx.restore();
+  }
+
+  // =========================================================================
+  // 9. 模式五：🦋 蟲之呼吸 · 蝶舞 (蝴蝶忍紫白青綠蝶群與紫藤花光紋波紋)
+  // =========================================================================
+  const shinobuModeState = {
+    butterflies: [],
+    ripples: []
+  };
+
+  function initShinobuMode() {
+    shinobuModeState.butterflies = [];
+    shinobuModeState.ripples = [];
+    for (let i = 0; i < 18; i++) {
+      shinobuModeState.butterflies.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        angle: Math.random() * Math.PI * 2,
+        speed: 1.5 + Math.random() * 1.4,
+        size: 13 + Math.random() * 9,
+        phase: Math.random() * Math.PI * 2
+      });
+    }
+  }
+
+  function triggerShinobuDance(x, y) {
+    shinobuModeState.ripples.push({ x, y, r: 10, alpha: 1.0 });
+    for (let i = 0; i < 6; i++) {
+      spawnTouchButterfly(x + (Math.random() - 0.5) * 40, y + (Math.random() - 0.5) * 40);
+    }
+    audio.playChime(null, 1.8, 0.08);
+  }
+
+  function updateAndDrawShinobuMode(ctx, time, dtScale) {
+    for (let i = shinobuModeState.ripples.length - 1; i >= 0; i--) {
+      const rp = shinobuModeState.ripples[i];
+      rp.r += 3.5 * dtScale;
+      rp.alpha -= 0.016 * dtScale;
+      if (rp.alpha <= 0) {
+        shinobuModeState.ripples.splice(i, 1);
+        continue;
+      }
+      ctx.save();
+      ctx.translate(rp.x, rp.y);
+      ctx.strokeStyle = `rgba(192, 132, 252, ${rp.alpha * 0.75})`;
+      ctx.lineWidth = 2;
+      for (let p = 0; p < 6; p++) {
+        const a = (p / 6) * Math.PI * 2 + time * 0.4;
+        ctx.beginPath();
+        ctx.ellipse(Math.cos(a) * rp.r * 0.55, Math.sin(a) * rp.r * 0.55, rp.r * 0.35, rp.r * 0.16, a, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    for (const b of shinobuModeState.butterflies) {
+      let targetAngle = b.angle + Math.sin(time * 1.6 + b.phase) * 0.04;
+      if (pointer.down) {
+        targetAngle = Math.atan2(pointer.y - b.y, pointer.x - b.x);
+      }
+      let diff = targetAngle - b.angle;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      b.angle += diff * 0.06 * dtScale;
+
+      b.x += Math.cos(b.angle) * b.speed * dtScale;
+      b.y += Math.sin(b.angle) * b.speed * dtScale;
+      if (b.x < -40) b.x = width + 40;
+      if (b.x > width + 40) b.x = -40;
+      if (b.y < -40) b.y = height + 40;
+      if (b.y > height + 40) b.y = -40;
+
+      drawShinobuButterfly(ctx, b.x, b.y, b.size, b.angle + Math.PI * 0.5, time * 13 + b.phase, 0.95);
+    }
+  }
+
+  // =========================================================================
+  // 10. 模式六：🎛️ 舒壓按鍵盤 (烤吐司＆呆萌小麵包機械鍵盤造型)
+  // =========================================================================
+  const fidgetState = {
+    keys: []
+  };
+
+  function initFidgetPad() {
+    fidgetState.keys = [];
+    const specs = [
+      { col: 0, row: 0, w: 1, h: 1, type: 'toast', label: '7', face: 'happy' },
+      { col: 0, row: 1, w: 1, h: 1, type: 'caramel', label: 'Open', face: 'none' },
+      { col: 0, row: 2, w: 1, h: 1, type: 'shift', label: 'SHIFT', face: 'none' },
+      { col: 0, row: 3, w: 1, h: 1, type: 'bun', label: '', face: 'cute' },
+
+      { col: 1, row: 0, w: 1, h: 1, type: 'toast', label: '8', face: 'smile' },
+      { col: 2, row: 0, w: 1, h: 1, type: 'toast', label: '9', face: 'happy' },
+      { col: 3, row: 0, w: 1, h: 1, type: 'caramel', label: '+', face: 'wink' },
+
+      { col: 1, row: 1, w: 1, h: 1, type: 'bun', label: '4', face: 'cute' },
+      { col: 2, row: 1, w: 1, h: 1, type: 'bun', label: '5', face: 'smile' },
+      { col: 3, row: 1, w: 1, h: 1, type: 'bun', label: '6', face: 'happy' },
+
+      { col: 1, row: 2, w: 1, h: 1, type: 'bun', label: '1', face: 'wink' },
+      { col: 2, row: 2, w: 1, h: 1, type: 'bun', label: '2', face: 'cute' },
+      { col: 3, row: 2, w: 1, h: 1, type: 'bun', label: '3', face: 'smile' },
+
+      { col: 1, row: 3, w: 1, h: 1, type: 'bun', label: '0', face: 'happy' },
+      { col: 2, row: 3, w: 1, h: 1, type: 'bun', label: '.', face: 'cute' },
+      { col: 3, row: 3, w: 1, h: 1, type: 'toast', label: 'OK', face: 'wink' }
+    ];
+
+    specs.forEach((s, idx) => {
+      fidgetState.keys.push({
+        id: idx,
+        ...s,
+        press: 0,
+        lit: 0
+      });
+    });
+  }
+
+  function getFidgetBoardMetrics() {
+    const padW = Math.min(width * 0.9, 360);
+    const padH = Math.min(height * 0.5, 320);
+    const px = width * 0.5 - padW * 0.5;
+    const py = height * 0.45 - padH * 0.5;
+    const innerPad = 14;
+    const gap = 8;
+    const cellW = (padW - innerPad * 2 - gap * 3) / 4;
+    const cellH = (padH - innerPad * 2 - gap * 3) / 4;
+    return { padW, padH, px, py, innerPad, gap, cellW, cellH };
+  }
+
+  function handleFidgetDown(x, y) {
+    const { px, py, innerPad, gap, cellW, cellH } = getFidgetBoardMetrics();
+    for (let i = 0; i < fidgetState.keys.length; i++) {
+      const k = fidgetState.keys[i];
+      const kx = px + innerPad + k.col * (cellW + gap);
+      const ky = py + innerPad + k.row * (cellH + gap);
+      const kw = cellW * k.w + gap * (k.w - 1);
+      const kh = cellH * k.h + gap * (k.h - 1);
+
+      if (x >= kx && x <= kx + kw && y >= ky && y <= ky + kh) {
+        k.press = 1;
+        k.lit = 1;
+        audio.playClick(true);
+        audio.playChime(i % 10, 0.75, 0.05);
+        return;
+      }
+    }
+  }
+
+  function updateAndDrawFidgetPad(ctx, time, dtScale) {
+    const { padW, padH, px, py, innerPad, gap, cellW, cellH } = getFidgetBoardMetrics();
+
+    ctx.save();
+    ctx.fillStyle = '#f8fafc';
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 3;
+    ctx.shadowColor = 'rgba(56, 189, 248, 0.28)';
+    ctx.shadowBlur = 24;
+    ctx.beginPath();
+    ctx.roundRect(px, py, padW, padH, 24);
+    ctx.fill();
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = '#1e293b';
+    ctx.beginPath();
+    ctx.roundRect(px + 9, py + 9, padW - 18, padH - 18, 18);
+    ctx.fill();
+
+    for (let i = 0; i < fidgetState.keys.length; i++) {
+      const k = fidgetState.keys[i];
+      k.press = Math.max(0, k.press - 0.14 * dtScale);
+      k.lit = Math.max(0, k.lit - 0.04 * dtScale);
+
+      const squish = k.press * 4.5;
+      const kx = px + innerPad + k.col * (cellW + gap) + squish * 0.3;
+      const ky = py + innerPad + k.row * (cellH + gap) + squish;
+      const kw = cellW * k.w + gap * (k.w - 1) - squish * 0.6;
+      const kh = cellH * k.h + gap * (k.h - 1) - squish * 0.6;
+
+      ctx.save();
+      const grad = ctx.createRadialGradient(
+        kx + kw * 0.38, ky + kh * 0.32, kw * 0.08,
+        kx + kw * 0.5, ky + kh * 0.5, Math.max(kw, kh) * 0.72
+      );
+
+      if (k.type === 'caramel') {
+        grad.addColorStop(0, '#e09145');
+        grad.addColorStop(0.65, '#b86224');
+        grad.addColorStop(1, '#7c3a12');
+      } else if (k.type === 'toast') {
+        grad.addColorStop(0, '#fff7ed');
+        grad.addColorStop(0.55, '#f6be82');
+        grad.addColorStop(1, '#c97836');
+      } else if (k.type === 'shift') {
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(0.72, '#f5efe6');
+        grad.addColorStop(1, '#d6c7b2');
+      } else {
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(0.62, '#fdf2e3');
+        grad.addColorStop(1, '#e6b98a');
+      }
+
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.roundRect(kx, ky, kw, kh, Math.min(kw, kh) * 0.34);
+      ctx.fill();
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.38)';
+      ctx.beginPath();
+      ctx.ellipse(kx + kw * 0.45, ky + kh * 0.25, kw * 0.28, kh * 0.14, -0.1, 0, Math.PI * 2);
+      ctx.fill();
+
+      const cx = kx + kw * 0.5;
+      const cy = ky + kh * 0.52;
+
+      if (k.type === 'caramel' && k.label === 'Open') {
+        ctx.fillStyle = 'rgba(255, 251, 245, 0.92)';
+        ctx.beginPath();
+        ctx.roundRect(kx + kw * 0.14, cy - kh * 0.2, kw * 0.72, kh * 0.4, 8);
+        ctx.fill();
+
+        ctx.fillStyle = '#b45309';
+        ctx.font = `bold ${Math.max(11, Math.floor(kh * 0.24))}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Open', cx, cy + 1);
+      } else if (k.type === 'shift') {
+        ctx.fillStyle = '#eab376';
+        ctx.beginPath();
+        ctx.roundRect(kx + kw * 0.22, ky + kh * 0.2, kw * 0.56, kh * 0.28, 6);
+        ctx.fill();
+
+        ctx.fillStyle = '#9a3412';
+        ctx.font = `bold ${Math.max(10, Math.floor(kh * 0.2))}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('SHIFT', cx, ky + kh * 0.72);
+      } else {
+        ctx.fillStyle = '#5c2d16';
+        ctx.strokeStyle = '#5c2d16';
+        ctx.lineWidth = 1.6;
+        ctx.lineCap = 'round';
+
+        const eyeSpread = kw * 0.17;
+        const eyeY = cy - kh * 0.08;
+
+        if (k.face === 'wink') {
+          ctx.beginPath();
+          ctx.arc(-eyeSpread + cx, eyeY, 1.8, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.moveTo(cx + eyeSpread - 2.5, eyeY);
+          ctx.lineTo(cx + eyeSpread + 2.5, eyeY);
+          ctx.stroke();
+        } else if (k.face === 'happy') {
+          ctx.beginPath();
+          ctx.arc(cx - eyeSpread, eyeY + 1, 2.2, Math.PI, 0);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(cx + eyeSpread, eyeY + 1, 2.2, Math.PI, 0);
+          ctx.stroke();
+        } else {
+          ctx.beginPath();
+          ctx.arc(cx - eyeSpread, eyeY, 1.8, 0, Math.PI * 2);
+          ctx.arc(cx + eyeSpread, eyeY, 1.8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.beginPath();
+        ctx.arc(cx, eyeY + 4, 2.4, 0.15 * Math.PI, 0.85 * Math.PI);
+        ctx.stroke();
+
+        if (k.label) {
+          ctx.fillStyle = 'rgba(120, 53, 15, 0.78)';
+          ctx.font = `bold ${Math.max(9, Math.floor(kh * 0.19))}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(k.label, cx, ky + kh * 0.8);
+        }
+      }
+
+      ctx.restore();
+    }
+
+    ctx.restore();
+  }
+
+  // =========================================================================
+  // 11. 模式七：🎐 深海琉璃風鈴
+  // =========================================================================
+  const chimeState = {
+    bells: []
+  };
+
+  function initChimes() {
+    chimeState.bells = [];
+    const count = 5;
+    const hues = [192, 210, 255, 285, 175];
+    const wishes = ['星海靜謐', '微光常伴', '心境澄明', '深海溫柔', '夢境安然'];
+    for (let i = 0; i < count; i++) {
+      chimeState.bells.push({
+        idx: i,
+        angle: (Math.random() - 0.5) * 0.1,
+        vel: 0,
+        hue: hues[i],
+        wish: wishes[i],
+        glow: 0
+      });
+    }
+  }
+
+  function handleChimesInteract(x, y) {
+    const beamY = height * 0.22;
+    const span = Math.min(width * 0.78, 520);
+    const startX = width * 0.5 - span * 0.5;
+    const step = span / (chimeState.bells.length - 1);
+
+    chimeState.bells.forEach((b, i) => {
+      const bx = startX + i * step;
+      if (Math.abs(x - bx) < 42 && y > beamY && y < beamY + 260) {
+        b.vel += (x < bx ? 0.08 : -0.08);
+        b.glow = 1.0;
+        audio.playChime(i * 2, 2.2, 0.1);
+      }
+    });
+  }
+
+  function updateAndDrawChimes(ctx, time, dtScale) {
+    const beamY = height * 0.22;
+    const span = Math.min(width * 0.78, 520);
+    const startX = width * 0.5 - span * 0.5;
+    const step = span / (chimeState.bells.length - 1);
+
+    ctx.save();
+    ctx.strokeStyle = 'rgba(125, 211, 252, 0.55)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(startX - 30, beamY);
+    ctx.lineTo(startX + span + 30, beamY);
+    ctx.stroke();
+
+    chimeState.bells.forEach((b, i) => {
+      const bx = startX + i * step;
+      const breeze = Math.sin(time * 1.4 + i) * 0.0012;
+      b.vel += (-0.035 * b.angle + breeze) * dtScale;
+      b.vel *= Math.pow(0.96, dtScale);
+      b.angle += b.vel * dtScale;
+      b.glow = Math.max(0, b.glow - 0.02 * dtScale);
+
+      ctx.save();
+      ctx.translate(bx, beamY);
+      ctx.rotate(b.angle);
+
+      // 懸線
+      ctx.strokeStyle = 'rgba(186, 230, 253, 0.5)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(0, 46);
+      ctx.stroke();
+
+      // 琉璃鐘罩
+      ctx.shadowColor = `hsla(${b.hue}, 95%, 68%, ${0.4 + b.glow * 0.6})`;
+      ctx.shadowBlur = 16 + b.glow * 18;
+      ctx.fillStyle = `hsla(${b.hue}, 85%, 65%, 0.42)`;
+      ctx.strokeStyle = `hsla(${b.hue}, 95%, 80%, 0.9)`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, 74, 26, Math.PI, 0);
+      ctx.lineTo(28, 92);
+      ctx.lineTo(-28, 92);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // 短冊祈願籤
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.78)';
+      ctx.strokeStyle = `hsla(${b.hue}, 90%, 75%, 0.7)`;
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.roundRect(-14, 112, 28, 92, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#e0f2fe';
+      ctx.font = '12px "Noto Sans TC", sans-serif';
+      ctx.textAlign = 'center';
+      for (let c = 0; c < b.wish.length; c++) {
+        ctx.fillText(b.wish[c], 0, 132 + c * 18);
+      }
+
+      ctx.restore();
+    });
+    ctx.restore();
+  }
+
+  // =========================================================================
+  // 12. 模式八：🪼 發光水母
+  // =========================================================================
+  const jellyfishes = [];
+
+  function initJellyfish() {
+    jellyfishes.length = 0;
+    const count = width < 640 ? 5 : 8;
+    const hues = [192, 275, 315, 175];
+    for (let i = 0; i < count; i++) {
+      jellyfishes.push({
+        x: 60 + Math.random() * (width - 120),
+        y: 100 + Math.random() * (height - 240),
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: -0.3 - Math.random() * 0.4,
+        r: 22 + Math.random() * 14,
+        hue: hues[i % hues.length],
+        phase: Math.random() * Math.PI * 2
+      });
+    }
+  }
+
+  function boostJellyfish(x, y) {
+    for (const jf of jellyfishes) {
+      const dx = jf.x - x;
+      const dy = jf.y - y;
+      const dist = Math.hypot(dx, dy);
+      if (dist < 180) {
+        jf.vy -= 2.2;
+        jf.vx += (dx / Math.max(20, dist)) * 1.4;
+      }
+    }
+    audio.playChime(null, 1.5, 0.06);
+  }
+
+  function updateAndDrawJellyfish(ctx, time, dtScale) {
+    for (const jf of jellyfishes) {
+      const pulse = Math.sin(time * 2.8 + jf.phase);
+      if (pulse > 0.85) jf.vy -= 0.04 * dtScale;
+      jf.vy += 0.012 * dtScale;
+      jf.vx *= Math.pow(0.98, dtScale);
+      jf.vy *= Math.pow(0.97, dtScale);
+
+      jf.x += jf.vx * dtScale;
+      jf.y += jf.vy * dtScale;
+
+      if (jf.x < 40) jf.vx += 0.05;
+      if (jf.x > width - 40) jf.vx -= 0.05;
+      if (jf.y < 80) jf.vy += 0.06;
+      if (jf.y > height - 150) jf.vy -= 0.08;
+
+      const rx = jf.r * (1 + pulse * 0.14);
+      const ry = jf.r * (0.85 - pulse * 0.12);
+
+      ctx.save();
+      ctx.translate(jf.x, jf.y);
+      ctx.shadowColor = `hsla(${jf.hue}, 95%, 70%, 0.75)`;
+      ctx.shadowBlur = 22;
+
+      // 觸手
+      ctx.strokeStyle = `hsla(${jf.hue}, 95%, 78%, 0.65)`;
+      ctx.lineWidth = 2;
+      for (let t = -2; t <= 2; t++) {
+        ctx.beginPath();
+        ctx.moveTo(t * (rx * 0.28), 0);
+        ctx.bezierCurveTo(
+          t * (rx * 0.35) + Math.sin(time * 4 + t) * 8,
+          jf.r * 0.8,
+          t * (rx * 0.25) - Math.sin(time * 4 + t) * 8,
+          jf.r * 1.5,
+          t * (rx * 0.3),
+          jf.r * 2.1
+        );
+        ctx.stroke();
+      }
+
+      // 傘蓋
+      const grad = ctx.createRadialGradient(0, -ry * 0.3, 4, 0, 0, rx);
+      grad.addColorStop(0, `hsla(${jf.hue}, 100%, 88%, 0.85)`);
+      grad.addColorStop(1, `hsla(${jf.hue}, 90%, 55%, 0.35)`);
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, rx, ry, 0, Math.PI, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // =========================================================================
+  // 13. 模式九：🫧 氣泡捏捏樂 (八種夢幻色系可隨時切換)
+  // =========================================================================
+  const bubblePalettes = [
+    { name: '深海星藍', hues: [195, 205, 215] },
+    { name: '極光幻紫', hues: [270, 285, 300] },
+    { name: '櫻花粉霞', hues: [330, 345, 355] },
+    { name: '翡翠碧波', hues: [155, 168, 180] },
+    { name: '流金琥珀', hues: [38, 46, 54] },
+    { name: '冰晶純白', hues: [200, 210, 220], white: true },
+    { name: '珊瑚橘光', hues: [14, 22, 30] },
+    { name: '夢幻彩虹', hues: [0, 45, 120, 195, 275, 330] }
+  ];
+
+  const bubbleState = {
+    paletteIdx: 0,
+    items: []
+  };
+
+  function initBubbles() {
+    bubbleState.items = [];
+    const cols = width < 640 ? 6 : 9;
+    const rows = width < 640 ? 6 : 6;
+    const r = Math.min((width * 0.84) / (cols * 2.3), (height * 0.56) / (rows * 2.3), 26);
+    const gap = r * 2.3;
+    const startX = width * 0.5 - ((cols - 1) * gap) * 0.5;
+    const startY = height * 0.46 - ((rows - 1) * gap) * 0.5;
+
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        bubbleState.items.push({
+          x: startX + col * gap,
+          y: startY + row * gap,
+          r,
+          popped: false,
+          scale: 1,
+          colorOffset: (row + col)
+        });
+      }
+    }
+  }
+
+  function popBubbleAt(x, y) {
+    for (const b of bubbleState.items) {
+      if (!b.popped && Math.hypot(x - b.x, y - b.y) < b.r * 1.15) {
+        b.popped = true;
+        b.scale = 0.72;
+        audio.playPop(0.9 + Math.random() * 0.45);
+      }
+    }
+  }
+
+  function updateAndDrawBubbles(ctx, dtScale) {
+    const pal = bubblePalettes[bubbleState.paletteIdx];
+    for (const b of bubbleState.items) {
+      const targetScale = b.popped ? 0.78 : 1.0;
+      b.scale += (targetScale - b.scale) * 0.18 * dtScale;
+      const hue = pal.hues[b.colorOffset % pal.hues.length];
+
+      ctx.save();
+      ctx.translate(b.x, b.y);
+      ctx.scale(b.scale, b.scale);
+
+      if (b.popped) {
+        ctx.fillStyle = pal.white ? 'rgba(226, 232, 240, 0.16)' : `hsla(${hue}, 70%, 35%, 0.25)`;
+        ctx.strokeStyle = pal.white ? 'rgba(226, 232, 240, 0.35)' : `hsla(${hue}, 80%, 55%, 0.4)`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(0, 0, b.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      } else {
+        const grad = ctx.createRadialGradient(-b.r * 0.3, -b.r * 0.3, b.r * 0.1, 0, 0, b.r);
+        if (pal.white) {
+          grad.addColorStop(0, '#ffffff');
+          grad.addColorStop(0.6, '#e2e8f0');
+          grad.addColorStop(1, '#64748b');
+        } else {
+          grad.addColorStop(0, '#ffffff');
+          grad.addColorStop(0.35, `hsla(${hue}, 95%, 68%, 0.9)`);
+          grad.addColorStop(1, `hsla(${hue}, 90%, 38%, 0.85)`);
+        }
+        ctx.shadowColor = pal.white ? 'rgba(255,255,255,0.5)' : `hsla(${hue}, 95%, 65%, 0.55)`;
+        ctx.shadowBlur = 12;
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(0, 0, b.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+  }
+
+  // =========================================================================
+  // 15. 模式十一：🫁 4-7-8 呼吸
+  // =========================================================================
+  function updateAndDrawBreathe(ctx, time) {
+    const cycle = time % 19; // 4s 吸氣 + 7s 屏息 + 8s 吐氣
+    let phaseText = '';
+    let scale = 0.5;
+
+    if (cycle < 4) {
+      phaseText = `緩慢吸氣 · ${Math.ceil(4 - cycle)}s`;
+      scale = 0.45 + (cycle / 4) * 0.55;
+    } else if (cycle < 11) {
+      phaseText = `輕柔屏息 · ${Math.ceil(11 - cycle)}s`;
+      scale = 1.0;
+    } else {
+      phaseText = `悠長吐氣 · ${Math.ceil(19 - cycle)}s`;
+      scale = 1.0 - ((cycle - 11) / 8) * 0.55;
+    }
+
+    const cx = width * 0.5;
+    const cy = height * 0.45;
+    const maxR = Math.min(width, height) * 0.25;
+    const r = maxR * scale;
+
+    ctx.save();
+    const grad = ctx.createRadialGradient(cx, cy, r * 0.1, cx, cy, r);
+    grad.addColorStop(0, 'rgba(125, 211, 252, 0.55)');
+    grad.addColorStop(0.7, 'rgba(56, 189, 248, 0.22)');
+    grad.addColorStop(1, 'rgba(14, 165, 233, 0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(186, 230, 253, 0.75)';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = '#e0f2fe';
+    ctx.font = 'bold 20px "Noto Sans TC", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(phaseText, cx, cy);
+    ctx.restore();
+  }
+
+  // =========================================================================
+  // 16. 模式十二：⏳ 星光流沙
+  // =========================================================================
+  const sandParticles = [];
+
+  function initSand() {
+    sandParticles.length = 0;
+  }
+
+  function spawnSand(x, y) {
+    const hues = [195, 215, 265, 45, 175];
+    const hue = hues[Math.floor(globalTime * 2) % hues.length];
+    for (let i = 0; i < 6; i++) {
+      sandParticles.push({
+        x: x + (Math.random() - 0.5) * 18,
+        y: y + (Math.random() - 0.5) * 12,
+        vy: 1.5 + Math.random() * 2,
+        hue
+      });
+    }
+    if (sandParticles.length > 900) sandParticles.splice(0, sandParticles.length - 900);
+  }
+
+  function updateAndDrawSand(ctx, dtScale) {
+    if (pointer.down) spawnSand(pointer.x, pointer.y);
+    const floorY = height - 115;
+
+    for (const s of sandParticles) {
+      if (s.y < floorY) {
+        s.y = Math.min(floorY, s.y + s.vy * dtScale);
+        s.x += (Math.random() - 0.5) * 0.9;
+      }
+      ctx.fillStyle = `hsla(${s.hue}, 92%, 70%, 0.88)`;
+      ctx.fillRect(s.x, s.y, 3.2, 3.2);
+    }
+  }
+
+  // =========================================================================
+  // 17. 模式十三：🌧️ 深海雨夜 & 🧲 磁力流體
+  // =========================================================================
+  const rainDrops = [];
+  const rainRipples = [];
+
+  function initRain() {
+    rainDrops.length = 0;
+    rainRipples.length = 0;
+    for (let i = 0; i < 85; i++) {
+      rainDrops.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        len: 12 + Math.random() * 14,
+        speed: 7 + Math.random() * 5
+      });
+    }
+  }
+
+  function spawnRainRipple(x, y) {
+    rainRipples.push({ x, y, r: 6, alpha: 0.95 });
+    audio.playChime(null, 1.4, 0.05);
+  }
+
+  function updateAndDrawRain(ctx, dtScale) {
+    ctx.strokeStyle = 'rgba(125, 211, 252, 0.32)';
+    ctx.lineWidth = 1.3;
+    for (const d of rainDrops) {
+      d.y += d.speed * dtScale;
+      if (d.y > height - 100) {
+        if (Math.random() < 0.12) {
+          rainRipples.push({ x: d.x, y: d.y, r: 4, alpha: 0.55 });
+        }
+        d.y = -20;
+        d.x = Math.random() * width;
+      }
+      ctx.beginPath();
+      ctx.moveTo(d.x, d.y);
+      ctx.lineTo(d.x - 1.5, d.y + d.len);
+      ctx.stroke();
+    }
+
+    for (let i = rainRipples.length - 1; i >= 0; i--) {
+      const rp = rainRipples[i];
+      rp.r += 2.2 * dtScale;
+      rp.alpha -= 0.015 * dtScale;
+      if (rp.alpha <= 0) {
+        rainRipples.splice(i, 1);
+        continue;
+      }
+      ctx.strokeStyle = `rgba(56, 189, 248, ${rp.alpha})`;
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.ellipse(rp.x, rp.y, rp.r * 1.4, rp.r * 0.55, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+
+  function updateAndDrawFerro(ctx, time) {
+    const cx = width * 0.5;
+    const cy = height * 0.46;
+    const baseR = Math.min(width, height) * 0.2;
+    const spikes = 32;
+
+    ctx.save();
+    ctx.shadowColor = '#38bdf8';
+    ctx.shadowBlur = 26;
+    ctx.fillStyle = '#090d16';
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2.5;
+
+    ctx.beginPath();
+    for (let i = 0; i <= spikes * 2; i++) {
+      const a = (i / (spikes * 2)) * Math.PI * 2;
+      const sx = cx + Math.cos(a) * baseR;
+      const sy = cy + Math.sin(a) * baseR;
+      const distToPointer = Math.hypot(pointer.x - sx, pointer.y - sy);
+      const magnetBoost = pointer.down ? Math.max(0, 1 - distToPointer / 240) * 48 : 12;
+      const wave = (i % 2 === 0 ? 1 : 0.2) * (10 + Math.sin(time * 5 + i) * 5 + magnetBoost);
+      const r = baseR + wave;
+      const px = cx + Math.cos(a) * r;
+      const py = cy + Math.sin(a) * r;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // =========================================================================
+  // 18. 模式十四：🪷 夜光蓮池 (指尖綻放夜光睡蓮與游動發光錦鯉)
+  // =========================================================================
+  const lotuses = [];
+  const koiFish = [];
+
+  function initLotus() {
+    lotuses.length = 0;
+    koiFish.length = 0;
+    spawnLotus(width * 0.35, height * 0.44);
+    spawnLotus(width * 0.65, height * 0.52);
+
+    const fishCount = width < 640 ? 5 : 8;
+    for (let i = 0; i < fishCount; i++) {
+      const isGold = i % 2 === 0;
+      koiFish.push({
+        x: Math.random() * width,
+        y: height * (0.25 + Math.random() * 0.5),
+        angle: Math.random() * Math.PI * 2,
+        speed: 1.1 + Math.random() * 0.7,
+        size: 16 + Math.random() * 7,
+        hue: isGold ? 28 : 194,
+        phase: Math.random() * Math.PI * 2
+      });
+    }
+  }
+
+  function spawnLotus(x, y) {
+    lotuses.push({
+      x,
+      y,
+      scale: 0.1,
+      targetScale: 0.75 + Math.random() * 0.45,
+      hue: Math.random() < 0.6 ? 195 : 295,
+      phase: Math.random() * Math.PI * 2
+    });
+    if (lotuses.length > 14) lotuses.shift();
+    audio.playChime(null, 2.0, 0.08);
+  }
+
+  function updateAndDrawLotus(ctx, time, dtScale) {
+    for (const fish of koiFish) {
+      let targetAngle = fish.angle + Math.sin(time * 1.4 + fish.phase) * 0.025;
+      if (pointer.down) {
+        const dx = pointer.x - fish.x;
+        const dy = pointer.y - fish.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist > 30 && dist < 320) {
+          targetAngle = Math.atan2(dy, dx);
+        }
+      }
+
+      let diff = targetAngle - fish.angle;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      fish.angle += diff * 0.05 * dtScale;
+
+      const curSpeed = pointer.down ? fish.speed * 1.45 : fish.speed;
+      fish.x += Math.cos(fish.angle) * curSpeed * dtScale;
+      fish.y += Math.sin(fish.angle) * curSpeed * dtScale;
+
+      if (fish.x < -50) fish.x = width + 50;
+      if (fish.x > width + 50) fish.x = -50;
+      if (fish.y < 70) fish.angle = Math.abs(fish.angle);
+      if (fish.y > height - 130) fish.angle = -Math.abs(fish.angle);
+
+      const wag = Math.sin(time * 9 + fish.phase) * 0.32;
+      ctx.save();
+      ctx.translate(fish.x, fish.y);
+      ctx.rotate(fish.angle);
+      ctx.shadowColor = `hsla(${fish.hue}, 95%, 65%, 0.75)`;
+      ctx.shadowBlur = 14;
+
+      ctx.save();
+      ctx.translate(-fish.size * 0.85, 0);
+      ctx.rotate(wag);
+      ctx.fillStyle = `hsla(${fish.hue}, 95%, 72%, 0.78)`;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-fish.size * 0.85, -fish.size * 0.48);
+      ctx.quadraticCurveTo(-fish.size * 0.45, 0, -fish.size * 0.85, fish.size * 0.48);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+
+      ctx.fillStyle = `hsla(${fish.hue}, 90%, 78%, 0.65)`;
+      ctx.beginPath();
+      ctx.ellipse(0, -fish.size * 0.38, fish.size * 0.28, fish.size * 0.14, -0.4, 0, Math.PI * 2);
+      ctx.ellipse(0, fish.size * 0.38, fish.size * 0.28, fish.size * 0.14, 0.4, 0, Math.PI * 2);
+      ctx.fill();
+
+      const bodyGrad = ctx.createLinearGradient(fish.size, 0, -fish.size, 0);
+      bodyGrad.addColorStop(0, '#ffffff');
+      bodyGrad.addColorStop(0.45, `hsla(${fish.hue}, 95%, 66%, 0.92)`);
+      bodyGrad.addColorStop(1, `hsla(${fish.hue + 14}, 90%, 46%, 0.85)`);
+      ctx.fillStyle = bodyGrad;
+      ctx.beginPath();
+      ctx.moveTo(fish.size, 0);
+      ctx.quadraticCurveTo(fish.size * 0.2, -fish.size * 0.44, -fish.size * 0.9, 0);
+      ctx.quadraticCurveTo(fish.size * 0.2, fish.size * 0.44, fish.size, 0);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    for (const lt of lotuses) {
+      lt.scale += (lt.targetScale - lt.scale) * 0.08 * dtScale;
+      const bobY = lt.y + Math.sin(time * 1.6 + lt.phase) * 4;
+
+      ctx.save();
+      ctx.translate(lt.x, bobY);
+      ctx.scale(lt.scale, lt.scale);
+
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.24)';
+      ctx.beginPath();
+      ctx.arc(0, 8, 42, 0.2, Math.PI * 1.85);
+      ctx.lineTo(0, 8);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.shadowColor = `hsla(${lt.hue}, 95%, 70%, 0.75)`;
+      ctx.shadowBlur = 18;
+      const petals = 10;
+      for (let p = 0; p < petals; p++) {
+        ctx.save();
+        ctx.rotate((p / petals) * Math.PI * 2 + Math.sin(time * 0.8 + lt.phase) * 0.06);
+        ctx.fillStyle = `hsla(${lt.hue}, 92%, 74%, 0.78)`;
+        ctx.beginPath();
+        ctx.ellipse(0, -18, 8, 22, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      ctx.fillStyle = '#fde047';
+      ctx.beginPath();
+      ctx.arc(0, 0, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // =========================================================================
+  // 19. 模式切換與專屬微調按鈕生成
+  // =========================================================================
+  const modeDescriptions = {
+    stardust: '輕觸或滑動螢幕，引導星塵在黑藍深海中匯聚流轉',
+    constellation: '點擊或直接滑動經過星辰，在深海夜空連出專屬你的星座光線',
+    slime: '揉捏呆萌豆豆眼起泡史萊姆、撒上亮片與糖果珠果凍，或淋上冰晶脆皮',
+    crispy: '反覆按壓捏揉星光脆皮球，感受清脆回彈與發光細紋癒合',
+    shinobu: '滑動或輕點螢幕，引導蝴蝶忍的紫白青綠蝶群與紫藤光紋翩翩共舞',
+    fidget: '按下呆萌小麵包與烤吐司機械按鍵盤，享受療癒烘焙鍵帽回彈聲',
+    chimes: '輕拂深海琉璃風鈴，聆聽空靈清澈的五聲音階鈴響',
+    jellyfish: '輕觸發光水母周圍的水流，讓它們在星海中優雅上浮擺動',
+    bubbles: '盡情捏破發光氣泡，隨時切換八種夢幻霓虹色系',
+    perler: '點擊或滑動釘板擺放 75 色發光拼豆，熨燙定型後可製成隨風搖晃的立體吊飾',
+    breathe: '跟隨深海微光光環的節奏進行 4-7-8 放鬆深呼吸',
+    sand: '指尖傾瀉星光流沙，堆積出專屬的深海星沙小丘',
+    rain: '聆聽深海夜雨滴落水面，泛起一圈圈微光漣漪',
+    ferro: '指尖化身強力磁場，吸引黑藍磁力流體綻放星刺',
+    lotus: '輕觸夜光蓮池水面，喚醒睡蓮綻放並引導發光錦鯉嬉戲'
+  };
+
+  function renderPerler75Grid() {
+    const drawer = document.getElementById('perlerPaletteDrawer');
+    const gridEl = document.getElementById('perlerColorGrid');
+    const labelEl = document.getElementById('perlerColorIndexLabel');
+    if (!drawer || !gridEl) return;
+
+    if (currentMode !== 'perler' || !perlerState.paletteOpen) {
+      drawer.classList.add('hidden');
+      return;
+    }
+
+    drawer.classList.remove('hidden');
+    const cur = perlerColors[perlerState.colorIdx];
+    labelEl.textContent = `#${String(perlerState.colorIdx + 1).padStart(2, '0')} ${cur.name}（共75色）`;
+
+    gridEl.innerHTML = '';
+    perlerColors.forEach((col, idx) => {
+      const swatch = document.createElement('button');
+      swatch.title = `#${idx + 1} ${col.name}`;
+      swatch.className = `w-5 h-5 rounded-full border transition cursor-pointer ${
+        idx === perlerState.colorIdx && !perlerState.eraser
+          ? 'scale-125 border-white ring-2 ring-cyan-300 z-10'
+          : 'border-white/25 hover:scale-110'
+      }`;
+      swatch.style.backgroundColor = col.hex;
+      swatch.addEventListener('click', () => {
+        perlerState.colorIdx = idx;
+        perlerState.eraser = false;
+        audio.playPop(1.25);
+        renderPerler75Grid();
+        updateSubControls();
+      });
+      gridEl.appendChild(swatch);
+    });
+  }
+
+  function updateSubControls() {
+    const box = document.getElementById('subControls');
+    box.innerHTML = '';
+    renderPerler75Grid();
+
+    const makeBtn = (text, onClick) => {
+      const btn = document.createElement('button');
+      btn.className = 'sub-pill rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-medium cursor-pointer';
+      btn.textContent = text;
+      btn.addEventListener('click', onClick);
+      box.appendChild(btn);
+    };
+
+    if (currentMode === 'stardust') {
+      makeBtn(stardustRepel ? '🧲 切換：引力模式' : '💫 切換：斥力爆散', () => {
+        stardustRepel = !stardustRepel;
+        updateSubControls();
+      });
+    } else if (currentMode === 'constellation') {
+      makeBtn('🧹 清除星線重連', () => {
+        constellationLinks.length = 0;
+        constellationStars.forEach(s => { s.lit = false; });
+        activeStarIdx = -1;
+        audio.playPop(1.1);
+      });
+      makeBtn('✨ 重新生成星圖', () => {
+        initConstellation();
+        audio.playChime(5, 1.3, 0.08);
+      });
+    } else if (currentMode === 'slime') {
+      makeBtn('🎨 換史萊姆色', () => {
+        slimeState.themeIdx = (slimeState.themeIdx + 1) % slimeThemes.length;
+        audio.playPop(1.1);
+      });
+      makeBtn('✨ 撒亮片', () => { addSlimeToppings('glitter', 14); audio.playPop(1.3); });
+      makeBtn('🍬 糖果珠', () => { addSlimeToppings('bead', 9); audio.playPop(1.1); });
+      makeBtn('🍓 果凍配料', () => { addSlimeToppings('jelly', 6); audio.playPop(0.95); });
+      makeBtn('❄️ 淋上脆皮', () => applySlimeGlaze());
+      makeBtn('🫧 戳破泡泡', () => {
+        pokeSlime(width * 0.5, height * 0.47, 26);
+        audio.playPop(1.35);
+      });
+    } else if (currentMode === 'crispy') {
+      makeBtn('🎨 脆皮色：' + crispyThemes[crispyState.themeIdx].name, () => {
+        crispyState.themeIdx = (crispyState.themeIdx + 1) % crispyThemes.length;
+        audio.playPop(1.15);
+        updateSubControls();
+      });
+      makeBtn('❄️ 重新淋脆皮', () => {
+        crispyState.cracks = [];
+        crispyState.velY = -0.18;
+        audio.playChime(7, 1.3, 0.08);
+      });
+    } else if (currentMode === 'shinobu') {
+      makeBtn('🦋 召喚蝶群共舞', () => triggerShinobuDance(width * 0.5, height * 0.45));
+    } else if (currentMode === 'bubbles') {
+      makeBtn('🎨 氣泡色：' + bubblePalettes[bubbleState.paletteIdx].name, () => {
+        bubbleState.paletteIdx = (bubbleState.paletteIdx + 1) % bubblePalettes.length;
+        bubbleState.items.forEach(b => {
+          b.popped = false;
+          b.scale = 1.15;
+        });
+        audio.playChime(6, 1.2, 0.08);
+        updateSubControls();
+      });
+      makeBtn('🫧 全部復原', () => {
+        bubbleState.items.forEach(b => {
+          b.popped = false;
+          b.scale = 1.15;
+        });
+        audio.playPop(1.2);
+      });
+    } else if (currentMode === 'perler') {
+      const curCol = perlerColors[perlerState.colorIdx];
+      makeBtn(`🎨 75色卡：#${String(perlerState.colorIdx + 1).padStart(2, '0')} ${curCol.name}`, () => {
+        perlerState.paletteOpen = !perlerState.paletteOpen;
+        audio.playPop(1.2);
+        renderPerler75Grid();
+      });
+      if (!perlerState.charmMode) {
+        makeBtn(perlerState.eraser ? '🧽 橡皮擦：開' : '🧽 橡皮擦', () => {
+          perlerState.eraser = !perlerState.eraser;
+          audio.playClick(perlerState.eraser);
+          updateSubControls();
+        });
+        makeBtn('🔥 熨燙成吊飾', () => triggerPerlerIron());
+      } else {
+        makeBtn(`🔗 扣環：${charmStyles[perlerState.charmStyleIdx]}`, () => {
+          perlerState.charmStyleIdx = (perlerState.charmStyleIdx + 1) % charmStyles.length;
+          perlerState.charmVel += 0.08;
+          audio.playChime(7, 1.2, 0.08);
+          updateSubControls();
+        });
+      }
+      makeBtn(perlerState.charmMode ? '✏️ 回釘板編輯' : '🔑 掛成吊飾', () => togglePerlerCharm());
+      makeBtn('⭐ 星星', () => { initPerler('star'); audio.playChime(5, 1.2, 0.08); updateSubControls(); });
+      makeBtn('💖 愛心', () => { initPerler('heart'); audio.playChime(6, 1.2, 0.08); updateSubControls(); });
+    }
+  }
+
+  function switchMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.mode === mode);
+    });
+    document.getElementById('modeSubtitle').textContent = modeDescriptions[mode] || '';
+    updateSubControls();
+    audio.playChime(null, 1.1, 0.05);
+  }
+
+  function onResizeRebuild() {
+    initBgStars();
+    if (stardustParticles.length === 0) initStardust();
+    if (constellationStars.length === 0) initConstellation();
+    if (slimeState.points.length === 0) initSlime();
+    if (shinobuModeState.butterflies.length === 0) initShinobuMode();
+    if (fidgetState.keys.length === 0) initFidgetPad();
+    if (chimeState.bells.length === 0) initChimes();
+    if (jellyfishes.length === 0) initJellyfish();
+    initBubbles();
+    if (perlerState.grid.length === 0) initPerler('heart');
+    if (rainDrops.length === 0) initRain();
+    if (lotuses.length === 0) initLotus();
+  }
+
+  // =========================================================================
+  // 20. 統一滑鼠與觸控互動處理
+  // =========================================================================
+  function handlePointerStart(x, y) {
+    audio.init();
+    pointer.down = true;
+    pointer.x = pointer.px = x;
+    pointer.y = pointer.py = y;
+
+    if (currentMode === 'stardust') {
+      spawnClickStarburst(x, y);
+    } else if (currentMode === 'constellation') {
+      handleConstellationDown(x, y);
+    } else if (currentMode === 'slime') {
+      pokeSlime(x, y, 22);
+    } else if (currentMode === 'crispy') {
+      squishCrispyBall(x, y);
+    } else if (currentMode === 'shinobu') {
+      triggerShinobuDance(x, y);
+    } else if (currentMode === 'fidget') {
+      handleFidgetDown(x, y);
+    } else if (currentMode === 'chimes') {
+      handleChimesInteract(x, y);
+    } else if (currentMode === 'jellyfish') {
+      boostJellyfish(x, y);
+    } else if (currentMode === 'bubbles') {
+      popBubbleAt(x, y);
+    } else if (currentMode === 'perler') {
+      interactPerlerAt(x, y);
+    } else if (currentMode === 'sand') {
+      spawnSand(x, y);
+    } else if (currentMode === 'rain') {
+      spawnRainRipple(x, y);
+    } else if (currentMode === 'lotus') {
+      spawnLotus(x, y);
+    }
+  }
+
+  function handlePointerMove(x, y) {
+    pointer.vx = x - pointer.x;
+    pointer.vy = y - pointer.y;
+    pointer.px = pointer.x;
+    pointer.py = pointer.y;
+    pointer.x = x;
+    pointer.y = y;
+
+    if (!pointer.down) return;
+
+    if (currentMode === 'constellation') {
+      handleConstellationMove(x, y);
+    } else if (currentMode === 'slime') {
+      pokeSlime(x, y, 10);
+    } else if (currentMode === 'crispy') {
+      squishCrispyBall(x, y);
+    } else if (currentMode === 'shinobu') {
+      if (Math.random() < 0.45) spawnTouchButterfly(x, y);
+    } else if (currentMode === 'chimes') {
+      handleChimesInteract(x, y);
+    } else if (currentMode === 'bubbles') {
+      popBubbleAt(x, y);
+    } else if (currentMode === 'perler') {
+      interactPerlerAt(x, y);
+    }
+  }
+
+  function handlePointerEnd() {
+    pointer.down = false;
+  }
+
+  canvas.addEventListener('mousedown', (e) => handlePointerStart(e.clientX, e.clientY));
+  window.addEventListener('mousemove', (e) => handlePointerMove(e.clientX, e.clientY));
+  window.addEventListener('mouseup', handlePointerEnd);
+
+  canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (e.touches.length > 0) {
+      handlePointerStart(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  }, { passive: false });
+
+  canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (e.touches.length > 0) {
+      handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  }, { passive: false });
+
+  window.addEventListener('touchend', handlePointerEnd);
+
+  // 導航與頂部工具按鈕事件綁定
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchMode(btn.dataset.mode));
+  });
+
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    if (currentMode === 'stardust') initStardust();
+    else if (currentMode === 'constellation') initConstellation();
+    else if (currentMode === 'slime') initSlime();
+    else if (currentMode === 'crispy') { crispyState.cracks = []; }
+    else if (currentMode === 'shinobu') initShinobuMode();
+    else if (currentMode === 'bubbles') initBubbles();
+    else if (currentMode === 'perler') initPerler('empty');
+    else if (currentMode === 'sand') initSand();
+    else if (currentMode === 'lotus') initLotus();
+    audio.playChime(4, 1.4, 0.08);
+  });
+
+  document.getElementById('ambientBtn').addEventListener('click', () => {
+    const on = audio.toggleAmbient();
+    document.getElementById('ambientLabel').textContent = on ? '海浪聲：開' : '海浪聲：關';
+    document.getElementById('ambientBtn').classList.toggle('border-cyan-400', on);
+  });
+
+  document.getElementById('soundBtn').addEventListener('click', () => {
+    const muted = audio.toggleMute();
+    document.getElementById('iconSoundOn').classList.toggle('hidden', muted);
+    document.getElementById('iconSoundOff').classList.toggle('hidden', !muted);
+  });
+
+  // =========================================================================
+  // 21. 主動畫循環 (含安全錯誤捕捉保護)
+  // =========================================================================
+  let lastTime = 0;
+  function animate(timestamp) {
+    try {
+      const dt = Math.min(0.05, (timestamp - lastTime) / 1000 || 0.016);
+      lastTime = timestamp;
+      globalTime += dt;
+      const dtScale = dt * 60;
+
+      drawDeepOceanBackdrop(ctx, globalTime, dtScale);
+
+      if (currentMode === 'stardust') {
+        updateAndDrawStardust(ctx, globalTime, dtScale);
+      } else if (currentMode === 'constellation') {
+        updateAndDrawConstellation(ctx, globalTime);
+      } else if (currentMode === 'slime') {
+        updateAndDrawSlime(ctx, globalTime, dtScale);
+      } else if (currentMode === 'crispy') {
+        updateAndDrawCrispyMode(ctx, globalTime, dtScale);
+      } else if (currentMode === 'shinobu') {
+        updateAndDrawShinobuMode(ctx, globalTime, dtScale);
+      } else if (currentMode === 'fidget') {
+        updateAndDrawFidgetPad(ctx, globalTime, dtScale);
+      } else if (currentMode === 'chimes') {
+        updateAndDrawChimes(ctx, globalTime, dtScale);
+      } else if (currentMode === 'jellyfish') {
+        updateAndDrawJellyfish(ctx, globalTime, dtScale);
+      } else if (currentMode === 'bubbles') {
+        updateAndDrawBubbles(ctx, dtScale);
+      } else if (currentMode === 'perler') {
+        updateAndDrawPerler(ctx, globalTime, dtScale);
+      } else if (currentMode === 'breathe') {
+        updateAndDrawBreathe(ctx, globalTime);
+      } else if (currentMode === 'sand') {
+        updateAndDrawSand(ctx, dtScale);
+      } else if (currentMode === 'rain') {
+        updateAndDrawRain(ctx, dtScale);
+      } else if (currentMode === 'ferro') {
+        updateAndDrawFerro(ctx, globalTime);
+      } else if (currentMode === 'lotus') {
+        updateAndDrawLotus(ctx, globalTime, dtScale);
+      }
+
+      updateAndDrawTouchButterflies(ctx, globalTime, dtScale);
+    } catch (err) {
+      // 防止任何單幀意外中斷主迴圈
+    }
+    requestAnimationFrame(animate);
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+  updateSubControls();
+  requestAnimationFrame(animate);
+})();
+</script>
+</body>
+</html>
