@@ -1,0 +1,1601 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>紓壓脆皮捏捏 - 100層超厚脆殼 ASMR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Noto Sans TC', sans-serif;
+            background: radial-gradient(circle at 50% 45%, #fff9f2 0%, #ffeef4 55%, #f2edff 100%);
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        #squishy-canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            cursor: grab;
+        }
+
+        #squishy-canvas:active {
+            cursor: grabbing;
+        }
+
+        .macaron-glass {
+            background: rgba(255, 255, 255, 0.84);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.95);
+            box-shadow: 0 8px 28px rgba(219, 168, 182, 0.24);
+        }
+
+        .btn-squish {
+            transition: transform 0.14s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.14s ease, filter 0.14s ease;
+        }
+        .btn-squish:hover {
+            transform: translateY(-2px) scale(1.03);
+        }
+        .btn-squish:active {
+            transform: translateY(1px) scale(0.93);
+        }
+
+        .pill-btn {
+            transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .pill-btn.active {
+            transform: scale(1.12) translateY(-3px);
+            box-shadow: 0 6px 16px rgba(244, 114, 182, 0.38);
+            border-color: #ec4899;
+            background: #ffffff;
+        }
+
+        /* 100層達成金色閃耀特效 */
+        @keyframes goldPulse {
+            0%, 100% { box-shadow: 0 0 18px rgba(251, 191, 36, 0.7), inset 0 0 10px rgba(254, 240, 138, 0.8); }
+            50% { box-shadow: 0 0 34px rgba(245, 158, 11, 0.95), inset 0 0 16px rgba(255, 255, 255, 1); }
+        }
+        .century-glow {
+            animation: goldPulse 1.4s infinite ease-in-out;
+            border-color: #f59e0b !important;
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
+        }
+
+        @keyframes popFloat {
+            0% { transform: translate(-50%, 0) scale(0.7); opacity: 1; }
+            55% { transform: translate(-50%, -38px) scale(1.12); opacity: 1; }
+            100% { transform: translate(-50%, -64px) scale(0.95); opacity: 0; }
+        }
+        .asmr-pop {
+            position: fixed;
+            pointer-events: none;
+            font-weight: 900;
+            z-index: 30;
+            animation: popFloat 0.85s ease-out forwards;
+            text-shadow: 0 2px 8px rgba(255, 255, 255, 0.98);
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 主互動物理與千層脆皮畫布 -->
+    <canvas id="squishy-canvas"></canvas>
+
+    <!-- 頂部狀態與百層脆皮計數器 -->
+    <header class="fixed top-0 left-0 right-0 z-20 p-2.5 sm:p-4 pointer-events-none">
+        <div class="max-w-2xl mx-auto flex flex-col gap-2">
+            
+            <!-- 第一排：遊戲標題、模式切換、音效與清空碎片 -->
+            <div class="flex items-center justify-between gap-2">
+                <div class="macaron-glass px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl flex items-center gap-2 pointer-events-auto">
+                    <span class="text-xl sm:text-2xl">🍯</span>
+                    <div>
+                        <h1 class="text-sm sm:text-base font-black text-rose-500 tracking-wide leading-tight">
+                            紓壓脆皮捏捏
+                        </h1>
+                        <p class="text-[10px] font-bold text-amber-700/75">
+                            100層超厚脆殼 ASMR
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-1.5 sm:gap-2 pointer-events-auto">
+                    <!-- 互動模式切換：捏爆模式 vs 淋醬模式 -->
+                    <button id="btn-mode-toggle" onclick="toggleToolMode()" class="btn-squish px-3 py-2 rounded-2xl font-black text-xs sm:text-sm shadow-md border-2 border-white bg-gradient-to-r from-pink-500 to-rose-500 text-white flex items-center gap-1">
+                        <span id="mode-icon">🤏</span>
+                        <span id="mode-label">捏爆模式</span>
+                    </button>
+
+                    <!-- 清空地上碎片 -->
+                    <button onclick="clearFloorShards()" class="btn-squish w-9 h-9 rounded-xl macaron-glass text-amber-700 hover:bg-amber-50 flex items-center justify-center text-base" title="掃乾淨掉落的碎片">
+                        🧹
+                    </button>
+
+                    <!-- 音效開關 -->
+                    <button id="btn-audio" onclick="toggleAudio()" class="btn-squish w-9 h-9 rounded-xl macaron-glass text-rose-600 hover:bg-rose-50 flex items-center justify-center text-base" title="切換 ASMR 音效">
+                        🔊
+                    </button>
+                </div>
+            </div>
+
+            <!-- 第二排：醒目百層脆皮層數儀表板 -->
+            <div id="layer-card" class="macaron-glass px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-2xl pointer-events-auto transition-all duration-300">
+                <div class="flex items-center justify-between gap-2 mb-1">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs sm:text-sm font-black text-gray-700">脆皮層數：</span>
+                        <span id="layer-count-num" class="text-xl sm:text-2xl font-black text-amber-600 font-mono leading-none">1</span>
+                        <span class="text-xs sm:text-sm font-black text-amber-600">層</span>
+                        <span id="layer-rank-badge" class="text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                            🍬 薄脆糖衣
+                        </span>
+                    </div>
+
+                    <div class="text-right">
+                        <span class="text-[10px] text-purple-500 font-bold">紓壓值 </span>
+                        <span id="relief-score" class="text-xs sm:text-sm font-black text-gray-800 font-mono">0</span>
+                    </div>
+                </div>
+
+                <!-- 進度條 (0 -> 100 層進度，超過 100 層顯示超載彩虹光) -->
+                <div class="w-full h-2.5 bg-rose-100/90 rounded-full overflow-hidden p-0.5 relative">
+                    <div id="layer-bar" class="h-full rounded-full bg-gradient-to-r from-amber-300 via-orange-400 to-rose-500 transition-all duration-150" style="width: 1%;"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 中央浮動提示橫幅 -->
+    <div id="hint-banner" class="fixed top-32 sm:top-36 left-0 right-0 z-10 text-center pointer-events-none transition-opacity duration-500 px-3">
+        <span id="hint-text" class="inline-block bg-white/85 backdrop-blur-sm text-rose-600 border border-rose-200 text-xs sm:text-sm font-bold px-4 py-1.5 rounded-full shadow-sm">
+            🍯 按住「淋脆皮醬」疊加到 100 層，再用力把超厚脆殼捏爆吧！
+        </span>
+    </div>
+
+    <!-- 底部操作面板：淋脆皮快捷鍵 + 口味選擇 + 內餡造型 -->
+    <footer class="fixed bottom-0 left-0 right-0 z-20 p-2.5 sm:p-3.5 pointer-events-none">
+        <div class="max-w-2xl mx-auto flex flex-col items-center gap-2">
+
+            <!-- 第一排：超爽快淋脆皮按鈕組 -->
+            <div class="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 pointer-events-auto">
+                <!-- 長按持續淋脆皮醬按鈕 -->
+                <button id="btn-pour-hold" class="btn-squish bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 text-white font-black text-xs sm:text-sm px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-2xl shadow-lg border-2 border-white flex items-center gap-1.5 select-none">
+                    <span class="text-base">🍯</span>
+                    <span>按住淋脆皮 (+1層)</span>
+                </button>
+
+                <!-- 一鍵連淋 +10 層 -->
+                <button onclick="pourBatchLayers(10)" class="btn-squish bg-gradient-to-r from-pink-400 to-rose-500 text-white font-black text-xs sm:text-sm px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-2xl shadow-lg border-2 border-white flex items-center gap-1">
+                    <span>⚡</span>
+                    <span>連淋 +10層</span>
+                </button>
+
+                <!-- 直衝 100 層超厚脆殼 -->
+                <button onclick="pourToHundred()" class="btn-squish bg-gradient-to-r from-purple-500 via-indigo-500 to-amber-500 text-white font-black text-xs sm:text-sm px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-2xl shadow-lg border-2 border-amber-200 flex items-center gap-1">
+                    <span>👑</span>
+                    <span>直衝 100層！</span>
+                </button>
+            </div>
+
+            <!-- 第二排：6 種脆皮淋醬口味 (可混搭疊出千層彩虹剖面！) -->
+            <div class="macaron-glass px-2.5 py-1.5 rounded-2xl flex items-center gap-1.5 sm:gap-2 pointer-events-auto overflow-x-auto max-w-full" id="flavor-selector">
+                <!-- JS 動態生成 6 種淋醬口味 -->
+            </div>
+
+            <!-- 第三排：5 款 Q 彈內餡造型切換 -->
+            <div class="macaron-glass px-2.5 py-1.5 rounded-2xl flex items-center gap-1.5 sm:gap-2.5 pointer-events-auto" id="shape-selector">
+                <!-- JS 動態生成 5 款內餡造型 -->
+            </div>
+        </div>
+    </footer>
+
+<script>
+/**
+ * ============================================================================
+ * 《紓壓脆皮捏捏 - 100層超厚脆殼 ASMR》(Crispy Squishy ASMR - 100 Layers)
+ * 核心特色：
+ * 1. 無限疊層系統 (coatLayers 陣列)：每一層記錄獨立口味顏色，肉眼可見一圈圈增厚！
+ * 2. 淋醬動畫與冷卻凝固物理：從上方傾瀉濃稠糖漿包覆外圈，發出流淌與「叮咔」結冰聲。
+ * 3. 百層逐層爆裂系統：厚甲阻尼感 + 深邃蛛網裂紋 + 多色千層脆片雪崩噴飛。
+ * ============================================================================
+ */
+
+// --- 1. Web Audio API 極致 ASMR 合成引擎 ---
+class ASMRSoundEngine {
+    constructor() {
+        this.ctx = null;
+        this.muted = false;
+        this.noiseBuffer = null;
+        this.lastSquishTime = 0;
+        this.lastCrackleTime = 0;
+        this.lastPourTime = 0;
+    }
+
+    init() {
+        if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            this.ctx = new AudioCtx();
+            this.createNoiseBuffer();
+        }
+        if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+    }
+
+    createNoiseBuffer() {
+        const sampleRate = this.ctx.sampleRate;
+        const length = sampleRate * 2;
+        const buffer = this.ctx.createBuffer(1, length, sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < length; i++) {
+            data[i] = Math.random() * 2 - 1;
+        }
+        this.noiseBuffer = buffer;
+    }
+
+    // 脆皮碎裂聲（層數越厚，增加低沉厚實的「喀啦—嘣！」共鳴）
+    playCrackle(intensity = 1.0, layerCount = 1) {
+        if (this.muted) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        if (now - this.lastCrackleTime < 0.032) return;
+        this.lastCrackleTime = now;
+
+        const thicknessFactor = Math.min(1.0, layerCount / 60);
+
+        // 1. 高頻清脆冰糖劈啪聲
+        const burstCount = Math.min(6, Math.max(2, Math.floor(2 + intensity * 3 + thicknessFactor * 2)));
+        for (let i = 0; i < burstCount; i++) {
+            const delay = i * (0.01 + Math.random() * 0.016);
+            const dur = 0.025 + Math.random() * 0.038;
+
+            const src = this.ctx.createBufferSource();
+            src.buffer = this.noiseBuffer;
+
+            const filter = this.ctx.createBiquadFilter();
+            filter.type = 'bandpass';
+            const baseFreq = 2200 + (1 - thicknessFactor * 0.35) * 2000 + Math.random() * 1600;
+            filter.frequency.setValueAtTime(baseFreq, now + delay);
+            filter.Q.setValueAtTime(3.0 + Math.random() * 2.5, now + delay);
+
+            const gain = this.ctx.createGain();
+            const peak = Math.min(0.48, (0.2 + intensity * 0.22) * (0.65 + Math.random() * 0.35));
+            gain.gain.setValueAtTime(0.001, now + delay);
+            gain.gain.linearRampToValueAtTime(peak, now + delay + 0.004);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + delay + dur);
+
+            src.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.ctx.destination);
+            src.start(now + delay, Math.random() * 1.4, dur + 0.01);
+        }
+
+        // 2. 厚脆殼專屬：當層數 >= 12 層時，加入低頻厚實「喀啦—嘣！」爆裂重擊音
+        if (layerCount >= 12) {
+            const thudOsc = this.ctx.createOscillator();
+            const thudGain = this.ctx.createGain();
+            thudOsc.type = 'triangle';
+            thudOsc.frequency.setValueAtTime(145 - thicknessFactor * 45, now);
+            thudOsc.frequency.exponentialRampToValueAtTime(42, now + 0.14);
+
+            const thudVol = Math.min(0.38, 0.12 + thicknessFactor * 0.25);
+            thudGain.gain.setValueAtTime(0.001, now);
+            thudGain.gain.linearRampToValueAtTime(thudVol, now + 0.01);
+            thudGain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+
+            thudOsc.connect(thudGain);
+            thudGain.connect(this.ctx.destination);
+            thudOsc.start(now);
+            thudOsc.stop(now + 0.17);
+        }
+    }
+
+    // 軟Q內餡捏壓與回彈聲
+    playSquish(force = 0.6, isRelease = false) {
+        if (this.muted) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        if (now - this.lastSquishTime < 0.07) return;
+        this.lastSquishTime = now;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+
+        if (!isRelease) {
+            osc.frequency.setValueAtTime(165 + force * 85, now);
+            osc.frequency.exponentialRampToValueAtTime(72, now + 0.14);
+        } else {
+            osc.frequency.setValueAtTime(108, now);
+            osc.frequency.exponentialRampToValueAtTime(245 + force * 75, now + 0.16);
+        }
+
+        const vol = Math.min(0.24, 0.08 + force * 0.14);
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(vol, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.19);
+    }
+
+    // 淋脆皮醬 ASMR 音效：濃稠糖漿流淌 + 清脆冷卻「叮～咔！」凝固聲
+    playPourLayer(layerCount = 1) {
+        if (this.muted) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        if (now - this.lastPourTime < 0.055) return;
+        this.lastPourTime = now;
+
+        // 1. 濃稠糖漿澆淋滑順低通濾波噪音
+        const src = this.ctx.createBufferSource();
+        src.buffer = this.noiseBuffer;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(420, now);
+        filter.frequency.exponentialRampToValueAtTime(1150, now + 0.12);
+        filter.Q.value = 3.5;
+
+        const nGain = this.ctx.createGain();
+        nGain.gain.setValueAtTime(0.001, now);
+        nGain.gain.linearRampToValueAtTime(0.14, now + 0.03);
+        nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+
+        src.connect(filter);
+        filter.connect(nGain);
+        nGain.connect(this.ctx.destination);
+        src.start(now, Math.random(), 0.15);
+
+        // 2. 冷卻「叮～咔」凝固晶瑩音 (層數越高音階越飽滿上揚)
+        const pitchScale = 1 + Math.min(1.0, layerCount / 100) * 0.45;
+        const osc = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        osc.type = 'sine';
+        const baseNote = (880 + (layerCount % 12) * 55) * pitchScale;
+        osc.frequency.setValueAtTime(baseNote, now + 0.04);
+        osc.frequency.exponentialRampToValueAtTime(baseNote * 1.25, now + 0.14);
+
+        g.gain.setValueAtTime(0.001, now + 0.04);
+        g.gain.linearRampToValueAtTime(0.11, now + 0.055);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+        osc.connect(g);
+        g.connect(this.ctx.destination);
+        osc.start(now + 0.04);
+        osc.stop(now + 0.23);
+    }
+
+    // 達成 100 層金色王冠慶祝音效
+    playCenturyFanfare() {
+        if (this.muted) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const chord = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98];
+        chord.forEach((freq, i) => {
+            const osc = this.ctx.createOscillator();
+            const g = this.ctx.createGain();
+            osc.type = 'triangle';
+            const t = now + i * 0.06;
+            osc.frequency.setValueAtTime(freq, t);
+            g.gain.setValueAtTime(0.001, t);
+            g.gain.linearRampToValueAtTime(0.14, t + 0.02);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+            osc.connect(g);
+            g.connect(this.ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.58);
+        });
+    }
+}
+
+const asmr = new ASMRSoundEngine();
+
+// --- 2. 6 種脆皮淋醬口味資料庫 (可自由混搭疊加千層！) ---
+const COATING_FLAVORS = [
+    {
+        id: 'sugar',
+        emoji: '💎',
+        name: '冰糖原味',
+        fill: 'rgba(255, 255, 255, 0.52)',
+        stroke: 'rgba(255, 255, 255, 0.92)',
+        dripColor: '#ffffff',
+        shardColors: ['#ffffff', '#e0f2fe', '#f8fafc']
+    },
+    {
+        id: 'choco',
+        emoji: '🍫',
+        name: '濃黑可可',
+        fill: 'rgba(74, 37, 17, 0.86)',
+        stroke: '#3b1d0e',
+        dripColor: '#4a2511',
+        shardColors: ['#4a2511', '#6f3719', '#2b1206']
+    },
+    {
+        id: 'strawberry',
+        emoji: '🍓',
+        name: '草莓糖霜',
+        fill: 'rgba(255, 143, 171, 0.84)',
+        stroke: '#ff4d6d',
+        dripColor: '#ff758f',
+        shardColors: ['#ff8fab', '#ffb3c1', '#ff4d6d']
+    },
+    {
+        id: 'matcha',
+        emoji: '🍵',
+        name: '宇治抹茶',
+        fill: 'rgba(116, 198, 157, 0.85)',
+        stroke: '#40916c',
+        dripColor: '#52b788',
+        shardColors: ['#74c69d', '#95d5b2', '#40916c']
+    },
+    {
+        id: 'caramel',
+        emoji: '🍮',
+        name: '焦糖布蕾',
+        fill: 'rgba(245, 158, 11, 0.82)',
+        stroke: '#b45309',
+        dripColor: '#d97706',
+        shardColors: ['#fbbf24', '#f59e0b', '#fef08a']
+    },
+    {
+        id: 'blueberry',
+        emoji: '🫐',
+        name: '星空藍莓',
+        fill: 'rgba(157, 78, 221, 0.82)',
+        stroke: '#7b2cbf',
+        dripColor: '#9d4edd',
+        shardColors: ['#c77dff', '#9d4edd', '#e0aaff']
+    }
+];
+
+// --- 3. 5 款療癒 Q 彈內餡造型 ---
+const SQUISHY_SHAPES = [
+    {
+        id: 'strawberry',
+        emoji: '🍓',
+        name: '草莓大福',
+        bodyColors: ['#ffccd5', '#ff758f', '#c9184a'],
+        cheekColor: '#ff4d6d',
+        shapeType: 'strawberry'
+    },
+    {
+        id: 'paw',
+        emoji: '🐱',
+        name: '貓爪軟糖',
+        bodyColors: ['#fff0f3', '#ffccd5', '#ffb3c1'],
+        cheekColor: '#ff758f',
+        shapeType: 'paw'
+    },
+    {
+        id: 'toast',
+        emoji: '🍞',
+        name: '吐司麵包',
+        bodyColors: ['#fff3b0', '#ffd166', '#e09f3e'],
+        cheekColor: '#f48c06',
+        shapeType: 'toast'
+    },
+    {
+        id: 'peach',
+        emoji: '🍑',
+        name: '蜜桃果凍',
+        bodyColors: ['#ffe5d9', '#ffcad4', '#f4978e'],
+        cheekColor: '#ff5d8f',
+        shapeType: 'peach'
+    },
+    {
+        id: 'donut',
+        emoji: '🍩',
+        name: '甜甜圈',
+        bodyColors: ['#f3d5b5', '#e7bc91', '#bc8a5f'],
+        cheekColor: '#ff758f',
+        shapeType: 'donut'
+    }
+];
+
+// --- 4. 全域遊戲狀態與畫布初始化 ---
+const canvas = document.getElementById('squishy-canvas');
+const ctx = canvas.getContext('2d');
+
+let width = window.innerWidth;
+let height = window.innerHeight;
+let dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+const STATE = {
+    shapeIndex: 0,
+    flavorIndex: 0,
+    toolMode: 'squish', // 'squish' (捏爆模式) | 'pour' (直接在畫布上淋醬模式)
+    reliefScore: 0,
+    // 堆疊的脆皮層陣列：每一個元素代表一層脆皮 { flavorIndex, damage }
+    coatLayers: [],
+    isHoldingPourBtn: false,
+    pourHoldTimer: 0,
+    reachedCenturyCelebrated: false,
+    hasInteracted: false
+};
+
+// 浮動背景療癒光點
+const bgBubbles = Array.from({ length: 24 }, () => ({
+    x: Math.random() * width,
+    y: Math.random() * height,
+    r: 6 + Math.random() * 20,
+    vy: -0.25 - Math.random() * 0.45,
+    alpha: 0.16 + Math.random() * 0.28,
+    hue: [340, 35, 275, 195][Math.floor(Math.random() * 4)]
+}));
+
+// 正在從上方流淌而下的淋醬動畫清單
+const pouringStreams = [];
+// 噴飛與掉落在地的千層脆皮碎片
+const flyingShards = [];
+const floorShards = [];
+// 脆殼表面蛛網裂紋
+let cracks = [];
+
+// --- 5. 64 節點彈簧軟體物理模型 (Soft-Body Radial Spring Mesh) ---
+const NUM_NODES = 64;
+const squishy = {
+    cx: width / 2,
+    cy: height / 2,
+    baseRadius: 128,
+    nodes: [],
+    offsetX: 0,
+    offsetY: 0,
+    velX: 0,
+    velY: 0,
+    squishExpression: 0
+};
+
+function getShapeRadiusAtAngle(angle, baseR, type) {
+    const a = angle;
+    if (type === 'strawberry') {
+        const bottomPoint = Math.pow(Math.max(0, Math.sin(a)), 2.2) * 0.16;
+        const topWidth = -Math.sin(a) * 0.06;
+        return baseR * (1 + bottomPoint + topWidth);
+    } else if (type === 'toast') {
+        const cosA = Math.cos(a);
+        const sinA = Math.sin(a);
+        const p = 3.6;
+        const superEllipse = 1 / Math.pow(Math.pow(Math.abs(cosA), p) + Math.pow(Math.abs(sinA), p), 1 / p);
+        const topPuff = sinA < -0.3 ? Math.cos(cosA * 2.5) * 0.08 : 0;
+        return baseR * 0.92 * superEllipse * (1 + topPuff);
+    } else if (type === 'paw') {
+        const sinA = Math.sin(a);
+        if (sinA < -0.15) {
+            const wave = Math.sin(a * 6) * 0.075;
+            return baseR * (1.02 + wave);
+        }
+        return baseR * 1.04;
+    } else if (type === 'peach') {
+        const topTip = Math.pow(Math.max(0, -Math.sin(a)), 3) * 0.15;
+        const bottomCleft = Math.pow(Math.max(0, Math.sin(a)), 4) * -0.1;
+        return baseR * (1.02 + topTip + bottomCleft);
+    } else {
+        return baseR * 1.04;
+    }
+}
+
+function initSquishyMesh() {
+    squishy.cx = width / 2;
+    squishy.cy = height / 2 + 4;
+    // 預留外圍空間讓 100 層超厚脆殼可以不斷長大變厚！
+    squishy.baseRadius = Math.max(96, Math.min(148, Math.min(width, height) * 0.21));
+
+    squishy.nodes = [];
+    for (let i = 0; i < NUM_NODES; i++) {
+        const angle = (i / NUM_NODES) * Math.PI * 2;
+        const r = getShapeRadiusAtAngle(angle, squishy.baseRadius, SQUISHY_SHAPES[STATE.shapeIndex].shapeType);
+        squishy.nodes.push({
+            angle,
+            restR: r,
+            r: r,
+            vr: 0
+        });
+    }
+}
+
+function resizeCanvas() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const oldR = squishy.baseRadius;
+    squishy.cx = width / 2;
+    squishy.cy = height / 2 + 4;
+    const newR = Math.max(96, Math.min(148, Math.min(width, height) * 0.21));
+    const ratio = oldR ? newR / oldR : 1;
+    squishy.baseRadius = newR;
+
+    squishy.nodes.forEach(n => {
+        n.restR *= ratio;
+        n.r *= ratio;
+    });
+}
+window.addEventListener('resize', resizeCanvas);
+
+// 計算目前脆皮總視覺厚度（像素）與外側半徑倍率
+function getVisualShellThickness() {
+    const count = STATE.coatLayers.length;
+    if (count === 0) return 0;
+    // 前 20 層每層增加 1.4px，20~100 層每層增加 0.65px，100 層以上仍持續微幅增厚
+    if (count <= 20) {
+        return count * 1.4;
+    } else if (count <= 100) {
+        return 28 + (count - 20) * 0.65;
+    } else {
+        return 80 + Math.min(45, (count - 100) * 0.25);
+    }
+}
+
+// --- 6. 淋脆皮醬核心系統 (單層、連淋 +10、直衝 100 層) ---
+function addCoatingLayer(flavorIdx = STATE.flavorIndex, silent = false) {
+    STATE.coatLayers.push({
+        flavorIndex: flavorIdx,
+        hp: 1.0 // 每層耐久度
+    });
+
+    const total = STATE.coatLayers.length;
+
+    // 觸發從上方傾瀉流淌的淋醬視覺流體
+    const flavor = COATING_FLAVORS[flavorIdx];
+    pouringStreams.push({
+        flavor,
+        progress: 0, // 0 -> 1 包覆到底部
+        xOffset: (Math.random() - 0.5) * squishy.baseRadius * 0.7,
+        width: 24 + Math.random() * 26
+    });
+    if (pouringStreams.length > 14) pouringStreams.shift();
+
+    // 淋醬時捏捏會 Q 彈微幅膨脹跳動一下
+    for (let i = 0; i < NUM_NODES; i++) {
+        squishy.nodes[i].vr += 0.9 + Math.sin(i * 0.5) * 0.3;
+    }
+    squishy.velY += 1.4;
+
+    if (!silent) {
+        asmr.playPourLayer(total);
+        triggerHaptic(12);
+    }
+
+    // 達成 100 層里程碑慶祝！
+    if (total === 100 && !STATE.reachedCenturyCelebrated) {
+        STATE.reachedCenturyCelebrated = true;
+        asmr.playCenturyFanfare();
+        triggerHaptic([40, 30, 60]);
+        spawnFloatingWord(squishy.cx, squishy.cy - squishy.baseRadius - 60, '👑 達成 100 層百層脆王！超厚裝甲！', '#d97706');
+        spawnConfettiShards(squishy.cx, squishy.cy, 32);
+    }
+
+    updateLayerUI();
+}
+
+function pourBatchLayers(count) {
+    asmr.init();
+    if (!STATE.hasInteracted) {
+        STATE.hasInteracted = true;
+        document.getElementById('hint-banner').style.opacity = '0';
+    }
+
+    let added = 0;
+    const interval = setInterval(() => {
+        addCoatingLayer(STATE.flavorIndex, false);
+        added++;
+        if (added >= count) {
+            clearInterval(interval);
+            spawnFloatingWord(
+                squishy.cx,
+                squishy.cy - squishy.baseRadius - 45,
+                `🍯 連淋 +${count} 層！（目前 ${STATE.coatLayers.length} 層）`,
+                '#ea580c'
+            );
+        }
+    }, 32);
+}
+
+function pourToHundred() {
+    asmr.init();
+    if (!STATE.hasInteracted) {
+        STATE.hasInteracted = true;
+        document.getElementById('hint-banner').style.opacity = '0';
+    }
+
+    const current = STATE.coatLayers.length;
+    const target = current < 100 ? 100 : current + 50; // 若已滿100層則再爆衝 +50 層！
+    const needed = target - current;
+
+    let added = 0;
+    const step = Math.max(1, Math.ceil(needed / 28));
+    const timer = setInterval(() => {
+        for (let k = 0; k < step && added < needed; k++) {
+            addCoatingLayer(STATE.flavorIndex, k > 0);
+            added++;
+        }
+        if (added >= needed) {
+            clearInterval(timer);
+            if (target > 100) {
+                spawnFloatingWord(squishy.cx, squishy.cy - squishy.baseRadius - 55, `🔥 突破極限！${target} 層金剛脆殼！`, '#9333ea');
+            }
+        }
+    }, 24);
+}
+
+// --- 7. 滑鼠與多點觸控互動 (捏爆脆皮 vs 塗抹淋醬) ---
+const pointers = new Map();
+
+canvas.addEventListener('pointerdown', (e) => {
+    asmr.init();
+    canvas.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId, {
+        x: e.clientX,
+        y: e.clientY,
+        prevX: e.clientX,
+        prevY: e.clientY
+    });
+
+    if (!STATE.hasInteracted) {
+        STATE.hasInteracted = true;
+        document.getElementById('hint-banner').style.opacity = '0';
+    }
+
+    if (STATE.toolMode === 'pour') {
+        addCoatingLayer(STATE.flavorIndex, false);
+    } else {
+        applySquishInteraction(e.clientX, e.clientY, 0, 0, true);
+    }
+});
+
+canvas.addEventListener('pointermove', (e) => {
+    if (!pointers.has(e.pointerId)) return;
+    const p = pointers.get(e.pointerId);
+    const dx = e.clientX - p.prevX;
+    const dy = e.clientY - p.prevY;
+    p.prevX = e.clientX;
+    p.prevY = e.clientY;
+    p.x = e.clientX;
+    p.y = e.clientY;
+
+    if (STATE.toolMode === 'pour') {
+        if (Math.hypot(dx, dy) > 14) {
+            addCoatingLayer(STATE.flavorIndex, false);
+        }
+    } else {
+        applySquishInteraction(e.clientX, e.clientY, dx, dy, false);
+    }
+});
+
+function handlePointerUp(e) {
+    if (pointers.has(e.pointerId)) {
+        pointers.delete(e.pointerId);
+        if (pointers.size === 0 && STATE.toolMode === 'squish') {
+            asmr.playSquish(0.5, true);
+        }
+    }
+}
+canvas.addEventListener('pointerup', handlePointerUp);
+canvas.addEventListener('pointercancel', handlePointerUp);
+
+// 核心按壓與多層脆皮逐層爆裂計算
+function applySquishInteraction(px, py, dx, dy, isInitialTap) {
+    const centerX = squishy.cx + squishy.offsetX;
+    const centerY = squishy.cy + squishy.offsetY;
+    const shellThick = getVisualShellThickness();
+    const outerRadius = squishy.baseRadius + shellThick;
+    const distToCenter = Math.hypot(px - centerX, py - centerY);
+
+    if (distToCenter > outerRadius * 1.35) return;
+
+    const dragSpeed = Math.hypot(dx, dy);
+    const layerCount = STATE.coatLayers.length;
+
+    // 1. 硬度物理回饋：脆皮層數越多，外殼越硬挺，形變阻力越大，直到被捏裂才猛然凹陷！
+    const armorResistance = 1 / (1 + Math.min(80, layerCount) * 0.028);
+    const force = isInitialTap ? 0.95 : Math.min(1.0, 0.35 + dragSpeed * 0.035);
+    const pressAngle = Math.atan2(py - centerY, px - centerX);
+    const indentStrength = (isInitialTap ? 26 : Math.min(22, 6 + dragSpeed * 0.55)) * (0.38 + 0.62 * armorResistance);
+
+    for (let i = 0; i < NUM_NODES; i++) {
+        const node = squishy.nodes[i];
+        let diff = node.angle - pressAngle;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+
+        const absDiff = Math.abs(diff);
+        if (absDiff < 0.72) {
+            const factor = Math.cos((absDiff / 0.72) * (Math.PI / 2));
+            node.vr -= indentStrength * factor * 0.38;
+        } else if (absDiff > 1.05 && absDiff < 2.35) {
+            const bulge = Math.sin(((absDiff - 1.05) / 1.3) * Math.PI);
+            node.vr += indentStrength * bulge * 0.16;
+        }
+    }
+
+    // 整體慣性晃動
+    if (isInitialTap) {
+        squishy.velX += (centerX - px) * 0.06 * armorResistance;
+        squishy.velY += (centerY - py) * 0.06 * armorResistance;
+    } else {
+        squishy.velX += dx * 0.14 * armorResistance;
+        squishy.velY += dy * 0.14 * armorResistance;
+    }
+
+    squishy.squishExpression = 1.0;
+
+    // 2. 多層脆皮逐層碎裂邏輯！
+    if (layerCount > 0) {
+        // 層數很多時，每次用力按壓會一口氣震碎好幾層，形成雪崩般的爽感！
+        const baseBreakPower = isInitialTap ? 1.4 : Math.min(2.2, 0.35 + dragSpeed * 0.045);
+        const avalancheBonus = layerCount > 30 ? Math.ceil(layerCount * 0.045) : (layerCount > 10 ? 2 : 1);
+        const layersToBreak = Math.min(layerCount, Math.max(1, Math.round(baseBreakPower * avalancheBonus)));
+
+        // 播放厚脆殼「喀啦—嘣！」或清脆「咔滋！」音效
+        asmr.playCrackle(force, layerCount);
+        triggerHaptic(layerCount >= 20 ? [25, 15, 30] : 18);
+
+        // 產生深邃蛛網裂紋
+        spawnCrackAt(px - centerX, py - centerY, outerRadius);
+
+        // 從最外層依序剝落碎裂，並噴出對應每一層口味顏色的碎片！
+        const brokenFlavors = [];
+        for (let b = 0; b < layersToBreak; b++) {
+            const poppedLayer = STATE.coatLayers.pop();
+            if (poppedLayer) {
+                brokenFlavors.push(COATING_FLAVORS[poppedLayer.flavorIndex]);
+            }
+        }
+
+        // 噴飛多層彩色脆皮碎片
+        const shardBurstCount = Math.min(22, 5 + layersToBreak * 2);
+        for (let s = 0; s < shardBurstCount; s++) {
+            const flv = brokenFlavors[s % brokenFlavors.length] || COATING_FLAVORS[0];
+            spawnSingleShard(px, py, flv, layerCount >= 20 ? 1.35 : 1.0);
+        }
+
+        // 震碎瞬間釋放內部張力，讓內餡猛然凹陷反彈！
+        for (let i = 0; i < NUM_NODES; i++) {
+            squishy.nodes[i].vr += (Math.random() - 0.5) * 4.5;
+        }
+
+        const gainedScore = layersToBreak * 12;
+        STATE.reliefScore += gainedScore;
+        document.getElementById('relief-score').innerText = STATE.reliefScore.toLocaleString();
+
+        if (layersToBreak >= 3) {
+            spawnFloatingWord(px, py - 15, `💥 爆碎 -${layersToBreak} 層！喀啦嘣！`, '#ea580c');
+        } else if (Math.random() < 0.45) {
+            spawnFloatingWord(px, py - 15, null, '#d97706');
+        }
+
+        if (STATE.coatLayers.length === 0) {
+            cracks = [];
+            STATE.reachedCenturyCelebrated = false;
+            spawnFloatingWord(centerX, centerY - 35, '🍮 全數捏爆！露出超軟Q內餡～', '#ec4899');
+        }
+
+        updateLayerUI();
+    } else {
+        // 0 層脆皮：純軟Q內餡揉捏模式
+        asmr.playSquish(force, false);
+        if (isInitialTap || dragSpeed > 6) {
+            STATE.reliefScore += isInitialTap ? 8 : 2;
+            document.getElementById('relief-score').innerText = STATE.reliefScore.toLocaleString();
+            if (Math.random() < 0.4) {
+                spawnFloatingWord(px, py - 15, '軟Q～🍮', '#ec4899');
+            }
+        }
+    }
+}
+
+// --- 8. 裂紋與千層碎片粒子物理 ---
+function spawnCrackAt(localX, localY, currentOuterR) {
+    const maxR = currentOuterR * 0.88;
+    const d = Math.hypot(localX, localY);
+    if (d > maxR && d > 0) {
+        localX = (localX / d) * maxR;
+        localY = (localY / d) * maxR;
+    }
+
+    const branches = 4 + Math.floor(Math.random() * 3);
+    for (let b = 0; b < branches; b++) {
+        let ang = (b / branches) * Math.PI * 2 + (Math.random() - 0.5) * 0.8;
+        let cx = localX;
+        let cy = localY;
+        const pts = [{ x: cx, y: cy }];
+        const segs = 3 + Math.floor(Math.random() * 3);
+        for (let s = 0; s < segs; s++) {
+            const len = 15 + Math.random() * 24;
+            ang += (Math.random() - 0.5) * 0.95;
+            cx += Math.cos(ang) * len;
+            cy += Math.sin(ang) * len;
+            if (Math.hypot(cx, cy) > currentOuterR * 0.95) break;
+            pts.push({ x: cx, y: cy });
+        }
+        if (pts.length > 1) {
+            cracks.push({ pts });
+        }
+    }
+    if (cracks.length > 55) {
+        cracks.splice(0, cracks.length - 55);
+    }
+}
+
+function spawnSingleShard(x, y, flavor, sizeScale = 1.0) {
+    const ang = Math.random() * Math.PI * 2;
+    const spd = (3 + Math.random() * 8.5) * sizeScale;
+    const size = (4.5 + Math.random() * 7.5) * sizeScale;
+    const color = flavor.shardColors[Math.floor(Math.random() * flavor.shardColors.length)];
+
+    flyingShards.push({
+        x: x + (Math.random() - 0.5) * 28,
+        y: y + (Math.random() - 0.5) * 28,
+        vx: Math.cos(ang) * spd,
+        vy: Math.sin(ang) * spd - 4.2,
+        size,
+        rot: Math.random() * Math.PI * 2,
+        vRot: (Math.random() - 0.5) * 0.28,
+        color,
+        stroke: flavor.stroke,
+        sides: Math.random() < 0.5 ? 3 : 4
+    });
+}
+
+function spawnConfettiShards(x, y, count) {
+    for (let i = 0; i < count; i++) {
+        const flv = COATING_FLAVORS[i % COATING_FLAVORS.length];
+        spawnSingleShard(x, y, flv, 1.25);
+    }
+}
+
+let lastWordTime = 0;
+const CRISP_WORDS = ['咔滋！✨', '喀啦—嘣！💥', '超脆厚甲！💎', '劈啪劈啪！🔥', '爽度破表！💖'];
+
+function spawnFloatingWord(x, y, customText = null, color = '#ea580c') {
+    const now = performance.now();
+    if (!customText && now - lastWordTime < 230) return;
+    lastWordTime = now;
+
+    const el = document.createElement('div');
+    el.className = 'asmr-pop text-xs sm:text-base';
+    el.style.left = `${Math.max(80, Math.min(width - 80, x))}px`;
+    el.style.top = `${Math.max(90, y)}px`;
+    el.style.color = color;
+    el.innerText = customText || CRISP_WORDS[Math.floor(Math.random() * CRISP_WORDS.length)];
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 850);
+}
+
+function triggerHaptic(pattern) {
+    if (navigator.vibrate) {
+        try {
+            navigator.vibrate(pattern);
+        } catch (e) {}
+    }
+}
+
+// --- 9. 物理更新主迴圈 ---
+function updatePhysics(dt) {
+    // 1. 背景浮動微光
+    for (const b of bgBubbles) {
+        b.y += b.vy;
+        if (b.y < -40) {
+            b.y = height + 40;
+            b.x = Math.random() * width;
+        }
+    }
+
+    // 2. 長按「按住淋脆皮」按鈕連續澆淋
+    if (STATE.isHoldingPourBtn) {
+        STATE.pourHoldTimer += dt;
+        if (STATE.pourHoldTimer >= 0.075) {
+            STATE.pourHoldTimer = 0;
+            addCoatingLayer(STATE.flavorIndex, false);
+        }
+    }
+
+    // 3. 淋醬流淌包覆動畫
+    for (let i = pouringStreams.length - 1; i >= 0; i--) {
+        pouringStreams[i].progress += dt * 3.2;
+        if (pouringStreams[i].progress >= 1.15) {
+            pouringStreams.splice(i, 1);
+        }
+    }
+
+    // 4. 軟體彈簧網格更新 (層數越厚，外殼回彈越剛硬清脆)
+    const layerCount = STATE.coatLayers.length;
+    const stiffness = 0.14 + Math.min(80, layerCount) * 0.0012;
+    const damping = 0.84;
+    const neighborPull = 0.18;
+
+    const forces = new Array(NUM_NODES).fill(0);
+    for (let i = 0; i < NUM_NODES; i++) {
+        const curr = squishy.nodes[i];
+        const prev = squishy.nodes[(i - 1 + NUM_NODES) % NUM_NODES];
+        const next = squishy.nodes[(i + 1) % NUM_NODES];
+
+        const springF = (curr.restR - curr.r) * stiffness;
+        const prevDisp = (prev.r - prev.restR) - (curr.r - curr.restR);
+        const nextDisp = (next.r - next.restR) - (curr.r - curr.restR);
+        forces[i] = springF + (prevDisp + nextDisp) * neighborPull;
+    }
+
+    for (let i = 0; i < NUM_NODES; i++) {
+        const node = squishy.nodes[i];
+        node.vr = (node.vr + forces[i]) * damping;
+        node.r += node.vr;
+        node.r = Math.max(node.restR * 0.52, Math.min(node.restR * 1.36, node.r));
+    }
+
+    // 中心果凍慣性
+    squishy.velX = (squishy.velX - squishy.offsetX * 0.13) * 0.82;
+    squishy.velY = (squishy.velY - squishy.offsetY * 0.13) * 0.82;
+    squishy.offsetX += squishy.velX;
+    squishy.offsetY += squishy.velY;
+
+    // 持續按壓深層凹陷
+    if (pointers.size > 0 && STATE.toolMode === 'squish') {
+        squishy.squishExpression = Math.min(1, squishy.squishExpression + dt * 5);
+        const centerX = squishy.cx + squishy.offsetX;
+        const centerY = squishy.cy + squishy.offsetY;
+        const outerR = squishy.baseRadius + getVisualShellThickness();
+
+        pointers.forEach((p) => {
+            if (Math.hypot(p.x - centerX, p.y - centerY) < outerR * 1.2) {
+                const pressAngle = Math.atan2(p.y - centerY, p.x - centerX);
+                for (let i = 0; i < NUM_NODES; i++) {
+                    const node = squishy.nodes[i];
+                    let diff = node.angle - pressAngle;
+                    while (diff > Math.PI) diff -= Math.PI * 2;
+                    while (diff < -Math.PI) diff += Math.PI * 2;
+                    if (Math.abs(diff) < 0.55) {
+                        const f = Math.cos((Math.abs(diff) / 0.55) * (Math.PI / 2));
+                        node.vr -= 1.1 * f;
+                    }
+                }
+            }
+        });
+    } else {
+        squishy.squishExpression = Math.max(0, squishy.squishExpression - dt * 2.5);
+    }
+
+    // 5. 飛濺碎片物理 (掉落到底部會堆積成超療癒的碎片山！)
+    const floorY = height - 135;
+    for (let i = flyingShards.length - 1; i >= 0; i--) {
+        const s = flyingShards[i];
+        s.vy += 0.38;
+        s.x += s.vx;
+        s.y += s.vy;
+        s.rot += s.vRot;
+
+        if (s.y >= floorY + (Math.random() - 0.5) * 18) {
+            // 落到地面堆積起來
+            floorShards.push({
+                x: s.x,
+                y: floorY + Math.random() * 14,
+                size: s.size * 0.9,
+                rot: s.rot,
+                color: s.color,
+                stroke: s.stroke,
+                sides: s.sides
+            });
+            if (floorShards.length > 260) floorShards.shift();
+            flyingShards.splice(i, 1);
+        }
+    }
+}
+
+// --- 10. 高質感 Canvas 繪製引擎 (千層脆皮剖面 + 流淌淋醬 + 裂紋) ---
+function traceSquishyPath(ctx, cx, cy, extraRadiusPx = 0) {
+    const pts = squishy.nodes.map(n => {
+        const r = Math.max(10, n.r + extraRadiusPx);
+        return {
+            x: cx + Math.cos(n.angle) * r,
+            y: cy + Math.sin(n.angle) * r
+        };
+    });
+
+    ctx.beginPath();
+    const firstMidX = (pts[pts.length - 1].x + pts[0].x) / 2;
+    const firstMidY = (pts[pts.length - 1].y + pts[0].y) / 2;
+    ctx.moveTo(firstMidX, firstMidY);
+
+    for (let i = 0; i < pts.length; i++) {
+        const next = pts[(i + 1) % pts.length];
+        const midX = (pts[i].x + next.x) / 2;
+        const midY = (pts[i].y + next.y) / 2;
+        ctx.quadraticCurveTo(pts[i].x, pts[i].y, midX, midY);
+    }
+    ctx.closePath();
+}
+
+function render() {
+    ctx.clearRect(0, 0, width, height);
+
+    // 1. 背景微光泡泡
+    for (const b of bgBubbles) {
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${b.hue}, 85%, 82%, ${b.alpha})`;
+        ctx.fill();
+    }
+
+    // 2. 繪製掉落在畫面下方的千層脆皮碎片堆
+    for (const fs of floorShards) {
+        drawShardPolygon(ctx, fs.x, fs.y, fs.size, fs.rot, fs.color, fs.stroke, fs.sides, 0.9);
+    }
+
+    const shape = SQUISHY_SHAPES[STATE.shapeIndex];
+    const cx = squishy.cx + squishy.offsetX;
+    const cy = squishy.cy + squishy.offsetY;
+    const r = squishy.baseRadius;
+    const totalLayers = STATE.coatLayers.length;
+    const totalShellThick = getVisualShellThickness();
+
+    // 3. 底部立體投影 (隨脆皮層數變厚而變大)
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(
+        squishy.cx + squishy.offsetX * 0.5,
+        squishy.cy + (r + totalShellThick) * 1.05,
+        (r + totalShellThick) * 0.92,
+        (r + totalShellThick) * 0.2,
+        0, 0, Math.PI * 2
+    );
+    ctx.fillStyle = 'rgba(180, 110, 130, 0.18)';
+    ctx.fill();
+    ctx.restore();
+
+    // 4. 繪製一圈圈疊加的「千層脆皮外殼」(由最外層往內層繪製，完美呈現彩虹千層厚度！)
+    if (totalLayers > 0) {
+        // 為了保持 60FPS 流暢度，當層數極多時將相鄰層分組渲染為最多 28 圈可見厚度環
+        const maxRings = 28;
+        const step = Math.max(1, Math.ceil(totalLayers / maxRings));
+
+        for (let idx = totalLayers - 1; idx >= 0; idx -= step) {
+            const ratio = (idx + 1) / totalLayers;
+            const ringOffset = ratio * totalShellThick;
+            const layerObj = STATE.coatLayers[idx];
+            const flv = COATING_FLAVORS[layerObj.flavorIndex];
+
+            ctx.save();
+            traceSquishyPath(ctx, cx, cy, ringOffset);
+            ctx.fillStyle = flv.fill;
+            ctx.fill();
+
+            // 每一圈的晶瑩糖霜邊界線，讓千層剖面清晰可見！
+            ctx.lineWidth = idx === totalLayers - 1 ? 3.5 : 1.5;
+            ctx.strokeStyle = flv.stroke;
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // 最外層達 100 層以上時，加上霸氣金色光暈外框
+        if (totalLayers >= 100) {
+            ctx.save();
+            traceSquishyPath(ctx, cx, cy, totalShellThick + 3);
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = 'rgba(251, 191, 36, 0.85)';
+            ctx.stroke();
+            ctx.restore();
+        }
+    }
+
+    // 5. 繪製中央 Q 彈內餡主體
+    ctx.save();
+    traceSquishyPath(ctx, cx, cy, 0);
+
+    const bodyGrad = ctx.createRadialGradient(cx - r * 0.28, cy - r * 0.32, r * 0.1, cx, cy, r * 1.12);
+    bodyGrad.addColorStop(0, shape.bodyColors[0]);
+    bodyGrad.addColorStop(0.55, shape.bodyColors[1]);
+    bodyGrad.addColorStop(1, shape.bodyColors[2]);
+    ctx.fillStyle = bodyGrad;
+    ctx.fill();
+
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+    ctx.stroke();
+
+    ctx.clip();
+    drawShapeDetails(ctx, cx, cy, r, shape);
+    drawCuteFace(ctx, cx, cy, r, shape, squishy.squishExpression);
+    ctx.restore();
+
+    // 6. 繪製脆皮表面的半透明光澤、蛛網裂紋與高光弧線
+    if (totalLayers > 0) {
+        ctx.save();
+        traceSquishyPath(ctx, cx, cy, totalShellThick);
+        ctx.clip();
+
+        // 若最外層是晶透冰糖，覆蓋晶瑩玻璃反光；若是其他口味，保留半透明糖衣亮面
+        const topFlv = COATING_FLAVORS[STATE.coatLayers[totalLayers - 1].flavorIndex];
+        const glazeGrad = ctx.createLinearGradient(cx - r, cy - r, cx + r, cy + r);
+        glazeGrad.addColorStop(0, 'rgba(255, 255, 255, 0.55)');
+        glazeGrad.addColorStop(0.4, 'rgba(255, 255, 255, 0.08)');
+        glazeGrad.addColorStop(1, 'rgba(255, 255, 255, 0.35)');
+        ctx.fillStyle = glazeGrad;
+        ctx.fillRect(cx - (r + totalShellThick) * 1.3, cy - (r + totalShellThick) * 1.3, (r + totalShellThick) * 2.6, (r + totalShellThick) * 2.6);
+
+        // 繪製裂紋網路
+        if (cracks.length > 0) {
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            for (const crack of cracks) {
+                ctx.beginPath();
+                ctx.moveTo(cx + crack.pts[0].x, cy + crack.pts[0].y);
+                for (let k = 1; k < crack.pts.length; k++) {
+                    ctx.lineTo(cx + crack.pts[k].x, cy + crack.pts[k].y);
+                }
+                ctx.strokeStyle = topFlv.id === 'choco' ? 'rgba(255, 248, 220, 0.9)' : 'rgba(255, 255, 255, 0.94)';
+                ctx.lineWidth = 2.6;
+                ctx.stroke();
+            }
+        }
+
+        // 左上方超亮糖霜玻璃高光弧線 (隨外殼厚度向外推移)
+        const hlDist = r + totalShellThick * 0.78;
+        ctx.beginPath();
+        ctx.ellipse(cx - hlDist * 0.36, cy - hlDist * 0.42, hlDist * 0.24, hlDist * 0.1, -0.55, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.88)';
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(cx - hlDist * 0.56, cy - hlDist * 0.18, hlDist * 0.055, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.84)';
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+    // 7. 繪製正在從上方傾瀉流淌的淋醬動畫 (Pouring Syrup Stream)
+    for (const stream of pouringStreams) {
+        const outerR = r + totalShellThick;
+        const startY = cy - outerR - 130;
+        const currentY = startY + (outerR * 1.35 + 130) * Math.min(1, stream.progress * 1.3);
+
+        ctx.save();
+        ctx.strokeStyle = stream.flavor.dripColor;
+        ctx.lineCap = 'round';
+        ctx.lineWidth = stream.width * (1 - stream.progress * 0.55);
+
+        ctx.beginPath();
+        ctx.moveTo(cx + stream.xOffset, Math.max(startY, currentY - 120));
+        ctx.quadraticCurveTo(
+            cx + stream.xOffset * 0.6,
+            (currentY + startY) * 0.5,
+            cx + stream.xOffset * 0.3,
+            currentY
+        );
+        ctx.stroke();
+
+        // 頂部流淌的圓潤糖漿波浪帽
+        ctx.fillStyle = stream.flavor.dripColor;
+        ctx.beginPath();
+        ctx.arc(cx + stream.xOffset * 0.3, currentY, ctx.lineWidth * 0.55, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+
+    // 8. 甜甜圈中心鏤空洞
+    if (shape.shapeType === 'donut') {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy + r * 0.04, r * 0.23, 0, Math.PI * 2);
+        ctx.fillStyle = '#fff7f9';
+        ctx.fill();
+        ctx.lineWidth = 3.5;
+        ctx.strokeStyle = 'rgba(188, 138, 95, 0.45)';
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    // 9. 繪製正在空中噴飛的千層脆皮碎片
+    for (const s of flyingShards) {
+        drawShardPolygon(ctx, s.x, s.y, s.size, s.rot, s.color, s.stroke, s.sides, 1.0);
+    }
+}
+
+function drawShardPolygon(ctx, x, y, size, rot, fill, stroke, sides, alpha) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rot);
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = fill;
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = 1.3;
+
+    ctx.beginPath();
+    if (sides === 3) {
+        ctx.moveTo(0, -size);
+        ctx.lineTo(size * 0.88, size * 0.55);
+        ctx.lineTo(-size * 0.88, size * 0.55);
+    } else {
+        ctx.moveTo(0, -size);
+        ctx.lineTo(size * 0.72, 0);
+        ctx.lineTo(0, size);
+        ctx.lineTo(-size * 0.72, 0);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+}
+
+function drawShapeDetails(ctx, cx, cy, r, shape) {
+    if (shape.shapeType === 'strawberry') {
+        ctx.fillStyle = '#40916c';
+        for (let i = -2; i <= 2; i++) {
+            ctx.beginPath();
+            ctx.ellipse(cx + i * r * 0.18, cy - r * 0.82, r * 0.13, r * 0.24, i * 0.28, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.fillStyle = 'rgba(255, 240, 243, 0.7)';
+        const seeds = [[-0.45, -0.1], [0.45, -0.1], [-0.32, 0.45], [0.32, 0.45], [0, 0.62]];
+        seeds.forEach(([sx, sy]) => {
+            ctx.beginPath();
+            ctx.ellipse(cx + sx * r, cy + sy * r, 3.2, 5, 0, 0, Math.PI * 2);
+            ctx.fill();
+        });
+    } else if (shape.shapeType === 'toast') {
+        traceSquishyPath(ctx, cx, cy, -4);
+        ctx.lineWidth = 14;
+        ctx.strokeStyle = '#b5651d';
+        ctx.stroke();
+    } else if (shape.shapeType === 'paw') {
+        ctx.fillStyle = 'rgba(255, 143, 171, 0.85)';
+        ctx.beginPath();
+        ctx.ellipse(cx, cy + r * 0.28, r * 0.34, r * 0.24, 0, 0, Math.PI * 2);
+        ctx.fill();
+        const pads = [[-0.44, -0.25], [-0.16, -0.44], [0.16, -0.44], [0.44, -0.25]];
+        pads.forEach(([px, py]) => {
+            ctx.beginPath();
+            ctx.arc(cx + px * r, cy + py * r, r * 0.13, 0, Math.PI * 2);
+            ctx.fill();
+        });
+    } else if (shape.shapeType === 'donut') {
+        const sprinkleColors = ['#fde047', '#f472b6', '#38bdf8', '#ffffff'];
+        for (let i = 0; i < 16; i++) {
+            const ang = (i / 16) * Math.PI * 2;
+            const dist = r * (0.46 + (i % 3) * 0.12);
+            ctx.save();
+            ctx.translate(cx + Math.cos(ang) * dist, cy + Math.sin(ang) * dist);
+            ctx.rotate(ang + 0.6);
+            ctx.fillStyle = sprinkleColors[i % sprinkleColors.length];
+            ctx.fillRect(-5, -2.2, 10, 4.4);
+            ctx.restore();
+        }
+    }
+}
+
+function drawCuteFace(ctx, cx, cy, r, shape, squishAmt) {
+    const faceY = shape.shapeType === 'donut' ? cy - r * 0.44 : (shape.shapeType === 'paw' ? cy + r * 0.28 : cy + r * 0.05);
+    const eyeSpan = shape.shapeType === 'donut' ? r * 0.22 : r * 0.28;
+    const scaleFace = shape.shapeType === 'donut' ? 0.72 : 1.0;
+
+    ctx.save();
+    ctx.translate(cx, faceY);
+    ctx.scale(scaleFace, scaleFace);
+
+    ctx.fillStyle = shape.cheekColor;
+    ctx.globalAlpha = 0.55 + squishAmt * 0.25;
+    ctx.beginPath();
+    ctx.ellipse(-eyeSpan * 1.25, 11, 13, 7.5, 0, 0, Math.PI * 2);
+    ctx.ellipse(eyeSpan * 1.25, 11, 13, 7.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1.0;
+
+    ctx.strokeStyle = '#4a2511';
+    ctx.fillStyle = '#4a2511';
+    ctx.lineWidth = 3.8;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    if (squishAmt > 0.35) {
+        ctx.beginPath();
+        ctx.moveTo(-eyeSpan - 8, -7);
+        ctx.lineTo(-eyeSpan + 4, 0);
+        ctx.lineTo(-eyeSpan - 8, 7);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(eyeSpan + 8, -7);
+        ctx.lineTo(eyeSpan - 4, 0);
+        ctx.lineTo(eyeSpan + 8, 7);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(-4.5, 10, 4.5, 0, Math.PI);
+        ctx.arc(4.5, 10, 4.5, 0, Math.PI);
+        ctx.stroke();
+    } else {
+        [-eyeSpan, eyeSpan].forEach(ex => {
+            ctx.beginPath();
+            ctx.arc(ex, -2, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(ex - 2.6, -4.5, 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#4a2511';
+        });
+
+        ctx.beginPath();
+        ctx.arc(0, 6.5, 6.5, 0.15 * Math.PI, 0.85 * Math.PI);
+        ctx.stroke();
+    }
+
+    ctx.restore();
+}
+
+// --- 11. UI 初始化與控制邏輯 ---
+function initUIControls() {
+    // 1. 6 種淋醬口味按鈕
+    const flavorBox = document.getElementById('flavor-selector');
+    flavorBox.innerHTML = '';
+    COATING_FLAVORS.forEach((f, idx) => {
+        const btn = document.createElement('button');
+        btn.className = `pill-btn px-2.5 py-1.5 rounded-xl border-2 border-pink-100 bg-white/75 flex items-center gap-1 text-xs font-black text-gray-700 shrink-0 ${idx === STATE.flavorIndex ? 'active' : ''}`;
+        btn.innerHTML = `<span>${f.emoji}</span><span>${f.name}</span>`;
+        btn.onclick = () => selectFlavor(idx);
+        flavorBox.appendChild(btn);
+    });
+
+    // 2. 5 款內餡造型按鈕
+    const shapeBox = document.getElementById('shape-selector');
+    shapeBox.innerHTML = '';
+    SQUISHY_SHAPES.forEach((s, idx) => {
+        const btn = document.createElement('button');
+        btn.className = `pill-btn px-2.5 py-1.5 rounded-xl border-2 border-pink-100 bg-white/75 flex items-center gap-1 text-xs font-bold text-gray-700 ${idx === STATE.shapeIndex ? 'active' : ''}`;
+        btn.innerHTML = `<span class="text-base">${s.emoji}</span><span class="hidden sm:inline">${s.name}</span>`;
+        btn.title = s.name;
+        btn.onclick = () => selectShape(idx);
+        shapeBox.appendChild(btn);
+    });
+
+    // 3. 綁定「按住淋脆皮 (+1層)」長按事件
+    const holdBtn = document.getElementById('btn-pour-hold');
+    holdBtn.addEventListener('pointerdown', (e) => {
+        e.stopPropagation();
+        asmr.init();
+        if (!STATE.hasInteracted) {
+            STATE.hasInteracted = true;
+            document.getElementById('hint-banner').style.opacity = '0';
+        }
+        STATE.isHoldingPourBtn = true;
+        STATE.pourHoldTimer = 0;
+        addCoatingLayer(STATE.flavorIndex, false);
+    });
+    const stopPourHold = () => { STATE.isHoldingPourBtn = false; };
+    holdBtn.addEventListener('pointerup', stopPourHold);
+    holdBtn.addEventListener('pointerleave', stopPourHold);
+    holdBtn.addEventListener('pointercancel', stopPourHold);
+}
+
+function selectFlavor(idx) {
+    asmr.init();
+    STATE.flavorIndex = idx;
+    const btns = document.querySelectorAll('#flavor-selector .pill-btn');
+    btns.forEach((b, i) => b.classList.toggle('active', i === idx));
+    // 切換口味時順手淋上一層試色
+    addCoatingLayer(idx, false);
+}
+
+function selectShape(idx) {
+    asmr.init();
+    STATE.shapeIndex = idx;
+    const shape = SQUISHY_SHAPES[idx];
+    const btns = document.querySelectorAll('#shape-selector .pill-btn');
+    btns.forEach((b, i) => b.classList.toggle('active', i === idx));
+
+    for (let i = 0; i < NUM_NODES; i++) {
+        const n = squishy.nodes[i];
+        n.restR = getShapeRadiusAtAngle(n.angle, squishy.baseRadius, shape.shapeType);
+        n.vr = (Math.random() - 0.5) * 9;
+    }
+    asmr.playSquish(0.7, true);
+}
+
+function toggleToolMode() {
+    asmr.init();
+    const btn = document.getElementById('btn-mode-toggle');
+    const icon = document.getElementById('mode-icon');
+    const label = document.getElementById('mode-label');
+
+    if (STATE.toolMode === 'squish') {
+        STATE.toolMode = 'pour';
+        btn.className = 'btn-squish px-3 py-2 rounded-2xl font-black text-xs sm:text-sm shadow-md border-2 border-white bg-gradient-to-r from-amber-400 to-orange-500 text-white flex items-center gap-1';
+        icon.innerText = '🍯';
+        label.innerText = '畫布淋醬中';
+        canvas.style.cursor = 'crosshair';
+        spawnFloatingWord(squishy.cx, squishy.cy - 30, '🍯 已切換：直接在捏捏上塗抹淋醬！', '#d97706');
+    } else {
+        STATE.toolMode = 'squish';
+        btn.className = 'btn-squish px-3 py-2 rounded-2xl font-black text-xs sm:text-sm shadow-md border-2 border-white bg-gradient-to-r from-pink-500 to-rose-500 text-white flex items-center gap-1';
+        icon.innerText = '🤏';
+        label.innerText = '捏爆模式';
+        canvas.style.cursor = 'grab';
+        spawnFloatingWord(squishy.cx, squishy.cy - 30, '🤏 已切換：點擊搓揉捏爆脆皮！', '#ec4899');
+    }
+}
+
+function updateLayerUI() {
+    const count = STATE.coatLayers.length;
+    document.getElementById('layer-count-num').innerText = count;
+
+    const bar = document.getElementById('layer-bar');
+    const card = document.getElementById('layer-card');
+    const badge = document.getElementById('layer-rank-badge');
+
+    const pct = Math.min(100, count);
+    bar.style.width = `${pct}%`;
+
+    if (count === 0) {
+        badge.innerText = '🍮 軟Q裸餡中';
+        badge.className = 'text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full bg-pink-100 text-pink-700 border border-pink-300';
+        card.classList.remove('century-glow');
+    } else if (count < 10) {
+        badge.innerText = '🍬 薄脆糖衣';
+        badge.className = 'text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300';
+        card.classList.remove('century-glow');
+    } else if (count < 30) {
+        badge.innerText = '🛡️ 多層厚脆甲';
+        badge.className = 'text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 border border-orange-300';
+        card.classList.remove('century-glow');
+    } else if (count < 60) {
+        badge.innerText = '🔥 千層超脆殼';
+        badge.className = 'text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-300';
+        card.classList.remove('century-glow');
+    } else if (count < 100) {
+        badge.innerText = '💎 鑽石級厚殼';
+        badge.className = 'text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-300';
+        card.classList.remove('century-glow');
+    } else {
+        badge.innerText = count === 100 ? '👑 100層百層脆王！' : `⚡ ${count}層金剛不壞神殼！`;
+        badge.className = 'text-[10px] sm:text-xs font-black px-2.5 py-0.5 rounded-full bg-amber-400 text-amber-950 border border-white shadow-sm';
+        card.classList.add('century-glow');
+    }
+}
+
+function clearFloorShards() {
+    floorShards.length = 0;
+    asmr.playSquish(0.4, true);
+    spawnFloatingWord(width / 2, height - 150, '🧹 碎片已掃乾淨！', '#059669');
+}
+
+function toggleAudio() {
+    asmr.init();
+    asmr.muted = !asmr.muted;
+    document.getElementById('btn-audio').innerText = asmr.muted ? '🔇' : '🔊';
+}
+
+// --- 12. 主動畫迴圈 ---
+let lastTime = performance.now();
+function loop(now) {
+    requestAnimationFrame(loop);
+    const dt = Math.min(0.05, (now - lastTime) / 1000);
+    lastTime = now;
+
+    updatePhysics(dt);
+    render();
+}
+
+window.onload = () => {
+    resizeCanvas();
+    initSquishyMesh();
+    initUIControls();
+    // 預設先裹上 3 層晶透冰糖脆皮
+    for (let i = 0; i < 3; i++) addCoatingLayer(0, true);
+    updateLayerUI();
+    loop(performance.now());
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>黃金小恐龍夢幻家園</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      margin: 0;
+      padding: 8px;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(135deg, #BF953F 0%, #FCF6BA 45%, #B38728 75%, #FBF5B7 100%);
+      color: #4A3500;
+      overflow: hidden;
+    }
+    .stage-box {
+      position: relative;
+      width: 100%;
+      max-width: 440px;
+      flex: 1;
+      min-height: 0;
+      margin: 6px 0;
+      border-radius: 26px;
+      border: 3px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 12px 28px rgba(74, 53, 0, 0.25);
+      overflow: hidden;
+      background: #FFFDF5;
+      display: flex;
+      flex-direction: column;
+    }
+    .stage-box.fullscreen-stage {
+      position: fixed;
+      inset: 0;
+      max-width: 100%;
+      margin: 0;
+      border-radius: 0;
+      border: none;
+      z-index: 999;
+    }
+    .btn-gold {
+      background: linear-gradient(180deg, #FFFDF0 0%, #F5E298 100%);
+      border: 2px solid #B38728;
+      box-shadow: 0 3px 0 #8C6614;
+      color: #4A3500;
+      transition: transform 0.08s;
+      cursor: pointer;
+    }
+    .btn-gold:active { transform: translateY(2px); box-shadow: 0 1px 0 #8C6614; }
+    .btn-gold.active {
+      background: linear-gradient(180deg, #5C4300 0%, #3A2900 100%);
+      border-color: #FCF6BA;
+      color: #FCF6BA;
+      box-shadow: 0 3px 0 #241900;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    input, select { user-select: text; -webkit-user-select: text; }
+  </style>
+</head>
+<body>
+
+  <!-- 頂部狀態列 -->
+  <header class="w-full max-w-[440px] flex items-center justify-between px-1.5 shrink-0">
+    <div class="flex items-center gap-1.5">
+      <span class="text-lg font-black">🦖 黃金小恐龍夢幻家園</span>
+    </div>
+    <div class="flex items-center gap-1.5 text-xs font-black">
+      <span id="stat-coins" class="bg-white/85 px-2.5 py-1 rounded-full shadow">🪙 250</span>
+      <span id="stat-hunger" class="bg-white/85 px-2.5 py-1 rounded-full shadow">🍖 90%</span>
+      <span id="stat-mood" class="bg-white/85 px-2.5 py-1 rounded-full shadow">💖 95%</span>
+    </div>
+  </header>
+
+  <!-- 中央主互動舞台（包含 2000部 YouTube/抖音影視中心 與 全館15功能房間） -->
+  <main id="stage" class="stage-box">
+
+    <!-- ==================== 1. 影視TV中心（2000部影片 + 抖音滑滑看 + 留言 + 自製拍片） ==================== -->
+    <div id="tv-hub" class="flex-1 min-h-0 flex flex-col bg-amber-50/90 overflow-hidden">
+
+      <!-- 頂部平台切換列 -->
+      <div class="flex items-center justify-between gap-1 p-2 bg-gradient-to-r from-amber-200 to-yellow-100 border-b border-amber-300 shrink-0">
+        <div class="flex items-center gap-1">
+          <button id="plat-yt" onclick="setPlatform('yt')" class="bg-red-600 text-white text-xs font-black px-2.5 py-1 rounded-full shadow">▶ YouTube (1000部)</button>
+          <button id="plat-tt" onclick="setPlatform('tt')" class="bg-white text-amber-950 text-xs font-black px-2.5 py-1 rounded-full shadow border border-amber-300">🎵 抖音滑滑看 (1000部)</button>
+        </div>
+        <button onclick="openUploadModal()" class="bg-amber-900 text-yellow-200 text-xs font-black px-2.5 py-1 rounded-full shadow active:scale-95">🎬 拍片上傳</button>
+      </div>
+
+      <!-- YouTube 完整介面 -->
+      <div id="yt-main-view" class="flex-1 min-h-0 flex flex-col overflow-hidden">
+        <!-- 播放器畫面 -->
+        <div id="yt-video-frame" class="relative w-full h-[155px] sm:h-[175px] bg-slate-900 shrink-0 overflow-hidden">
+          <canvas id="dramaCanvas" class="w-full h-full block"></canvas>
+          <div class="absolute top-1.5 left-2 bg-black/60 text-yellow-300 text-[10px] font-black px-2 py-0.5 rounded-full pointer-events-none" id="yt-badge">
+            🎬 原創片頭 • 吃播 • 12:30
+          </div>
+          <div class="absolute top-1.5 right-2 flex items-center gap-1">
+            <button onclick="cyclePlaybackSpeed()" class="speed-toggle-btn bg-white/90 text-amber-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow">⚡ 1.0x</button>
+            <button onclick="togglePlayDrama()" id="play-toggle" class="bg-white/90 text-amber-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow">⏸ 暫停</button>
+            <button onclick="toggleVideoFullscreen()" class="fs-toggle-btn bg-amber-400 text-amber-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow">⛶ 全螢幕</button>
+          </div>
+        </div>
+
+        <!-- 影片標題、頻道查詢、按讚與留言切換 -->
+        <div class="px-2.5 py-1.5 bg-white border-b border-amber-200 shrink-0">
+          <div class="flex items-start justify-between gap-2">
+            <h2 id="yt-title" class="text-xs sm:text-sm font-black text-amber-950 leading-tight line-clamp-1">【片頭特輯】黃金小恐龍挑戰100盤頂級和牛拉麵！</h2>
+            <button onclick="likeCurrentVideo()" id="yt-like-btn" class="shrink-0 bg-rose-100 text-rose-700 text-[11px] font-black px-2 py-0.5 rounded-full">❤️ 9.8萬</button>
+          </div>
+          <div class="flex items-center justify-between mt-1 text-[11px]">
+            <button onclick="filterByCurrentChannel()" id="yt-channel" class="font-bold text-amber-800 hover:underline">🦖 大胃王阿金TV (點我看頻道全部影片)</button>
+            <div class="flex items-center gap-1">
+              <button onclick="setYtSubTab('list')" id="subtab-list" class="bg-amber-900 text-yellow-200 px-2 py-0.5 rounded-full font-black">📺 選片 (2000部)</button>
+              <button onclick="setYtSubTab('comments')" id="subtab-comments" class="bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-black">💬 留言區</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 選片列表（含搜尋 + 分類篩選） -->
+        <div id="yt-list-panel" class="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <div class="p-1.5 bg-amber-100/80 flex items-center gap-1 shrink-0">
+            <input id="search-input" oninput="renderVideoList()" type="text" placeholder="🔍 搜尋2000部影片或小恐龍頻道..." class="flex-1 bg-white border border-amber-300 rounded-full px-2.5 py-1 text-xs font-bold outline-none">
+            <button onclick="clearSearch()" class="bg-white border border-amber-300 rounded-full px-2 py-1 text-[10px] font-black">全部</button>
+          </div>
+          <div id="cat-bar" class="flex items-center gap-1 px-1.5 py-1 overflow-x-auto no-scrollbar bg-white border-b border-amber-200 shrink-0 text-[11px] font-black"></div>
+          <div id="video-list" class="flex-1 min-h-0 overflow-y-auto p-1.5 space-y-1.5"></div>
+        </div>
+
+        <!-- 觀眾留言互動區 -->
+        <div id="yt-comments-panel" class="hidden flex-1 min-h-0 flex-col bg-white overflow-hidden">
+          <div id="comments-list" class="flex-1 min-h-0 overflow-y-auto p-2 space-y-1.5 text-xs"></div>
+          <div class="p-1.5 bg-amber-100 border-t border-amber-300 flex items-center gap-1 shrink-0">
+            <input id="comment-input" type="text" placeholder="輸入留言跟小恐龍主播互動..." class="flex-1 bg-white border border-amber-300 rounded-full px-3 py-1 text-xs font-bold outline-none">
+            <button onclick="postComment()" class="bg-amber-900 text-yellow-200 text-xs font-black px-3 py-1 rounded-full">發送</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 抖音沉浸式上下滑動全螢幕模式 -->
+      <div id="tiktok-swipe-view" class="hidden flex-1 min-h-0 relative bg-slate-950 overflow-hidden select-none" style="touch-action: none;">
+        <canvas id="tiktokCanvas" class="w-full h-full block" style="touch-action: none;"></canvas>
+
+        <div class="absolute top-2 left-2 right-2 flex items-center justify-between gap-1 z-10">
+          <span id="tt-live-tag" class="bg-rose-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow pointer-events-none truncate">🔴 實況互動中 • 1.2萬人觀看</span>
+          <div class="flex items-center gap-1 shrink-0">
+            <button onclick="cyclePlaybackSpeed()" class="speed-toggle-btn bg-white/90 text-amber-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow active:scale-95">⚡ 1.0x</button>
+            <button onclick="toggleVideoFullscreen()" class="fs-toggle-btn bg-amber-400 text-amber-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow active:scale-95">⛶ 全螢幕</button>
+          </div>
+        </div>
+
+        <!-- 右側抖音互動按鈕列 -->
+        <div class="absolute right-2 bottom-16 flex flex-col items-center gap-2 z-10">
+          <button onclick="prevTiktok()" class="w-9 h-9 rounded-full bg-white/25 backdrop-blur text-white font-black text-sm flex items-center justify-center shadow active:scale-90">⬆️</button>
+          <button onclick="likeTiktok()" class="flex flex-col items-center text-white active:scale-90">
+            <span class="w-9 h-9 rounded-full bg-rose-500/90 flex items-center justify-center text-base shadow">❤️</span>
+            <span id="tt-likes" class="text-[10px] font-black drop-shadow">8.6萬</span>
+          </button>
+          <button onclick="sendGift('🚀 豪華火箭')" class="flex flex-col items-center text-white active:scale-90">
+            <span class="w-9 h-9 rounded-full bg-amber-400/90 text-amber-950 flex items-center justify-center text-base shadow">🚀</span>
+            <span class="text-[10px] font-black drop-shadow">送火箭</span>
+          </button>
+          <button onclick="nextTiktok()" class="w-9 h-9 rounded-full bg-white/25 backdrop-blur text-white font-black text-sm flex items-center justify-center shadow active:scale-90">⬇️</button>
+        </div>
+
+        <!-- 左下角實況主資訊與即時彈幕發送列 -->
+        <div class="absolute left-2 right-12 bottom-2 z-10 flex flex-col gap-1">
+          <div class="pointer-events-none">
+            <div id="tt-author" class="text-yellow-300 font-black text-xs drop-shadow">@大胃王阿金TV</div>
+            <div id="tt-caption" class="text-white font-bold text-[11px] leading-tight line-clamp-2 drop-shadow">30秒挑戰一口吞下超大黃金和牛漢堡！</div>
+          </div>
+          <div class="flex items-center gap-1">
+            <input id="tt-danmu-input" type="text" placeholder="發送彈幕跟小恐龍主播聊天..." class="flex-1 bg-black/55 text-white placeholder-white/70 border border-white/30 rounded-full px-2.5 py-1 text-[11px] font-bold outline-none">
+            <button onclick="sendTiktokDanmu()" class="bg-amber-400 text-amber-950 text-[11px] font-black px-2.5 py-1 rounded-full shadow">發送</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 2. 全館15功能互動房間畫布 ==================== -->
+    <div id="room-hub" class="hidden flex-1 min-h-0 flex flex-col relative">
+      <canvas id="roomCanvas" class="w-full flex-1 min-h-0 block"></canvas>
+      <div id="room-controls" class="p-2 bg-amber-100/95 border-t border-amber-300 shrink-0"></div>
+    </div>
+
+    <!-- ==================== 自製拍片上傳彈窗 ==================== -->
+    <div id="upload-modal" class="hidden absolute inset-0 bg-black/60 backdrop-blur-sm z-30 flex items-center justify-center p-3">
+      <div class="bg-amber-50 border-2 border-amber-400 rounded-3xl p-3.5 w-full max-w-sm shadow-2xl space-y-2">
+        <div class="flex items-center justify-between">
+          <h3 class="font-black text-base text-amber-950">🎬 拍攝小恐龍原創影片</h3>
+          <button onclick="closeUploadModal()" class="text-sm font-black bg-amber-200 px-2.5 py-0.5 rounded-full">✕</button>
+        </div>
+        <input id="up-title" type="text" placeholder="輸入影片標題（例：小恐龍吃100顆草莓）" class="w-full bg-white border border-amber-300 rounded-xl px-3 py-1.5 text-xs font-bold">
+        <div class="grid grid-cols-2 gap-1.5">
+          <select id="up-cat" class="bg-white border border-amber-300 rounded-xl px-2 py-1.5 text-xs font-bold">
+            <option value="吃播">🍖 吃播</option>
+            <option value="大胃王">🍜 大胃王</option>
+            <option value="卡通">🎨 卡通</option>
+            <option value="電影">🎬 電影</option>
+            <option value="遊戲實況">🎮 遊戲實況</option>
+            <option value="直播">🔴 直播</option>
+          </select>
+          <select id="up-dur" class="bg-white border border-amber-300 rounded-xl px-2 py-1.5 text-xs font-bold">
+            <option value="0:30">⏱️ 30秒短片</option>
+            <option value="3:15">⏱️ 3分15秒</option>
+            <option value="15:00">⏱️ 15分鐘</option>
+            <option value="30:00">⏱️ 30分鐘長片</option>
+          </select>
+        </div>
+        <input id="up-line" type="text" placeholder="輸入小恐龍主播開場白..." class="w-full bg-white border border-amber-300 rounded-xl px-3 py-1.5 text-xs font-bold">
+        <button onclick="publishNewVideo()" class="w-full btn-gold rounded-2xl py-2 font-black text-sm">🚀 立即上架並播放 (+50🪙)</button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- 底部三排 5×3 共 15 宮格全館房間按鈕 -->
+  <footer id="room-grid" class="w-full max-w-[440px] grid grid-cols-5 gap-1 shrink-0 pb-0.5"></footer>
+
+  <script>
+    // ==================== 全局狀態 ====================
+    let coins = 250;
+    let hunger = 90;
+    let mood = 95;
+    let currentTab = 'tv';
+    let currentPlatform = 'yt';
+    let currentCategory = '全部';
+    let dramaPlaying = true;
+    let dramaTick = 0;
+    let playbackSpeed = 1.0;
+    const speedLevels = [0.5, 1.0, 1.5, 2.0];
+    let isVideoFullscreen = false;
+    let toastText = '', toastTimer = 0;
+
+    // 恐龍外觀與食材庫存
+    let dinoColor = '#FACC15';
+    let dinoHat = '👑';
+    let fridgeFood = ['🥩 頂級和牛', '🦞 波士頓龍蝦', '🍜 黃金拉麵', '🍓 草莓蛋糕', '🍣 鮪魚壽司'];
+    let slimeColor = '#FACC15';
+    let slimeToppings = [];
+    let paintColor = '#EF4444';
+    let paintStrokes = [];
+    let beads = [];
+    let bubbles = [];
+    let gardenFlowers = [
+      { x: 0.25, y: 0.65, icon: '🌻', stage: 2 },
+      { x: 0.5, y: 0.68, icon: '🌷', stage: 2 },
+      { x: 0.75, y: 0.64, icon: '🌹', stage: 2 }
+    ];
+    let runnerY = 0, runnerVy = 0, runnerObs = [], runnerScore = 0;
+
+    // ==================== 12位黃金小恐龍實況主 ====================
+    const dinoStreamers = [
+      { name: '大胃王阿金TV', hat: '👑', color: '#FACC15', prop: '🍜', style: '大胃王' },
+      { name: '深夜吃播主小金', hat: '👨‍🍳', color: '#FDE047', prop: '🥩', style: '吃播' },
+      { name: '電競大神恐龍王', hat: '🎧', color: '#FB923C', prop: '🎮', style: '遊戲實況' },
+      { name: '星光恐龍卡通台', hat: '🎀', color: '#F472B6', prop: '🪄', style: '卡通' },
+      { name: '黃金好萊塢影業', hat: '🎬', color: '#38BDF8', prop: '🍿', style: '電影' },
+      { name: '恐龍主廚阿龍', hat: '🍳', color: '#4ADE80', prop: '🦞', style: '吃播' },
+      { name: '音樂DJ金寶', hat: '🕶️', color: '#A78BFA', prop: '🎹', style: '直播' },
+      { name: '整人王霸王龍', hat: '🤠', color: '#F87171', prop: '🎉', style: '直播' },
+      { name: '甜點公主金妮', hat: '🧁', color: '#F9A8D4', prop: '🍰', style: '吃播' },
+      { name: '極速跑酷小金', hat: '⚡', color: '#FBBF24', prop: '🏆', style: '遊戲實況' },
+      { name: '恐龍冒險劇場', hat: '🧭', color: '#34D399', prop: '🦖', style: '電影' },
+      { name: '24H黃金直播間', hat: '💎', color: '#60A5FA', prop: '🎤', style: '直播' }
+    ];
+
+    // ==================== 生成 2,000 部有長有短（30秒~30分鐘）影片 ====================
+    const categories = ['全部', '原創片頭', '吃播', '大胃王', '卡通', '電影', '遊戲實況', '直播'];
+    const allVideos = [];
+
+    const titleTemplates = {
+      '吃播': ['深夜暴風吸入A5和牛牛排！', '整隻波士頓龍蝦沾滿黃金起司醬！', '100顆爆汁草莓糖葫蘆脆響ASMR！', '超豪華海膽鮭魚卵蓋飯一口悶！'],
+      '大胃王': ['30分鐘挑戰吃完100碗黃金拉麵！', '巨無霸10公斤恐龍漢堡完食挑戰！', '迴轉壽司吃垮老闆全紀錄！', '50盤頂級燒肉大胃王巔峰對決！'],
+      '卡通': ['黃金小恐龍的魔法森林大冒險！', '恐龍學院：誰偷走了黃金皇冠？', '太空小恐龍拯救糖果星球！', '小恐龍與史萊姆精靈的奇幻日常！'],
+      '電影': ['《侏羅紀黃金帝國》完整院線大片', '《恐龍特攻隊：時空裂縫》動作電影', '《美食獵人小恐龍》感動冒險電影', '《星際恐龍船長》科幻史詩巨作'],
+      '遊戲實況': ['破紀錄！恐龍跑酷衝破99999分！', '恐怖密室逃脫！小恐龍嚇到飛起來！', '黃金沙盒蓋出100層夢幻城堡！', '和粉絲組隊挑戰終極大魔王！'],
+      '直播': ['【LIVE】小恐龍深夜聊天室＋點歌台', '【LIVE】抽獎送出100份黃金和牛禮盒！', '【LIVE】粉絲問答有問必答互動中！', '【LIVE】現場試吃神祕超大驚喜箱！']
+    };
+
+    const dialogueTemplates = {
+      '吃播': '哇～這口和牛也太多汁了吧！入口即化太幸福啦！',
+      '大胃王': '第48碗拉麵開動！大家幫我刷愛心加油！',
+      '卡通': '快看前面發光的傳送門，我們一起衝進去冒險吧！',
+      '電影': '身為黃金王國的守護者，我絕對不會退縮的！',
+      '遊戲實況': '漂亮！這波極限操作直接拿下全場最高分！',
+      '直播': '歡迎新進直播間的朋友！記得點讚跟留言喔！'
+    };
+
+    function formatDuration(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    // 100 部專屬片頭 + 900 部 YouTube + 1000 部抖音 = 2000 部
+    const mainCats = ['吃播', '大胃王', '卡通', '電影', '遊戲實況', '直播'];
+    for (let i = 0; i < 2000; i++) {
+      const isTiktok = i >= 1000;
+      const hasIntro = i < 100 || (i >= 1000 && i < 1050);
+      const cat = mainCats[i % mainCats.length];
+      const streamer = dinoStreamers[i % dinoStreamers.length];
+      const tList = titleTemplates[cat];
+      const baseTitle = tList[i % tList.length];
+      const sec = isTiktok ? (30 + (i % 6) * 15) : (cat === '電影' || cat === '大胃王' ? (900 + (i % 19) * 60) : (180 + (i % 15) * 45));
+      allVideos.push({
+        id: i + 1,
+        platform: isTiktok ? 'tt' : 'yt',
+        hasIntro,
+        category: cat,
+        title: `${hasIntro ? '【專屬片頭】' : ''}${baseTitle} #${i + 1}`,
+        channel: streamer.name,
+        hat: streamer.hat,
+        color: streamer.color,
+        prop: streamer.prop,
+        duration: formatDuration(sec),
+        likes: Math.floor(1200 + ((i * 7919) % 98000)),
+        line: dialogueTemplates[cat],
+        comments: [
+          { user: '小恐龍鐵粉', text: '小恐龍主播吃東西的樣子也太可愛了吧！😍' },
+          { user: '和牛愛好者', text: '半夜看這個影片真的會餓到睡不著🥩🔥' },
+          { user: '黃金皇冠迷', text: '片頭動畫超帥！已經按讚訂閱支持了！👑' }
+        ]
+      });
+    }
+
+    let currentVideo = allVideos[0];
+    const tiktokFeed = allVideos.filter(v => v.platform === 'tt');
+    let tiktokIndex = 0;
+    let danmuList = [
+      { text: '小恐龍主播太可愛啦！❤️❤️', x: 320, y: 65, color: '#FDE047' },
+      { text: '這口和牛看起來超香！！🥩', x: 480, y: 95, color: '#FFFFFF' },
+      { text: '刷一波666666！🔥🔥', x: 620, y: 125, color: '#67E8F9' }
+    ];
+    let giftAnims = [];
+    let foodCrumbs = [];
+
+    // ==================== 15 宮格房間定義 ====================
+    const rooms = [
+      { id: 'cook', icon: '👨‍🍳', name: '料理室' },
+      { id: 'market', icon: '🥬', name: '食材行' },
+      { id: 'feed', icon: '🍽️', name: '餵食廳' },
+      { id: 'tv', icon: '📺', name: '2000台TV' },
+      { id: 'aqua', icon: '🐠', name: '水族館' },
+      { id: 'park', icon: '🎡', name: '遊樂園' },
+      { id: 'paint', icon: '🎨', name: '50色畫室' },
+      { id: 'beads', icon: '🟡', name: '拼豆坊' },
+      { id: 'slime', icon: '✨', name: '做史萊姆' },
+      { id: 'bath', icon: '🛁', name: '泡泡浴' },
+      { id: 'dress', icon: '👗', name: '更衣室' },
+      { id: 'shop', icon: '🏪', name: '大超市' },
+      { id: 'garden', icon: '🌻', name: '陽光花園' },
+      { id: 'music', icon: '🎹', name: '音樂廳' },
+      { id: 'bed', icon: '🛏️', name: '夢幻臥室' }
+    ];
+
+    function initRoomButtons() {
+      const grid = document.getElementById('room-grid');
+      grid.innerHTML = rooms.map(r => `
+        <button id="tab-${r.id}" onclick="switchTab('${r.id}')" class="btn-gold ${r.id === currentTab ? 'active' : ''} rounded-xl py-1 px-0.5 flex flex-col items-center justify-center">
+          <span class="text-sm sm:text-base leading-none">${r.icon}</span>
+          <span class="text-[10px] sm:text-[11px] font-black leading-tight mt-0.5 truncate w-full text-center">${r.name}</span>
+        </button>
+      `).join('');
+    }
+
+    function updateStatsUI() {
+      document.getElementById('stat-coins').textContent = `🪙 ${coins}`;
+      document.getElementById('stat-hunger').textContent = `🍖 ${Math.min(100, Math.max(0, hunger))}%`;
+      document.getElementById('stat-mood').textContent = `💖 ${Math.min(100, Math.max(0, mood))}%`;
+    }
+
+    function showToast(msg) {
+      toastText = msg;
+      toastTimer = 95;
+    }
+
+    // ==================== Web Audio 安全音效 ====================
+    let audioCtx = null;
+    function playBeep(f1 = 520, f2 = 780, dur = 0.08) {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.frequency.setValueAtTime(f1, audioCtx.currentTime);
+        o.frequency.exponentialRampToValueAtTime(f2, audioCtx.currentTime + dur);
+        g.gain.setValueAtTime(0.14, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(); o.stop(audioCtx.currentTime + dur + 0.01);
+      } catch (e) {}
+    }
+
+    // ==================== 切換全館15個房間 ====================
+    function switchTab(id) {
+      currentTab = id;
+      document.querySelectorAll('#room-grid button').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById('tab-' + id);
+      if (btn) btn.classList.add('active');
+
+      const tvHub = document.getElementById('tv-hub');
+      const roomHub = document.getElementById('room-hub');
+
+      if (id === 'tv') {
+        tvHub.classList.remove('hidden');
+        roomHub.classList.add('hidden');
+      } else {
+        tvHub.classList.add('hidden');
+        roomHub.classList.remove('hidden');
+        renderRoomControls();
+      }
+      playBeep(480, 720, 0.07);
+    }
+
+    // ==================== YouTube / 抖音 平台與互動功能 ====================
+    function setPlatform(plat) {
+      currentPlatform = plat;
+      const ytBtn = document.getElementById('plat-yt');
+      const ttBtn = document.getElementById('plat-tt');
+      const ytView = document.getElementById('yt-main-view');
+      const ttView = document.getElementById('tiktok-swipe-view');
+
+      if (plat === 'yt') {
+        ytBtn.className = 'bg-red-600 text-white text-xs font-black px-2.5 py-1 rounded-full shadow';
+        ttBtn.className = 'bg-white text-amber-950 text-xs font-black px-2.5 py-1 rounded-full shadow border border-amber-300';
+        ytView.classList.remove('hidden');
+        ttView.classList.add('hidden');
+      } else {
+        ttBtn.className = 'bg-slate-900 text-yellow-300 text-xs font-black px-2.5 py-1 rounded-full shadow';
+        ytBtn.className = 'bg-white text-amber-950 text-xs font-black px-2.5 py-1 rounded-full shadow border border-amber-300';
+        ytView.classList.add('hidden');
+        ttView.classList.remove('hidden');
+        updateTiktokInfo();
+      }
+      playBeep(560, 840, 0.08);
+    }
+
+    function toggleVideoFullscreen() {
+      isVideoFullscreen = !isVideoFullscreen;
+      const stage = document.getElementById('stage');
+      stage.classList.toggle('fullscreen-stage', isVideoFullscreen);
+      const ytFrame = document.getElementById('yt-video-frame');
+      if (ytFrame) {
+        ytFrame.classList.toggle('h-[155px]', !isVideoFullscreen);
+        ytFrame.classList.toggle('sm:h-[175px]', !isVideoFullscreen);
+        ytFrame.classList.toggle('h-[62dvh]', isVideoFullscreen);
+      }
+      document.querySelectorAll('.fs-toggle-btn').forEach(btn => {
+        btn.textContent = isVideoFullscreen ? '🗗 退出全螢幕' : '⛶ 全螢幕';
+      });
+    }
+
+    function cyclePlaybackSpeed() {
+      const idx = speedLevels.indexOf(playbackSpeed);
+      playbackSpeed = speedLevels[(idx + 1) % speedLevels.length];
+      document.querySelectorAll('.speed-toggle-btn').forEach(btn => {
+        btn.textContent = `⚡ ${playbackSpeed.toFixed(1)}x`;
+      });
+      playBeep(620, 880, 0.06);
+    }
+
+    function togglePlayDrama() {
+      dramaPlaying = !dramaPlaying;
+      document.getElementById('play-toggle').textContent = dramaPlaying ? '⏸ 暫停' : '▶ 播放';
+    }
+
+    function initCategoryBar() {
+      const bar = document.getElementById('cat-bar');
+      bar.innerHTML = categories.map(c => `
+        <button onclick="selectCategory('${c}')" class="px-2.5 py-0.5 rounded-full shrink-0 ${c === currentCategory ? 'bg-amber-900 text-yellow-200' : 'bg-amber-100 text-amber-900'}">${c}</button>
+      `).join('');
+    }
+
+    function selectCategory(cat) {
+      currentCategory = cat;
+      initCategoryBar();
+      renderVideoList();
+    }
+
+    function clearSearch() {
+      document.getElementById('search-input').value = '';
+      currentCategory = '全部';
+      initCategoryBar();
+      renderVideoList();
+    }
+
+    function filterByCurrentChannel() {
+      document.getElementById('search-input').value = currentVideo.channel;
+      setYtSubTab('list');
+      renderVideoList();
+    }
+
+    function renderVideoList() {
+      const q = (document.getElementById('search-input').value || '').trim().toLowerCase();
+      const filtered = allVideos.filter(v => {
+        if (currentCategory === '原創片頭' && !v.hasIntro) return false;
+        if (currentCategory !== '全部' && currentCategory !== '原創片頭' && v.category !== currentCategory) return false;
+        if (q && !v.title.toLowerCase().includes(q) && !v.channel.toLowerCase().includes(q) && !v.category.includes(q)) return false;
+        return true;
+      });
+
+      const listEl = document.getElementById('video-list');
+      const slice = filtered.slice(0, 60);
+      listEl.innerHTML = `<div class="text-[10px] font-black text-amber-800 px-1">共找到 ${filtered.length} 部影片（顯示前 ${slice.length} 部）</div>` +
+        slice.map(v => `
+          <div onclick="playVideoById(${v.id})" class="flex items-center justify-between gap-2 p-1.5 rounded-xl border ${v.id === currentVideo.id ? 'bg-amber-200 border-amber-600' : 'bg-white border-amber-200'} cursor-pointer active:scale-[0.99]">
+            <div class="flex items-center gap-2 min-w-0">
+              <div class="w-9 h-9 rounded-lg bg-amber-900 text-yellow-300 flex items-center justify-center text-lg shrink-0">${v.prop}</div>
+              <div class="min-w-0">
+                <div class="text-xs font-black text-amber-950 truncate">${v.title}</div>
+                <div class="text-[10px] font-bold text-amber-700 truncate">${v.hat} ${v.channel} • ${v.category}</div>
+              </div>
+            </div>
+            <span class="bg-slate-900 text-white text-[10px] font-black px-1.5 py-0.5 rounded shrink-0">${v.duration}</span>
+          </div>
+        `).join('');
+    }
+
+    function playVideoById(id) {
+      const found = allVideos.find(v => v.id === id);
+      if (!found) return;
+      currentVideo = found;
+      dramaTick = 0;
+      dramaPlaying = true;
+      document.getElementById('play-toggle').textContent = '⏸ 暫停';
+      document.getElementById('yt-badge').textContent = `${found.hasIntro ? '🎬 原創片頭 • ' : ''}${found.category} • ${found.duration}`;
+      document.getElementById('yt-title').textContent = found.title;
+      document.getElementById('yt-channel').textContent = `${found.hat} ${found.channel} (點我看頻道全部影片)`;
+      document.getElementById('yt-like-btn').textContent = `❤️ ${(found.likes / 10000).toFixed(1)}萬`;
+      renderVideoList();
+      renderComments();
+      playBeep(520, 880, 0.08);
+    }
+
+    function likeCurrentVideo() {
+      currentVideo.likes += 100;
+      document.getElementById('yt-like-btn').textContent = `❤️ ${(currentVideo.likes / 10000).toFixed(1)}萬`;
+      playBeep(660, 1020, 0.08);
+    }
+
+    function setYtSubTab(tab) {
+      const listPanel = document.getElementById('yt-list-panel');
+      const commPanel = document.getElementById('yt-comments-panel');
+      const bList = document.getElementById('subtab-list');
+      const bComm = document.getElementById('subtab-comments');
+      if (tab === 'list') {
+        listPanel.classList.remove('hidden');
+        commPanel.classList.add('hidden');
+        commPanel.classList.remove('flex');
+        bList.className = 'bg-amber-900 text-yellow-200 px-2 py-0.5 rounded-full font-black';
+        bComm.className = 'bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-black';
+      } else {
+        listPanel.classList.add('hidden');
+        commPanel.classList.remove('hidden');
+        commPanel.classList.add('flex');
+        bComm.className = 'bg-amber-900 text-yellow-200 px-2 py-0.5 rounded-full font-black';
+        bList.className = 'bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-black';
+        renderComments();
+      }
+    }
+
+    function renderComments() {
+      const box = document.getElementById('comments-list');
+      box.innerHTML = currentVideo.comments.map(c => `
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-2">
+          <div class="font-black text-amber-900 text-[11px]">🦖 ${c.user}</div>
+          <div class="text-amber-950 font-bold mt-0.5">${c.text}</div>
+        </div>
+      `).join('');
+    }
+
+    function postComment() {
+      const inp = document.getElementById('comment-input');
+      const txt = inp.value.trim();
+      if (!txt) return;
+      currentVideo.comments.unshift({ user: '我 (黃金貴賓)', text: txt });
+      inp.value = '';
+      renderComments();
+      coins += 5;
+      updateStatsUI();
+      playBeep(620, 960, 0.08);
+    }
+
+    function openUploadModal() { document.getElementById('upload-modal').classList.remove('hidden'); }
+    function closeUploadModal() { document.getElementById('upload-modal').classList.add('hidden'); }
+
+    function publishNewVideo() {
+      const title = document.getElementById('up-title').value.trim() || '黃金小恐龍的超豪華美食挑戰！';
+      const cat = document.getElementById('up-cat').value;
+      const dur = document.getElementById('up-dur').value;
+      const line = document.getElementById('up-line').value.trim() || '大家好！這是我自己拍攝的新影片喔！';
+
+      const newVid = {
+        id: allVideos.length + 1,
+        platform: 'yt',
+        hasIntro: true,
+        category: cat,
+        title: `【我的原創】${title}`,
+        channel: '黃金小恐龍本尊TV',
+        hat: dinoHat,
+        color: dinoColor,
+        prop: '👑',
+        duration: dur,
+        likes: 10000,
+        line,
+        comments: [{ user: '系統小幫手', text: '恭喜新影片上架成功！獲得 +50 🪙 獎勵！' }]
+      };
+      allVideos.unshift(newVid);
+      coins += 50;
+      updateStatsUI();
+      closeUploadModal();
+      setPlatform('yt');
+      playVideoById(newVid.id);
+      playBeep(520, 1040, 0.14);
+    }
+
+    // ==================== 抖音上下滑動與即時彈幕禮物 ====================
+    function updateTiktokInfo() {
+      const cur = tiktokFeed[tiktokIndex] || tiktokFeed[0];
+      if (!cur) return;
+      document.getElementById('tt-author').textContent = `@${cur.channel} • ${cur.category} (${cur.duration})`;
+      document.getElementById('tt-caption').textContent = cur.title;
+      document.getElementById('tt-likes').textContent = `${(cur.likes / 10000).toFixed(1)}萬`;
+      document.getElementById('tt-live-tag').textContent = `🔴 實況互動中 (${tiktokIndex + 1}/${tiktokFeed.length}) • ${(1 + (tiktokIndex % 9) * 0.4).toFixed(1)}萬人觀看`;
+    }
+
+    function nextTiktok() {
+      tiktokIndex = (tiktokIndex + 1) % tiktokFeed.length;
+      dramaTick = 0;
+      updateTiktokInfo();
+      playBeep(480, 740, 0.06);
+    }
+
+    function prevTiktok() {
+      tiktokIndex = (tiktokIndex - 1 + tiktokFeed.length) % tiktokFeed.length;
+      dramaTick = 0;
+      updateTiktokInfo();
+      playBeep(740, 480, 0.06);
+    }
+
+    function likeTiktok() {
+      const cur = tiktokFeed[tiktokIndex];
+      if (cur) cur.likes += 500;
+      updateTiktokInfo();
+      giftAnims.push({ icon: '❤️', x: 180, y: 240, vy: -3.5, life: 45 });
+      playBeep(680, 1020, 0.06);
+    }
+
+    function sendGift(name) {
+      const cur = tiktokFeed[tiktokIndex];
+      if (cur) cur.line = `謝謝老闆送出的${name}！小恐龍愛你喔！💖`;
+      for (let i = 0; i < 8; i++) {
+        giftAnims.push({ icon: '🚀', x: 50 + i * 35, y: 280, vy: -4 - Math.random() * 2, life: 60 });
+      }
+      danmuList.push({ text: `🎉 觀眾送出【${name}】全場歡呼！`, x: 340, y: 80, color: '#FDE047' });
+      playBeep(520, 1080, 0.14);
+    }
+
+    function sendTiktokDanmu() {
+      const inp = document.getElementById('tt-danmu-input');
+      const txt = inp.value.trim();
+      if (!txt) return;
+      danmuList.push({ text: `💬 我：${txt}`, x: 340, y: 60 + Math.random() * 80, color: '#86EFAC' });
+      const cur = tiktokFeed[tiktokIndex];
+      if (cur) cur.line = `看到留言「${txt}」啦！感謝支持！`;
+      inp.value = '';
+      playBeep(620, 920, 0.07);
+    }
+
+    // 抖音畫布滑動手勢與滑鼠滾輪監聽
+    const tiktokCanvas = document.getElementById('tiktokCanvas');
+    const tCtx = tiktokCanvas.getContext('2d');
+    let ttSwipeStartY = null;
+    let ttSwipeOffsetY = 0;
+    let ttWheelLock = false;
+
+    tiktokCanvas.addEventListener('touchstart', e => {
+      if (e.touches.length > 0) { ttSwipeStartY = e.touches[0].clientY; ttSwipeOffsetY = 0; }
+    }, { passive: true });
+    tiktokCanvas.addEventListener('touchmove', e => {
+      if (ttSwipeStartY !== null && e.touches.length > 0) ttSwipeOffsetY = e.touches[0].clientY - ttSwipeStartY;
+    }, { passive: true });
+    tiktokCanvas.addEventListener('touchend', e => {
+      if (ttSwipeStartY === null) return;
+      const dy = (e.changedTouches[0]?.clientY ?? ttSwipeStartY) - ttSwipeStartY;
+      ttSwipeStartY = null; ttSwipeOffsetY = 0;
+      if (dy < -28) nextTiktok();
+      else if (dy > 28) prevTiktok();
+      else likeTiktok();
+    });
+
+    tiktokCanvas.addEventListener('mousedown', e => { ttSwipeStartY = e.clientY; ttSwipeOffsetY = 0; });
+    window.addEventListener('mousemove', e => { if (ttSwipeStartY !== null) ttSwipeOffsetY = e.clientY - ttSwipeStartY; });
+    window.addEventListener('mouseup', e => {
+      if (ttSwipeStartY === null) return;
+      const dy = e.clientY - ttSwipeStartY;
+      ttSwipeStartY = null; ttSwipeOffsetY = 0;
+      if (dy < -28) nextTiktok();
+      else if (dy > 28) prevTiktok();
+      else likeTiktok();
+    });
+    tiktokCanvas.addEventListener('wheel', e => {
+      e.preventDefault();
+      if (ttWheelLock) return;
+      ttWheelLock = true;
+      if (e.deltaY > 10) nextTiktok();
+      else if (e.deltaY < -10) prevTiktok();
+      setTimeout(() => { ttWheelLock = false; }, 250);
+    }, { passive: false });
+
+    // ==================== 繪製黃金小恐龍實況主動畫（含片頭、眨眼、張嘴、真實吃播動作） ====================
+    const dramaCanvas = document.getElementById('dramaCanvas');
+    const dCtx = dramaCanvas.getContext('2d');
+
+    function renderDinoStreamer(ctxObj, W, H, vid, offsetY = 0) {
+      // 舞台背景
+      const bg = ctxObj.createLinearGradient(0, 0, W, H);
+      if (vid.category === '遊戲實況') { bg.addColorStop(0, '#1E1B4B'); bg.addColorStop(1, '#312E81'); }
+      else if (vid.category === '電影' || vid.category === '卡通') { bg.addColorStop(0, '#0F172A'); bg.addColorStop(1, '#1E3A8A'); }
+      else { bg.addColorStop(0, '#451A03'); bg.addColorStop(1, '#92400E'); }
+      ctxObj.fillStyle = bg;
+      ctxObj.fillRect(0, 0, W, H);
+
+      // 專屬片頭動畫（前 55 幀）
+      if (vid.hasIntro && dramaTick < 55) {
+        ctxObj.save();
+        ctxObj.fillStyle = 'rgba(0,0,0,0.65)';
+        ctxObj.fillRect(0, 0, W, H);
+        const pulse = 1 + Math.sin(dramaTick * 0.25) * 0.08;
+        ctxObj.translate(W / 2, H / 2 + offsetY);
+        ctxObj.scale(pulse, pulse);
+        ctxObj.fillStyle = '#FDE047';
+        ctxObj.font = '900 18px "Noto Sans TC"';
+        ctxObj.textAlign = 'center';
+        ctxObj.fillText(`🦖 ${vid.channel} 🦖`, 0, -10);
+        ctxObj.fillStyle = '#FFFFFF';
+        ctxObj.font = '700 12px "Noto Sans TC"';
+        ctxObj.fillText('✨ 黃金原創節目 • 精彩片頭 ✨', 0, 14);
+        ctxObj.restore();
+        return;
+      }
+
+      const scaleFactor = isVideoFullscreen ? 1.35 : 1.0;
+      const isEatingCat = (vid.category === '吃播' || vid.category === '大胃王');
+      const isGameCat = (vid.category === '遊戲實況');
+      const eatCycle = ((dramaTick % 90) + 90) % 90 / 90;
+      const isBiting = isEatingCat && eatCycle > 0.35 && eatCycle < 0.65;
+      const isChewing = isEatingCat && eatCycle >= 0.65;
+
+      const cx = W * 0.34;
+      const chewBounce = isChewing ? Math.abs(Math.sin(dramaTick * 0.7)) * 4 : Math.sin(dramaTick * 0.08) * 3;
+      const cy = H * 0.48 + offsetY + chewBounce;
+      const isBlinking = (((dramaTick % 115) + 115) % 115) > 108;
+      const isTalking = dramaPlaying && Math.sin(dramaTick * 0.35) > 0;
+
+      // 繪製黃金小恐龍
+      ctxObj.save();
+      ctxObj.translate(cx, cy);
+      ctxObj.scale(scaleFactor, scaleFactor);
+
+      // 搖擺尾巴
+      const tailWag = Math.sin(dramaTick * 0.16) * 7;
+      ctxObj.fillStyle = vid.color || '#FACC15';
+      ctxObj.beginPath();
+      ctxObj.moveTo(-26, 16);
+      ctxObj.lineTo(-54, 4 + tailWag);
+      ctxObj.lineTo(-30, 32);
+      ctxObj.closePath();
+      ctxObj.fill();
+
+      // 恐龍身體
+      ctxObj.beginPath();
+      ctxObj.roundRect(-28, -36, 56, 68, 26);
+      ctxObj.fill();
+      ctxObj.strokeStyle = '#78350F';
+      ctxObj.lineWidth = 3;
+      ctxObj.stroke();
+
+      // 肚皮
+      ctxObj.fillStyle = '#FEF9C3';
+      ctxObj.beginPath();
+      ctxObj.ellipse(4, 10, 16, 20, 0, 0, Math.PI * 2);
+      ctxObj.fill();
+
+      // 頭飾
+      ctxObj.font = '24px sans-serif';
+      ctxObj.textAlign = 'center';
+      ctxObj.fillText(vid.hat || '👑', 2, -40);
+
+      // 眼睛（自然眨眼與吃美食幸福笑眼）
+      if (isChewing) {
+        ctxObj.strokeStyle = '#1E293B';
+        ctxObj.lineWidth = 3;
+        ctxObj.beginPath();
+        ctxObj.arc(10, -14, 5, Math.PI, 0);
+        ctxObj.stroke();
+      } else if (isBlinking) {
+        ctxObj.strokeStyle = '#1E293B';
+        ctxObj.lineWidth = 3;
+        ctxObj.beginPath();
+        ctxObj.moveTo(4, -14);
+        ctxObj.lineTo(16, -14);
+        ctxObj.stroke();
+      } else {
+        ctxObj.fillStyle = '#1E293B';
+        ctxObj.beginPath();
+        ctxObj.arc(10, -14, 5.5, 0, Math.PI * 2);
+        ctxObj.fill();
+        ctxObj.fillStyle = '#FFFFFF';
+        ctxObj.beginPath();
+        ctxObj.arc(12, -16, 2, 0, Math.PI * 2);
+        ctxObj.fill();
+      }
+
+      // 紅潤腮紅
+      ctxObj.fillStyle = '#FDA4AF';
+      ctxObj.beginPath();
+      ctxObj.arc(2, -4, 5, 0, Math.PI * 2);
+      ctxObj.fill();
+
+      // 嘴巴（張大嘴咬美食 / 隨台詞說話）
+      if (isBiting) {
+        ctxObj.fillStyle = '#E11D48';
+        ctxObj.beginPath();
+        ctxObj.arc(16, -2, 9, 0, Math.PI * 2);
+        ctxObj.fill();
+      } else if (isTalking || isChewing) {
+        ctxObj.fillStyle = '#E11D48';
+        ctxObj.beginPath();
+        ctxObj.ellipse(15, -2, 6, 4.5, 0, 0, Math.PI * 2);
+        ctxObj.fill();
+      } else {
+        ctxObj.strokeStyle = '#78350F';
+        ctxObj.lineWidth = 2.5;
+        ctxObj.beginPath();
+        ctxObj.arc(14, -4, 5, 0.1 * Math.PI, 0.9 * Math.PI);
+        ctxObj.stroke();
+      }
+
+      // 揮舞小手
+      const armY = isEatingCat && eatCycle < 0.55 ? -6 : Math.sin(dramaTick * 0.25) * 4;
+      ctxObj.fillStyle = vid.color || '#FACC15';
+      ctxObj.beginPath();
+      ctxObj.ellipse(24, 6 + armY, 10, 6, -0.3, 0, Math.PI * 2);
+      ctxObj.fill();
+      ctxObj.stroke();
+      ctxObj.restore();
+
+      // 節目互動道具（吃播真實夾美食進嘴、遊戲實況閃電火花）
+      if (isEatingCat) {
+        ctxObj.font = isVideoFullscreen ? '52px sans-serif' : '40px sans-serif';
+        ctxObj.textAlign = 'center';
+        ctxObj.fillText(vid.prop || '🍜', W * 0.72, H * 0.52 + offsetY);
+
+        if (eatCycle < 0.55) {
+          const p = Math.min(1, eatCycle / 0.45);
+          const fx = W * 0.72 + (cx + 18 * scaleFactor - W * 0.72) * p;
+          const fy = (H * 0.48 + offsetY) + (cy - 2 - (H * 0.48 + offsetY)) * p - Math.sin(p * Math.PI) * 18;
+          ctxObj.font = isVideoFullscreen ? '30px sans-serif' : '22px sans-serif';
+          ctxObj.fillText(vid.prop || '🥩', fx, fy);
+        } else if (Math.floor(dramaTick) % 7 === 0) {
+          foodCrumbs.push({ x: cx + 22, y: cy, vx: 1 + Math.random() * 2, vy: -2 - Math.random() * 2, life: 25 });
+        }
+      } else {
+        const bounce = isGameCat ? Math.sin(dramaTick * 0.8) * 6 : Math.cos(dramaTick * 0.12) * 5;
+        ctxObj.font = isVideoFullscreen ? '54px sans-serif' : '42px sans-serif';
+        ctxObj.textAlign = 'center';
+        ctxObj.fillText(vid.prop || '🎬', W * 0.72, H * 0.46 + offsetY + bounce);
+      }
+
+      // 美味碎屑粒子
+      for (let i = foodCrumbs.length - 1; i >= 0; i--) {
+        const cb = foodCrumbs[i];
+        cb.x += cb.vx; cb.y += cb.vy; cb.vy += 0.25; cb.life--;
+        if (cb.life <= 0) { foodCrumbs.splice(i, 1); continue; }
+        ctxObj.fillStyle = '#FDE047';
+        ctxObj.beginPath(); ctxObj.arc(cb.x, cb.y, 2.5, 0, Math.PI * 2); ctxObj.fill();
+      }
+
+      // 底部節目字幕條
+      ctxObj.fillStyle = 'rgba(0, 0, 0, 0.72)';
+      ctxObj.beginPath();
+      ctxObj.roundRect(10, H - 34 + offsetY, W - 20, 26, 10);
+      ctxObj.fill();
+      ctxObj.fillStyle = '#FEF08A';
+      ctxObj.font = '900 11px "Noto Sans TC"';
+      ctxObj.textAlign = 'center';
+      ctxObj.fillText(vid.line, W / 2, H - 17 + offsetY);
+    }
+
+    function renderDramaPlayer() {
+      const rect = dramaCanvas.getBoundingClientRect();
+      const W = dramaCanvas.width = rect.width || 360;
+      const H = dramaCanvas.height = rect.height || 175;
+      if (dramaPlaying) dramaTick += playbackSpeed;
+      renderDinoStreamer(dCtx, W, H, currentVideo, 0);
+    }
+
+    function renderTiktokPlayer() {
+      const rect = tiktokCanvas.getBoundingClientRect();
+      const W = tiktokCanvas.width = rect.width || 360;
+      const H = tiktokCanvas.height = rect.height || 340;
+      if (dramaPlaying) dramaTick += playbackSpeed;
+
+      const cur = tiktokFeed[tiktokIndex] || tiktokFeed[0];
+      if (!cur) return;
+      renderDinoStreamer(tCtx, W, H, cur, ttSwipeOffsetY * 0.45);
+
+      // 自動觀眾彈幕
+      if (Math.floor(dramaTick) % 130 === 30) {
+        const pool = ['小恐龍主播666！🔥', '太療癒了每天必看！❤️', '求同款小恐龍皇冠👑', '這口吃得太香啦！🤤'];
+        danmuList.push({ text: pool[Math.floor(Math.random() * pool.length)], x: W + 20, y: 55 + Math.random() * 85, color: '#FFFFFF' });
+      }
+      tCtx.font = '900 12px "Noto Sans TC"';
+      tCtx.textAlign = 'left';
+      for (let i = danmuList.length - 1; i >= 0; i--) {
+        const dm = danmuList[i];
+        dm.x -= 1.8 * playbackSpeed;
+        tCtx.fillStyle = dm.color;
+        tCtx.fillText(dm.text, dm.x, dm.y);
+        if (dm.x < -220) danmuList.splice(i, 1);
+      }
+
+      // 禮物愛心特效
+      tCtx.font = '24px sans-serif';
+      tCtx.textAlign = 'center';
+      for (let i = giftAnims.length - 1; i >= 0; i--) {
+        const g = giftAnims[i];
+        g.y += g.vy; g.life--;
+        tCtx.fillText(g.icon, g.x, g.y);
+        if (g.life <= 0) giftAnims.splice(i, 1);
+      }
+    }
+
+    // ==================== 全館其餘 14 個功能房間互動控制 ====================
+    const roomCanvas = document.getElementById('roomCanvas');
+    const rCtx = roomCanvas.getContext('2d');
+
+    function renderRoomControls() {
+      const ctrl = document.getElementById('room-controls');
+      const btn = (label, fn) => `<button onclick="${fn}" class="btn-gold rounded-xl py-1.5 px-2 text-xs font-black">${label}</button>`;
+
+      if (currentTab === 'cook') {
+        ctrl.innerHTML = `<div class="grid grid-cols-3 gap-1.5">
+          ${btn('🍳 煎黃金和牛', "cookDish('🥩 黃金和牛牛排')")}
+          ${btn('🍜 煮恐龍拉麵', "cookDish('🍜 特濃恐龍拉麵')")}
+          ${btn('🍰 烤草莓蛋糕', "cookDish('🍰 夢幻草莓蛋糕')")}
+        </div>`;
+      } else if (currentTab === 'market') {
+        ctrl.innerHTML = `<div class="grid grid-cols-3 gap-1.5">
+          ${btn('🥩 買和牛 (-15🪙)', "buyIngredient('🥩 頂級和牛', 15)")}
+          ${btn('🦞 買龍蝦 (-20🪙)', "buyIngredient('🦞 波士頓龍蝦', 20)")}
+          ${btn('🍓 買草莓 (-10🪙)', "buyIngredient('🍓 鮮甜草莓', 10)")}
+        </div>`;
+      } else if (currentTab === 'feed') {
+        ctrl.innerHTML = `<div class="grid grid-cols-3 gap-1.5">
+          ${btn('🍽️ 餵食庫存美食', 'feedDino()')}
+          ${btn('🥤 喝黃金果汁', 'drinkJuice()')}
+          ${btn('✨ 摸摸小恐龍', 'petDino()')}
+        </div>`;
+      } else if (currentTab === 'aqua') {
+        ctrl.innerHTML = `<div class="grid grid-cols-2 gap-1.5">
+          ${btn('🐟 撒魚飼料 (+10💖)', 'feedFish()')}
+          ${btn('🫧 吹夢幻泡泡', 'spawnAquariumBubbles()')}
+        </div>`;
+      } else if (currentTab === 'park') {
+        ctrl.innerHTML = `<div class="grid grid-cols-2 gap-1.5">
+          ${btn('🦖 點擊跳躍躲仙人掌', 'jumpParkDino()')}
+          ${btn('🔄 重新開始跑酷', 'resetParkDino()')}
+        </div>`;
+      } else if (currentTab === 'paint') {
+        const cols = ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899'];
+        ctrl.innerHTML = `<div class="flex items-center justify-between gap-1">
+          ${cols.map(c => `<button onclick="paintColor='${c}'" style="background:${c}" class="w-7 h-7 rounded-full border-2 border-white shadow"></button>`).join('')}
+          ${btn('🗑️ 清空畫布', 'paintStrokes=[]')}
+        </div>`;
+      } else if (currentTab === 'beads') {
+        ctrl.innerHTML = `<div class="grid grid-cols-3 gap-1.5">
+          ${btn('🟡 放金豆豆', "addBead('#FACC15')")}
+          ${btn('🔴 放紅豆豆', "addBead('#EF4444')")}
+          ${btn('🔥 熨斗定型 (+20🪙)', 'ironBeads()')}
+        </div>`;
+      } else if (currentTab === 'slime') {
+        ctrl.innerHTML = `<div class="grid grid-cols-3 gap-1.5">
+          ${btn('🍯 黃金流沙', "slimeColor='#FACC15'")}
+          ${btn('🍓 草莓果凍', "slimeColor='#F472B6'")}
+          ${btn('🍬 撒糖果亮片', 'addSlimeTopping()')}
+        </div>`;
+      } else if (currentTab === 'bath') {
+        ctrl.innerHTML = `<div class="grid grid-cols-2 gap-1.5">
+          ${btn('🧼 搓出超多泡泡', 'addBathBubbles()')}
+          ${btn('🚿 溫水沖澡 (+15💖)', 'rinseBath()')}
+        </div>`;
+      } else if (currentTab === 'dress') {
+        ctrl.innerHTML = `<div class="grid grid-cols-4 gap-1">
+          ${btn('👑 皇冠', "dinoHat='👑'")}
+          ${btn('🎀 蝴蝶結', "dinoHat='🎀'")}
+          ${btn('🕶️ 墨鏡', "dinoHat='🕶️'")}
+          ${btn('🎨 換膚色', 'cycleDinoColor()')}
+        </div>`;
+      } else if (currentTab === 'shop') {
+        ctrl.innerHTML = `<div class="grid grid-cols-2 gap-1.5">
+          ${btn('🎁 買豪華玩具 (-30🪙)', 'buyToy()')}
+          ${btn('💰 打工賺零用錢 (+40🪙)', 'earnCoins()')}
+        </div>`;
+      } else if (currentTab === 'garden') {
+        ctrl.innerHTML = `<div class="grid grid-cols-2 gap-1.5">
+          ${btn('💧 澆水長大', 'waterGarden()')}
+          ${btn('🌻 採收花朵 (+25🪙)', 'harvestGarden()')}
+        </div>`;
+      } else if (currentTab === 'music') {
+        const notes = [['Do', 261.6], ['Re', 293.7], ['Mi', 329.6], ['Fa', 349.2], ['Sol', 392.0], ['La', 440.0], ['Si', 493.9]];
+        ctrl.innerHTML = `<div class="grid grid-cols-7 gap-1">
+          ${notes.map(n => `<button onclick="playPiano(${n[1]}, '${n[0]}')" class="btn-gold rounded-lg py-2 text-xs font-black">${n[0]}</button>`).join('')}
+        </div>`;
+      } else if (currentTab === 'bed') {
+        ctrl.innerHTML = `<div class="grid grid-cols-2 gap-1.5">
+          ${btn('🌙 蓋被子睡香香', 'sleepDino()')}
+          ${btn('☀️ 起床伸懶腰', 'wakeDino()')}
+        </div>`;
+      }
+    }
+
+    // 房間互動動作
+    function cookDish(dish) { fridgeFood.push(dish); showToast(`料理完成：${dish} 已放入冰箱！`); playBeep(540, 880); }
+    function buyIngredient(item, cost) {
+      if (coins < cost) { showToast('金幣不夠囉，去超市打工或拍片賺錢吧！'); return; }
+      coins -= cost; fridgeFood.push(item); updateStatsUI(); showToast(`購買了 ${item}！`); playBeep(600, 900);
+    }
+    function feedDino() {
+      const food = fridgeFood.pop() || '🍖 黃金肉排';
+      hunger = Math.min(100, hunger + 20); mood = Math.min(100, mood + 10); updateStatsUI();
+      showToast(`小恐龍大口吃掉了 ${food}！好滿足！`); playBeep(520, 980);
+    }
+    function drinkJuice() { hunger = Math.min(100, hunger + 10); updateStatsUI(); showToast('咕嚕咕嚕～黃金果汁真好喝！'); playBeep(620, 860); }
+    function petDino() { mood = Math.min(100, mood + 15); updateStatsUI(); showToast('小恐龍開心地搖尾巴！💖'); playBeep(700, 1050); }
+    function feedFish() { mood = Math.min(100, mood + 10); updateStatsUI(); showToast('魚兒們開心地游過來吃飼料！🐠'); playBeep(580, 840); }
+    function spawnAquariumBubbles() { for (let i = 0; i < 12; i++) bubbles.push({ x: 40 + Math.random() * 280, y: 260, r: 6 + Math.random() * 10 }); playBeep(660, 1100); }
+    function jumpParkDino() { if (runnerY === 0) { runnerVy = -13; playBeep(460, 820); } }
+    function resetParkDino() { runnerY = 0; runnerVy = 0; runnerObs = []; runnerScore = 0; }
+    function addBead(c) { beads.push({ x: 80 + Math.random() * 200, y: 80 + Math.random() * 140, c }); playBeep(640, 900); }
+    function ironBeads() { if (beads.length === 0) { showToast('先放幾顆拼豆吧！'); return; } coins += 20; beads = []; updateStatsUI(); showToast('拼豆作品完成！賣出獲得 +20 🪙！'); playBeep(520, 1040); }
+    function addSlimeTopping() { const icons = ['🍬', '⭐', '🌸', '💎']; slimeToppings.push({ icon: icons[Math.floor(Math.random() * icons.length)], x: 120 + Math.random() * 120, y: 110 + Math.random() * 90 }); playBeep(680, 960); }
+    function addBathBubbles() { for (let i = 0; i < 15; i++) bubbles.push({ x: 60 + Math.random() * 240, y: 120 + Math.random() * 120, r: 10 + Math.random() * 16 }); playBeep(560, 920); }
+    function rinseBath() { bubbles = []; mood = Math.min(100, mood + 15); updateStatsUI(); showToast('洗得香噴噴、亮晶晶！✨'); playBeep(620, 980); }
+    function cycleDinoColor() { const cols = ['#FACC15', '#4ADE80', '#60A5FA', '#F472B6', '#FB923C']; dinoColor = cols[(cols.indexOf(dinoColor) + 1) % cols.length]; playBeep(540, 840); }
+    function buyToy() { if (coins < 30) { showToast('金幣不足 30 🪙 喔！'); return; } coins -= 30; mood = 100; updateStatsUI(); showToast('買了超豪華黃金玩具！心情100%！'); playBeep(660, 1100); }
+    function earnCoins() { coins += 40; updateStatsUI(); showToast('在黃金大超市認真打工賺了 +40 🪙！'); playBeep(520, 1040); }
+    function waterGarden() { gardenFlowers.forEach(f => f.stage = Math.min(3, f.stage + 1)); showToast('花朵喝飽水長得更茂盛了！🌻'); playBeep(580, 880); }
+    function harvestGarden() { coins += 25; updateStatsUI(); showToast('採收陽光花束獲得 +25 🪙！'); playBeep(620, 980); }
+    function playPiano(freq, note) { playBeep(freq, freq * 1.02, 0.25); showToast(`彈奏音符：🎵 ${note}`); }
+    function sleepDino() { mood = Math.min(100, mood + 10); updateStatsUI(); showToast('晚安～小恐龍蓋好黃金被子睡著了 💤'); playBeep(440, 330, 0.2); }
+    function wakeDino() { showToast('早安！小恐龍精神飽滿起床啦！☀️'); playBeep(440, 660, 0.15); }
+
+    // 畫布觸控繪畫與互動
+    roomCanvas.addEventListener('pointerdown', e => {
+      const r = roomCanvas.getBoundingClientRect();
+      const x = e.clientX - r.left, y = e.clientY - r.top;
+      if (currentTab === 'paint') paintStrokes.push({ x, y, c: paintColor });
+      else if (currentTab === 'park') jumpParkDino();
+      else if (currentTab === 'beads') beads.push({ x, y, c: '#FACC15' });
+      else if (currentTab === 'bath') {
+        bubbles = bubbles.filter(b => Math.hypot(b.x - x, b.y - y) > b.r + 12);
+        playBeep(720, 1180, 0.05);
+      }
+    });
+    roomCanvas.addEventListener('pointermove', e => {
+      if (e.buttons !== 1) return;
+      const r = roomCanvas.getBoundingClientRect();
+      const x = e.clientX - r.left, y = e.clientY - r.top;
+      if (currentTab === 'paint') paintStrokes.push({ x, y, c: paintColor });
+    });
+
+    function drawCuteRoomDino(W, H, scale = 1) {
+      rCtx.save();
+      rCtx.translate(W / 2, H * 0.56);
+      rCtx.scale(scale, scale);
+      rCtx.fillStyle = dinoColor;
+      rCtx.beginPath(); rCtx.roundRect(-34, -44, 68, 82, 30); rCtx.fill();
+      rCtx.strokeStyle = '#78350F'; rCtx.lineWidth = 3; rCtx.stroke();
+      rCtx.fillStyle = '#FEF9C3';
+      rCtx.beginPath(); rCtx.ellipse(0, 12, 20, 24, 0, 0, Math.PI * 2); rCtx.fill();
+      rCtx.font = '28px sans-serif'; rCtx.textAlign = 'center';
+      rCtx.fillText(dinoHat, 0, -48);
+      rCtx.fillStyle = '#1E293B';
+      rCtx.beginPath(); rCtx.arc(-12, -16, 5.5, 0, Math.PI * 2); rCtx.arc(12, -16, 5.5, 0, Math.PI * 2); rCtx.fill();
+      rCtx.strokeStyle = '#78350F'; rCtx.lineWidth = 3;
+      rCtx.beginPath(); rCtx.arc(0, -4, 8, 0.1 * Math.PI, 0.9 * Math.PI); rCtx.stroke();
+      rCtx.restore();
+    }
+
+    function renderRoomCanvas() {
+      const rect = roomCanvas.getBoundingClientRect();
+      const W = roomCanvas.width = rect.width || 360;
+      const H = roomCanvas.height = rect.height || 300;
+      const roomObj = rooms.find(r => r.id === currentTab) || rooms[0];
+
+      // 房間背景
+      const bg = rCtx.createLinearGradient(0, 0, 0, H);
+      bg.addColorStop(0, currentTab === 'bed' ? '#1E1B4B' : '#FEF9C3');
+      bg.addColorStop(1, currentTab === 'aqua' ? '#BAE6FD' : '#FDE68A');
+      rCtx.fillStyle = bg;
+      rCtx.fillRect(0, 0, W, H);
+
+      // 房間標題牌
+      rCtx.fillStyle = 'rgba(120, 53, 15, 0.85)';
+      rCtx.beginPath(); rCtx.roundRect(12, 10, 150, 30, 14); rCtx.fill();
+      rCtx.fillStyle = '#FEF08A';
+      rCtx.font = '900 13px "Noto Sans TC"';
+      rCtx.textAlign = 'left';
+      rCtx.fillText(`${roomObj.icon} ${roomObj.name}`, 24, 30);
+
+      if (currentTab === 'paint') {
+        paintStrokes.forEach(p => {
+          rCtx.fillStyle = p.c;
+          rCtx.beginPath(); rCtx.arc(p.x, p.y, 8, 0, Math.PI * 2); rCtx.fill();
+        });
+      } else if (currentTab === 'beads') {
+        beads.forEach(b => {
+          rCtx.fillStyle = b.c;
+          rCtx.beginPath(); rCtx.arc(b.x, b.y, 10, 0, Math.PI * 2); rCtx.fill();
+          rCtx.strokeStyle = '#78350F'; rCtx.lineWidth = 2; rCtx.stroke();
+        });
+      } else if (currentTab === 'slime') {
+        rCtx.fillStyle = slimeColor;
+        rCtx.beginPath(); rCtx.ellipse(W / 2, H * 0.55, 95 + Math.sin(Date.now() * 0.006) * 8, 65, 0, 0, Math.PI * 2); rCtx.fill();
+        rCtx.font = '24px sans-serif'; rCtx.textAlign = 'center';
+        slimeToppings.forEach(t => rCtx.fillText(t.icon, t.x, t.y));
+      } else if (currentTab === 'park') {
+        const ground = H - 36;
+        rCtx.fillStyle = '#65A30D'; rCtx.fillRect(0, ground, W, 36);
+        runnerVy += 0.7; runnerY += runnerVy;
+        if (runnerY >= 0) { runnerY = 0; runnerVy = 0; }
+        if (Math.random() < 0.02) runnerObs.push({ x: W, y: ground - 16 });
+        for (let i = runnerObs.length - 1; i >= 0; i--) {
+          runnerObs[i].x -= 4.5;
+          rCtx.font = '28px sans-serif'; rCtx.fillText('🌵', runnerObs[i].x, runnerObs[i].y + 8);
+          if (Math.hypot(runnerObs[i].x - 70, runnerObs[i].y - (ground - 30 + runnerY)) < 26) resetParkDino();
+          else if (runnerObs[i].x < 0) { runnerScore += 10; runnerObs.splice(i, 1); }
+        }
+        rCtx.font = '38px sans-serif'; rCtx.fillText('🦖', 70, ground - 18 + runnerY);
+      } else if (currentTab === 'garden') {
+        rCtx.fillStyle = '#86EFAC'; rCtx.fillRect(0, H * 0.6, W, H * 0.4);
+        gardenFlowers.forEach(f => {
+          rCtx.font = `${24 + f.stage * 8}px sans-serif`;
+          rCtx.textAlign = 'center';
+          rCtx.fillText(f.icon, W * f.x, H * f.y);
+        });
+      } else {
+        drawCuteRoomDino(W, H, 1.1);
+        if (currentTab === 'feed') {
+          rCtx.font = '12px "Noto Sans TC"'; rCtx.fillStyle = '#78350F'; rCtx.textAlign = 'center';
+          rCtx.fillText(`冰箱庫存：${fridgeFood.slice(-3).join(' / ') || '空空的'}`, W / 2, H - 16);
+        }
+        if (currentTab === 'aqua') {
+          rCtx.font = '32px sans-serif';
+          rCtx.fillText('🐠', W * 0.25 + Math.sin(Date.now() * 0.002) * 30, H * 0.35);
+          rCtx.fillText('🐡', W * 0.75 - Math.cos(Date.now() * 0.002) * 30, H * 0.42);
+        }
+      }
+
+      // 泡泡渲染
+      bubbles.forEach(b => {
+        b.y -= 0.4;
+        rCtx.strokeStyle = '#FFFFFF'; rCtx.lineWidth = 2;
+        rCtx.beginPath(); rCtx.arc(b.x, b.y, b.r, 0, Math.PI * 2); rCtx.stroke();
+      });
+
+      // 提示氣泡
+      if (toastTimer > 0) {
+        toastTimer--;
+        rCtx.fillStyle = 'rgba(59, 40, 0, 0.88)';
+        rCtx.beginPath(); rCtx.roundRect(20, H - 46, W - 40, 32, 14); rCtx.fill();
+        rCtx.fillStyle = '#FDE047';
+        rCtx.font = '900 12px "Noto Sans TC"';
+        rCtx.textAlign = 'center';
+        rCtx.fillText(toastText, W / 2, H - 25);
+      }
+    }
+
+    // ==================== 主動畫迴圈 ====================
+    function mainLoop() {
+      if (currentTab === 'tv') {
+        if (currentPlatform === 'yt') renderDramaPlayer();
+        else renderTiktokPlayer();
+      } else {
+        renderRoomCanvas();
+      }
+      requestAnimationFrame(mainLoop);
+    }
+
+    window.onload = function () {
+      initRoomButtons();
+      initCategoryBar();
+      renderVideoList();
+      renderComments();
+      updateStatsUI();
+      mainLoop();
+    };
+  </script>
+</body>
+</html>

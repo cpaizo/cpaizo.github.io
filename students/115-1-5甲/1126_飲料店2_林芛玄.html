@@ -1,0 +1,1924 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>第一人稱 3D 珍奶大亨：台灣手搖飲物語</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js r128 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Google Fonts 圓體字型 -->
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            background-color: #1a120b;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #game-canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            cursor: crosshair;
+        }
+        .glass-panel {
+            background: rgba(255, 248, 238, 0.88);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 3px solid #D4A373;
+            box-shadow: 0 8px 24px rgba(60, 35, 15, 0.25);
+        }
+        .glass-dark {
+            background: rgba(45, 28, 16, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 2px solid #D4A373;
+        }
+        .btn-cute {
+            transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 3px 0 rgba(74, 53, 37, 0.3);
+        }
+        .btn-cute:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 rgba(74, 53, 37, 0.3);
+        }
+        .btn-cute:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+        /* 中央準心動畫 */
+        #crosshair {
+            transition: transform 0.12s ease, border-color 0.12s ease, background-color 0.12s ease;
+        }
+        #crosshair.active {
+            transform: translate(-50%, -50%) scale(1.65);
+            border-color: #FF9F43;
+            background-color: rgba(255, 159, 67, 0.45);
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.85) translateY(12px); opacity: 0; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        .animate-pop-in {
+            animation: popIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 3D 畫布 -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- 遊戲開始 / 鎖定滑鼠覆蓋層 -->
+    <div id="start-overlay" class="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="glass-panel rounded-3xl max-w-lg w-full p-6 sm:p-8 text-center text-[#4A3525] animate-pop-in">
+            <div class="text-5xl mb-3">🧋🏃‍♂️</div>
+            <h1 class="text-2xl sm:text-3xl font-black text-[#5C3A21] mb-2">第一人稱 3D 珍奶大亨</h1>
+            <p class="text-sm sm:text-base font-bold text-[#8C5A3C] mb-5">親自走進台灣手搖飲吧台，拿杯子、舀珍珠、裝茶、封膜出餐！</p>
+            
+            <div class="bg-[#FFF1DC] border-2 border-[#E6C29F] rounded-2xl p-4 text-left text-xs sm:text-sm space-y-2 mb-6 font-bold text-[#5C3A21]">
+                <div class="flex items-center gap-2"><span class="bg-[#FF9F43] text-white px-2 py-0.5 rounded-md">WASD / 方向鍵</span> <span>在吧台內自由走動</span></div>
+                <div class="flex items-center gap-2"><span class="bg-[#FF9F43] text-white px-2 py-0.5 rounded-md">滑鼠移動 / 拖曳</span> <span>第一人稱環顧四周與瞄準物品</span></div>
+                <div class="flex items-center gap-2"><span class="bg-[#00B894] text-white px-2 py-0.5 rounded-md">E 鍵 / 左鍵點擊</span> <span>拿杯子、放小料、調冰糖、裝茶、封膜、出餐</span></div>
+                <div class="flex items-center gap-2"><span class="bg-[#0984E3] text-white px-2 py-0.5 rounded-md">B 鍵 / 商店按鈕</span> <span>開啟原料批發與設備升級商店</span></div>
+            </div>
+
+            <button id="btn-start-play" class="btn-cute w-full bg-[#FF9F43] hover:bg-[#ff8f24] text-white font-black text-lg py-3.5 rounded-2xl border-2 border-[#D35400] shadow-lg">
+                ▶ 點擊進入吧台開始營業！
+            </button>
+        </div>
+    </div>
+
+    <!-- HUD：左上角店鋪與金幣狀態 -->
+    <div class="fixed top-3 left-3 sm:top-4 sm:left-4 z-20 flex flex-col gap-2 pointer-events-none">
+        <div class="glass-panel rounded-2xl px-3.5 py-2 sm:px-4 sm:py-2.5 flex items-center gap-3 pointer-events-auto">
+            <div class="text-2xl sm:text-3xl">🧋</div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <span id="hud-shop-level" class="text-xs font-black bg-[#FF9F43] text-white px-2 py-0.5 rounded-full">Lv.1 巷口手搖攤</span>
+                    <span class="text-xs font-bold text-[#8C5A3C]">已出餐: <b id="hud-served">0</b> 杯</span>
+                </div>
+                <div class="flex items-center gap-3 mt-1">
+                    <div class="flex items-center gap-1 text-[#D35400] font-black text-lg sm:text-xl">
+                        <span>💰</span>
+                        <span id="hud-money">100</span>
+                    </div>
+                    <span class="text-xs font-bold text-[#00896F] bg-[#E8F8F5] px-2 py-0.5 rounded-lg">今日營收 $<span id="hud-revenue">0</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 當前客人訂單摘要卡片 (方便玩家隨時確認) -->
+        <div id="hud-order-card" class="glass-panel rounded-2xl px-3.5 py-2.5 max-w-xs transition-all">
+            <div class="flex justify-between items-center border-b border-[#E6C29F] pb-1 mb-1.5">
+                <span class="text-xs font-black text-[#D35400] flex items-center gap-1">🛎️ <span id="order-customer-name">等待客人上門...</span></span>
+                <span id="order-price-tag" class="text-xs font-black bg-[#FFEAA7] text-[#5C3A21] px-2 py-0.5 rounded-full">$0</span>
+            </div>
+            <div id="order-details" class="text-xs sm:text-sm font-black text-[#4A3525] leading-snug">
+                請稍候，客人正在走進店裡...
+            </div>
+            <!-- 客人耐心條 -->
+            <div class="w-full h-2 bg-white/80 rounded-full overflow-hidden mt-2 border border-[#E6C29F]">
+                <div id="hud-patience-bar" class="h-full bg-[#2ECC71] transition-all duration-200" style="width: 100%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HUD：右上角功能按鈕與快捷鍵提示 -->
+    <div class="fixed top-3 right-3 sm:top-4 sm:right-4 z-20 flex flex-col items-end gap-2">
+        <div class="flex items-center gap-2">
+            <button onclick="openShop()" class="btn-cute bg-[#FF7675] hover:bg-[#ff6361] text-white font-black px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl text-xs sm:text-sm border-2 border-[#D63031] flex items-center gap-1.5 shadow-md">
+                <span>🏪</span>
+                <span>原料商店 [B]</span>
+                <span id="shop-new-badge" class="hidden bg-yellow-300 text-[#5C3A21] text-[10px] px-1.5 py-0.5 rounded-full font-black">NEW</span>
+            </button>
+
+            <button id="btn-sound" onclick="toggleSound()" class="btn-cute glass-panel text-[#5C3A21] font-bold p-2 sm:p-2.5 rounded-2xl text-sm" title="切換音效">
+                🔊
+            </button>
+
+            <button onclick="openResetModal()" class="btn-cute glass-panel text-[#5C3A21] font-bold p-2 sm:p-2.5 rounded-2xl text-sm" title="重置進度">
+                🔄
+            </button>
+        </div>
+
+        <div class="hidden sm:block glass-dark text-[#FFF8EE] text-[11px] font-bold px-3 py-1.5 rounded-xl leading-relaxed text-right">
+            <div><span class="text-[#FFD166]">[WASD]</span> 走動 ｜ <span class="text-[#FFD166]">[E / 左鍵]</span> 互動</div>
+            <div><span class="text-[#FFD166]">[點擊畫面]</span> 鎖定準心轉頭</div>
+        </div>
+    </div>
+
+    <!-- 中央第一人稱準心與互動提示 -->
+    <div id="crosshair" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full border-2 border-white bg-white/40 pointer-events-none z-20 shadow-sm"></div>
+    
+    <div id="interact-prompt" class="hidden fixed top-[55%] left-1/2 -translate-x-1/2 z-20 pointer-events-none">
+        <div class="glass-dark text-white px-4 py-2 rounded-2xl font-black text-xs sm:text-sm flex items-center gap-2 shadow-xl border-2 border-[#FF9F43]">
+            <span class="bg-[#FF9F43] text-[#2D1C10] px-2 py-0.5 rounded-lg text-xs font-black">E / 點擊</span>
+            <span id="interact-text">拿取手搖杯</span>
+        </div>
+    </div>
+
+    <!-- 提示訊息 Toast 容器 -->
+    <div id="toast-container" class="fixed top-24 left-1/2 -translate-x-1/2 z-30 pointer-events-none flex flex-col items-center gap-2 w-11/12 max-w-md"></div>
+
+    <!-- HUD：正下方手持飲料狀態列 -->
+    <div class="fixed bottom-3 left-1/2 -translate-x-1/2 z-20 w-[94%] max-w-xl pointer-events-none">
+        <div class="glass-panel rounded-2xl px-4 py-2.5 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 overflow-hidden">
+                <span class="text-2xl shrink-0" id="hand-icon">🖐️</span>
+                <div class="truncate">
+                    <div class="text-[11px] font-bold text-[#8C5A3C]">目前手中飲品狀態</div>
+                    <div id="hand-status-tags" class="flex flex-wrap items-center gap-1.5 mt-0.5 text-xs font-black text-[#5C3A21]">
+                        <span class="text-gray-500">空手（請走去取杯架拿杯子）</span>
+                    </div>
+                </div>
+            </div>
+            <!-- 行動裝置/觸控快速互動按鈕 -->
+            <button id="mobile-interact-btn" onclick="triggerInteract()" class="pointer-events-auto btn-cute bg-[#00B894] text-white font-black px-3.5 py-2 rounded-xl text-xs border-2 border-[#00896F] shrink-0">
+                互動 [E]
+            </button>
+        </div>
+    </div>
+
+    <!-- 行動裝置右下角虛擬搖桿/方向按鈕 (桌機隱藏，觸控裝置顯示) -->
+    <div id="mobile-controls" class="fixed bottom-20 right-3 z-20 grid grid-cols-3 gap-1 w-28 h-28 sm:hidden opacity-85">
+        <div></div>
+        <button id="m-up" class="bg-[#5C3A21]/80 text-white rounded-xl font-black text-base active:bg-[#FF9F43]">▲</button>
+        <div></div>
+        <button id="m-left" class="bg-[#5C3A21]/80 text-white rounded-xl font-black text-base active:bg-[#FF9F43]">◀</button>
+        <button id="m-down" class="bg-[#5C3A21]/80 text-white rounded-xl font-black text-base active:bg-[#FF9F43]">▼</button>
+        <button id="m-right" class="bg-[#5C3A21]/80 text-white rounded-xl font-black text-base active:bg-[#FF9F43]">▶</button>
+    </div>
+
+    <!-- 原料與設備商店彈窗 -->
+    <div id="shop-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5">
+        <div class="glass-panel rounded-3xl max-w-3xl w-full max-h-[86vh] flex flex-col overflow-hidden animate-pop-in">
+            <div class="bg-[#FFE8C8] px-5 py-4 border-b-2 border-[#D4A373] flex justify-between items-center">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-2xl">🏪</span>
+                    <div>
+                        <h2 class="font-black text-lg sm:text-xl text-[#5C3A21]">原料批發與店鋪設備升級</h2>
+                        <p class="text-xs font-bold text-[#8C5A3C]">解鎖新茶桶與小料盒，會直接出現在 3D 吧台上！</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="bg-white border-2 border-[#F5B041] px-3 py-1 rounded-xl font-black text-[#D35400] text-sm">
+                        💰 <span id="shop-money">100</span>
+                    </div>
+                    <button onclick="closeShop()" class="btn-cute bg-[#FF7675] text-white w-8 h-8 rounded-full font-black border-2 border-[#D63031]">✕</button>
+                </div>
+            </div>
+
+            <!-- 分頁籤 -->
+            <div class="flex gap-2 px-5 pt-3 bg-[#FFF1DC]">
+                <button onclick="switchShopTab('drinks')" id="tab-drinks" class="px-4 py-2 rounded-t-xl font-black text-xs sm:text-sm bg-[#FFF8EE] text-[#5C3A21] border-t-2 border-x-2 border-[#D4A373]">🍹 茶桶基底</button>
+                <button onclick="switchShopTab('toppings')" id="tab-toppings" class="px-4 py-2 rounded-t-xl font-bold text-xs sm:text-sm bg-[#F5E6D3] text-[#8C5A3C]">🧋 配料小料</button>
+                <button onclick="switchShopTab('upgrades')" id="tab-upgrades" class="px-4 py-2 rounded-t-xl font-bold text-xs sm:text-sm bg-[#F5E6D3] text-[#8C5A3C]">⚡ 店鋪升級</button>
+            </div>
+
+            <div id="shop-list" class="p-4 sm:p-5 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 bg-[#FFF8EE]">
+                <!-- JS 動態生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 重置確認視窗 -->
+    <div id="reset-modal" class="hidden fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+        <div class="glass-panel rounded-3xl max-w-sm w-full p-6 text-center animate-pop-in">
+            <div class="text-4xl mb-2">⚠️</div>
+            <h3 class="font-black text-xl text-[#5C3A21] mb-2">確定要重置經營進度嗎？</h3>
+            <p class="text-xs sm:text-sm font-bold text-[#8C5A3C] mb-5">所有金幣、解鎖的茶桶、小料與升級都會恢復成初始狀態。</p>
+            <div class="flex gap-3">
+                <button onclick="closeResetModal()" class="btn-cute flex-1 bg-gray-200 text-gray-700 font-black py-2.5 rounded-xl">取消</button>
+                <button onclick="confirmReset()" class="btn-cute flex-1 bg-[#FF7675] text-white font-black py-2.5 rounded-xl border-2 border-[#D63031]">確定重置</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* =====================================================================
+           1. 遊戲資料庫定義 (茶底、小料、甜度、冰塊、升級項目)
+           ===================================================================== */
+        const DRINKS_DB = [
+            { id: 'black_tea', name: '招牌錫蘭紅茶', price: 35, unlockCost: 0, color: 0x9E3B00, hex: '#9E3B00', emoji: '🍷', desc: '茶韻醇厚的台灣經典紅茶' },
+            { id: 'green_tea', name: '茉莉綠茶', price: 35, unlockCost: 0, color: 0xC8A614, hex: '#C8A614', emoji: '🍵', desc: '清香回甘的茉莉花綠茶' },
+            { id: 'four_seasons', name: '四季春青茶', price: 45, unlockCost: 80, color: 0x9ACD32, hex: '#9ACD32', emoji: '🍃', desc: '台灣高山青茶，香氣撲鼻' },
+            { id: 'taro_milk', name: '大甲芋頭鮮奶', price: 65, unlockCost: 150, color: 0xB39DDB, hex: '#B39DDB', emoji: '🍠', desc: '綿密大甲芋泥搭配濃醇鮮奶' },
+            { id: 'mango_smoothie', name: '愛文芒果冰沙', price: 80, unlockCost: 240, color: 0xFFA726, hex: '#FFA726', emoji: '🥭', desc: '香甜濃郁的夏日愛文芒果冰沙' }
+        ];
+
+        const TOPPINGS_DB = [
+            { id: 'boba', name: '黑糖珍珠', price: 10, unlockCost: 0, color: 0x23150E, hex: '#23150E', shape: 'boba', emoji: '⚫', desc: 'Q彈嚼勁滿分的黑糖波霸' },
+            { id: 'coconut', name: 'Q彈椰果', price: 10, unlockCost: 0, color: 0xF5F5F5, hex: '#F5F5F5', shape: 'cube', emoji: '⬜', desc: '爽脆香甜的經典椰果方塊' },
+            { id: 'grass_jelly', name: '嫩仙草', price: 12, unlockCost: 60, color: 0x1A252F, hex: '#1A252F', shape: 'cube', emoji: '⬛', desc: '滑溜退火的手工關西仙草凍' },
+            { id: 'pudding', name: '統一布丁', price: 15, unlockCost: 110, color: 0xF4D03F, hex: '#F4D03F', shape: 'pudding', emoji: '🍮', desc: '整顆滑嫩香甜的焦糖布丁' },
+            { id: 'cheese_foam', name: '海鹽奶蓋', price: 20, unlockCost: 180, color: 0xFFFDF7, hex: '#FFFDF7', shape: 'foam', emoji: '☁️', desc: '綿密微鹹的濃郁起司奶蓋' }
+        ];
+
+        const SUGAR_LEVELS = [
+            { id: 'full', name: '全糖' },
+            { id: 'half', name: '半糖' },
+            { id: 'less', name: '微糖' },
+            { id: 'zero', name: '無糖' }
+        ];
+
+        const ICE_LEVELS = [
+            { id: 'ice', name: '正常冰' },
+            { id: 'no_ice', name: '去冰' }
+        ];
+
+        const UPGRADES_DB = [
+            { id: 'shoes_1', name: '輕量防滑運動鞋', cost: 90, type: 'speed', value: 1.35, desc: '提升吧台內第一人稱移動速度 +35%' },
+            { id: 'speaker_1', name: '店內文青音響＆大聲公', cost: 130, type: 'patience', value: 8, desc: '客人等待耐心時間增加 +8 秒' },
+            { id: 'sealer_pro', name: '黃金比例提示招牌', cost: 190, type: 'tip', value: 0.25, desc: '準時出餐的小費加成提高 +25%' }
+        ];
+
+        const CUSTOMER_PROFILES = [
+            { name: '女高中生小美', bodyColor: 0xFF7675, hairColor: 0x2D3436 },
+            { name: '工程師阿宅', bodyColor: 0x74B9FF, hairColor: 0x1E272E },
+            { name: '外送員大叔', bodyColor: 0xFDCB6E, hairColor: 0x4A3525 },
+            { name: '文青少女艾莉', bodyColor: 0xA29BFE, hairColor: 0x6D4C41 },
+            { name: '健身教練巨巨', bodyColor: 0x55EFC4, hairColor: 0x2C3E50 }
+        ];
+
+        /* =====================================================================
+           2. 遊戲存檔與狀態管理
+           ===================================================================== */
+        const DEFAULT_SAVE = {
+            money: 100,
+            servedCount: 0,
+            todayRevenue: 0,
+            unlockedDrinks: ['black_tea', 'green_tea'],
+            unlockedToppings: ['boba', 'coconut'],
+            upgrades: [],
+            soundOn: true
+        };
+
+        let gameState = { ...DEFAULT_SAVE };
+        let currentShopTab = 'drinks';
+
+        // 玩家手中飲料狀態
+        let heldCup = {
+            hasCup: false,
+            drinkId: null,
+            toppings: [], // 最多2種
+            sugarId: 'full',
+            iceId: 'no_ice',
+            isSealed: false
+        };
+
+        // 果糖機當前設定的甜度
+        let fructoseSettingIndex = 0; // 0:全糖, 1:半糖, 2:微糖, 3:無糖
+
+        // 當前客人狀態
+        let customer = null;
+        let nextCustomerTimer = 1.5;
+
+        function loadSave() {
+            try {
+                const raw = localStorage.getItem('fp_3d_boba_save_v1');
+                if (raw) {
+                    gameState = { ...DEFAULT_SAVE, ...JSON.parse(raw) };
+                }
+            } catch (e) {
+                console.warn('存檔讀取失敗', e);
+            }
+        }
+
+        function writeSave() {
+            try {
+                localStorage.setItem('fp_3d_boba_save_v1', JSON.stringify(gameState));
+            } catch (e) {}
+        }
+
+        /* =====================================================================
+           3. Web Audio API 即時音效合成引擎
+           ===================================================================== */
+        const SFX = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    const AC = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AC();
+                }
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+            },
+            tone(freq, type, dur, vol = 0.14, delay = 0) {
+                if (!gameState.soundOn) return;
+                this.init();
+                const t = this.ctx.currentTime + delay;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, t);
+                gain.gain.setValueAtTime(vol, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(t);
+                osc.stop(t + dur);
+            },
+            step() { this.tone(130 + Math.random() * 25, 'triangle', 0.05, 0.05); },
+            cup() { this.tone(480, 'sine', 0.09, 0.14); this.tone(640, 'sine', 0.08, 0.1, 0.04); },
+            plop() { this.tone(340, 'sine', 0.08, 0.16); this.tone(580, 'sine', 0.12, 0.16, 0.05); },
+            ice() { this.tone(920, 'triangle', 0.07, 0.14); this.tone(1250, 'sine', 0.09, 0.12, 0.04); },
+            pour() {
+                for (let i = 0; i < 4; i++) {
+                    this.tone(280 + i * 55, 'triangle', 0.11, 0.12, i * 0.06);
+                }
+            },
+            seal() {
+                this.tone(240, 'square', 0.08, 0.12, 0);
+                this.tone(520, 'sine', 0.15, 0.15, 0.08);
+            },
+            cash() {
+                this.tone(987.77, 'sine', 0.14, 0.18, 0);
+                this.tone(1318.51, 'sine', 0.35, 0.2, 0.1);
+            },
+            doorbell() {
+                this.tone(659.25, 'triangle', 0.18, 0.12, 0);
+                this.tone(523.25, 'triangle', 0.28, 0.12, 0.16);
+            },
+            error() {
+                this.tone(210, 'sawtooth', 0.14, 0.12, 0);
+                this.tone(155, 'sawtooth', 0.22, 0.12, 0.12);
+            }
+        };
+
+        function toggleSound() {
+            gameState.soundOn = !gameState.soundOn;
+            writeSave();
+            updateHUD();
+            if (gameState.soundOn) SFX.cup();
+        }
+
+        /* =====================================================================
+           4. Three.js 3D 場景初始化與材質工具
+           ===================================================================== */
+        let scene, camera, renderer;
+        let interactables = []; // 所有可互動的 3D 物件列表
+        let highlightedObj = null;
+        let dynamicStationGroup; // 動態生成的茶桶與小料盒群組
+        let fructoseLabelSprite; // 果糖機標籤精靈
+        let customerMeshGroup = null; // 3D 客人模型群組
+        let customerOrderSprite = null; // 客人頭頂訂單看板
+        let floatingCoins = []; // 飛舞的金幣粒子
+
+        // 第一人稱手持杯子 Viewmodel 群組
+        let viewmodelGroup, vmCupGroup, vmLiquidMesh, vmFoamMesh, vmToppingsGroup, vmIceGroup, vmLidMesh, vmStrawMesh;
+        let targetLiquidHeight = 0;
+        let currentLiquidHeight = 0;
+
+        // 玩家移動與視角控制變數
+        const player = {
+            pos: new THREE.Vector3(0, 1.65, 0.2),
+            yaw: Math.PI, // 初始面向點餐櫃檯 (Z 負方向)
+            pitch: -0.08,
+            baseSpeed: 3.4,
+            bobTimer: 0,
+            stepTimer: 0
+        };
+
+        const keys = { w: false, a: false, s: false, d: false };
+        let isPointerLocked = false;
+        let isDraggingMouse = false;
+        let prevMouse = { x: 0, y: 0 };
+
+        // 建立 3D 浮動文字標籤 (CanvasTexture -> Sprite)
+        function createTextSprite(lines, bgColor = 'rgba(255, 248, 238, 0.94)', borderColor = '#D4A373', textColor = '#4A3525', scaleX = 1.2, scaleY = 0.55) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 240;
+            const ctx = canvas.getContext('2d');
+
+            // 圓角背景
+            ctx.fillStyle = bgColor;
+            ctx.beginPath();
+            ctx.roundRect(12, 12, 488, 216, 36);
+            ctx.fill();
+
+            ctx.lineWidth = 10;
+            ctx.strokeStyle = borderColor;
+            ctx.stroke();
+
+            ctx.fillStyle = textColor;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            if (lines.length === 1) {
+                ctx.font = '900 54px "Zen Maru Gothic", sans-serif';
+                ctx.fillText(lines[0], 256, 120);
+            } else if (lines.length === 2) {
+                ctx.font = '900 48px "Zen Maru Gothic", sans-serif';
+                ctx.fillText(lines[0], 256, 85);
+                ctx.font = '700 36px "Zen Maru Gothic", sans-serif';
+                ctx.fillStyle = '#D35400';
+                ctx.fillText(lines[1], 256, 158);
+            } else {
+                ctx.font = '900 40px "Zen Maru Gothic", sans-serif';
+                ctx.fillText(lines[0], 256, 62);
+                ctx.font = '800 34px "Zen Maru Gothic", sans-serif';
+                ctx.fillStyle = '#C0392B';
+                ctx.fillText(lines[1], 256, 122);
+                ctx.font = '700 32px "Zen Maru Gothic", sans-serif';
+                ctx.fillStyle = '#1B4F72';
+                ctx.fillText(lines[2], 256, 178);
+            }
+
+            const tex = new THREE.CanvasTexture(canvas);
+            const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+            const sprite = new THREE.Sprite(mat);
+            sprite.scale.set(scaleX, scaleY, 1);
+            return sprite;
+        }
+
+        // 建立木紋或瓷磚紋理
+        function createTileTexture() {
+            const c = document.createElement('canvas');
+            c.width = 256;
+            c.height = 256;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#F5E6D3';
+            ctx.fillRect(0, 0, 256, 256);
+            ctx.fillStyle = '#EBD3B5';
+            ctx.fillRect(0, 0, 128, 128);
+            ctx.fillRect(128, 128, 128, 128);
+            ctx.strokeStyle = '#D4B895';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(0, 0, 128, 128);
+            ctx.strokeRect(128, 128, 128, 128);
+            const tex = new THREE.CanvasTexture(c);
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.wrapT = THREE.RepeatWrapping;
+            tex.repeat.set(8, 8);
+            return tex;
+        }
+
+        function init3D() {
+            const canvas = document.getElementById('game-canvas');
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB); // 晴朗天空藍（店外街景）
+            scene.fog = new THREE.FogExp2(0xFFF3E0, 0.025);
+
+            camera = new THREE.PerspectiveCamera(68, window.innerWidth / window.innerHeight, 0.1, 60);
+            camera.rotation.order = 'YXZ';
+            scene.add(camera);
+
+            renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            // 光照系統：溫暖日系文青咖啡廳/手搖店氛圍
+            const hemiLight = new THREE.HemisphereLight(0xFFFDF5, 0xD4A373, 0.85);
+            scene.add(hemiLight);
+
+            const dirLight = new THREE.DirectionalLight(0xFFF5E4, 0.85);
+            dirLight.position.set(4, 9, 4);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 1024;
+            dirLight.shadow.mapSize.height = 1024;
+            scene.add(dirLight);
+
+            // 吧台上方暖黃吊燈點光源
+            const warmLight1 = new THREE.PointLight(0xFFAA44, 0.7, 9);
+            warmLight1.position.set(-1.8, 2.8, 0);
+            scene.add(warmLight1);
+
+            const warmLight2 = new THREE.PointLight(0xFFAA44, 0.7, 9);
+            warmLight2.position.set(1.8, 2.8, 0);
+            scene.add(warmLight2);
+
+            buildShopEnvironment();
+            buildStaticStations();
+            rebuildDynamicStations();
+            buildFirstPersonViewmodel();
+
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        /* =====================================================================
+           5. 建構 3D 飲料店建築與吧台工作站
+           ===================================================================== */
+        function buildShopEnvironment() {
+            // 1. 店內瓷磚地板
+            const floorGeo = new THREE.PlaneGeometry(14, 14);
+            const floorMat = new THREE.MeshStandardMaterial({ map: createTileTexture(), roughness: 0.6 });
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
+            scene.add(floor);
+
+            // 店外人行道地面
+            const streetGeo = new THREE.PlaneGeometry(24, 12);
+            const streetMat = new THREE.MeshStandardMaterial({ color: 0x95A5A6, roughness: 0.9 });
+            const street = new THREE.Mesh(streetGeo, streetMat);
+            street.rotation.x = -Math.PI / 2;
+            street.position.set(0, -0.02, -10);
+            scene.add(street);
+
+            // 2. 溫馨木質牆面與天花板
+            const wallMat = new THREE.MeshStandardMaterial({ color: 0xFFF1DC, roughness: 0.8 });
+            const woodMat = new THREE.MeshStandardMaterial({ color: 0xB07D4F, roughness: 0.65 });
+            const darkWoodMat = new THREE.MeshStandardMaterial({ color: 0x6F4E37, roughness: 0.6 });
+
+            // 後牆 (Z = +3.2)
+            const backWall = new THREE.Mesh(new THREE.BoxGeometry(9.2, 4.2, 0.3), wallMat);
+            backWall.position.set(0, 2.1, 3.2);
+            backWall.receiveShadow = true;
+            scene.add(backWall);
+
+            // 左牆 (X = -4.5)
+            const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.3, 4.2, 7.5), wallMat);
+            leftWall.position.set(-4.5, 2.1, -0.4);
+            leftWall.receiveShadow = true;
+            scene.add(leftWall);
+
+            // 右牆 (X = +4.5)
+            const rightWall = new THREE.Mesh(new THREE.BoxGeometry(0.3, 4.2, 7.5), wallMat);
+            rightWall.position.set(4.5, 2.1, -0.4);
+            rightWall.receiveShadow = true;
+            scene.add(rightWall);
+
+            // 天花板與橫樑
+            const ceiling = new THREE.Mesh(new THREE.BoxGeometry(9.4, 0.3, 7.8), woodMat);
+            ceiling.position.set(0, 4.2, -0.4);
+            scene.add(ceiling);
+
+            // 店面招牌橫幅 (面向店內與店外)
+            const bannerSprite = createTextSprite(['🧋 台灣古早味手搖飲 🧋', '現點現搖・珍珠Q彈'], '#FF9F43', '#5C3A21', '#FFFFFF', 3.4, 1.1);
+            bannerSprite.position.set(0, 3.35, -2.5);
+            scene.add(bannerSprite);
+
+            // 吊燈裝飾
+            [-2, 0, 2].forEach(x => {
+                const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.8), darkWoodMat);
+                cord.position.set(x, 3.7, 0);
+                scene.add(cord);
+
+                const shade = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.25, 16), new THREE.MeshStandardMaterial({ color: 0xFF9F43 }));
+                shade.position.set(x, 3.25, 0);
+                scene.add(shade);
+            });
+
+            // 3. U型工作吧台桌面 (高度 Y = 0.95)
+            // 前方點餐櫃檯 (Z = -2.4, X: -4.2 ~ +4.2)
+            const frontCounter = new THREE.Mesh(new THREE.BoxGeometry(8.6, 0.95, 1.0), woodMat);
+            frontCounter.position.set(0, 0.475, -2.4);
+            frontCounter.castShadow = true;
+            frontCounter.receiveShadow = true;
+            scene.add(frontCounter);
+
+            // 櫃檯白色大理石檯面
+            const marbleMat = new THREE.MeshStandardMaterial({ color: 0xFFFDF9, roughness: 0.3 });
+            const frontTop = new THREE.Mesh(new THREE.BoxGeometry(8.7, 0.08, 1.08), marbleMat);
+            frontTop.position.set(0, 0.96, -2.4);
+            scene.add(frontTop);
+
+            // 左側工作台 (X = -3.6, Z: -1.9 ~ +2.8) -> 放取杯架、冰塊機、果糖機、封膜機
+            const leftCounter = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.95, 4.8), woodMat);
+            leftCounter.position.set(-3.6, 0.475, 0.4);
+            leftCounter.castShadow = true;
+            leftCounter.receiveShadow = true;
+            scene.add(leftCounter);
+
+            const leftTop = new THREE.Mesh(new THREE.BoxGeometry(1.16, 0.08, 4.86), marbleMat);
+            leftTop.position.set(-3.6, 0.96, 0.4);
+            scene.add(leftTop);
+
+            // 後方茶桶吧台 (Z = +2.4, X: -3.0 ~ +3.0) -> 放一排保溫茶桶
+            const backCounter = new THREE.Mesh(new THREE.BoxGeometry(6.2, 0.95, 1.1), woodMat);
+            backCounter.position.set(0, 0.475, 2.4);
+            backCounter.castShadow = true;
+            backCounter.receiveShadow = true;
+            scene.add(backCounter);
+
+            const backTop = new THREE.Mesh(new THREE.BoxGeometry(6.26, 0.08, 1.16), marbleMat);
+            backTop.position.set(0, 0.96, 2.4);
+            scene.add(backTop);
+
+            // 右側配料吧台 (X = +3.6, Z: -1.9 ~ +2.8) -> 放各種小料配料盒
+            const rightCounter = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.95, 4.8), woodMat);
+            rightCounter.position.set(3.6, 0.475, 0.4);
+            rightCounter.castShadow = true;
+            rightCounter.receiveShadow = true;
+            scene.add(rightCounter);
+
+            const rightTop = new THREE.Mesh(new THREE.BoxGeometry(1.16, 0.08, 4.86), marbleMat);
+            rightTop.position.set(3.6, 0.96, 0.4);
+            scene.add(rightTop);
+        }
+
+        function registerInteractable(mesh, type, data, promptText) {
+            mesh.userData = { interactType: type, data, promptText };
+            interactables.push(mesh);
+        }
+
+        function buildStaticStations() {
+            // 1. 【點餐出餐櫃檯區】(前方中央 Z = -2.4, X = 0)
+            const trayGeo = new THREE.BoxGeometry(1.3, 0.06, 0.7);
+            const trayMat = new THREE.MeshStandardMaterial({ color: 0xFF9F43, roughness: 0.4 });
+            const serveTray = new THREE.Mesh(trayGeo, trayMat);
+            serveTray.position.set(0, 1.03, -2.35);
+            scene.add(serveTray);
+
+            const serveLabel = createTextSprite(['🛎️ 出餐區', '做好飲料放這裡'], '#FFF8EE', '#FF9F43', '#5C3A21', 1.1, 0.48);
+            serveLabel.position.set(0, 1.55, -2.35);
+            scene.add(serveLabel);
+
+            registerInteractable(serveTray, 'serve', null, '將飲料交給客人');
+
+            // 2. 【取杯架】(左前吧台 X = -3.5, Z = -1.2)
+            const cupHolderGroup = new THREE.Group();
+            cupHolderGroup.position.set(-3.5, 1.0, -1.2);
+
+            const baseStand = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.24, 0.26, 0.08, 16),
+                new THREE.MeshStandardMaterial({ color: 0x5C3A21 })
+            );
+            cupHolderGroup.add(baseStand);
+
+            // 一疊透明手搖杯
+            const stackCup = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.18, 0.14, 0.55, 16),
+                new THREE.MeshStandardMaterial({ color: 0xFFFFFF, transparent: true, opacity: 0.75, roughness: 0.2 })
+            );
+            stackCup.position.y = 0.3;
+            cupHolderGroup.add(stackCup);
+            scene.add(cupHolderGroup);
+
+            const cupLabel = createTextSprite(['🥤 取杯架', '點擊拿取空杯'], '#FFF8EE', '#00B894', '#5C3A21', 1.05, 0.45);
+            cupLabel.position.set(-3.5, 1.85, -1.2);
+            scene.add(cupLabel);
+
+            registerInteractable(stackCup, 'take_cup', null, '拿取手搖空杯');
+
+            // 3. 【廚餘垃圾桶】(左前走道旁 X = -2.55, Z = -1.55)
+            const trashCan = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.26, 0.21, 0.65, 16),
+                new THREE.MeshStandardMaterial({ color: 0x636E72, roughness: 0.5 })
+            );
+            trashCan.position.set(-2.55, 0.325, -1.55);
+            trashCan.castShadow = true;
+            scene.add(trashCan);
+
+            const trashLabel = createTextSprite(['🗑️ 回收桶', '做錯倒掉重來'], '#FFEAA7', '#E17055', '#5C3A21', 0.9, 0.4);
+            trashLabel.position.set(-2.55, 0.95, -1.55);
+            scene.add(trashLabel);
+
+            registerInteractable(trashCan, 'trash', null, '倒掉手中飲料 (-$5)');
+
+            // 4. 【冰塊機】(左中吧台 X = -3.5, Z = 0.0)
+            const iceMachine = new THREE.Mesh(
+                new THREE.BoxGeometry(0.65, 0.75, 0.65),
+                new THREE.MeshStandardMaterial({ color: 0x74B9FF, roughness: 0.3, metalness: 0.2 })
+            );
+            iceMachine.position.set(-3.5, 1.38, 0.0);
+            iceMachine.castShadow = true;
+            scene.add(iceMachine);
+
+            const iceLabel = createTextSprite(['🧊 製冰機', '切換 正常冰 / 去冰'], '#EBF5FB', '#0984E3', '#1B4F72', 1.15, 0.48);
+            iceLabel.position.set(-3.5, 2.05, 0.0);
+            scene.add(iceLabel);
+
+            registerInteractable(iceMachine, 'ice', null, '加入 / 切換冰塊');
+
+            // 5. 【果糖定量機】(左後吧台 X = -3.5, Z = 1.1)
+            const sugarMachine = new THREE.Mesh(
+                new THREE.BoxGeometry(0.6, 0.68, 0.55),
+                new THREE.MeshStandardMaterial({ color: 0xFF7675, roughness: 0.35 })
+            );
+            sugarMachine.position.set(-3.5, 1.34, 1.1);
+            sugarMachine.castShadow = true;
+            scene.add(sugarMachine);
+
+            fructoseLabelSprite = createTextSprite(['🍬 果糖機', '當前：全糖'], '#FDEDEC', '#D63031', '#78281F', 1.15, 0.48);
+            fructoseLabelSprite.position.set(-3.5, 2.0, 1.1);
+            scene.add(fructoseLabelSprite);
+
+            registerInteractable(sugarMachine, 'sugar', null, '調整甜度 (全/半/微/無糖)');
+
+            // 6. 【自動封膜機】(左最前靠櫃檯 X = -2.4, Z = -2.35)
+            const sealerBody = new THREE.Mesh(
+                new THREE.BoxGeometry(0.55, 0.68, 0.55),
+                new THREE.MeshStandardMaterial({ color: 0xFFD166, roughness: 0.3 })
+            );
+            sealerBody.position.set(-2.2, 1.34, -2.35);
+            sealerBody.castShadow = true;
+            scene.add(sealerBody);
+
+            const sealerLabel = createTextSprite(['✨ 自動封膜機', '完成後封膜加吸管'], '#FFF9E6', '#E0A82E', '#5C3A21', 1.15, 0.48);
+            sealerLabel.position.set(-2.2, 2.0, -2.35);
+            scene.add(sealerLabel);
+
+            registerInteractable(sealerBody, 'seal', null, '進行飲料封膜與插吸管');
+        }
+
+        // 動態重建茶桶區（後方吧台）與小料區（右側吧台），解鎖新品項時自動長出新設備！
+        function rebuildDynamicStations() {
+            if (dynamicStationGroup) {
+                scene.remove(dynamicStationGroup);
+            }
+            // 移除舊的動態 interactables
+            interactables = interactables.filter(obj => obj.userData.interactType !== 'drink' && obj.userData.interactType !== 'topping');
+
+            dynamicStationGroup = new THREE.Group();
+            scene.add(dynamicStationGroup);
+
+            // A. 後方茶桶區 (Z = 2.35, X 均勻分布)
+            const unlockedDrinksList = DRINKS_DB.filter(d => gameState.unlockedDrinks.includes(d.id));
+            const drinkSpacing = 1.15;
+            const startDrinkX = -((unlockedDrinksList.length - 1) * drinkSpacing) / 2;
+
+            unlockedDrinksList.forEach((drink, idx) => {
+                const posX = startDrinkX + idx * drinkSpacing;
+                const posZ = 2.35;
+
+                // 茶桶本體
+                const barrel = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.32, 0.32, 0.72, 20),
+                    new THREE.MeshStandardMaterial({ color: drink.color, roughness: 0.35, metalness: 0.15 })
+                );
+                barrel.position.set(posX, 1.38, posZ);
+                barrel.castShadow = true;
+                dynamicStationGroup.add(barrel);
+
+                // 金屬桶蓋
+                const lid = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.34, 0.34, 0.08, 20),
+                    new THREE.MeshStandardMaterial({ color: 0xDFE6E9, metalness: 0.6, roughness: 0.2 })
+                );
+                lid.position.set(posX, 1.76, posZ);
+                dynamicStationGroup.add(lid);
+
+                // 水龍頭
+                const tap = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.08, 0.12, 0.18),
+                    new THREE.MeshStandardMaterial({ color: 0x2D3436 })
+                );
+                tap.position.set(posX, 1.15, posZ - 0.34);
+                dynamicStationGroup.add(tap);
+
+                // 浮動標籤
+                const label = createTextSprite([`${drink.emoji} ${drink.name}`, `$${drink.price}`], '#FFF8EE', drink.hex, '#4A3525', 1.1, 0.46);
+                label.position.set(posX, 2.15, posZ);
+                dynamicStationGroup.add(label);
+
+                registerInteractable(barrel, 'drink', drink, `裝入【${drink.name}】`);
+            });
+
+            // B. 右側配料區 (X = 3.55, Z 均勻分布)
+            const unlockedToppingsList = TOPPINGS_DB.filter(t => gameState.unlockedToppings.includes(t.id));
+            const topSpacing = 0.95;
+            const startTopZ = -((unlockedToppingsList.length - 1) * topSpacing) / 2 + 0.3;
+
+            unlockedToppingsList.forEach((top, idx) => {
+                const posX = 3.55;
+                const posZ = startTopZ + idx * topSpacing;
+
+                // 透明壓克力配料盒外框
+                const boxMesh = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.62, 0.36, 0.68),
+                    new THREE.MeshStandardMaterial({ color: 0xFFFFFF, transparent: true, opacity: 0.55, roughness: 0.15 })
+                );
+                boxMesh.position.set(posX, 1.18, posZ);
+                boxMesh.castShadow = true;
+                dynamicStationGroup.add(boxMesh);
+
+                // 盒內滿滿的小料視覺物
+                const innerFill = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.54, 0.22, 0.60),
+                    new THREE.MeshStandardMaterial({ color: top.color, roughness: 0.4 })
+                );
+                innerFill.position.set(posX, 1.12, posZ);
+                dynamicStationGroup.add(innerFill);
+
+                // 浮動標籤
+                const label = createTextSprite([`${top.emoji} ${top.name}`, `+$${top.price}`], '#FFF8EE', '#D4A373', '#4A3525', 1.0, 0.44);
+                label.position.set(posX, 1.68, posZ);
+                dynamicStationGroup.add(label);
+
+                registerInteractable(boxMesh, 'topping', top, `加入【${top.name}】`);
+            });
+        }
+
+        /* =====================================================================
+           6. 第一人稱手持飲料杯 Viewmodel 建構與動態更新
+           ===================================================================== */
+        function buildFirstPersonViewmodel() {
+            viewmodelGroup = new THREE.Group();
+            viewmodelGroup.position.set(0.36, -0.34, -0.62);
+            viewmodelGroup.rotation.set(0.08, -0.25, 0.05);
+            camera.add(viewmodelGroup);
+
+            vmCupGroup = new THREE.Group();
+            vmCupGroup.visible = false;
+            viewmodelGroup.add(vmCupGroup);
+
+            // 透明手搖杯身
+            const cupGeo = new THREE.CylinderGeometry(0.085, 0.062, 0.24, 24, 1, true);
+            const cupMat = new THREE.MeshStandardMaterial({
+                color: 0xFFFFFF,
+                transparent: true,
+                opacity: 0.42,
+                roughness: 0.15,
+                side: THREE.DoubleSide
+            });
+            const cupMesh = new THREE.Mesh(cupGeo, cupMat);
+            vmCupGroup.add(cupMesh);
+
+            // 杯底
+            const bottomMesh = new THREE.Mesh(
+                new THREE.CircleGeometry(0.062, 24),
+                new THREE.MeshStandardMaterial({ color: 0xFFFFFF, transparent: true, opacity: 0.6 })
+            );
+            bottomMesh.rotation.x = Math.PI / 2;
+            bottomMesh.position.y = -0.12;
+            vmCupGroup.add(bottomMesh);
+
+            // 茶湯液體 Mesh (從底部往上縮放)
+            const liqGeo = new THREE.CylinderGeometry(0.08, 0.06, 0.21, 24);
+            liqGeo.translate(0, 0.105, 0); // 將錨點移至底部
+            const liqMat = new THREE.MeshStandardMaterial({ color: 0x9E3B00, roughness: 0.25, transparent: true, opacity: 0.92 });
+            vmLiquidMesh = new THREE.Mesh(liqGeo, liqMat);
+            vmLiquidMesh.position.y = -0.115;
+            vmLiquidMesh.scale.y = 0.001;
+            vmCupGroup.add(vmLiquidMesh);
+
+            // 奶蓋頂層
+            vmFoamMesh = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.082, 0.08, 0.032, 24),
+                new THREE.MeshStandardMaterial({ color: 0xFFFDF7, roughness: 0.5 })
+            );
+            vmFoamMesh.position.y = 0.085;
+            vmFoamMesh.visible = false;
+            vmCupGroup.add(vmFoamMesh);
+
+            // 底部小料容器
+            vmToppingsGroup = new THREE.Group();
+            vmCupGroup.add(vmToppingsGroup);
+
+            // 冰塊容器
+            vmIceGroup = new THREE.Group();
+            vmCupGroup.add(vmIceGroup);
+
+            // 可愛封膜蓋
+            vmLidMesh = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.089, 0.089, 0.01, 24),
+                new THREE.MeshStandardMaterial({ color: 0xFF9F43, roughness: 0.3 })
+            );
+            vmLidMesh.position.y = 0.122;
+            vmLidMesh.visible = false;
+            vmCupGroup.add(vmLidMesh);
+
+            // 粗吸管
+            vmStrawMesh = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.012, 0.012, 0.28, 12),
+                new THREE.MeshStandardMaterial({ color: 0xFF6B6B, roughness: 0.3 })
+            );
+            vmStrawMesh.position.set(0.02, 0.06, 0);
+            vmStrawMesh.rotation.z = -0.15;
+            vmStrawMesh.visible = false;
+            vmCupGroup.add(vmStrawMesh);
+        }
+
+        function syncViewmodelVisuals() {
+            vmCupGroup.visible = heldCup.hasCup;
+            if (!heldCup.hasCup) {
+                targetLiquidHeight = 0;
+                currentLiquidHeight = 0;
+                return;
+            }
+
+            // 更新茶湯顏色與目標高度
+            if (heldCup.drinkId) {
+                const d = DRINKS_DB.find(x => x.id === heldCup.drinkId);
+                vmLiquidMesh.material.color.setHex(d.color);
+                targetLiquidHeight = 1.0;
+            } else {
+                targetLiquidHeight = 0.001;
+            }
+
+            // 重建小料 3D 顆粒
+            while (vmToppingsGroup.children.length > 0) {
+                vmToppingsGroup.remove(vmToppingsGroup.children[0]);
+            }
+            vmFoamMesh.visible = false;
+
+            heldCup.toppings.forEach((tId, idx) => {
+                const t = TOPPINGS_DB.find(x => x.id === tId);
+                if (!t) return;
+                if (t.shape === 'foam') {
+                    vmFoamMesh.visible = true;
+                } else if (t.shape === 'boba') {
+                    const sphereGeo = new THREE.SphereGeometry(0.013, 8, 8);
+                    const sphereMat = new THREE.MeshStandardMaterial({ color: t.color, roughness: 0.2 });
+                    for (let i = 0; i < 16; i++) {
+                        const m = new THREE.Mesh(sphereGeo, sphereMat);
+                        const angle = (i / 16) * Math.PI * 2 + idx;
+                        const r = (i % 3) * 0.018;
+                        m.position.set(Math.cos(angle) * r, -0.10 + (i % 2) * 0.018, Math.sin(angle) * r);
+                        vmToppingsGroup.add(m);
+                    }
+                } else if (t.shape === 'cube') {
+                    const cubeGeo = new THREE.BoxGeometry(0.022, 0.018, 0.022);
+                    const cubeMat = new THREE.MeshStandardMaterial({ color: t.color, roughness: 0.3 });
+                    for (let i = 0; i < 10; i++) {
+                        const m = new THREE.Mesh(cubeGeo, cubeMat);
+                        const angle = (i / 10) * Math.PI * 2;
+                        m.position.set(Math.cos(angle) * 0.032, -0.095 + (i % 2) * 0.02, Math.sin(angle) * 0.032);
+                        m.rotation.set(0.3, angle, 0.2);
+                        vmToppingsGroup.add(m);
+                    }
+                } else if (t.shape === 'pudding') {
+                    const pud = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.038, 0.048, 0.045, 16),
+                        new THREE.MeshStandardMaterial({ color: t.color, roughness: 0.2 })
+                    );
+                    pud.position.set(0, -0.09, 0);
+                    vmToppingsGroup.add(pud);
+                }
+            });
+
+            // 重建冰塊 3D 顆粒
+            while (vmIceGroup.children.length > 0) {
+                vmIceGroup.remove(vmIceGroup.children[0]);
+            }
+            if (heldCup.iceId === 'ice') {
+                const iceGeo = new THREE.BoxGeometry(0.028, 0.028, 0.028);
+                const iceMat = new THREE.MeshStandardMaterial({ color: 0xD6EAF8, transparent: true, opacity: 0.78, roughness: 0.1 });
+                for (let i = 0; i < 6; i++) {
+                    const m = new THREE.Mesh(iceGeo, iceMat);
+                    const angle = (i / 6) * Math.PI * 2;
+                    m.position.set(Math.cos(angle) * 0.035, 0.045 + (i % 2) * 0.025, Math.sin(angle) * 0.035);
+                    m.rotation.set(0.4, angle, 0.5);
+                    vmIceGroup.add(m);
+                }
+            }
+
+            // 封膜與吸管
+            vmLidMesh.visible = heldCup.isSealed;
+            vmStrawMesh.visible = heldCup.isSealed;
+        }
+
+        /* =====================================================================
+           7. 3D 客人排隊走動與訂單系統
+           ===================================================================== */
+        function createCustomer3D(profile) {
+            const g = new THREE.Group();
+
+            // 身體
+            const body = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.28, 0.34, 0.95, 16),
+                new THREE.MeshStandardMaterial({ color: profile.bodyColor, roughness: 0.6 })
+            );
+            body.position.y = 0.75;
+            body.castShadow = true;
+            g.add(body);
+
+            // 頭部
+            const head = new THREE.Mesh(
+                new THREE.SphereGeometry(0.28, 20, 20),
+                new THREE.MeshStandardMaterial({ color: 0xFFE0BD, roughness: 0.5 })
+            );
+            head.position.y = 1.48;
+            head.castShadow = true;
+            g.add(head);
+
+            // 頭髮帽冠
+            const hair = new THREE.Mesh(
+                new THREE.SphereGeometry(0.295, 20, 16, 0, Math.PI * 2, 0, Math.PI * 0.55),
+                new THREE.MeshStandardMaterial({ color: profile.hairColor, roughness: 0.7 })
+            );
+            hair.position.y = 1.5;
+            g.add(hair);
+
+            // 可愛眼睛 (面向吧台 +Z 方向)
+            const eyeGeo = new THREE.SphereGeometry(0.035, 8, 8);
+            const eyeMat = new THREE.MeshBasicMaterial({ color: 0x222222 });
+            const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
+            leftEye.position.set(-0.1, 1.5, 0.25);
+            const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
+            rightEye.position.set(0.1, 1.5, 0.25);
+            g.add(leftEye, rightEye);
+
+            return g;
+        }
+
+        function spawnCustomer() {
+            if (customer) return;
+
+            const unlockedDrinks = DRINKS_DB.filter(d => gameState.unlockedDrinks.includes(d.id));
+            const chosenDrink = unlockedDrinks[Math.floor(Math.random() * unlockedDrinks.length)];
+
+            const unlockedToppings = TOPPINGS_DB.filter(t => gameState.unlockedToppings.includes(t.id));
+            let chosenToppings = [];
+            if (Math.random() < 0.8 && unlockedToppings.length > 0) {
+                const t1 = unlockedToppings[Math.floor(Math.random() * unlockedToppings.length)];
+                chosenToppings.push(t1.id);
+                if (unlockedToppings.length >= 2 && Math.random() < 0.28) {
+                    const rem = unlockedToppings.filter(t => t.id !== t1.id);
+                    chosenToppings.push(rem[Math.floor(Math.random() * rem.length)].id);
+                }
+            }
+
+            const chosenSugar = SUGAR_LEVELS[Math.floor(Math.random() * SUGAR_LEVELS.length)];
+            const chosenIce = ICE_LEVELS[Math.floor(Math.random() * ICE_LEVELS.length)];
+            const profile = CUSTOMER_PROFILES[Math.floor(Math.random() * CUSTOMER_PROFILES.length)];
+
+            let basePrice = chosenDrink.price;
+            chosenToppings.forEach(id => {
+                basePrice += TOPPINGS_DB.find(t => t.id === id).price;
+            });
+
+            // 耐心時間加成
+            let patienceBonus = 0;
+            gameState.upgrades.forEach(uId => {
+                const u = UPGRADES_DB.find(x => x.id === uId);
+                if (u && u.type === 'patience') patienceBonus += u.value;
+            });
+
+            const maxPatience = 42 + patienceBonus;
+
+            customer = {
+                profile,
+                order: {
+                    drinkId: chosenDrink.id,
+                    toppings: chosenToppings,
+                    sugarId: chosenSugar.id,
+                    iceId: chosenIce.id
+                },
+                basePrice,
+                maxPatience,
+                patience: maxPatience,
+                state: 'entering', // entering -> waiting -> leaving
+                x: -4.2,
+                z: -3.4
+            };
+
+            // 建立 3D 客人模型
+            if (customerMeshGroup) scene.remove(customerMeshGroup);
+            customerMeshGroup = createCustomer3D(profile);
+            customerMeshGroup.position.set(customer.x, 0, customer.z);
+            scene.add(customerMeshGroup);
+
+            // 建立客人頭頂 3D 訂單浮動卡片
+            const topStr = chosenToppings.length > 0
+                ? '+ ' + chosenToppings.map(id => TOPPINGS_DB.find(t => t.id === id).name).join('、')
+                : '純飲不加料';
+            const subStr = `${chosenSugar.name} ｜ ${chosenIce.name}`;
+
+            customerOrderSprite = createTextSprite(
+                [`${chosenDrink.emoji} ${chosenDrink.name}`, topStr, subStr],
+                'rgba(255, 255, 255, 0.96)',
+                '#FF9F43',
+                '#4A3525',
+                1.65,
+                0.82
+            );
+            customerOrderSprite.position.set(0, 2.35, 0);
+            customerMeshGroup.add(customerOrderSprite);
+
+            SFX.doorbell();
+            updateOrderHUD();
+        }
+
+        function spawnGoldCoinBurst(pos) {
+            const coinGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.03, 16);
+            coinGeo.rotateX(Math.PI / 2);
+            const coinMat = new THREE.MeshStandardMaterial({ color: 0xFFD700, metalness: 0.7, roughness: 0.2 });
+
+            for (let i = 0; i < 8; i++) {
+                const mesh = new THREE.Mesh(coinGeo, coinMat);
+                mesh.position.copy(pos);
+                mesh.position.y += 1.2;
+                scene.add(mesh);
+                floatingCoins.push({
+                    mesh,
+                    vel: new THREE.Vector3((Math.random() - 0.5) * 2.5, 2.5 + Math.random() * 1.8, (Math.random() - 0.5) * 2.5),
+                    life: 1.1
+                });
+            }
+        }
+
+        /* =====================================================================
+           8. 第一人稱互動執行邏輯
+           ===================================================================== */
+        function triggerInteract() {
+            if (!highlightedObj) return;
+            const { interactType, data } = highlightedObj.userData;
+
+            if (interactType === 'take_cup') {
+                if (heldCup.hasCup) {
+                    showToast('手上已經拿著杯子囉！', 'info');
+                    return;
+                }
+                SFX.cup();
+                heldCup = {
+                    hasCup: true,
+                    drinkId: null,
+                    toppings: [],
+                    sugarId: SUGAR_LEVELS[fructoseSettingIndex].id,
+                    iceId: 'no_ice',
+                    isSealed: false
+                };
+                syncViewmodelVisuals();
+                updateHandHUD();
+                showToast('🥤 已拿取透明手搖杯！', 'info');
+            }
+            else if (interactType === 'trash') {
+                if (!heldCup.hasCup) {
+                    showToast('目前手上沒有杯子可以丟棄', 'info');
+                    return;
+                }
+                SFX.error();
+                if (gameState.money >= 5) {
+                    gameState.money -= 5;
+                    showToast('🗑️ 已倒掉飲料重做（材料損耗 -$5）', 'warning');
+                } else {
+                    showToast('🗑️ 已倒掉飲料重做', 'warning');
+                }
+                heldCup.hasCup = false;
+                syncViewmodelVisuals();
+                updateHandHUD();
+                updateHUD();
+                writeSave();
+            }
+            else if (interactType === 'topping') {
+                if (!heldCup.hasCup) {
+                    SFX.error();
+                    showToast('請先走去左前方的「取杯架」拿杯子！', 'warning');
+                    return;
+                }
+                if (heldCup.isSealed) {
+                    SFX.error();
+                    showToast('飲料已經封膜，無法再加料囉！', 'warning');
+                    return;
+                }
+                if (heldCup.toppings.includes(data.id)) {
+                    showToast(`杯子裡已經加過【${data.name}】囉！`, 'info');
+                    return;
+                }
+                if (heldCup.toppings.length >= 2) {
+                    SFX.error();
+                    showToast('一杯最多只能加 2 種小料！', 'warning');
+                    return;
+                }
+                SFX.plop();
+                heldCup.toppings.push(data.id);
+                syncViewmodelVisuals();
+                updateHandHUD();
+                showToast(`${data.emoji} 已舀入【${data.name}】！`, 'success');
+            }
+            else if (interactType === 'ice') {
+                if (!heldCup.hasCup) {
+                    SFX.error();
+                    showToast('請先拿取手搖杯再操作製冰機！', 'warning');
+                    return;
+                }
+                if (heldCup.isSealed) {
+                    SFX.error();
+                    showToast('飲料已經封膜囉！', 'warning');
+                    return;
+                }
+                SFX.ice();
+                heldCup.iceId = heldCup.iceId === 'ice' ? 'no_ice' : 'ice';
+                syncViewmodelVisuals();
+                updateHandHUD();
+                showToast(`🧊 已調整為【${heldCup.iceId === 'ice' ? '正常冰' : '去冰'}】`, 'info');
+            }
+            else if (interactType === 'sugar') {
+                SFX.plop();
+                fructoseSettingIndex = (fructoseSettingIndex + 1) % SUGAR_LEVELS.length;
+                const currentSugar = SUGAR_LEVELS[fructoseSettingIndex];
+
+                // 更新 3D 果糖機上的浮動標籤
+                const newTex = createTextSprite(['🍬 果糖機', `當前：${currentSugar.name}`], '#FDEDEC', '#D63031', '#78281F', 1.15, 0.48).material.map;
+                fructoseLabelSprite.material.map.dispose();
+                fructoseLabelSprite.material.map = newTex;
+
+                if (heldCup.hasCup && !heldCup.isSealed) {
+                    heldCup.sugarId = currentSugar.id;
+                    updateHandHUD();
+                    showToast(`🍬 已注入【${currentSugar.name}】果糖！`, 'info');
+                } else {
+                    showToast(`🍬 果糖機設定切換為【${currentSugar.name}】`, 'info');
+                }
+            }
+            else if (interactType === 'drink') {
+                if (!heldCup.hasCup) {
+                    SFX.error();
+                    showToast('請先拿取手搖杯再裝茶喔！', 'warning');
+                    return;
+                }
+                if (heldCup.isSealed) {
+                    SFX.error();
+                    showToast('飲料已經封膜囉！', 'warning');
+                    return;
+                }
+                SFX.pour();
+                heldCup.drinkId = data.id;
+                syncViewmodelVisuals();
+                updateHandHUD();
+                showToast(`${data.emoji} 已裝滿【${data.name}】！`, 'success');
+            }
+            else if (interactType === 'seal') {
+                if (!heldCup.hasCup || !heldCup.drinkId) {
+                    SFX.error();
+                    showToast('杯子裡還沒裝飲料，不能封膜喔！', 'warning');
+                    return;
+                }
+                if (heldCup.isSealed) {
+                    showToast('這杯已經封好膜並插上吸管囉！', 'info');
+                    return;
+                }
+                SFX.seal();
+                heldCup.isSealed = true;
+                syncViewmodelVisuals();
+                updateHandHUD();
+                showToast('✨ 封膜完成！快拿去前方櫃檯交給客人吧！', 'success');
+            }
+            else if (interactType === 'serve') {
+                if (!customer || customer.state !== 'waiting') {
+                    showToast('目前櫃檯前還沒有客人在等餐喔！', 'info');
+                    return;
+                }
+                if (!heldCup.hasCup || !heldCup.drinkId) {
+                    SFX.error();
+                    showToast('你手上還沒有做好的飲料呢！', 'warning');
+                    return;
+                }
+                if (!heldCup.isSealed) {
+                    SFX.error();
+                    showToast('別忘了先去左前方「自動封膜機」封膜插吸管喔！', 'warning');
+                    return;
+                }
+
+                // 核對訂單內容
+                const ord = customer.order;
+                const drinkOk = heldCup.drinkId === ord.drinkId;
+                const sugarOk = heldCup.sugarId === ord.sugarId;
+                const iceOk = heldCup.iceId === ord.iceId;
+                const topOk = JSON.stringify([...heldCup.toppings].sort()) === JSON.stringify([...ord.toppings].sort());
+
+                if (drinkOk && sugarOk && iceOk && topOk) {
+                    // 完美出餐！
+                    SFX.cash();
+                    let tipMult = 0.3;
+                    gameState.upgrades.forEach(uId => {
+                        const u = UPGRADES_DB.find(x => x.id === uId);
+                        if (u && u.type === 'tip') tipMult += u.value;
+                    });
+                    const tip = Math.round(customer.basePrice * (customer.patience / customer.maxPatience) * tipMult);
+                    const total = customer.basePrice + tip;
+
+                    gameState.money += total;
+                    gameState.todayRevenue += total;
+                    gameState.servedCount += 1;
+
+                    spawnGoldCoinBurst(customerMeshGroup.position);
+                    showToast(`🎉 客人超滿意！獲得 $${customer.basePrice} + 小費 $${tip}！`, 'success');
+
+                    heldCup.hasCup = false;
+                    syncViewmodelVisuals();
+                    updateHandHUD();
+
+                    customer.state = 'leaving';
+                    if (customerOrderSprite) customerOrderSprite.visible = false;
+                    updateHUD();
+                    writeSave();
+                } else {
+                    SFX.error();
+                    let errs = [];
+                    if (!drinkOk) errs.push('茶底不對');
+                    if (!topOk) errs.push('小料不符');
+                    if (!sugarOk) errs.push('甜度錯了');
+                    if (!iceOk) errs.push('冰塊量錯了');
+                    showToast(`❌ 客人皺眉：「這不是我點的！(${errs.join('、')})」`, 'error');
+                }
+            }
+        }
+
+        /* =====================================================================
+           9. 輸入控制 (Pointer Lock + 拖曳轉頭 + WASD + 虛擬搖桿)
+           ===================================================================== */
+        function setupControls() {
+            const canvas = document.getElementById('game-canvas');
+            const startOverlay = document.getElementById('start-overlay');
+            const startBtn = document.getElementById('btn-start-play');
+
+            startBtn.addEventListener('click', () => {
+                SFX.init();
+                startOverlay.classList.add('hidden');
+                requestLockSafe();
+            });
+
+            canvas.addEventListener('click', () => {
+                if (!document.getElementById('shop-modal').classList.contains('hidden')) return;
+                if (!isPointerLocked) {
+                    requestLockSafe();
+                } else {
+                    triggerInteract();
+                }
+            });
+
+            document.addEventListener('pointerlockchange', () => {
+                isPointerLocked = (document.pointerLockElement === canvas);
+            });
+
+            // 滑鼠移動 (支援 Pointer Lock 以及 按住滑鼠拖曳備用模式)
+            document.addEventListener('mousemove', (e) => {
+                if (isPointerLocked) {
+                    player.yaw -= e.movementX * 0.0022;
+                    player.pitch -= e.movementY * 0.0022;
+                    player.pitch = Math.max(-Math.PI / 2.4, Math.min(Math.PI / 2.4, player.pitch));
+                } else if (isDraggingMouse) {
+                    const dx = e.clientX - prevMouse.x;
+                    const dy = e.clientY - prevMouse.y;
+                    player.yaw -= dx * 0.004;
+                    player.pitch -= dy * 0.004;
+                    player.pitch = Math.max(-Math.PI / 2.4, Math.min(Math.PI / 2.4, player.pitch));
+                    prevMouse = { x: e.clientX, y: e.clientY };
+                }
+            });
+
+            canvas.addEventListener('mousedown', (e) => {
+                if (!isPointerLocked && e.button === 0) {
+                    isDraggingMouse = true;
+                    prevMouse = { x: e.clientX, y: e.clientY };
+                }
+            });
+            window.addEventListener('mouseup', () => { isDraggingMouse = false; });
+
+            // 觸控螢幕拖曳轉頭支援
+            let touchLookId = null;
+            let prevTouch = { x: 0, y: 0 };
+            canvas.addEventListener('touchstart', (e) => {
+                if (e.touches.length > 0 && touchLookId === null) {
+                    const t = e.touches[0];
+                    touchLookId = t.identifier;
+                    prevTouch = { x: t.clientX, y: t.clientY };
+                }
+            }, { passive: true });
+
+            canvas.addEventListener('touchmove', (e) => {
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    const t = e.changedTouches[i];
+                    if (t.identifier === touchLookId) {
+                        const dx = t.clientX - prevTouch.x;
+                        const dy = t.clientY - prevTouch.y;
+                        player.yaw -= dx * 0.005;
+                        player.pitch -= dy * 0.005;
+                        player.pitch = Math.max(-Math.PI / 2.4, Math.min(Math.PI / 2.4, player.pitch));
+                        prevTouch = { x: t.clientX, y: t.clientY };
+                    }
+                }
+            }, { passive: true });
+
+            canvas.addEventListener('touchend', (e) => {
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    if (e.changedTouches[i].identifier === touchLookId) touchLookId = null;
+                }
+            });
+
+            // 鍵盤移動與快捷鍵
+            window.addEventListener('keydown', (e) => {
+                const code = e.code;
+                if (code === 'KeyW' || code === 'ArrowUp') keys.w = true;
+                if (code === 'KeyS' || code === 'ArrowDown') keys.s = true;
+                if (code === 'KeyA' || code === 'ArrowLeft') keys.a = true;
+                if (code === 'KeyD' || code === 'ArrowRight') keys.d = true;
+
+                if (code === 'KeyE' || code === 'Space') {
+                    if (document.getElementById('shop-modal').classList.contains('hidden')) {
+                        triggerInteract();
+                    }
+                }
+                if (code === 'KeyB') {
+                    const modal = document.getElementById('shop-modal');
+                    if (modal.classList.contains('hidden')) openShop();
+                    else closeShop();
+                }
+            });
+
+            window.addEventListener('keyup', (e) => {
+                const code = e.code;
+                if (code === 'KeyW' || code === 'ArrowUp') keys.w = false;
+                if (code === 'KeyS' || code === 'ArrowDown') keys.s = false;
+                if (code === 'KeyA' || code === 'ArrowLeft') keys.a = false;
+                if (code === 'KeyD' || code === 'ArrowRight') keys.d = false;
+            });
+
+            // 行動裝置虛擬方向按鈕綁定
+            const bindMobileBtn = (id, keyName) => {
+                const btn = document.getElementById(id);
+                if (!btn) return;
+                btn.addEventListener('touchstart', (e) => { e.preventDefault(); keys[keyName] = true; });
+                btn.addEventListener('touchend', (e) => { e.preventDefault(); keys[keyName] = false; });
+            };
+            bindMobileBtn('m-up', 'w');
+            bindMobileBtn('m-down', 's');
+            bindMobileBtn('m-left', 'a');
+            bindMobileBtn('m-right', 'd');
+        }
+
+        function requestLockSafe() {
+            const canvas = document.getElementById('game-canvas');
+            if (canvas.requestPointerLock) {
+                try {
+                    const promise = canvas.requestPointerLock();
+                    if (promise && promise.catch) promise.catch(() => {});
+                } catch (e) {}
+            }
+        }
+
+        function exitLockSafe() {
+            if (document.pointerLockElement && document.exitPointerLock) {
+                try { document.exitPointerLock(); } catch (e) {}
+            }
+        }
+
+        /* =====================================================================
+           10. 商店介面與 HUD 更新
+           ===================================================================== */
+        function openShop() {
+            SFX.cup();
+            exitLockSafe();
+            document.getElementById('shop-modal').classList.remove('hidden');
+            document.getElementById('shop-money').innerText = gameState.money;
+            renderShopList();
+        }
+
+        function closeShop() {
+            SFX.cup();
+            document.getElementById('shop-modal').classList.add('hidden');
+            requestLockSafe();
+        }
+
+        function switchShopTab(tab) {
+            SFX.cup();
+            currentShopTab = tab;
+            ['drinks', 'toppings', 'upgrades'].forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                el.className = (t === tab)
+                    ? 'px-4 py-2 rounded-t-xl font-black text-xs sm:text-sm bg-[#FFF8EE] text-[#5C3A21] border-t-2 border-x-2 border-[#D4A373]'
+                    : 'px-4 py-2 rounded-t-xl font-bold text-xs sm:text-sm bg-[#F5E6D3] text-[#8C5A3C]';
+            });
+            renderShopList();
+        }
+
+        function renderShopList() {
+            const list = document.getElementById('shop-list');
+            list.innerHTML = '';
+
+            if (currentShopTab === 'drinks') {
+                DRINKS_DB.forEach(d => {
+                    const unlocked = gameState.unlockedDrinks.includes(d.id);
+                    const afford = gameState.money >= d.unlockCost;
+                    list.innerHTML += `
+                        <div class="bg-white border-2 ${unlocked ? 'border-[#00B894]' : 'border-[#E6C29F]'} rounded-2xl p-3.5 flex flex-col justify-between">
+                            <div class="flex items-start gap-3">
+                                <div class="w-11 h-11 rounded-xl flex items-center justify-center text-2xl shrink-0" style="background:${d.hex}25; border:2px solid ${d.hex}">${d.emoji}</div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-center">
+                                        <h4 class="font-black text-sm sm:text-base text-[#5C3A21]">${d.name}</h4>
+                                        <span class="text-xs font-black bg-[#FFF3E0] text-[#D35400] px-2 py-0.5 rounded-full">單價 $${d.price}</span>
+                                    </div>
+                                    <p class="text-xs text-[#8C5A3C] mt-1">${d.desc}</p>
+                                </div>
+                            </div>
+                            <div class="mt-3 pt-2 border-t border-gray-100 flex justify-end">
+                                ${unlocked
+                                    ? `<span class="text-xs font-black text-[#00B894] bg-[#E8F8F5] px-3 py-1 rounded-xl">✔ 已擺上吧台茶桶</span>`
+                                    : `<button onclick="buyShopItem('drink', '${d.id}', ${d.unlockCost})" ${!afford ? 'disabled' : ''} class="btn-cute bg-[#FF9F43] text-white font-black text-xs px-4 py-2 rounded-xl border-2 border-[#D35400]">💰 $${d.unlockCost} 解鎖茶桶</button>`
+                                }
+                            </div>
+                        </div>`;
+                });
+            } else if (currentShopTab === 'toppings') {
+                TOPPINGS_DB.forEach(t => {
+                    const unlocked = gameState.unlockedToppings.includes(t.id);
+                    const afford = gameState.money >= t.unlockCost;
+                    list.innerHTML += `
+                        <div class="bg-white border-2 ${unlocked ? 'border-[#00B894]' : 'border-[#E6C29F]'} rounded-2xl p-3.5 flex flex-col justify-between">
+                            <div class="flex items-start gap-3">
+                                <div class="w-11 h-11 rounded-xl bg-[#FFF8EE] border-2 border-[#E6C29F] flex items-center justify-center text-2xl shrink-0">${t.emoji}</div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-center">
+                                        <h4 class="font-black text-sm sm:text-base text-[#5C3A21]">${t.name}</h4>
+                                        <span class="text-xs font-black bg-[#FFF3E0] text-[#D35400] px-2 py-0.5 rounded-full">加料 +$${t.price}</span>
+                                    </div>
+                                    <p class="text-xs text-[#8C5A3C] mt-1">${t.desc}</p>
+                                </div>
+                            </div>
+                            <div class="mt-3 pt-2 border-t border-gray-100 flex justify-end">
+                                ${unlocked
+                                    ? `<span class="text-xs font-black text-[#00B894] bg-[#E8F8F5] px-3 py-1 rounded-xl">✔ 已擺上配料吧台</span>`
+                                    : `<button onclick="buyShopItem('topping', '${t.id}', ${t.unlockCost})" ${!afford ? 'disabled' : ''} class="btn-cute bg-[#FF9F43] text-white font-black text-xs px-4 py-2 rounded-xl border-2 border-[#D35400]">💰 $${t.unlockCost} 進貨小料</button>`
+                                }
+                            </div>
+                        </div>`;
+                });
+            } else {
+                UPGRADES_DB.forEach(u => {
+                    const owned = gameState.upgrades.includes(u.id);
+                    const afford = gameState.money >= u.cost;
+                    list.innerHTML += `
+                        <div class="bg-white border-2 ${owned ? 'border-[#00B894]' : 'border-[#E6C29F]'} rounded-2xl p-3.5 flex flex-col justify-between">
+                            <div class="flex items-start gap-3">
+                                <div class="w-11 h-11 rounded-xl bg-[#EBF5FB] border-2 border-[#AED6F1] flex items-center justify-center text-2xl shrink-0">⚡</div>
+                                <div class="flex-1">
+                                    <h4 class="font-black text-sm sm:text-base text-[#5C3A21]">${u.name}</h4>
+                                    <p class="text-xs text-[#8C5A3C] mt-1">${u.desc}</p>
+                                </div>
+                            </div>
+                            <div class="mt-3 pt-2 border-t border-gray-100 flex justify-end">
+                                ${owned
+                                    ? `<span class="text-xs font-black text-[#00B894] bg-[#E8F8F5] px-3 py-1 rounded-xl">✔ 已升級完成</span>`
+                                    : `<button onclick="buyShopItem('upgrade', '${u.id}', ${u.cost})" ${!afford ? 'disabled' : ''} class="btn-cute bg-[#3498DB] text-white font-black text-xs px-4 py-2 rounded-xl border-2 border-[#21618C]">💰 $${u.cost} 購買升級</button>`
+                                }
+                            </div>
+                        </div>`;
+                });
+            }
+        }
+
+        function buyShopItem(type, id, cost) {
+            if (gameState.money < cost) return;
+            gameState.money -= cost;
+            SFX.cash();
+
+            if (type === 'drink') {
+                gameState.unlockedDrinks.push(id);
+                rebuildDynamicStations();
+                showToast(`🎊 新茶桶【${DRINKS_DB.find(x => x.id === id).name}】已搬進店裡！`, 'success');
+            } else if (type === 'topping') {
+                gameState.unlockedToppings.push(id);
+                rebuildDynamicStations();
+                showToast(`🎊 新配料【${TOPPINGS_DB.find(x => x.id === id).name}】已上架！`, 'success');
+            } else {
+                gameState.upgrades.push(id);
+                showToast(`⚡ 已升級【${UPGRADES_DB.find(x => x.id === id).name}】！`, 'success');
+            }
+
+            writeSave();
+            updateHUD();
+            document.getElementById('shop-money').innerText = gameState.money;
+            renderShopList();
+        }
+
+        function updateHUD() {
+            document.getElementById('hud-money').innerText = gameState.money;
+            document.getElementById('hud-served').innerText = gameState.servedCount;
+            document.getElementById('hud-revenue').innerText = gameState.todayRevenue;
+            document.getElementById('btn-sound').innerText = gameState.soundOn ? '🔊' : '🔇';
+
+            const count = gameState.unlockedDrinks.length + gameState.unlockedToppings.length;
+            let lv = 'Lv.1 巷口手搖攤';
+            if (count >= 10) lv = 'Lv.4 台灣手搖霸主';
+            else if (count >= 8) lv = 'Lv.3 商圈排隊名店';
+            else if (count >= 6) lv = 'Lv.2 文青人氣飲料鋪';
+            document.getElementById('hud-shop-level').innerText = lv;
+
+            const canBuy = DRINKS_DB.some(d => !gameState.unlockedDrinks.includes(d.id) && gameState.money >= d.unlockCost) ||
+                           TOPPINGS_DB.some(t => !gameState.unlockedToppings.includes(t.id) && gameState.money >= t.unlockCost);
+            document.getElementById('shop-new-badge').classList.toggle('hidden', !canBuy);
+        }
+
+        function updateOrderHUD() {
+            const nameEl = document.getElementById('order-customer-name');
+            const priceEl = document.getElementById('order-price-tag');
+            const detailEl = document.getElementById('order-details');
+
+            if (!customer || customer.state === 'leaving') {
+                nameEl.innerText = '等待下一位客人...';
+                priceEl.innerText = '$0';
+                detailEl.innerHTML = '<span class="text-gray-500">客人正在走進店門...</span>';
+                document.getElementById('hud-patience-bar').style.width = '100%';
+                return;
+            }
+
+            const ord = customer.order;
+            const d = DRINKS_DB.find(x => x.id === ord.drinkId);
+            const s = SUGAR_LEVELS.find(x => x.id === ord.sugarId);
+            const i = ICE_LEVELS.find(x => x.id === ord.iceId);
+            const tops = ord.toppings.map(id => TOPPINGS_DB.find(t => t.id === id).name);
+
+            nameEl.innerText = customer.profile.name;
+            priceEl.innerText = `$${customer.basePrice}+`;
+            detailEl.innerHTML = `
+                <div class="text-[#5C3A21]">${d.emoji} ${d.name} <span class="text-xs text-[#D35400]">(${tops.length ? '+' + tops.join('、') : '不加料'})</span></div>
+                <div class="text-xs text-[#1B4F72] mt-0.5">🍬 ${s.name} ｜ 🧊 ${i.name}</div>
+            `;
+        }
+
+        function updateHandHUD() {
+            const iconEl = document.getElementById('hand-icon');
+            const tagsEl = document.getElementById('hand-status-tags');
+
+            if (!heldCup.hasCup) {
+                iconEl.innerText = '🖐️';
+                tagsEl.innerHTML = '<span class="text-gray-500">空手（請走去左前取杯架拿杯子）</span>';
+                return;
+            }
+
+            iconEl.innerText = heldCup.isSealed ? '🧋' : '🥤';
+            const dName = heldCup.drinkId ? DRINKS_DB.find(x => x.id === heldCup.drinkId).name : '空杯(未裝茶)';
+            const sName = SUGAR_LEVELS.find(x => x.id === heldCup.sugarId).name;
+            const iName = ICE_LEVELS.find(x => x.id === heldCup.iceId).name;
+
+            let html = `<span class="bg-[#FFE8C8] px-2 py-0.5 rounded-md">${dName}</span>`;
+            heldCup.toppings.forEach(id => {
+                const t = TOPPINGS_DB.find(x => x.id === id);
+                html += `<span class="bg-[#FFEAA7] px-2 py-0.5 rounded-md">+${t.name}</span>`;
+            });
+            html += `<span class="bg-[#FADBD8] text-[#922B21] px-2 py-0.5 rounded-md">${sName}</span>`;
+            html += `<span class="bg-[#D6EAF8] text-[#1B4F72] px-2 py-0.5 rounded-md">${iName}</span>`;
+            if (heldCup.isSealed) {
+                html += `<span class="bg-[#00B894] text-white px-2 py-0.5 rounded-md">✔已封膜</span>`;
+            }
+            tagsEl.innerHTML = html;
+        }
+
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const div = document.createElement('div');
+            let cls = 'glass-dark text-white border-[#D4A373]';
+            if (type === 'success') cls = 'bg-[#00B894]/95 text-white border-[#00896F]';
+            if (type === 'error') cls = 'bg-[#FF7675]/95 text-white border-[#D63031]';
+            if (type === 'warning') cls = 'bg-[#FDCB6E]/95 text-[#4A3525] border-[#E17055]';
+
+            div.className = `${cls} border-2 px-4 py-2 rounded-2xl shadow-lg font-black text-xs sm:text-sm text-center animate-pop-in`;
+            div.innerText = msg;
+            container.appendChild(div);
+            setTimeout(() => {
+                div.style.opacity = '0';
+                div.style.transition = 'opacity 0.25s';
+                setTimeout(() => div.remove(), 250);
+            }, 2300);
+        }
+
+        function openResetModal() {
+            exitLockSafe();
+            document.getElementById('reset-modal').classList.remove('hidden');
+        }
+
+        function closeResetModal() {
+            document.getElementById('reset-modal').classList.add('hidden');
+            requestLockSafe();
+        }
+
+        function confirmReset() {
+            SFX.error();
+            localStorage.removeItem('fp_3d_boba_save_v1');
+            gameState = { ...DEFAULT_SAVE };
+            writeSave();
+            heldCup.hasCup = false;
+            syncViewmodelVisuals();
+            rebuildDynamicStations();
+            updateHUD();
+            updateHandHUD();
+            if (customerMeshGroup) scene.remove(customerMeshGroup);
+            customer = null;
+            nextCustomerTimer = 0.8;
+            closeResetModal();
+            showToast('🔄 進度已重置，重新開張大吉！', 'info');
+        }
+
+        /* =====================================================================
+           11. 主遊戲迴圈 (物理移動碰撞、Raycaster 瞄準高亮、動畫更新)
+           ===================================================================== */
+        const raycaster = new THREE.Raycaster();
+        const screenCenter = new THREE.Vector2(0, 0);
+        let clock = new THREE.Clock();
+
+        function updatePlayerMovement(dt) {
+            // 計算移動速度加成
+            let speedMult = 1.0;
+            gameState.upgrades.forEach(uId => {
+                const u = UPGRADES_DB.find(x => x.id === uId);
+                if (u && u.type === 'speed') speedMult = u.value;
+            });
+
+            const forward = new THREE.Vector3(-Math.sin(player.yaw), 0, -Math.cos(player.yaw));
+            const right = new THREE.Vector3(Math.cos(player.yaw), 0, -Math.sin(player.yaw));
+
+            const moveDir = new THREE.Vector3();
+            if (keys.w) moveDir.add(forward);
+            if (keys.s) moveDir.sub(forward);
+            if (keys.d) moveDir.add(right);
+            if (keys.a) moveDir.sub(right);
+
+            const isMoving = moveDir.lengthSq() > 0.001;
+            if (isMoving) {
+                moveDir.normalize();
+                const step = player.baseSpeed * speedMult * dt;
+                player.pos.x += moveDir.x * step;
+                player.pos.z += moveDir.z * step;
+
+                // 吧台內部活動區域邊界碰撞限制 (避免穿過吧台或牆壁)
+                player.pos.x = Math.max(-2.65, Math.min(2.65, player.pos.x));
+                player.pos.z = Math.max(-1.55, Math.min(1.50, player.pos.z));
+
+                // 走路頭部上下晃動與腳步聲
+                player.bobTimer += dt * 11;
+                player.stepTimer += dt;
+                if (player.stepTimer > 0.42) {
+                    player.stepTimer = 0;
+                    SFX.step();
+                }
+            } else {
+                player.bobTimer = 0;
+            }
+
+            const bobY = isMoving ? Math.sin(player.bobTimer) * 0.035 : 0;
+            camera.position.set(player.pos.x, player.pos.y + bobY, player.pos.z);
+            camera.rotation.y = player.yaw;
+            camera.rotation.x = player.pitch;
+
+            // 手持杯子自然慣性擺動
+            if (viewmodelGroup) {
+                const swayX = isMoving ? Math.cos(player.bobTimer * 0.5) * 0.015 : 0;
+                const swayY = isMoving ? Math.abs(Math.sin(player.bobTimer * 0.5)) * 0.015 : 0;
+                viewmodelGroup.position.x = 0.36 + swayX;
+                viewmodelGroup.position.y = -0.34 - swayY;
+            }
+        }
+
+        function updateRaycaster() {
+            raycaster.setFromCamera(screenCenter, camera);
+            raycaster.far = 2.8; // 最大互動距離 2.8 公尺
+
+            const hits = raycaster.intersectObjects(interactables, false);
+            const crosshair = document.getElementById('crosshair');
+            const promptBox = document.getElementById('interact-prompt');
+            const promptText = document.getElementById('interact-text');
+
+            // 清除舊高亮
+            if (highlightedObj && highlightedObj.material && highlightedObj.material.emissive) {
+                highlightedObj.material.emissive.setHex(0x000000);
+            }
+
+            if (hits.length > 0) {
+                highlightedObj = hits[0].object;
+                if (highlightedObj.material && highlightedObj.material.emissive) {
+                    highlightedObj.material.emissive.setHex(0x332211);
+                }
+                crosshair.classList.add('active');
+                promptBox.classList.remove('hidden');
+                promptText.innerText = highlightedObj.userData.promptText;
+            } else {
+                highlightedObj = null;
+                crosshair.classList.remove('active');
+                promptBox.classList.add('hidden');
+            }
+        }
+
+        function updateSimulation(dt) {
+            // 1. 手持杯子茶湯高度平滑上升動畫
+            if (vmLiquidMesh && heldCup.hasCup) {
+                currentLiquidHeight += (targetLiquidHeight - currentLiquidHeight) * Math.min(1, dt * 8);
+                vmLiquidMesh.scale.y = Math.max(0.001, currentLiquidHeight);
+            }
+
+            // 2. 客人生成與移動邏輯
+            if (!customer) {
+                nextCustomerTimer -= dt;
+                if (nextCustomerTimer <= 0) {
+                    spawnCustomer();
+                }
+            } else if (customerMeshGroup) {
+                if (customer.state === 'entering') {
+                    // 走向櫃檯中央 X = 0
+                    customer.x += dt * 2.2;
+                    customerMeshGroup.position.x = customer.x;
+                    customerMeshGroup.position.y = Math.abs(Math.sin(customer.x * 6)) * 0.05;
+                    if (customer.x >= 0) {
+                        customer.x = 0;
+                        customerMeshGroup.position.x = 0;
+                        customerMeshGroup.position.y = 0;
+                        customer.state = 'waiting';
+                    }
+                } else if (customer.state === 'waiting') {
+                    // 扣除耐心值
+                    customer.patience -= dt;
+                    const pct = Math.max(0, (customer.patience / customer.maxPatience) * 100);
+                    const bar = document.getElementById('hud-patience-bar');
+                    bar.style.width = `${pct}%`;
+                    bar.className = pct > 50 ? 'h-full bg-[#2ECC71] transition-all' :
+                                    pct > 25 ? 'h-full bg-[#F1C40F] transition-all' :
+                                               'h-full bg-[#E74C3C] transition-all';
+
+                    // 輕微呼吸上下微動
+                    customerMeshGroup.position.y = Math.sin(clock.elapsedTime * 3) * 0.02;
+
+                    if (customer.patience <= 0) {
+                        SFX.error();
+                        showToast('💢 客人等太久生氣離開了！', 'error');
+                        customer.state = 'leaving';
+                        if (customerOrderSprite) customerOrderSprite.visible = false;
+                        updateOrderHUD();
+                    }
+                } else if (customer.state === 'leaving') {
+                    // 往右側離開
+                    customer.x += dt * 2.6;
+                    customerMeshGroup.position.x = customer.x;
+                    customerMeshGroup.position.y = Math.abs(Math.sin(customer.x * 6)) * 0.05;
+                    if (customer.x > 4.5) {
+                        scene.remove(customerMeshGroup);
+                        customerMeshGroup = null;
+                        customer = null;
+                        nextCustomerTimer = 1.4;
+                        updateOrderHUD();
+                    }
+                }
+            }
+
+            // 3. 金幣飛舞粒子更新
+            for (let i = floatingCoins.length - 1; i >= 0; i--) {
+                const c = floatingCoins[i];
+                c.life -= dt;
+                c.mesh.position.addScaledVector(c.vel, dt);
+                c.vel.y -= 7.5 * dt; // 重力
+                c.mesh.rotation.y += dt * 8;
+                if (c.life <= 0) {
+                    scene.remove(c.mesh);
+                    floatingCoins.splice(i, 1);
+                }
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const dt = Math.min(clock.getDelta(), 0.1);
+            updatePlayerMovement(dt);
+            updateRaycaster();
+            updateSimulation(dt);
+            renderer.render(scene, camera);
+        }
+
+        /* =====================================================================
+           12. 啟動入口
+           ===================================================================== */
+        window.onload = function () {
+            loadSave();
+            init3D();
+            setupControls();
+            updateHUD();
+            updateHandHUD();
+            animate();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,1880 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>霓虹極速：賽博賽道 (NEON DRIFT: CYBER CIRCUIT)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #050510;
+            font-family: 'Noto Sans TC', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        .racing-font {
+            font-family: 'Orbitron', 'Noto Sans TC', sans-serif;
+        }
+        /* 氮氣極速邊緣速度線特效 */
+        .speed-lines {
+            background: radial-gradient(circle, rgba(0,0,0,0) 52%, rgba(0, 243, 255, 0.28) 88%, rgba(255, 0, 170, 0.45) 100%);
+            box-shadow: inset 0 0 90px rgba(0, 243, 255, 0.65);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease-out;
+        }
+        @keyframes pulse-neon {
+            0%, 100% { box-shadow: 0 0 18px rgba(0, 243, 255, 0.6), inset 0 0 12px rgba(0, 243, 255, 0.3); }
+            50% { box-shadow: 0 0 32px rgba(236, 72, 153, 0.8), inset 0 0 18px rgba(236, 72, 153, 0.4); }
+        }
+        .neon-card {
+            animation: pulse-neon 3.5s infinite;
+        }
+        @keyframes pop-scale {
+            0% { transform: scale(1.6); opacity: 0; }
+            40% { transform: scale(0.95); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .countdown-pop {
+            animation: pop-scale 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+    </style>
+</head>
+<body class="relative text-cyan-50">
+
+    <!-- 3D 賽車主畫布容器 -->
+    <div id="game-container" class="absolute inset-0 w-full h-full"></div>
+
+    <!-- 氮氣加速視覺特效層 -->
+    <div id="nitro-overlay" class="speed-lines absolute inset-0 z-10"></div>
+
+    <!-- 起跑倒數 3-2-1-GO 燈號 -->
+    <div id="countdown-overlay" class="hidden absolute inset-0 z-30 pointer-events-none flex flex-col items-center justify-center">
+        <div class="bg-slate-950/80 border-2 border-cyan-400/60 px-8 py-4 rounded-2xl backdrop-blur-md shadow-[0_0_50px_rgba(0,243,255,0.5)] flex gap-4 mb-3">
+            <div id="light-1" class="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-slate-800 border-2 border-slate-600 transition-all"></div>
+            <div id="light-2" class="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-slate-800 border-2 border-slate-600 transition-all"></div>
+            <div id="light-3" class="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-slate-800 border-2 border-slate-600 transition-all"></div>
+        </div>
+        <div id="countdown-text" class="racing-font text-6xl sm:text-8xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-white to-fuchsia-400 drop-shadow-[0_0_25px_rgba(0,243,255,0.9)]">
+            3
+        </div>
+    </div>
+
+    <!-- 賽車儀表板 HUD -->
+    <div id="hud" class="hidden absolute inset-0 z-20 pointer-events-none flex flex-col justify-between p-3 sm:p-5">
+        
+        <!-- 頂部資訊列：左上名次與圈數 | 中上計時器與提示 | 右上即時賽道小地圖與功能按鈕 -->
+        <div class="flex justify-between items-start gap-2">
+            
+            <!-- 左上：名次與圈數 -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <div class="bg-slate-950/80 backdrop-blur-md border border-cyan-400/40 rounded-2xl px-3.5 py-2 sm:px-5 sm:py-3 shadow-xl">
+                    <div class="text-[10px] sm:text-xs text-cyan-400 font-bold tracking-wider">RANK 排名</div>
+                    <div class="racing-font flex items-baseline">
+                        <span id="hud-rank" class="text-3xl sm:text-5xl font-black text-white">1</span>
+                        <span class="text-sm sm:text-lg text-slate-400 font-bold ml-1">/ 4</span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-950/80 backdrop-blur-md border border-fuchsia-400/40 rounded-2xl px-3.5 py-2 sm:px-5 sm:py-3 shadow-xl">
+                    <div class="text-[10px] sm:text-xs text-fuchsia-400 font-bold tracking-wider">LAP 圈數</div>
+                    <div class="racing-font flex items-baseline">
+                        <span id="hud-lap" class="text-3xl sm:text-5xl font-black text-white">1</span>
+                        <span class="text-sm sm:text-lg text-slate-400 font-bold ml-1">/ 3</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 中上：單圈時間、最佳圈速與賽事動態橫幅 -->
+            <div class="hidden sm:flex flex-col items-center gap-2">
+                <div class="bg-slate-950/80 backdrop-blur-md border border-cyan-400/30 rounded-2xl px-6 py-2.5 shadow-xl flex gap-6 text-center">
+                    <div>
+                        <div class="text-[10px] text-slate-400 font-bold">TOTAL 總時間</div>
+                        <div id="hud-total-time" class="racing-font text-base font-bold text-cyan-200">00:00.00</div>
+                    </div>
+                    <div class="border-l border-slate-700 pl-6">
+                        <div class="text-[10px] text-slate-400 font-bold">CURRENT 本圈</div>
+                        <div id="hud-lap-time" class="racing-font text-base font-bold text-white">00:00.00</div>
+                    </div>
+                    <div class="border-l border-slate-700 pl-6">
+                        <div class="text-[10px] text-amber-400 font-bold">BEST 最佳單圈</div>
+                        <div id="hud-best-time" class="racing-font text-base font-bold text-amber-300">--:--.--</div>
+                    </div>
+                </div>
+
+                <!-- 動態提示橫幅 (逆向警告 / 甩尾集氣 / 檢查點) -->
+                <div id="hud-banner" class="hidden px-5 py-1.5 rounded-full bg-rose-600/90 border border-rose-300 text-white font-black text-sm tracking-widest shadow-[0_0_20px_rgba(225,29,72,0.8)]">
+                    警告：逆向行駛！
+                </div>
+            </div>
+
+            <!-- 右上：小地圖 Canvas 與視角/靜音按鈕 -->
+            <div class="flex flex-col items-end gap-2">
+                <div class="bg-slate-950/80 backdrop-blur-md border border-cyan-400/40 rounded-2xl p-2 shadow-xl relative">
+                    <canvas id="minimap-canvas" width="130" height="130" class="w-24 h-24 sm:w-32 sm:h-32 rounded-xl"></canvas>
+                    <div class="absolute bottom-2.5 left-3 text-[9px] racing-font text-cyan-400/80 font-bold">RADAR</div>
+                </div>
+                <div class="flex gap-1.5 pointer-events-auto">
+                    <button id="btn-hud-cam" class="bg-slate-900/90 hover:bg-cyan-900/80 border border-cyan-400/40 text-cyan-200 text-xs px-2.5 py-1.5 rounded-lg font-bold transition cursor-pointer shadow">
+                        [C] 視角
+                    </button>
+                    <button id="btn-hud-reset" class="bg-slate-900/90 hover:bg-amber-900/80 border border-amber-400/40 text-amber-200 text-xs px-2.5 py-1.5 rounded-lg font-bold transition cursor-pointer shadow">
+                        [R] 復位
+                    </button>
+                    <button id="btn-hud-mute" class="bg-slate-900/90 hover:bg-fuchsia-900/80 border border-fuchsia-400/40 text-fuchsia-200 text-xs px-2.5 py-1.5 rounded-lg font-bold transition cursor-pointer shadow">
+                        音效: 開
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 行動裝置中部簡化計時 -->
+        <div class="sm:hidden flex justify-center">
+            <div class="bg-slate-950/75 border border-cyan-400/30 rounded-xl px-3 py-1 text-xs racing-font text-cyan-200">
+                TIME: <span id="hud-mob-time">00:00.00</span>
+            </div>
+        </div>
+
+        <!-- 底部儀表板：左下操作提示 | 右下數位時速表與氮氣能量條 -->
+        <div class="flex justify-between items-end gap-3">
+            
+            <!-- 左下：快捷操作說明 -->
+            <div class="hidden md:block bg-slate-950/75 backdrop-blur-md border border-slate-700/80 rounded-2xl p-3.5 text-xs text-slate-300 space-y-1 shadow-xl">
+                <div class="text-cyan-400 font-bold mb-1 tracking-wider">操控指南</div>
+                <div><span class="text-white font-bold">W A S D / 方向鍵</span>：油門 / 轉向 / 煞車</div>
+                <div><span class="text-fuchsia-400 font-bold">Shift</span>：甩尾過彎（累積氮氣能量）</div>
+                <div><span class="text-cyan-300 font-bold">Space 空白鍵</span>：釋放氮氣極速推進</div>
+                <div><span class="text-amber-300 font-bold">C 鍵</span>：切換視角 | <span class="text-amber-300 font-bold">R 鍵</span>：重置回賽道</div>
+            </div>
+
+            <!-- 右下：數位時速表、檔位與氮氣能量條 -->
+            <div class="ml-auto w-full sm:w-80 bg-slate-950/85 backdrop-blur-md border border-cyan-400/50 rounded-2xl p-3.5 sm:p-4 shadow-[0_0_30px_rgba(0,0,0,0.8)]">
+                <div class="flex justify-between items-end mb-2">
+                    <div>
+                        <div class="text-[10px] text-cyan-400 font-bold tracking-widest">SPEED // TELEMETRY</div>
+                        <div class="flex items-baseline gap-1.5">
+                            <span id="hud-speed" class="racing-font text-4xl sm:text-5xl font-black text-white tracking-tight">0</span>
+                            <span class="racing-font text-xs sm:text-sm font-bold text-cyan-400">KM/H</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-[10px] text-slate-400 font-bold">GEAR</div>
+                        <div id="hud-gear" class="racing-font text-2xl sm:text-3xl font-black text-fuchsia-400">N</div>
+                    </div>
+                </div>
+
+                <!-- 氮氣能量條 (NITRO BOOST) -->
+                <div>
+                    <div class="flex justify-between items-center text-[11px] mb-1">
+                        <span class="font-bold text-cyan-300 tracking-wider flex items-center gap-1.5">
+                            NITRO BOOST 氮氣能量
+                            <span id="drift-badge" class="hidden px-1.5 py-0.2 bg-fuchsia-600 text-white rounded text-[9px] animate-pulse">DRIFT 集氣中!</span>
+                        </span>
+                        <span id="hud-nitro-text" class="racing-font font-bold text-cyan-200">50%</span>
+                    </div>
+                    <div class="w-full h-3 bg-slate-900 rounded-full overflow-hidden border border-cyan-500/40 p-0.5">
+                        <div id="hud-nitro-bar" class="h-full rounded-full bg-gradient-to-r from-cyan-500 via-sky-400 to-fuchsia-500 transition-all duration-75 shadow-[0_0_12px_rgba(0,243,255,0.8)]" style="width: 50%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 行動裝置觸控按鈕 -->
+    <div id="mobile-controls" class="hidden fixed inset-0 z-30 pointer-events-none">
+        <!-- 左下：左右轉向 -->
+        <div class="pointer-events-auto absolute bottom-4 left-4 flex gap-3">
+            <button id="mob-left" class="w-16 h-16 rounded-2xl bg-slate-900/85 border-2 border-cyan-400/50 text-cyan-200 text-2xl font-black active:bg-cyan-600/60 shadow-lg">◀</button>
+            <button id="mob-right" class="w-16 h-16 rounded-2xl bg-slate-900/85 border-2 border-cyan-400/50 text-cyan-200 text-2xl font-black active:bg-cyan-600/60 shadow-lg">▶</button>
+        </div>
+        <!-- 右下：氮氣、甩尾、煞車、油門 -->
+        <div class="pointer-events-auto absolute bottom-28 right-4 flex flex-col gap-2 items-end">
+            <div class="flex gap-2">
+                <button id="mob-nitro" class="px-4 py-3 rounded-xl bg-cyan-600/85 border border-cyan-300 text-white text-xs font-black active:scale-95 shadow-lg">氮氣</button>
+                <button id="mob-drift" class="px-4 py-3 rounded-xl bg-fuchsia-600/85 border border-fuchsia-300 text-white text-xs font-black active:scale-95 shadow-lg">甩尾</button>
+            </div>
+            <div class="flex gap-2">
+                <button id="mob-brake" class="w-14 h-14 rounded-xl bg-rose-900/85 border border-rose-400 text-rose-100 text-xs font-bold active:bg-rose-600 shadow-lg">煞車</button>
+                <button id="mob-gas" class="w-16 h-14 rounded-xl bg-emerald-600/90 border border-emerald-300 text-white text-sm font-black active:bg-emerald-400 shadow-lg">油門</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 遊戲開始主選單 -->
+    <div id="start-modal" class="absolute inset-0 z-40 bg-slate-950/88 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="max-w-xl w-full bg-slate-900/95 border-2 border-cyan-400/60 rounded-3xl p-6 sm:p-8 neon-card text-center">
+            <div class="inline-block px-3.5 py-1 bg-cyan-950 border border-cyan-400/50 rounded-full text-cyan-300 text-xs font-bold tracking-widest mb-3">
+                CYBERPUNK GRAND PRIX // 3 LAPS CHAMPIONSHIP
+            </div>
+            <h1 class="text-3xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-white to-fuchsia-400 tracking-tight mb-1">
+                霓虹極速：賽博賽道
+            </h1>
+            <p class="racing-font text-cyan-400/90 text-xs sm:text-sm tracking-widest mb-5">
+                NEON DRIFT: CYBER CIRCUIT
+            </p>
+
+            <!-- 賽車塗裝顏色選擇 -->
+            <div class="mb-5 text-left">
+                <div class="text-xs font-bold text-cyan-300 mb-2">1. 選擇專屬賽車塗裝：</div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="color-selector">
+                    <button data-color="red" data-hex="#ef4444" class="color-btn active-color bg-red-950/60 border-2 border-red-400 text-white py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition">
+                        <span class="w-3.5 h-3.5 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444]"></span> 烈焰紅
+                    </button>
+                    <button data-color="blue" data-hex="#06b6d4" class="color-btn bg-slate-800/80 border border-slate-600 text-slate-300 py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer hover:border-cyan-400 transition">
+                        <span class="w-3.5 h-3.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee]"></span> 賽博藍
+                    </button>
+                    <button data-color="purple" data-hex="#a855f7" class="color-btn bg-slate-800/80 border border-slate-600 text-slate-300 py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer hover:border-purple-400 transition">
+                        <span class="w-3.5 h-3.5 rounded-full bg-purple-500 shadow-[0_0_8px_#a855f7]"></span> 極光紫
+                    </button>
+                    <button data-color="orange" data-hex="#f97316" class="color-btn bg-slate-800/80 border border-slate-600 text-slate-300 py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer hover:border-orange-400 transition">
+                        <span class="w-3.5 h-3.5 rounded-full bg-orange-500 shadow-[0_0_8px_#f97316]"></span> 黃金橘
+                    </button>
+                </div>
+            </div>
+
+            <!-- 對手 AI 難度選擇 -->
+            <div class="mb-6 text-left">
+                <div class="text-xs font-bold text-fuchsia-300 mb-2">2. 選擇賽事難度：</div>
+                <div class="grid grid-cols-3 gap-2.5" id="diff-selector">
+                    <button data-diff="rookie" class="diff-btn bg-slate-800/80 border border-slate-600 text-slate-300 py-2.5 px-3 rounded-xl text-xs font-bold cursor-pointer hover:border-cyan-400 transition">
+                        新手級<br><span class="text-[10px] font-normal text-slate-400">輕鬆體驗甩尾</span>
+                    </button>
+                    <button data-diff="pro" class="diff-btn active-diff bg-fuchsia-950/60 border-2 border-fuchsia-400 text-white py-2.5 px-3 rounded-xl text-xs font-bold cursor-pointer transition">
+                        職業級<br><span class="text-[10px] font-normal text-fuchsia-200/80">標準競速對決</span>
+                    </button>
+                    <button data-diff="extreme" class="diff-btn bg-slate-800/80 border border-slate-600 text-slate-300 py-2.5 px-3 rounded-xl text-xs font-bold cursor-pointer hover:border-rose-400 transition">
+                        極限級<br><span class="text-[10px] font-normal text-slate-400">頂尖 AI 車手</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 操作重點提示 -->
+            <div class="bg-black/50 border border-cyan-500/25 rounded-2xl p-3.5 mb-6 text-left text-xs text-slate-300 grid grid-cols-2 gap-2">
+                <div><span class="text-cyan-300 font-bold">WASD / 方向鍵</span>：駕駛賽車</div>
+                <div><span class="text-fuchsia-400 font-bold">Shift</span>：甩尾過彎集氣</div>
+                <div><span class="text-sky-300 font-bold">Space 空白鍵</span>：氮氣噴射加速</div>
+                <div><span class="text-amber-300 font-bold">C 切換視角</span> / <span class="text-amber-300 font-bold">R 復位</span></div>
+            </div>
+
+            <button id="btn-start-race" class="w-full py-4 px-6 bg-gradient-to-r from-cyan-500 via-sky-400 to-fuchsia-500 hover:from-cyan-400 hover:to-fuchsia-400 text-slate-950 font-black text-lg rounded-2xl shadow-[0_0_30px_rgba(0,243,255,0.6)] transition transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer tracking-wider">
+                發動引擎 · 開始比賽
+            </button>
+        </div>
+    </div>
+
+    <!-- 完賽結算畫面 -->
+    <div id="finish-modal" class="hidden absolute inset-0 z-50 bg-slate-950/90 backdrop-blur-lg flex items-center justify-center p-4">
+        <div class="max-w-lg w-full bg-slate-900 border-2 border-cyan-400 rounded-3xl p-6 sm:p-8 neon-card text-center">
+            <div class="inline-block px-3.5 py-1 bg-cyan-950 border border-cyan-400/50 rounded-full text-cyan-300 text-xs font-bold tracking-widest mb-2">
+                FINISH // 衝線完賽
+            </div>
+            <h2 id="finish-rank-title" class="text-3xl sm:text-4xl font-black text-white mb-1">
+                冠軍！第 1 名
+            </h2>
+            <p id="finish-subtitle" class="text-cyan-300 text-sm mb-6">
+                你以驚人的過彎技巧征服了賽博霓虹賽道！
+            </p>
+
+            <!-- 成績統計表 -->
+            <div class="bg-black/60 border border-slate-700 rounded-2xl p-4 mb-6 text-left space-y-2.5 text-xs sm:text-sm">
+                <div class="flex justify-between border-b border-slate-800 pb-2">
+                    <span class="text-slate-400">最終排名：</span>
+                    <span id="res-rank" class="racing-font font-black text-amber-300">1 / 4</span>
+                </div>
+                <div class="flex justify-between border-b border-slate-800 pb-2">
+                    <span class="text-slate-400">完賽總時間：</span>
+                    <span id="res-total-time" class="racing-font font-bold text-cyan-300">00:00.00</span>
+                </div>
+                <div class="flex justify-between border-b border-slate-800 pb-2">
+                    <span class="text-slate-400">最佳單圈紀錄：</span>
+                    <span id="res-best-lap" class="racing-font font-bold text-fuchsia-400">00:00.00</span>
+                </div>
+                <div class="pt-1">
+                    <div class="text-slate-400 mb-1.5 font-bold">全場車手排名：</div>
+                    <div id="res-standings" class="space-y-1.5 text-xs"></div>
+                </div>
+            </div>
+
+            <button id="btn-play-again" class="w-full py-3.5 px-6 bg-gradient-to-r from-cyan-500 to-fuchsia-500 hover:from-cyan-400 hover:to-fuchsia-400 text-slate-950 font-black text-base rounded-2xl shadow-lg transition cursor-pointer">
+                再玩一次 (PLAY AGAIN)
+            </button>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * ============================================================================
+         * 《霓虹極速：賽博賽道 (NEON DRIFT: CYBER CIRCUIT)》
+         * 單一 HTML 檔案完整實現：
+         * 1. Three.js 未來感跑車模型（流線車身、尾翼、發光頭尾燈、旋轉輪胎、排氣氮氣火焰、地面投影）
+         * 2. CatmullRomCurve3 封閉式 3D 賽道（直線加速、髮夾彎、S型彎道、紅白路緣石、發光護欄、起終點拱門）
+         * 3. 賽博朋克夜景城市（霓虹摩天大樓、發光路燈、加速帶 Boost Pads、氮氣膠囊）
+         * 4. 甩尾集氣、氮氣推進、碰撞反彈物理 + 3 輛智慧 Waypoint AI 對手賽車
+         * 5. Web Audio API 動態引擎聲浪、甩尾胎噪、氮氣噴射、碰撞與起跑倒數音效
+         * ============================================================================
+         */
+
+        // --- 賽道與物理常數 ---
+        const TRACK_WIDTH = 18;         // 賽道總寬度 (公尺)
+        const TRACK_HALF_W = TRACK_WIDTH / 2;
+        const TOTAL_LAPS = 3;           // 總圈數
+        const SAMPLE_COUNT = 600;       // 賽道樣條取樣解析度
+
+        // 玩家塗裝配色表
+        const CAR_COLORS = {
+            red: { hex: 0xef4444, accent: 0xfca5a5, name: '烈焰紅' },
+            blue: { hex: 0x06b6d4, accent: 0x67e8f9, name: '賽博藍' },
+            purple: { hex: 0xa855f7, accent: 0xd8b4fe, name: '極光紫' },
+            orange: { hex: 0xf97316, accent: 0xfdba74, name: '黃金橘' }
+        };
+
+        // 難度參數
+        const DIFFICULTY_SETTINGS = {
+            rookie: { aiBaseSpeed: 42, aiCornerFactor: 0.72, aiRubberBand: 0.05 },
+            pro: { aiBaseSpeed: 50, aiCornerFactor: 0.80, aiRubberBand: 0.12 },
+            extreme: { aiBaseSpeed: 56.5, aiCornerFactor: 0.88, aiRubberBand: 0.18 }
+        };
+
+        let selectedColorKey = 'red';
+        let selectedDiffKey = 'pro';
+
+        // --- Three.js 與全域狀態 ---
+        let scene, camera, renderer, clock;
+        let trackCurve;
+        let trackSamples = [];      // 預計算賽道中心點、切線、法線與曲率
+        let boostPads = [];         // 賽道加速帶
+        let nitroCapsules = [];     // 氮氣補給膠囊
+        let particles = [];         // 輪胎煙霧與火花粒子
+        let skidMarks = [];         // 地面甩尾胎痕
+        let allCars = [];           // 玩家 + 3 輛 AI 賽車
+        let playerCar = null;
+
+        // 遊戲流程狀態
+        let gameState = 'menu';     // 'menu' | 'countdown' | 'racing' | 'finished'
+        let cameraMode = 0;         // 0 = 追尾第三人稱, 1 = 車頂第一人稱
+        let raceTotalTime = 0;
+        let currentLapStartTime = 0;
+        let bestLapTime = Infinity;
+        let isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+        // 輸入控制狀態
+        const input = {
+            forward: false,
+            backward: false,
+            left: false,
+            right: false,
+            drift: false,
+            nitro: false
+        };
+
+        // ============================================================================
+        // 1. Web Audio API 動態合成賽車音效系統
+        // ============================================================================
+        const SoundFX = {
+            ctx: null,
+            isMuted: false,
+            isReady: false,
+            engineOsc1: null,
+            engineOsc2: null,
+            engineGain: null,
+            driftGain: null,
+            nitroGain: null,
+
+            init() {
+                if (this.isReady) return;
+                try {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioCtx();
+
+                    // A. 雙振盪器引擎聲浪 (鋸齒波 + 三角波低通濾波)
+                    this.engineOsc1 = this.ctx.createOscillator();
+                    this.engineOsc2 = this.ctx.createOscillator();
+                    const engineFilter = this.ctx.createBiquadFilter();
+                    this.engineGain = this.ctx.createGain();
+
+                    this.engineOsc1.type = 'sawtooth';
+                    this.engineOsc2.type = 'triangle';
+                    this.engineOsc1.frequency.value = 55;
+                    this.engineOsc2.frequency.value = 110;
+
+                    engineFilter.type = 'lowpass';
+                    engineFilter.frequency.value = 280;
+                    this.engineGain.gain.value = 0.0;
+
+                    this.engineOsc1.connect(engineFilter);
+                    this.engineOsc2.connect(engineFilter);
+                    engineFilter.connect(this.engineGain);
+                    this.engineGain.connect(this.ctx.destination);
+
+                    this.engineOsc1.start();
+                    this.engineOsc2.start();
+
+                    // B. 白噪音生成器 (用於甩尾輪胎摩擦與氮氣噴射)
+                    const bufferSize = this.ctx.sampleRate * 2;
+                    const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                    const output = noiseBuffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        output[i] = Math.random() * 2 - 1;
+                    }
+
+                    // 甩尾輪胎尖銳摩擦聲
+                    const driftNoise = this.ctx.createBufferSource();
+                    driftNoise.buffer = noiseBuffer;
+                    driftNoise.loop = true;
+                    const driftFilter = this.ctx.createBiquadFilter();
+                    driftFilter.type = 'bandpass';
+                    driftFilter.frequency.value = 1450;
+                    driftFilter.Q.value = 4.5;
+                    this.driftGain = this.ctx.createGain();
+                    this.driftGain.gain.value = 0;
+
+                    driftNoise.connect(driftFilter);
+                    driftFilter.connect(this.driftGain);
+                    this.driftGain.connect(this.ctx.destination);
+                    driftNoise.start();
+
+                    // 氮氣渦輪噴射聲
+                    const nitroNoise = this.ctx.createBufferSource();
+                    nitroNoise.buffer = noiseBuffer;
+                    nitroNoise.loop = true;
+                    const nitroFilter = this.ctx.createBiquadFilter();
+                    nitroFilter.type = 'lowpass';
+                    nitroFilter.frequency.value = 750;
+                    this.nitroGain = this.ctx.createGain();
+                    this.nitroGain.gain.value = 0;
+
+                    nitroNoise.connect(nitroFilter);
+                    nitroFilter.connect(this.nitroGain);
+                    this.nitroGain.connect(this.ctx.destination);
+                    nitroNoise.start();
+
+                    this.isReady = true;
+                } catch (e) {
+                    console.warn('Web Audio API 初始化略過:', e);
+                }
+            },
+
+            resume() {
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+
+            toggleMute() {
+                this.isMuted = !this.isMuted;
+                if (this.isMuted && this.isReady) {
+                    this.engineGain.gain.value = 0;
+                    this.driftGain.gain.value = 0;
+                    this.nitroGain.gain.value = 0;
+                }
+                return this.isMuted;
+            },
+
+            updateContinuous(speedRatio, isDrifting, isNitro, active) {
+                if (!this.isReady || this.isMuted || !active) {
+                    if (this.isReady) {
+                        this.engineGain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.08);
+                        this.driftGain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.05);
+                        this.nitroGain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.05);
+                    }
+                    return;
+                }
+
+                const now = this.ctx.currentTime;
+                // 模擬換檔轉速變化
+                const gearRatio = (speedRatio * 4) % 1;
+                const baseFreq = 48 + speedRatio * 135 + gearRatio * 35 + (isNitro ? 35 : 0);
+                this.engineOsc1.frequency.setTargetAtTime(baseFreq, now, 0.05);
+                this.engineOsc2.frequency.setTargetAtTime(baseFreq * 1.98, now, 0.05);
+                this.engineGain.gain.setTargetAtTime(0.06 + speedRatio * 0.05, now, 0.08);
+
+                this.driftGain.gain.setTargetAtTime(isDrifting ? 0.075 : 0, now, 0.04);
+                this.nitroGain.gain.setTargetAtTime(isNitro ? 0.14 : 0, now, 0.04);
+            },
+
+            playBeep(freq = 520, duration = 0.16) {
+                if (!this.isReady || this.isMuted) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now);
+                gain.gain.setValueAtTime(0.16, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + duration + 0.02);
+            },
+
+            playBoostPickup(isPad = false) {
+                if (!this.isReady || this.isMuted) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(isPad ? 380 : 580, now);
+                osc.frequency.exponentialRampToValueAtTime(isPad ? 1280 : 1480, now + 0.28);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.32);
+            },
+
+            playCrash() {
+                if (!this.isReady || this.isMuted) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(110, now);
+                osc.frequency.exponentialRampToValueAtTime(28, now + 0.18);
+                gain.gain.setValueAtTime(0.18, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.21);
+            }
+        };
+
+        // ============================================================================
+        // 2. 程式化材質與未來感 3D 賽車模型建立
+        // ============================================================================
+        function createTrackTextures() {
+            // A. 深色賽博柏油路面 + 霓虹車道標線
+            const roadCanvas = document.createElement('canvas');
+            roadCanvas.width = 512;
+            roadCanvas.height = 512;
+            const ctx = roadCanvas.getContext('2d');
+
+            ctx.fillStyle = '#111420';
+            ctx.fillRect(0, 0, 512, 512);
+
+            // 柏油微顆粒質感
+            for (let i = 0; i < 9000; i++) {
+                ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.035)' : 'rgba(0,0,0,0.22)';
+                ctx.fillRect(Math.random() * 512, Math.random() * 512, 2, 2);
+            }
+
+            // 兩側青色霓虹邊線
+            ctx.fillStyle = '#00f3ff';
+            ctx.fillRect(14, 0, 8, 512);
+            ctx.fillRect(490, 0, 8, 512);
+
+            // 中央虛線標線
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+            for (let y = 16; y < 512; y += 64) {
+                ctx.fillRect(252, y, 8, 34);
+            }
+
+            const roadTex = new THREE.CanvasTexture(roadCanvas);
+            roadTex.wrapS = THREE.RepeatWrapping;
+            roadTex.wrapT = THREE.RepeatWrapping;
+
+            // B. 紅白相間路緣石 (Curb) 材質
+            const curbCanvas = document.createElement('canvas');
+            curbCanvas.width = 128;
+            curbCanvas.height = 256;
+            const cCtx = curbCanvas.getContext('2d');
+            cCtx.fillStyle = '#ef4444';
+            cCtx.fillRect(0, 0, 128, 128);
+            cCtx.fillStyle = '#f8fafc';
+            cCtx.fillRect(0, 128, 128, 128);
+
+            const curbTex = new THREE.CanvasTexture(curbCanvas);
+            curbTex.wrapS = THREE.RepeatWrapping;
+            curbTex.wrapT = THREE.RepeatWrapping;
+
+            // C. 起終點黑白方格線材質
+            const finishCanvas = document.createElement('canvas');
+            finishCanvas.width = 256;
+            finishCanvas.height = 64;
+            const fCtx = finishCanvas.getContext('2d');
+            const sq = 16;
+            for (let y = 0; y < 64; y += sq) {
+                for (let x = 0; x < 256; x += sq) {
+                    fCtx.fillStyle = ((x / sq + y / sq) % 2 === 0) ? '#ffffff' : '#090d16';
+                    fCtx.fillRect(x, y, sq, sq);
+                }
+            }
+            const finishTex = new THREE.CanvasTexture(finishCanvas);
+
+            // D. 地面柔和陰影貼圖
+            const shadowCanvas = document.createElement('canvas');
+            shadowCanvas.width = 128;
+            shadowCanvas.height = 128;
+            const sCtx = shadowCanvas.getContext('2d');
+            const grad = sCtx.createRadialGradient(64, 64, 12, 64, 64, 60);
+            grad.addColorStop(0, 'rgba(0, 0, 0, 0.78)');
+            grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            sCtx.fillStyle = grad;
+            sCtx.fillRect(0, 0, 128, 128);
+            const shadowTex = new THREE.CanvasTexture(shadowCanvas);
+
+            return { roadTex, curbTex, finishTex, shadowTex };
+        }
+
+        // 建立未來感流線型 3D 跑車模型
+        function createCyberCarMesh(primaryHex, accentHex, shadowTex) {
+            const carGroup = new THREE.Group();
+
+            const paintMat = new THREE.MeshStandardMaterial({
+                color: primaryHex,
+                roughness: 0.22,
+                metalness: 0.75
+            });
+            const darkCarbonMat = new THREE.MeshStandardMaterial({
+                color: 0x0f172a,
+                roughness: 0.45,
+                metalness: 0.5
+            });
+            const glassMat = new THREE.MeshStandardMaterial({
+                color: 0x020617,
+                roughness: 0.08,
+                metalness: 0.95
+            });
+            const neonStripMat = new THREE.MeshBasicMaterial({ color: accentHex });
+
+            // 1. 地面投影
+            const shadowMesh = new THREE.Mesh(
+                new THREE.PlaneGeometry(2.7, 4.9),
+                new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false })
+            );
+            shadowMesh.rotation.x = -Math.PI / 2;
+            shadowMesh.position.y = 0.03;
+            carGroup.add(shadowMesh);
+
+            // 2. 低重心流線型底盤與主車身
+            const chassis = new THREE.Mesh(new THREE.BoxGeometry(2.05, 0.52, 4.35), paintMat);
+            chassis.position.set(0, 0.52, 0);
+            carGroup.add(chassis);
+
+            // 前傾楔形車頭罩
+            const nose = new THREE.Mesh(new THREE.BoxGeometry(1.88, 0.34, 1.35), paintMat);
+            nose.position.set(0, 0.44, 1.85);
+            nose.rotation.x = 0.14;
+            carGroup.add(nose);
+
+            // 前下擾流板 (Front Splitter)
+            const splitter = new THREE.Mesh(new THREE.BoxGeometry(2.12, 0.1, 0.5), darkCarbonMat);
+            splitter.position.set(0, 0.24, 2.35);
+            carGroup.add(splitter);
+
+            // 流線駕駛艙玻璃座艙
+            const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.52, 0.46, 1.95), glassMat);
+            cabin.position.set(0, 0.94, -0.15);
+            carGroup.add(cabin);
+
+            // 車身兩側霓虹側裙光條
+            const sideGlowL = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.08, 3.4), neonStripMat);
+            sideGlowL.position.set(-1.04, 0.3, 0);
+            const sideGlowR = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.08, 3.4), neonStripMat);
+            sideGlowR.position.set(1.04, 0.3, 0);
+            carGroup.add(sideGlowL, sideGlowR);
+
+            // 3. 大型賽車尾翼 (Rear Spoiler)
+            const wingPostL = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.48, 0.28), darkCarbonMat);
+            wingPostL.position.set(-0.68, 0.98, -1.92);
+            const wingPostR = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.48, 0.28), darkCarbonMat);
+            wingPostR.position.set(0.68, 0.98, -1.92);
+            const wingBlade = new THREE.Mesh(new THREE.BoxGeometry(2.16, 0.09, 0.42), paintMat);
+            wingBlade.position.set(0, 1.24, -1.98);
+            wingBlade.rotation.x = -0.12;
+            const wingEdge = new THREE.Mesh(new THREE.BoxGeometry(2.18, 0.04, 0.06), neonStripMat);
+            wingEdge.position.set(0, 1.25, -2.18);
+            carGroup.add(wingPostL, wingPostR, wingBlade, wingEdge);
+
+            // 4. 發光 LED 頭燈與紅色煞車尾燈
+            const headLightMat = new THREE.MeshBasicMaterial({ color: 0xe0f2fe });
+            const hlLeft = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.11, 0.1), headLightMat);
+            hlLeft.position.set(-0.66, 0.48, 2.48);
+            const hlRight = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.11, 0.1), headLightMat);
+            hlRight.position.set(0.66, 0.48, 2.48);
+            carGroup.add(hlLeft, hlRight);
+
+            const tailLightMat = new THREE.MeshBasicMaterial({ color: 0xff1e42 });
+            const tailBar = new THREE.Mesh(new THREE.BoxGeometry(1.78, 0.12, 0.1), tailLightMat);
+            tailBar.position.set(0, 0.64, -2.18);
+            carGroup.add(tailBar);
+
+            // 5. 雙出排氣管與藍色氮氣噴射火焰
+            const flameGroup = new THREE.Group();
+            const flameMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, transparent: true, opacity: 0.9 });
+            const flameCoreMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+            [-0.48, 0.48].forEach(ex => {
+                const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.12, 0.25, 10), darkCarbonMat);
+                pipe.rotation.x = Math.PI / 2;
+                pipe.position.set(ex, 0.34, -2.22);
+                carGroup.add(pipe);
+
+                const outerFlame = new THREE.Mesh(new THREE.ConeGeometry(0.16, 1.35, 10), flameMat);
+                outerFlame.rotation.x = -Math.PI / 2;
+                outerFlame.position.set(ex, 0.34, -2.92);
+
+                const innerFlame = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.85, 8), flameCoreMat);
+                innerFlame.rotation.x = -Math.PI / 2;
+                innerFlame.position.set(ex, 0.34, -2.68);
+
+                flameGroup.add(outerFlame, innerFlame);
+            });
+            flameGroup.visible = false;
+            carGroup.add(flameGroup);
+
+            // 6. 四顆可旋轉與轉向的寬胎輪組
+            const wheels = [];
+            const frontSteerPivots = [];
+            const tireMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.75 });
+            const rimMat = new THREE.MeshBasicMaterial({ color: accentHex });
+
+            const wheelPositions = [
+                { x: -1.06, y: 0.4, z: 1.38, isFront: true },
+                { x: 1.06, y: 0.4, z: 1.38, isFront: true },
+                { x: -1.08, y: 0.42, z: -1.38, isFront: false },
+                { x: 1.08, y: 0.42, z: -1.38, isFront: false }
+            ];
+
+            wheelPositions.forEach(wp => {
+                const pivot = new THREE.Group();
+                pivot.position.set(wp.x, wp.y, wp.z);
+
+                const wheelMesh = new THREE.Group();
+                const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.34, 16), tireMat);
+                tire.rotation.z = Math.PI / 2;
+                const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.36, 12), rimMat);
+                rim.rotation.z = Math.PI / 2;
+                wheelMesh.add(tire, rim);
+
+                pivot.add(wheelMesh);
+                carGroup.add(pivot);
+                wheels.push(wheelMesh);
+                if (wp.isFront) frontSteerPivots.push(pivot);
+            });
+
+            return { group: carGroup, wheels, frontSteerPivots, flameGroup, tailLightMat };
+        }
+
+        // ============================================================================
+        // 3. 封閉式賽博賽道生成、路緣石、霓虹城市與道具
+        // ============================================================================
+        function buildCyberTrackAndCity(textures) {
+            // 精心設計的封閉賽道控制點（包含長直線加速段、高速彎、髮夾彎、連續 S 彎）
+            const controlPoints = [
+                new THREE.Vector3(0, 0, 0),          // 0: 起終點大直線起點
+                new THREE.Vector3(0, 0, 140),        // 1: 大直線末端高速衝刺
+                new THREE.Vector3(45, 0, 225),       // 2: 1號右彎入彎
+                new THREE.Vector3(145, 0, 240),      // 3: 東南側高速彎
+                new THREE.Vector3(210, 0, 165),      // 4: 髮夾彎頂點
+                new THREE.Vector3(155, 0, 95),       // 5: 髮夾彎出彎
+                new THREE.Vector3(195, 0, 15),       // 6: S型彎道第一彎
+                new THREE.Vector3(120, 0, -65),      // 7: S型彎道第二彎
+                new THREE.Vector3(175, 0, -155),     // 8: 北側長弧線
+                new THREE.Vector3(85, 0, -225),      // 9: 北側髮夾彎
+                new THREE.Vector3(-25, 0, -185),     // 10: 西北高速回彎
+                new THREE.Vector3(-35, 0, -90)       // 11: 最後彎道接回起終點直線
+            ];
+
+            trackCurve = new THREE.CatmullRomCurve3(controlPoints, true, 'catmullrom', 0.5);
+
+            // 預先取樣賽道中心點、切線與法線
+            trackSamples = [];
+            for (let i = 0; i < SAMPLE_COUNT; i++) {
+                const t = i / SAMPLE_COUNT;
+                const pt = trackCurve.getPointAt(t);
+                const tangent = trackCurve.getTangentAt(t).normalize();
+                const normal = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
+                trackSamples.push({ t, point: pt, tangent, normal });
+            }
+
+            // 建立賽道路面、紅白路緣石與發光護欄網格
+            const roadPositions = [];
+            const roadUVs = [];
+            const roadIndices = [];
+
+            const curbPositions = [];
+            const curbUVs = [];
+            const curbIndices = [];
+
+            const railPositions = [];
+            const railIndices = [];
+
+            const curbWidth = 1.35;
+            const railOffset = TRACK_HALF_W + curbWidth;
+            const railHeight = 1.05;
+
+            for (let i = 0; i <= SAMPLE_COUNT; i++) {
+                const idx = i % SAMPLE_COUNT;
+                const s = trackSamples[idx];
+                const vCoord = (i / SAMPLE_COUNT) * 65;
+
+                // 路面左右頂點
+                const leftRoad = s.point.clone().addScaledVector(s.normal, -TRACK_HALF_W);
+                const rightRoad = s.point.clone().addScaledVector(s.normal, TRACK_HALF_W);
+                roadPositions.push(leftRoad.x, 0.02, leftRoad.z, rightRoad.x, 0.02, rightRoad.z);
+                roadUVs.push(0, vCoord, 1, vCoord);
+
+                // 左右紅白路緣石頂點
+                const leftCurbOut = s.point.clone().addScaledVector(s.normal, -railOffset);
+                const rightCurbOut = s.point.clone().addScaledVector(s.normal, railOffset);
+                curbPositions.push(
+                    leftCurbOut.x, 0.04, leftCurbOut.z,
+                    leftRoad.x, 0.04, leftRoad.z,
+                    rightRoad.x, 0.04, rightRoad.z,
+                    rightCurbOut.x, 0.04, rightCurbOut.z
+                );
+                const curbV = (i / SAMPLE_COUNT) * 140;
+                curbUVs.push(0, curbV, 1, curbV, 0, curbV, 1, curbV);
+
+                // 左右護欄頂點
+                railPositions.push(
+                    leftCurbOut.x, 0, leftCurbOut.z,
+                    leftCurbOut.x, railHeight, leftCurbOut.z,
+                    rightCurbOut.x, 0, rightCurbOut.z,
+                    rightCurbOut.x, railHeight, rightCurbOut.z
+                );
+
+                if (i < SAMPLE_COUNT) {
+                    const rBase = i * 2;
+                    roadIndices.push(rBase, rBase + 1, rBase + 2, rBase + 1, rBase + 3, rBase + 2);
+
+                    const cBase = i * 4;
+                    curbIndices.push(cBase, cBase + 1, cBase + 4, cBase + 1, cBase + 5, cBase + 4);
+                    curbIndices.push(cBase + 2, cBase + 3, cBase + 6, cBase + 3, cBase + 7, cBase + 6);
+
+                    railIndices.push(cBase, cBase + 4, cBase + 1, cBase + 1, cBase + 4, cBase + 5);
+                    railIndices.push(cBase + 2, cBase + 3, cBase + 6, cBase + 3, cBase + 7, cBase + 6);
+                }
+            }
+
+            const roadGeo = new THREE.BufferGeometry();
+            roadGeo.setAttribute('position', new THREE.Float32BufferAttribute(roadPositions, 3));
+            roadGeo.setAttribute('uv', new THREE.Float32BufferAttribute(roadUVs, 2));
+            roadGeo.setIndex(roadIndices);
+            roadGeo.computeVertexNormals();
+            scene.add(new THREE.Mesh(roadGeo, new THREE.MeshStandardMaterial({ map: textures.roadTex, roughness: 0.65 })));
+
+            const curbGeo = new THREE.BufferGeometry();
+            curbGeo.setAttribute('position', new THREE.Float32BufferAttribute(curbPositions, 3));
+            curbGeo.setAttribute('uv', new THREE.Float32BufferAttribute(curbUVs, 2));
+            curbGeo.setIndex(curbIndices);
+            curbGeo.computeVertexNormals();
+            scene.add(new THREE.Mesh(curbGeo, new THREE.MeshStandardMaterial({ map: textures.curbTex, roughness: 0.5 })));
+
+            const railGeo = new THREE.BufferGeometry();
+            railGeo.setAttribute('position', new THREE.Float32BufferAttribute(railPositions, 3));
+            railGeo.setIndex(railIndices);
+            railGeo.computeVertexNormals();
+            scene.add(new THREE.Mesh(railGeo, new THREE.MeshStandardMaterial({
+                color: 0x1e293b,
+                emissive: 0x0284c7,
+                emissiveIntensity: 0.35,
+                side: THREE.DoubleSide
+            })));
+
+            // 賽博城市深色地面與發光網格
+            const ground = new THREE.Mesh(
+                new THREE.PlaneGeometry(1400, 1400),
+                new THREE.MeshStandardMaterial({ color: 0x060812, roughness: 0.9 })
+            );
+            ground.rotation.x = -Math.PI / 2;
+            ground.position.y = -0.05;
+            scene.add(ground);
+
+            const gridHelper = new THREE.GridHelper(1200, 80, 0x00f3ff, 0x1e1b4b);
+            gridHelper.position.y = -0.02;
+            scene.add(gridHelper);
+
+            // 起終點線地面方格與發光拱門
+            const startS = trackSamples[0];
+            const startAngle = Math.atan2(startS.tangent.x, startS.tangent.z);
+            const finishLine = new THREE.Mesh(
+                new THREE.PlaneGeometry(TRACK_WIDTH, 3.6),
+                new THREE.MeshBasicMaterial({ map: textures.finishTex })
+            );
+            finishLine.rotation.x = -Math.PI / 2;
+            finishLine.rotation.z = startAngle;
+            finishLine.position.set(startS.point.x, 0.05, startS.point.z);
+            scene.add(finishLine);
+
+            buildArchGate(startS, 0x00f3ff, true);
+
+            // 中途檢查點發光拱門 (25%, 50%, 75%)
+            [0.25, 0.5, 0.75].forEach(pct => {
+                const idx = Math.floor(pct * SAMPLE_COUNT);
+                buildArchGate(trackSamples[idx], 0xd946ef, false);
+            });
+
+            // 賽道上的「加速帶 (Boost Pads)」與「氮氣補給膠囊」
+            const padTs = [0.08, 0.33, 0.58, 0.84];
+            padTs.forEach(tVal => {
+                const s = trackSamples[Math.floor(tVal * SAMPLE_COUNT)];
+                const padMesh = new THREE.Mesh(
+                    new THREE.PlaneGeometry(5.5, 9.0),
+                    new THREE.MeshBasicMaterial({ color: 0x00f3ff, transparent: true, opacity: 0.8, side: THREE.DoubleSide })
+                );
+                padMesh.rotation.x = -Math.PI / 2;
+                padMesh.rotation.z = Math.atan2(s.tangent.x, s.tangent.z);
+                padMesh.position.set(s.point.x, 0.06, s.point.z);
+                scene.add(padMesh);
+                boostPads.push({ position: s.point.clone(), mesh: padMesh });
+            });
+
+            const capTs = [0.16, 0.42, 0.67, 0.91];
+            capTs.forEach((tVal, i) => {
+                const s = trackSamples[Math.floor(tVal * SAMPLE_COUNT)];
+                const sideOffset = (i % 2 === 0 ? 4.2 : -4.2);
+                const pos = s.point.clone().addScaledVector(s.normal, sideOffset);
+                pos.y = 1.1;
+
+                const capMesh = new THREE.Mesh(
+                    new THREE.OctahedronGeometry(0.85, 0),
+                    new THREE.MeshBasicMaterial({ color: 0xf43f5e })
+                );
+                capMesh.position.copy(pos);
+                scene.add(capMesh);
+                nitroCapsules.push({ position: pos, mesh: capMesh, cooldown: 0 });
+            });
+
+            // 沿賽道兩側生成霓虹路燈與賽博朋克摩天大樓
+            buildCyberCityScenery();
+        }
+
+        function buildArchGate(sample, colorHex, isStart) {
+            const gateGroup = new THREE.Group();
+            const pillarMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.8, roughness: 0.2 });
+            const neonMat = new THREE.MeshBasicMaterial({ color: colorHex });
+
+            const leftPillar = new THREE.Mesh(new THREE.BoxGeometry(1.1, 8.5, 1.1), pillarMat);
+            leftPillar.position.set(-TRACK_HALF_W - 1.2, 4.25, 0);
+            const rightPillar = new THREE.Mesh(new THREE.BoxGeometry(1.1, 8.5, 1.1), pillarMat);
+            rightPillar.position.set(TRACK_HALF_W + 1.2, 4.25, 0);
+
+            const topBeam = new THREE.Mesh(new THREE.BoxGeometry(TRACK_WIDTH + 3.6, isStart ? 1.6 : 0.9, 1.2), pillarMat);
+            topBeam.position.set(0, 8.2, 0);
+
+            const neonStrip = new THREE.Mesh(new THREE.BoxGeometry(TRACK_WIDTH + 3.7, 0.25, 1.3), neonMat);
+            neonStrip.position.set(0, 7.6, 0);
+
+            gateGroup.add(leftPillar, rightPillar, topBeam, neonStrip);
+            gateGroup.position.copy(sample.point);
+            gateGroup.rotation.y = Math.atan2(sample.tangent.x, sample.tangent.z);
+            scene.add(gateGroup);
+        }
+
+        function buildCyberCityScenery() {
+            const buildingColors = [0x00f3ff, 0xd946ef, 0x3b82f6, 0xf43f5e, 0x10b981];
+            const darkBuildingMat = new THREE.MeshStandardMaterial({ color: 0x090d1a, roughness: 0.5, metalness: 0.6 });
+
+            // 沿賽道放置霓虹路燈
+            for (let i = 0; i < SAMPLE_COUNT; i += 24) {
+                const s = trackSamples[i];
+                const angle = Math.atan2(s.tangent.x, s.tangent.z);
+                [-1, 1].forEach(side => {
+                    const lampPos = s.point.clone().addScaledVector(s.normal, side * (TRACK_HALF_W + 2.2));
+                    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 6.5, 6), darkBuildingMat);
+                    pole.position.set(lampPos.x, 3.25, lampPos.z);
+
+                    const bulb = new THREE.Mesh(
+                        new THREE.BoxGeometry(1.2, 0.18, 0.35),
+                        new THREE.MeshBasicMaterial({ color: side === -1 ? 0x00f3ff : 0xd946ef })
+                    );
+                    bulb.position.set(lampPos.x - s.normal.x * side * 0.5, 6.45, lampPos.z - s.normal.z * side * 0.5);
+                    bulb.rotation.y = angle;
+                    scene.add(pole, bulb);
+                });
+            }
+
+            // 散布在賽道外圍的賽博朋克霓虹摩天大樓
+            for (let b = 0; b < 95; b++) {
+                const bx = (Math.random() - 0.5) * 680;
+                const bz = (Math.random() - 0.5) * 680;
+
+                // 確保大樓不會壓到賽道路面
+                let tooCloseToTrack = false;
+                for (let i = 0; i < SAMPLE_COUNT; i += 8) {
+                    const dist = Math.hypot(bx - trackSamples[i].point.x, bz - trackSamples[i].point.z);
+                    if (dist < TRACK_HALF_W + 16) {
+                        tooCloseToTrack = true;
+                        break;
+                    }
+                }
+                if (tooCloseToTrack) continue;
+
+                const bw = 14 + Math.random() * 22;
+                const bd = 14 + Math.random() * 22;
+                const bh = 35 + Math.random() * 110;
+                const neonHex = buildingColors[b % buildingColors.length];
+
+                const tower = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, bd), darkBuildingMat);
+                tower.position.set(bx, bh / 2, bz);
+                scene.add(tower);
+
+                // 大樓頂部與垂直霓虹光條
+                const roofTrim = new THREE.Mesh(
+                    new THREE.BoxGeometry(bw + 0.5, 0.8, bd + 0.5),
+                    new THREE.MeshBasicMaterial({ color: neonHex })
+                );
+                roofTrim.position.set(bx, bh - 1.5, bz);
+                scene.add(roofTrim);
+
+                const vertStrip = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.6, bh * 0.85, bd + 0.4),
+                    new THREE.MeshBasicMaterial({ color: neonHex })
+                );
+                vertStrip.position.set(bx, bh * 0.5, bz);
+                scene.add(vertStrip);
+            }
+        }
+
+        // ============================================================================
+        // 4. 賽車實體、粒子特效與賽道空間定位輔助
+        // ============================================================================
+        function getClosestTrackSample(pos, hintIndex = -1) {
+            let bestIdx = 0;
+            let minDistSq = Infinity;
+
+            if (hintIndex >= 0) {
+                // 局部快速搜尋
+                for (let offset = -35; offset <= 35; offset++) {
+                    const idx = (hintIndex + offset + SAMPLE_COUNT) % SAMPLE_COUNT;
+                    const dSq = pos.distanceToSquared(trackSamples[idx].point);
+                    if (dSq < minDistSq) {
+                        minDistSq = dSq;
+                        bestIdx = idx;
+                    }
+                }
+            }
+            if (minDistSq > 900) {
+                for (let i = 0; i < SAMPLE_COUNT; i++) {
+                    const dSq = pos.distanceToSquared(trackSamples[i].point);
+                    if (dSq < minDistSq) {
+                        minDistSq = dSq;
+                        bestIdx = i;
+                    }
+                }
+            }
+            return { index: bestIdx, sample: trackSamples[bestIdx], dist: Math.sqrt(minDistSq) };
+        }
+
+        function spawnDriftParticle(pos, isNitro = false) {
+            if (particles.length > 90) return;
+            const mat = new THREE.MeshBasicMaterial({
+                color: isNitro ? 0x00f3ff : 0xe2e8f0,
+                transparent: true,
+                opacity: isNitro ? 0.8 : 0.45
+            });
+            const mesh = new THREE.Mesh(new THREE.SphereGeometry(isNitro ? 0.22 : 0.28, 6, 6), mat);
+            mesh.position.copy(pos);
+            mesh.position.y += 0.25;
+            scene.add(mesh);
+
+            particles.push({
+                mesh,
+                vel: new THREE.Vector3((Math.random() - 0.5) * 2.5, 1.2 + Math.random() * 1.5, (Math.random() - 0.5) * 2.5),
+                life: 0.45
+            });
+        }
+
+        function spawnSkidMark(car) {
+            if (skidMarks.length > 160) {
+                const oldest = skidMarks.shift();
+                scene.remove(oldest);
+            }
+            const skidMat = new THREE.MeshBasicMaterial({ color: 0x02040a, transparent: true, opacity: 0.65 });
+            [-0.95, 0.95].forEach(offsetX => {
+                const mark = new THREE.Mesh(new THREE.PlaneGeometry(0.32, 0.95), skidMat);
+                const worldOffset = new THREE.Vector3(offsetX, 0.04, -1.35).applyAxisAngle(new THREE.Vector3(0, 1, 0), car.heading);
+                mark.position.copy(car.position).add(worldOffset);
+                mark.rotation.x = -Math.PI / 2;
+                mark.rotation.z = car.heading;
+                scene.add(mark);
+                skidMarks.push(mark);
+            });
+        }
+
+        function updateParticles(dt) {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.life -= dt;
+                if (p.life <= 0) {
+                    scene.remove(p.mesh);
+                    particles.splice(i, 1);
+                } else {
+                    p.mesh.position.addScaledVector(p.vel, dt);
+                    p.mesh.scale.addScalar(dt * 2.8);
+                    p.mesh.material.opacity = p.life * 1.1;
+                }
+            }
+        }
+
+        // 建立玩家與 3 輛 AI 對手賽車
+        function initCars(shadowTex) {
+            // 清除舊賽車
+            allCars.forEach(c => scene.remove(c.mesh));
+            allCars = [];
+
+            const pColor = CAR_COLORS[selectedColorKey];
+            const lineup = [
+                { name: '你 (PLAYER)', isPlayer: true, hex: pColor.hex, accent: pColor.accent, laneOffset: -3.5, startIdx: SAMPLE_COUNT - 8 },
+                { name: 'VEX-01 幻影', isPlayer: false, hex: 0x3b82f6, accent: 0x93c5fd, laneOffset: 3.5, startIdx: SAMPLE_COUNT - 8, speedMult: 1.02 },
+                { name: 'KIRA-9 魅影', isPlayer: false, hex: 0xd946ef, accent: 0xf0abfc, laneOffset: -3.5, startIdx: SAMPLE_COUNT - 14, speedMult: 0.98 },
+                { name: 'NOVA-X 雷霆', isPlayer: false, hex: 0x10b981, accent: 0x6ee7b7, laneOffset: 3.5, startIdx: SAMPLE_COUNT - 14, speedMult: 0.95 }
+            ];
+
+            lineup.forEach((cfg, idx) => {
+                const rig = createCyberCarMesh(cfg.hex, cfg.accent, shadowTex);
+                const s = trackSamples[cfg.startIdx];
+                const startPos = s.point.clone().addScaledVector(s.normal, cfg.laneOffset);
+                const startHeading = Math.atan2(s.tangent.x, s.tangent.z);
+
+                rig.group.position.copy(startPos);
+                rig.group.rotation.y = startHeading;
+                scene.add(rig.group);
+
+                const carObj = {
+                    id: idx,
+                    name: cfg.name,
+                    isPlayer: cfg.isPlayer,
+                    colorHex: '#' + cfg.hex.toString(16).padStart(6, '0'),
+                    mesh: rig.group,
+                    wheels: rig.wheels,
+                    frontSteerPivots: rig.frontSteerPivots,
+                    flameGroup: rig.flameGroup,
+                    tailLightMat: rig.tailLightMat,
+                    position: startPos,
+                    heading: startHeading,
+                    velocity: new THREE.Vector3(),
+                    speed: 0,
+                    steerAngle: 0,
+                    isDrifting: false,
+                    driftDir: 0,
+                    nitro: 55,
+                    isNitroActive: false,
+                    padBoostTimer: 0,
+                    sampleIdx: cfg.startIdx,
+                    lap: 1,
+                    maxProgressIdx: 0,
+                    passedHalfway: false,
+                    totalProgress: (cfg.startIdx - SAMPLE_COUNT) / SAMPLE_COUNT,
+                    finished: false,
+                    finishTime: 0,
+                    aiLaneOffset: cfg.laneOffset,
+                    aiSpeedMult: cfg.speedMult || 1.0
+                };
+
+                allCars.push(carObj);
+                if (cfg.isPlayer) playerCar = carObj;
+            });
+        }
+
+        // ============================================================================
+        // 5. 賽車物理、甩尾集氣、氮氣加速與 AI 對手邏輯
+        // ============================================================================
+        function updatePlayerPhysics(dt) {
+            const car = playerCar;
+            if (!car) return;
+
+            // 若玩家已完賽，交由自動巡航接管
+            if (car.finished) {
+                updateAICar(car, dt);
+                return;
+            }
+
+            if (car.padBoostTimer > 0) car.padBoostTimer -= dt;
+
+            // 1. 氮氣啟動判斷
+            const wantsNitro = input.nitro && car.nitro > 1.5 && car.speed > 8;
+            if (wantsNitro) {
+                car.isNitroActive = true;
+                car.nitro = Math.max(0, car.nitro - 26 * dt);
+            } else {
+                car.isNitroActive = false;
+                car.nitro = Math.min(100, car.nitro + 3.2 * dt); // 隨時間緩慢自然回充
+            }
+
+            const hasBoost = car.isNitroActive || car.padBoostTimer > 0;
+            const maxSpeed = hasBoost ? 78.0 : 56.0;
+            const accelForce = hasBoost ? 58.0 : 34.0;
+
+            // 2. 油門與煞車/倒車
+            if (input.forward) {
+                car.speed += accelForce * dt;
+            } else if (input.backward) {
+                if (car.speed > 2) {
+                    car.speed -= 52.0 * dt; // 強力煞車
+                } else {
+                    car.speed -= 22.0 * dt; // 倒車
+                }
+            } else {
+                // 自然滾動阻力
+                car.speed *= Math.pow(0.45, dt);
+                if (Math.abs(car.speed) < 0.2) car.speed = 0;
+            }
+
+            car.speed = Math.max(-20, Math.min(maxSpeed, car.speed));
+
+            // 3. 轉向與甩尾 (Drift) 手感
+            let steerInput = 0;
+            if (input.left) steerInput += 1;
+            if (input.right) steerInput -= 1;
+
+            const speedFactor = Math.min(1, Math.abs(car.speed) / 14);
+            const reverseSign = car.speed >= -0.1 ? 1 : -1;
+
+            if (input.drift && Math.abs(car.speed) > 22 && Math.abs(steerInput) > 0.1) {
+                car.isDrifting = true;
+                car.driftDir = steerInput;
+                // 甩尾時轉向角更大，且自動累積氮氣槽
+                car.nitro = Math.min(100, car.nitro + 19.5 * dt);
+                car.heading += steerInput * 2.35 * speedFactor * dt;
+                // 甩尾微微減速但保持高出彎動能
+                car.speed *= Math.pow(0.88, dt);
+
+                // 產生後輪煙霧與地面胎痕
+                const rearPos = car.position.clone().add(
+                    new THREE.Vector3((Math.random() - 0.5) * 1.6, 0, -1.6).applyAxisAngle(new THREE.Vector3(0, 1, 0), car.heading)
+                );
+                spawnDriftParticle(rearPos, false);
+                spawnSkidMark(car);
+            } else {
+                car.isDrifting = false;
+                car.driftDir = 0;
+                car.heading += steerInput * 1.75 * speedFactor * reverseSign * dt;
+            }
+
+            // 4. 計算速度向量與側向抓地力（甩尾時保留側滑慣性）
+            const forwardDir = new THREE.Vector3(Math.sin(car.heading), 0, Math.cos(car.heading));
+            const targetVel = forwardDir.clone().multiplyScalar(car.speed);
+            const grip = car.isDrifting ? 3.2 : 8.5;
+            car.velocity.lerp(targetVel, Math.min(1, grip * dt));
+            car.position.addScaledVector(car.velocity, dt);
+
+            // 5. 賽道護欄碰撞檢測與彈性導正
+            enforceTrackBounds(car, true);
+
+            // 6. 更新車體視覺與動態特效
+            const visualBodyRoll = car.isDrifting ? -car.driftDir * 0.22 : -steerInput * 0.06;
+            car.mesh.position.copy(car.position);
+            car.mesh.rotation.y = car.heading + visualBodyRoll;
+            car.mesh.rotation.z = -steerInput * 0.045;
+
+            car.flameGroup.visible = hasBoost;
+            if (hasBoost) {
+                car.flameGroup.scale.z = 0.85 + Math.random() * 0.55;
+            }
+            car.tailLightMat.color.setHex(input.backward ? 0xffffff : 0xff1e42);
+
+            // 前輪轉向與四輪滾動動畫
+            car.frontSteerPivots.forEach(p => { p.rotation.y = steerInput * 0.42; });
+            car.wheels.forEach(w => { w.rotation.x += car.speed * dt * 2.2; });
+        }
+
+        function updateAICar(car, dt) {
+            const diffCfg = DIFFICULTY_SETTINGS[selectedDiffKey];
+            if (car.padBoostTimer > 0) car.padBoostTimer -= dt;
+
+            // 預瞄前方 16 個取樣點
+            const lookAheadIdx = (car.sampleIdx + 16) % SAMPLE_COUNT;
+            const targetSample = trackSamples[lookAheadIdx];
+
+            // 動態超車變換車道
+            const waveOffset = Math.sin(raceTotalTime * 0.8 + car.id * 2.1) * 3.8;
+            const desiredLane = Math.max(-TRACK_HALF_W + 2.5, Math.min(TRACK_HALF_W - 2.5, car.aiLaneOffset + waveOffset));
+            const targetPoint = targetSample.point.clone().addScaledVector(targetSample.normal, desiredLane);
+
+            const toTarget = targetPoint.sub(car.position);
+            const desiredHeading = Math.atan2(toTarget.x, toTarget.z);
+            let angleDiff = desiredHeading - car.heading;
+            while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+            while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+
+            car.heading += Math.max(-2.4 * dt, Math.min(2.4 * dt, angleDiff * 4.5 * dt));
+
+            // 根據彎道急緩自動調整過彎車速 + 橡皮筋追趕機制
+            const turnSharpness = Math.min(1, Math.abs(angleDiff) / 0.85);
+            let targetSpeed = diffCfg.aiBaseSpeed * car.aiSpeedMult * (1 - turnSharpness * (1 - diffCfg.aiCornerFactor));
+
+            if (!car.isPlayer && playerCar) {
+                const progressGap = playerCar.totalProgress - car.totalProgress;
+                targetSpeed += progressGap * 45 * diffCfg.aiRubberBand;
+            }
+            if (car.padBoostTimer > 0) targetSpeed = 74;
+
+            car.speed += (targetSpeed - car.speed) * Math.min(1, 3.2 * dt);
+            const forwardDir = new THREE.Vector3(Math.sin(car.heading), 0, Math.cos(car.heading));
+            car.velocity.copy(forwardDir).multiplyScalar(car.speed);
+            car.position.addScaledVector(car.velocity, dt);
+
+            enforceTrackBounds(car, false);
+
+            car.mesh.position.copy(car.position);
+            car.mesh.rotation.y = car.heading;
+            car.flameGroup.visible = car.padBoostTimer > 0;
+            car.wheels.forEach(w => { w.rotation.x += car.speed * dt * 2.2; });
+        }
+
+        function enforceTrackBounds(car, isPlayer) {
+            const closest = getClosestTrackSample(car.position, car.sampleIdx);
+            car.sampleIdx = closest.index;
+
+            const offsetVec = car.position.clone().sub(closest.sample.point);
+            const lateralDist = offsetVec.dot(closest.sample.normal);
+            const maxLateral = TRACK_HALF_W - 0.85;
+
+            if (Math.abs(lateralDist) > maxLateral) {
+                const sign = Math.sign(lateralDist);
+                car.position.copy(closest.sample.point).addScaledVector(closest.sample.normal, sign * maxLateral);
+                car.speed *= 0.86;
+
+                // 輕微導正車頭避免卡死在護欄上
+                const trackYaw = Math.atan2(closest.sample.tangent.x, closest.sample.tangent.z);
+                let diff = trackYaw - car.heading;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                car.heading += diff * 0.25;
+
+                if (isPlayer && Math.abs(car.speed) > 15) {
+                    SoundFX.playCrash();
+                }
+            }
+
+            // 檢查加速帶 (Boost Pads)
+            for (const pad of boostPads) {
+                if (car.position.distanceTo(pad.position) < 4.5 && car.padBoostTimer <= 0.1) {
+                    car.padBoostTimer = 1.6;
+                    car.speed = Math.max(car.speed, 72);
+                    if (isPlayer) SoundFX.playBoostPickup(true);
+                }
+            }
+
+            // 檢查氮氣補給膠囊
+            if (isPlayer) {
+                for (const cap of nitroCapsules) {
+                    if (cap.cooldown <= 0 && car.position.distanceTo(cap.position) < 3.0) {
+                        cap.cooldown = 8.0;
+                        cap.mesh.visible = false;
+                        car.nitro = Math.min(100, car.nitro + 40);
+                        SoundFX.playBoostPickup(false);
+                    }
+                }
+            }
+
+            // 圈數與進度計算
+            const normIdx = closest.index / SAMPLE_COUNT;
+            if (normIdx > 0.42 && normIdx < 0.62) {
+                car.passedHalfway = true;
+            }
+            if (car.passedHalfway && normIdx < 0.12) {
+                car.passedHalfway = false;
+                car.lap++;
+
+                if (isPlayer) {
+                    const lapDuration = raceTotalTime - currentLapStartTime;
+                    if (lapDuration < bestLapTime) bestLapTime = lapDuration;
+                    currentLapStartTime = raceTotalTime;
+                    SoundFX.playBoostPickup(false);
+
+                    if (car.lap > TOTAL_LAPS && !car.finished) {
+                        car.finished = true;
+                        car.finishTime = raceTotalTime;
+                        triggerFinishScreen();
+                    }
+                } else if (car.lap > TOTAL_LAPS && !car.finished) {
+                    car.finished = true;
+                    car.finishTime = raceTotalTime;
+                }
+            }
+
+            // 計算總進度用於即時排名
+            let effectiveProgress = (car.lap - 1) + normIdx;
+            if (!car.passedHalfway && normIdx > 0.85 && car.lap === 1) {
+                effectiveProgress = normIdx - 1;
+            }
+            car.totalProgress = effectiveProgress;
+        }
+
+        // 車輛之間碰撞推開處理
+        function resolveCarToCarCollisions() {
+            const minSep = 2.45;
+            for (let i = 0; i < allCars.length; i++) {
+                for (let j = i + 1; j < allCars.length; j++) {
+                    const a = allCars[i];
+                    const b = allCars[j];
+                    const dx = a.position.x - b.position.x;
+                    const dz = a.position.z - b.position.z;
+                    const dist = Math.hypot(dx, dz);
+                    if (dist > 0.001 && dist < minSep) {
+                        const overlap = (minSep - dist) * 0.5;
+                        const nx = dx / dist;
+                        const nz = dz / dist;
+                        a.position.x += nx * overlap;
+                        a.position.z += nz * overlap;
+                        b.position.x -= nx * overlap;
+                        b.position.z -= nz * overlap;
+
+                        if (a.isPlayer || b.isPlayer) {
+                            SoundFX.playCrash();
+                        }
+                    }
+                }
+            }
+        }
+
+        // 鍵盤 R 鍵：將賽車快速復位回賽道中心
+        function resetPlayerToTrack() {
+            if (!playerCar || gameState !== 'racing') return;
+            const s = trackSamples[playerCar.sampleIdx];
+            playerCar.position.copy(s.point);
+            playerCar.heading = Math.atan2(s.tangent.x, s.tangent.z);
+            playerCar.speed = 15;
+            playerCar.velocity.set(0, 0, 0);
+            SoundFX.playBoostPickup(false);
+        }
+
+        // ============================================================================
+        // 6. 動態追尾/車頂視角攝影機與即時小地圖雷達
+        // ============================================================================
+        function updateCamera(dt) {
+            if (!playerCar) return;
+            const car = playerCar;
+            const hasBoost = car.isNitroActive || car.padBoostTimer > 0;
+
+            // 動態視角廣角 (FOV) 隨速度與氮氣擴張
+            const targetFov = 68 + (Math.max(0, car.speed) / 78) * 16 + (hasBoost ? 10 : 0);
+            camera.fov += (targetFov - camera.fov) * Math.min(1, 6 * dt);
+            camera.updateProjectionMatrix();
+
+            const nitroOverlay = document.getElementById('nitro-overlay');
+            nitroOverlay.style.opacity = hasBoost ? '1' : '0';
+
+            if (cameraMode === 0) {
+                // 第三人稱追尾視角 (帶彈性延遲與微震動)
+                const distBack = hasBoost ? 6.8 : 6.2;
+                const heightUp = 2.65;
+                const desiredPos = new THREE.Vector3(
+                    car.position.x - Math.sin(car.heading) * distBack,
+                    car.position.y + heightUp,
+                    car.position.z - Math.cos(car.heading) * distBack
+                );
+                if (hasBoost) {
+                    desiredPos.x += (Math.random() - 0.5) * 0.14;
+                    desiredPos.y += (Math.random() - 0.5) * 0.12;
+                }
+                camera.position.lerp(desiredPos, Math.min(1, 11 * dt));
+
+                const lookAtTarget = new THREE.Vector3(
+                    car.position.x + Math.sin(car.heading) * 8,
+                    car.position.y + 1.1,
+                    car.position.z + Math.cos(car.heading) * 8
+                );
+                camera.lookAt(lookAtTarget);
+            } else {
+                // 第一人稱引擎蓋/車頂視角
+                camera.position.set(
+                    car.position.x + Math.sin(car.heading) * 0.55,
+                    car.position.y + 1.38,
+                    car.position.z + Math.cos(car.heading) * 0.55
+                );
+                const lookAtTarget = new THREE.Vector3(
+                    car.position.x + Math.sin(car.heading) * 18,
+                    car.position.y + 1.25,
+                    car.position.z + Math.cos(car.heading) * 18
+                );
+                camera.lookAt(lookAtTarget);
+            }
+        }
+
+        function drawMinimap() {
+            const canvas = document.getElementById('minimap-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // 座標轉換：賽道範圍大約 X:[-60, 230], Z:[-240, 250]
+            const mapX = (wx) => ((wx + 90) / 360) * (w - 24) + 12;
+            const mapY = (wz) => ((wz + 260) / 530) * (h - 24) + 12;
+
+            // 繪製賽道輪廓
+            ctx.strokeStyle = 'rgba(0, 243, 255, 0.45)';
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            for (let i = 0; i < SAMPLE_COUNT; i += 6) {
+                const pt = trackSamples[i].point;
+                if (i === 0) ctx.moveTo(mapX(pt.x), mapY(pt.z));
+                else ctx.lineTo(mapX(pt.x), mapY(pt.z));
+            }
+            ctx.closePath();
+            ctx.stroke();
+
+            // 起終點線白點
+            const s0 = trackSamples[0].point;
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(mapX(s0.x) - 4, mapY(s0.z) - 2, 8, 4);
+
+            // 繪製所有賽車位置點
+            allCars.forEach(c => {
+                ctx.fillStyle = c.isPlayer ? '#facc15' : c.colorHex;
+                ctx.beginPath();
+                ctx.arc(mapX(c.position.x), mapY(c.position.z), c.isPlayer ? 4.5 : 3.2, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        // ============================================================================
+        // 7. 遊戲流程：起跑倒數、HUD 更新與結算畫面
+        // ============================================================================
+        function formatRaceTime(sec) {
+            if (!isFinite(sec) || sec < 0) return '--:--.--';
+            const mins = Math.floor(sec / 60).toString().padStart(2, '0');
+            const secs = Math.floor(sec % 60).toString().padStart(2, '0');
+            const ms = Math.floor((sec % 1) * 100).toString().padStart(2, '0');
+            return `${mins}:${secs}.${ms}`;
+        }
+
+        function startCountdownSequence() {
+            gameState = 'countdown';
+            document.getElementById('start-modal').classList.add('hidden');
+            document.getElementById('finish-modal').classList.add('hidden');
+            document.getElementById('hud').classList.remove('hidden');
+            if (isTouchDevice) document.getElementById('mobile-controls').classList.remove('hidden');
+
+            const overlay = document.getElementById('countdown-overlay');
+            const textEl = document.getElementById('countdown-text');
+            const l1 = document.getElementById('light-1');
+            const l2 = document.getElementById('light-2');
+            const l3 = document.getElementById('light-3');
+
+            [l1, l2, l3].forEach(l => l.className = 'w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-slate-800 border-2 border-slate-600');
+            overlay.classList.remove('hidden');
+
+            const steps = [
+                { num: '3', light: l1, freq: 440, color: 'bg-rose-500 border-rose-200 shadow-[0_0_25px_#f43f5e]' },
+                { num: '2', light: l2, freq: 440, color: 'bg-amber-400 border-amber-100 shadow-[0_0_25px_#fbbf24]' },
+                { num: '1', light: l3, freq: 440, color: 'bg-amber-400 border-amber-100 shadow-[0_0_25px_#fbbf24]' }
+            ];
+
+            steps.forEach((st, idx) => {
+                setTimeout(() => {
+                    st.light.className = `w-8 h-8 sm:w-11 sm:h-11 rounded-full ${st.color}`;
+                    textEl.textContent = st.num;
+                    textEl.classList.remove('countdown-pop');
+                    void textEl.offsetWidth;
+                    textEl.classList.add('countdown-pop');
+                    SoundFX.playBeep(st.freq, 0.18);
+                }, idx * 900);
+            });
+
+            setTimeout(() => {
+                [l1, l2, l3].forEach(l => l.className = 'w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-emerald-400 border-emerald-100 shadow-[0_0_30px_#10b981]');
+                textEl.textContent = 'GO!';
+                textEl.classList.remove('countdown-pop');
+                void textEl.offsetWidth;
+                textEl.classList.add('countdown-pop');
+                SoundFX.playBeep(880, 0.35);
+
+                gameState = 'racing';
+                raceTotalTime = 0;
+                currentLapStartTime = 0;
+                bestLapTime = Infinity;
+
+                setTimeout(() => overlay.classList.add('hidden'), 650);
+            }, 2700);
+        }
+
+        function updateHUD() {
+            if (!playerCar) return;
+
+            // 即時計算所有賽車排名
+            const sorted = [...allCars].sort((a, b) => {
+                if (a.finished && b.finished) return a.finishTime - b.finishTime;
+                if (a.finished) return -1;
+                if (b.finished) return 1;
+                return b.totalProgress - a.totalProgress;
+            });
+            const playerRank = sorted.findIndex(c => c.isPlayer) + 1;
+
+            document.getElementById('hud-rank').textContent = playerRank;
+            document.getElementById('hud-lap').textContent = Math.min(TOTAL_LAPS, playerCar.lap);
+
+            const totalStr = formatRaceTime(raceTotalTime);
+            document.getElementById('hud-total-time').textContent = totalStr;
+            document.getElementById('hud-mob-time').textContent = totalStr;
+            document.getElementById('hud-lap-time').textContent = formatRaceTime(raceTotalTime - currentLapStartTime);
+            document.getElementById('hud-best-time').textContent = formatRaceTime(bestLapTime);
+
+            // 時速換算 (最高約 315 KM/H)
+            const kmh = Math.round(Math.abs(playerCar.speed) * 4.05);
+            document.getElementById('hud-speed').textContent = kmh;
+
+            // 檔位顯示
+            let gear = 'N';
+            if (playerCar.speed < -1) gear = 'R';
+            else if (kmh > 250) gear = '6';
+            else if (kmh > 195) gear = '5';
+            else if (kmh > 145) gear = '4';
+            else if (kmh > 95) gear = '3';
+            else if (kmh > 45) gear = '2';
+            else if (kmh > 2) gear = '1';
+            document.getElementById('hud-gear').textContent = gear;
+
+            // 氮氣能量條
+            const nitroPct = Math.round(playerCar.nitro);
+            document.getElementById('hud-nitro-text').textContent = `${nitroPct}%`;
+            document.getElementById('hud-nitro-bar').style.width = `${nitroPct}%`;
+
+            const driftBadge = document.getElementById('drift-badge');
+            if (playerCar.isDrifting) driftBadge.classList.remove('hidden');
+            else driftBadge.classList.add('hidden');
+
+            // 逆向行駛偵測警告
+            const s = trackSamples[playerCar.sampleIdx];
+            const carDir = new THREE.Vector3(Math.sin(playerCar.heading), 0, Math.cos(playerCar.heading));
+            const banner = document.getElementById('hud-banner');
+            if (carDir.dot(s.tangent) < -0.35 && playerCar.speed > 8) {
+                banner.classList.remove('hidden');
+            } else {
+                banner.classList.add('hidden');
+            }
+
+            drawMinimap();
+        }
+
+        function triggerFinishScreen() {
+            gameState = 'finished';
+            document.getElementById('hud').classList.add('hidden');
+            document.getElementById('mobile-controls').classList.add('hidden');
+            document.getElementById('nitro-overlay').style.opacity = '0';
+
+            const sorted = [...allCars].sort((a, b) => {
+                if (a.finished && b.finished) return a.finishTime - b.finishTime;
+                if (a.finished) return -1;
+                if (b.finished) return 1;
+                return b.totalProgress - a.totalProgress;
+            });
+            const rank = sorted.findIndex(c => c.isPlayer) + 1;
+
+            const rankTitles = ['冠軍！第 1 名', '亞軍！第 2 名', '季軍！第 3 名', '完賽！第 4 名'];
+            document.getElementById('finish-rank-title').textContent = rankTitles[rank - 1] || `第 ${rank} 名`;
+            document.getElementById('res-rank').textContent = `${rank} / 4`;
+            document.getElementById('res-total-time').textContent = formatRaceTime(playerCar.finishTime);
+            document.getElementById('res-best-lap').textContent = formatRaceTime(bestLapTime);
+
+            const standingsEl = document.getElementById('res-standings');
+            standingsEl.innerHTML = sorted.map((c, idx) => {
+                const tText = c.finished ? formatRaceTime(c.finishTime) : '行駛中...';
+                return `<div class="flex justify-between items-center px-3 py-1.5 rounded-lg ${c.isPlayer ? 'bg-cyan-950/80 border border-cyan-400/50' : 'bg-white/5'}">
+                    <span class="font-bold" style="color:${c.colorHex}">#${idx + 1} ${c.name}</span>
+                    <span class="racing-font text-slate-200">${tText}</span>
+                </div>`;
+            }).join('');
+
+            document.getElementById('finish-modal').classList.remove('hidden');
+        }
+
+        // ============================================================================
+        // 8. 場景初始化、事件綁定與主渲染迴圈
+        // ============================================================================
+        let cachedShadowTex = null;
+
+        function initGame() {
+            const container = document.getElementById('game-container');
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x050714);
+            scene.fog = new THREE.FogExp2(0x050714, 0.0038);
+
+            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.2, 550);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            // 賽博夜晚環境光與雙色霓虹方向光
+            const ambient = new THREE.AmbientLight(0x94a3b8, 0.65);
+            const dirLight1 = new THREE.DirectionalLight(0x00f3ff, 0.85);
+            dirLight1.position.set(120, 180, 90);
+            const dirLight2 = new THREE.DirectionalLight(0xd946ef, 0.55);
+            dirLight2.position.set(-140, 120, -110);
+            scene.add(ambient, dirLight1, dirLight2);
+
+            const textures = createTrackTextures();
+            cachedShadowTex = textures.shadowTex;
+
+            buildCyberTrackAndCity(textures);
+            initCars(cachedShadowTex);
+
+            clock = new THREE.Clock();
+            bindUIAndControls();
+        }
+
+        function bindUIAndControls() {
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            // 塗裝選擇
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.color-btn').forEach(b => {
+                        b.className = 'color-btn bg-slate-800/80 border border-slate-600 text-slate-300 py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition';
+                    });
+                    btn.className = 'color-btn active-color bg-cyan-950/80 border-2 border-cyan-400 text-white py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition';
+                    selectedColorKey = btn.dataset.color;
+                    initCars(cachedShadowTex);
+                });
+            });
+
+            // 難度選擇
+            document.querySelectorAll('.diff-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.diff-btn').forEach(b => {
+                        b.className = 'diff-btn bg-slate-800/80 border border-slate-600 text-slate-300 py-2.5 px-3 rounded-xl text-xs font-bold cursor-pointer transition';
+                    });
+                    btn.className = 'diff-btn active-diff bg-fuchsia-950/60 border-2 border-fuchsia-400 text-white py-2.5 px-3 rounded-xl text-xs font-bold cursor-pointer transition';
+                    selectedDiffKey = btn.dataset.diff;
+                });
+            });
+
+            // 開始與再玩一次按鈕
+            document.getElementById('btn-start-race').addEventListener('click', () => {
+                SoundFX.init();
+                SoundFX.resume();
+                initCars(cachedShadowTex);
+                startCountdownSequence();
+            });
+
+            document.getElementById('btn-play-again').addEventListener('click', () => {
+                initCars(cachedShadowTex);
+                startCountdownSequence();
+            });
+
+            // 鍵盤事件
+            window.addEventListener('keydown', (e) => {
+                if (e.code === 'KeyW' || e.code === 'ArrowUp') input.forward = true;
+                if (e.code === 'KeyS' || e.code === 'ArrowDown') input.backward = true;
+                if (e.code === 'KeyA' || e.code === 'ArrowLeft') input.left = true;
+                if (e.code === 'KeyD' || e.code === 'ArrowRight') input.right = true;
+                if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') input.drift = true;
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    input.nitro = true;
+                }
+                if (e.code === 'KeyC') cameraMode = (cameraMode + 1) % 2;
+                if (e.code === 'KeyR') resetPlayerToTrack();
+            });
+
+            window.addEventListener('keyup', (e) => {
+                if (e.code === 'KeyW' || e.code === 'ArrowUp') input.forward = false;
+                if (e.code === 'KeyS' || e.code === 'ArrowDown') input.backward = false;
+                if (e.code === 'KeyA' || e.code === 'ArrowLeft') input.left = false;
+                if (e.code === 'KeyD' || e.code === 'ArrowRight') input.right = false;
+                if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') input.drift = false;
+                if (e.code === 'Space') input.nitro = false;
+            });
+
+            // HUD 功能鈕
+            document.getElementById('btn-hud-cam').addEventListener('click', () => {
+                cameraMode = (cameraMode + 1) % 2;
+            });
+            document.getElementById('btn-hud-reset').addEventListener('click', resetPlayerToTrack);
+            document.getElementById('btn-hud-mute').addEventListener('click', (e) => {
+                const muted = SoundFX.toggleMute();
+                e.target.textContent = muted ? '音效: 關' : '音效: 開';
+            });
+
+            // 行動裝置觸控按鈕綁定
+            const bindHoldBtn = (id, prop) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.addEventListener('touchstart', (e) => { e.preventDefault(); input[prop] = true; }, { passive: false });
+                el.addEventListener('touchend', (e) => { e.preventDefault(); input[prop] = false; }, { passive: false });
+                el.addEventListener('touchcancel', () => { input[prop] = false; });
+            };
+            bindHoldBtn('mob-left', 'left');
+            bindHoldBtn('mob-right', 'right');
+            bindHoldBtn('mob-gas', 'forward');
+            bindHoldBtn('mob-brake', 'backward');
+            bindHoldBtn('mob-drift', 'drift');
+            bindHoldBtn('mob-nitro', 'nitro');
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const dt = Math.min(clock.getDelta(), 0.08);
+            const elapsed = clock.getElapsedTime();
+
+            // 氮氣膠囊旋轉與冷卻更新
+            nitroCapsules.forEach(cap => {
+                if (cap.cooldown > 0) {
+                    cap.cooldown -= dt;
+                    if (cap.cooldown <= 0) cap.mesh.visible = true;
+                }
+                cap.mesh.rotation.y = elapsed * 2.5;
+                cap.mesh.position.y = 1.1 + Math.sin(elapsed * 4) * 0.22;
+            });
+
+            if (gameState === 'menu') {
+                // 主選單背景自動巡航展示鏡頭
+                const angle = elapsed * 0.25;
+                camera.position.set(
+                    playerCar.position.x + Math.cos(angle) * 10,
+                    playerCar.position.y + 4.2,
+                    playerCar.position.z + Math.sin(angle) * 10
+                );
+                camera.lookAt(playerCar.position.x, playerCar.position.y + 1.0, playerCar.position.z);
+            } else if (gameState === 'countdown') {
+                updateCamera(dt);
+            } else if (gameState === 'racing' || gameState === 'finished') {
+                if (gameState === 'racing') raceTotalTime += dt;
+
+                updatePlayerPhysics(dt);
+                allCars.forEach(c => {
+                    if (!c.isPlayer) updateAICar(c, dt);
+                });
+                resolveCarToCarCollisions();
+                updateParticles(dt);
+                updateCamera(dt);
+
+                if (gameState === 'racing') {
+                    updateHUD();
+                    SoundFX.updateContinuous(
+                        Math.min(1, Math.abs(playerCar.speed) / 72),
+                        playerCar.isDrifting,
+                        playerCar.isNitroActive || playerCar.padBoostTimer > 0,
+                        true
+                    );
+                } else {
+                    SoundFX.updateContinuous(0, false, false, false);
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        window.onload = function () {
+            initGame();
+            animate();
+        };
+    </script>
+</body>
+</html>

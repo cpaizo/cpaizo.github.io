@@ -1,0 +1,2203 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>蒼穹獵鷹：3D 空戰傳奇 (SKY FALCON: 3D ACE COMBAT)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Share+Tech+Mono&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #030914;
+            font-family: 'Noto Sans TC', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        .hud-font {
+            font-family: 'Share Tech Mono', 'Noto Sans TC', monospace;
+        }
+        .title-font {
+            font-family: 'Orbitron', 'Noto Sans TC', sans-serif;
+        }
+        /* 後燃器極速邊緣速度線特效 */
+        .afterburner-lines {
+            background: radial-gradient(circle, rgba(0,0,0,0) 54%, rgba(56, 189, 248, 0.22) 86%, rgba(251, 146, 60, 0.42) 100%);
+            box-shadow: inset 0 0 95px rgba(56, 189, 248, 0.65);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.16s ease-out;
+        }
+        /* 受損與飛彈警告紅框脈衝 */
+        .damage-vignette {
+            box-shadow: inset 0 0 120px rgba(239, 68, 68, 0.85);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.12s ease-out;
+        }
+        /* 第一人稱座艙金屬框架 */
+        .cockpit-frame {
+            pointer-events: none;
+            background:
+                linear-gradient(to bottom, rgba(7, 13, 24, 0.92) 0%, rgba(7, 13, 24, 0) 6%),
+                linear-gradient(to top, rgba(7, 13, 24, 0.96) 0%, rgba(7, 13, 24, 0) 16%);
+        }
+        @keyframes pulse-alert {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.35; transform: scale(1.04); }
+        }
+        .missile-alert-anim {
+            animation: pulse-alert 0.45s infinite;
+        }
+        @keyframes radio-slide {
+            0% { transform: translateY(-10px); opacity: 0; }
+            15% { transform: translateY(0); opacity: 1; }
+            85% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-8px); opacity: 0; }
+        }
+        .radio-banner-anim {
+            animation: radio-slide 3.8s forwards;
+        }
+        /* 目標鎖定框旋轉動畫 */
+        @keyframes spin-reticle {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        .reticle-scanning {
+            animation: spin-reticle 3.5s linear infinite;
+        }
+    </style>
+</head>
+<body class="relative text-emerald-50">
+
+    <!-- 3D 渲染主畫布容器 -->
+    <div id="game-container" class="absolute inset-0 w-full h-full"></div>
+
+    <!-- 視覺濾鏡層：後燃器速度線、受擊紅光與第一人稱座艙框架 -->
+    <div id="afterburner-overlay" class="afterburner-lines absolute inset-0 z-10"></div>
+    <div id="damage-overlay" class="damage-vignette absolute inset-0 z-10"></div>
+    <div id="cockpit-overlay" class="cockpit-frame hidden absolute inset-0 z-10">
+        <!-- 座艙玻璃弓形骨架 SVG -->
+        <svg viewBox="0 0 1000 600" preserveAspectRatio="none" class="w-full h-full opacity-80">
+            <path d="M 160 600 Q 210 110 500 95 Q 790 110 840 600" fill="none" stroke="#09111e" stroke-width="14" />
+            <path d="M 160 600 Q 210 110 500 95 Q 790 110 840 600" fill="none" stroke="#1e293b" stroke-width="4" />
+            <polygon points="310,600 350,515 650,515 690,600" fill="#060b14" stroke="#1e293b" stroke-width="3" />
+        </svg>
+    </div>
+
+    <!-- 2D 全息戰術抬頭顯示器 (HUD) -->
+    <div id="hud" class="hidden absolute inset-0 z-20 pointer-events-none overflow-hidden">
+
+        <!-- 動態敵機 3D->2D 投影標記容器 -->
+        <div id="target-markers-layer" class="absolute inset-0"></div>
+
+        <!-- 虛擬飛行搖桿死區與滑鼠準星指示器 -->
+        <div id="virtual-stick-ring" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-44 h-44 rounded-full border border-emerald-400/25 flex items-center justify-center">
+            <div id="virtual-stick-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-400/75 shadow-[0_0_8px_#34d399]"></div>
+        </div>
+
+        <!-- 中央全息人工地平儀 (Pitch Ladder) 與機砲固定準星 -->
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 flex items-center justify-center">
+            <!-- 固定機頭準星 (W 標記) -->
+            <svg viewBox="0 0 120 120" class="w-24 h-24 text-emerald-400/90 drop-shadow-[0_0_6px_rgba(52,211,153,0.8)]">
+                <line x1="20" y1="60" x2="45" y2="60" stroke="currentColor" stroke-width="2.2" />
+                <polyline points="45,60 52,68 60,60 68,68 75,60" fill="none" stroke="currentColor" stroke-width="2.2" />
+                <line x1="75" y1="60" x2="100" y2="60" stroke="currentColor" stroke-width="2.2" />
+                <circle cx="60" cy="60" r="2" fill="currentColor" />
+            </svg>
+
+            <!-- 隨俯仰與滾轉旋轉的人工地平線刻度 -->
+            <div id="horizon-ladder" class="absolute inset-0 flex items-center justify-center opacity-55">
+                <div class="w-64 border-t border-dashed border-emerald-300/80 flex justify-between text-[10px] hud-font text-emerald-300 pt-0.5">
+                    <span>-10</span>
+                    <span>HORIZON</span>
+                    <span>-10</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 頂部區域：左上戰績波次 | 中上航向羅盤與無線電通訊 | 右上戰術雷達與功能按鈕 -->
+        <div class="absolute top-0 inset-x-0 p-3 sm:p-5 flex justify-between items-start gap-2">
+            
+            <!-- 左上：波次、擊墜數與積分 -->
+            <div class="bg-slate-950/70 backdrop-blur-md border border-emerald-400/40 rounded-xl px-3.5 py-2.5 shadow-lg space-y-1">
+                <div class="flex items-center gap-3">
+                    <div>
+                        <div class="text-[10px] text-emerald-400 font-bold tracking-wider">WAVE 波次</div>
+                        <div id="hud-wave" class="title-font text-xl sm:text-2xl font-black text-white">01</div>
+                    </div>
+                    <div class="border-l border-emerald-500/30 pl-3">
+                        <div class="text-[10px] text-cyan-400 font-bold tracking-wider">KILLS 擊墜</div>
+                        <div id="hud-kills" class="title-font text-xl sm:text-2xl font-black text-cyan-300">0</div>
+                    </div>
+                    <div class="border-l border-emerald-500/30 pl-3">
+                        <div class="text-[10px] text-amber-400 font-bold tracking-wider">SCORE 戰績</div>
+                        <div id="hud-score" class="title-font text-xl sm:text-2xl font-black text-amber-300">0</div>
+                    </div>
+                </div>
+                <div id="hud-enemies-left" class="text-[11px] hud-font text-emerald-200/85">
+                    空域敵機剩餘: 3 架
+                </div>
+            </div>
+
+            <!-- 中上：航向羅盤、飛彈來襲警報與塔台無線電字幕 -->
+            <div class="flex flex-col items-center gap-2 max-w-md w-full px-2">
+                <div class="bg-slate-950/70 backdrop-blur-md border border-emerald-400/40 rounded-full px-5 py-1 text-xs hud-font text-emerald-300 flex items-center gap-4 shadow">
+                    <span>HDG <strong id="hud-heading" class="text-white">000°</strong></span>
+                    <span class="text-emerald-500/50">|</span>
+                    <span id="hud-jet-code" class="text-cyan-300 font-bold">F-22 RAPTOR</span>
+                    <span class="text-emerald-500/50">|</span>
+                    <span id="hud-time" class="text-amber-200">00:00</span>
+                </div>
+
+                <!-- 飛彈鎖定來襲警告橫幅 -->
+                <div id="missile-warning-banner" class="hidden bg-red-600/90 border-2 border-red-200 text-white px-6 py-1.5 rounded-xl font-black text-xs sm:text-sm tracking-widest shadow-[0_0_25px_rgba(239,68,68,0.9)] missile-alert-anim">
+                    ⚠ MISSILE WARNING // 敵方飛彈來襲！按 [X] 釋放熱誘彈！
+                </div>
+
+                <!-- 無線電語音字幕 -->
+                <div id="radio-banner-slot" class="h-10 flex items-center justify-center w-full"></div>
+            </div>
+
+            <!-- 右上：圓形戰術雷達與快捷按鈕 -->
+            <div class="flex flex-col items-end gap-2">
+                <div class="bg-slate-950/75 backdrop-blur-md border border-emerald-400/45 rounded-full p-1.5 shadow-[0_0_20px_rgba(16,185,129,0.25)] relative">
+                    <canvas id="radar-canvas" width="136" height="136" class="w-24 h-24 sm:w-32 sm:h-32 rounded-full"></canvas>
+                    <div class="absolute bottom-1 left-1/2 -translate-x-1/2 text-[9px] hud-font text-emerald-400/90 font-bold">RADAR</div>
+                </div>
+                <div class="flex gap-1.5 pointer-events-auto">
+                    <button id="btn-hud-view" class="bg-slate-950/85 hover:bg-emerald-900/80 border border-emerald-400/40 text-emerald-200 text-[11px] px-2.5 py-1 rounded-lg font-bold cursor-pointer transition">
+                        [V] 視角
+                    </button>
+                    <button id="btn-hud-mute" class="bg-slate-950/85 hover:bg-cyan-900/80 border border-cyan-400/40 text-cyan-200 text-[11px] px-2.5 py-1 rounded-lg font-bold cursor-pointer transition">
+                        [M] 音效:開
+                    </button>
+                    <button id="btn-hud-pause" class="bg-slate-950/85 hover:bg-amber-900/80 border border-amber-400/40 text-amber-200 text-[11px] px-2.5 py-1 rounded-lg font-bold cursor-pointer transition">
+                        [P] 暫停
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 左側垂直空速與油門指示器 (SPD / THR) -->
+        <div class="hidden sm:flex flex-col justify-center items-start gap-2 absolute left-5 top-1/2 -translate-y-1/2">
+            <div class="bg-slate-950/70 backdrop-blur-md border border-emerald-400/40 rounded-xl p-3 w-28 shadow-lg">
+                <div class="text-[10px] text-emerald-400 font-bold">AIRSPEED 空速</div>
+                <div class="hud-font text-2xl font-black text-white leading-tight"><span id="hud-speed">480</span></div>
+                <div class="text-[10px] hud-font text-emerald-300/80 mb-2">KNOTS (節)</div>
+
+                <div class="text-[10px] text-cyan-400 font-bold mb-1 flex justify-between">
+                    <span>THR 推力</span>
+                    <span id="hud-thr-pct">70%</span>
+                </div>
+                <div class="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-cyan-500/30 mb-2">
+                    <div id="hud-thr-bar" class="h-full bg-cyan-400 transition-all duration-75" style="width: 70%"></div>
+                </div>
+
+                <div class="text-[10px] text-orange-400 font-bold mb-1 flex justify-between">
+                    <span>AB 後燃器</span>
+                    <span id="hud-ab-pct">100%</span>
+                </div>
+                <div class="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-orange-500/30">
+                    <div id="hud-ab-bar" class="h-full bg-gradient-to-r from-orange-500 to-amber-300 transition-all duration-75" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右側垂直高度計 (ALT) -->
+        <div class="hidden sm:flex flex-col justify-center items-end gap-2 absolute right-5 top-1/2 -translate-y-1/2">
+            <div class="bg-slate-950/70 backdrop-blur-md border border-emerald-400/40 rounded-xl p-3 w-28 text-right shadow-lg">
+                <div class="text-[10px] text-emerald-400 font-bold">ALTITUDE 高度</div>
+                <div class="hud-font text-2xl font-black text-white leading-tight"><span id="hud-alt">4,200</span></div>
+                <div class="text-[10px] hud-font text-emerald-300/80 mb-2">FEET (英尺)</div>
+
+                <div class="text-[10px] text-amber-400 font-bold">LOCK STATUS</div>
+                <div id="hud-lock-status" class="hud-font text-xs font-bold text-emerald-300 mt-0.5">SCANNING</div>
+            </div>
+        </div>
+
+        <!-- 底部區域：左下機體結構完整性 | 中下操作快捷提示 | 右下武裝與反制熱誘彈 -->
+        <div class="absolute bottom-0 inset-x-0 p-3 sm:p-5 flex justify-between items-end gap-3">
+            
+            <!-- 左下：機體裝甲完整度 (HULL INTEGRITY) -->
+            <div class="bg-slate-950/75 backdrop-blur-md border border-emerald-400/45 rounded-2xl p-3 sm:p-3.5 w-48 sm:w-64 shadow-xl">
+                <div class="flex justify-between items-center text-xs mb-1">
+                    <span class="font-bold text-emerald-300 tracking-wider">HULL 機體裝甲</span>
+                    <span id="hud-hp-text" class="hud-font font-black text-white">100%</span>
+                </div>
+                <div class="w-full h-3 bg-slate-900 rounded-full overflow-hidden border border-emerald-500/40 p-0.5">
+                    <div id="hud-hp-bar" class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-cyan-400 transition-all duration-150" style="width: 100%"></div>
+                </div>
+                <div class="sm:hidden flex justify-between text-[10px] hud-font text-cyan-200 mt-1.5">
+                    <span>SPD: <strong id="hud-mob-spd">480</strong> KT</span>
+                    <span>ALT: <strong id="hud-mob-alt">4200</strong> FT</span>
+                </div>
+            </div>
+
+            <!-- 中下：桌機版簡潔按鍵提示 -->
+            <div class="hidden lg:flex items-center gap-3 bg-slate-950/65 backdrop-blur-sm border border-slate-700/70 rounded-full px-5 py-2 text-[11px] text-slate-300">
+                <span><strong class="text-emerald-300">滑鼠 / WASD</strong> 飛行姿態</span>
+                <span>•</span>
+                <span><strong class="text-orange-300">Shift</strong> 後燃加速 / <strong class="text-cyan-300">C</strong> 減速</span>
+                <span>•</span>
+                <span><strong class="text-amber-300">左鍵 / Space</strong> 機砲</span>
+                <span>•</span>
+                <span><strong class="text-rose-400">右鍵 / F</strong> 追蹤飛彈</span>
+                <span>•</span>
+                <span><strong class="text-sky-300">X</strong> 熱誘彈</span>
+            </div>
+
+            <!-- 右下：機載武裝與反制系統 -->
+            <div class="bg-slate-950/75 backdrop-blur-md border border-cyan-400/45 rounded-2xl p-3 sm:p-3.5 w-52 sm:w-72 shadow-xl space-y-2">
+                <!-- 追蹤飛彈彈藥 -->
+                <div>
+                    <div class="flex justify-between items-center text-xs mb-1">
+                        <span class="font-bold text-rose-300">AIM-120 追蹤飛彈 <span class="text-[10px] text-slate-400">[F/右鍵]</span></span>
+                        <span id="hud-missile-count" class="hud-font font-black text-white">4 / 4</span>
+                    </div>
+                    <div id="missile-pips" class="grid grid-cols-4 gap-1.5">
+                        <div class="h-2 rounded bg-rose-500 shadow-[0_0_8px_#f43f5e]"></div>
+                        <div class="h-2 rounded bg-rose-500 shadow-[0_0_8px_#f43f5e]"></div>
+                        <div class="h-2 rounded bg-rose-500 shadow-[0_0_8px_#f43f5e]"></div>
+                        <div class="h-2 rounded bg-rose-500 shadow-[0_0_8px_#f43f5e]"></div>
+                    </div>
+                </div>
+
+                <!-- 干擾熱誘彈 (FLARES) -->
+                <div class="flex justify-between items-center text-xs pt-1 border-t border-slate-800">
+                    <span class="font-bold text-amber-300">FLARES 熱誘彈 <span class="text-[10px] text-slate-400">[X]</span></span>
+                    <span id="hud-flare-status" class="hud-font font-bold text-emerald-300">READY (3)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 行動裝置觸控按鈕 -->
+    <div id="mobile-controls" class="hidden fixed inset-0 z-30 pointer-events-none">
+        <!-- 左下：虛擬飛行搖桿區 -->
+        <div id="mob-stick-zone" class="pointer-events-auto absolute bottom-24 left-4 w-28 h-28 rounded-full bg-emerald-500/15 border-2 border-emerald-400/45 flex items-center justify-center">
+            <div id="mob-stick-knob" class="w-10 h-10 rounded-full bg-emerald-400/70 border border-white"></div>
+        </div>
+        <!-- 右下：開火、飛彈、後燃器、熱誘彈 -->
+        <div class="pointer-events-auto absolute bottom-24 right-4 flex flex-col gap-2 items-end">
+            <div class="flex gap-2">
+                <button id="mob-flare" class="px-3.5 py-2.5 rounded-xl bg-amber-600/85 border border-amber-300 text-white text-xs font-black">熱誘彈</button>
+                <button id="mob-boost" class="px-3.5 py-2.5 rounded-xl bg-orange-600/85 border border-orange-300 text-white text-xs font-black">後燃器</button>
+            </div>
+            <div class="flex gap-2">
+                <button id="mob-missile" class="w-16 h-14 rounded-xl bg-rose-600/90 border border-rose-300 text-white text-xs font-black">飛彈</button>
+                <button id="mob-gun" class="w-16 h-14 rounded-xl bg-emerald-600/90 border border-emerald-300 text-white text-xs font-black">機砲</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 機庫出擊主選單 (Hangar Start Screen) -->
+    <div id="hangar-modal" class="absolute inset-0 z-40 bg-gradient-to-r from-slate-950/92 via-slate-950/75 to-transparent flex items-center p-4 sm:p-10 overflow-y-auto">
+        <div class="max-w-xl w-full bg-slate-950/85 backdrop-blur-xl border-2 border-emerald-400/50 rounded-3xl p-5 sm:p-7 shadow-[0_0_50px_rgba(16,185,129,0.25)] my-auto">
+            <div class="inline-block px-3 py-1 bg-emerald-950 border border-emerald-400/50 rounded-full text-emerald-300 text-xs font-bold tracking-widest mb-2">
+                AIR SUPERIORITY // 3D TACTICAL FLIGHT SIM
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-cyan-200 to-sky-400 tracking-tight mb-1">
+                蒼穹獵鷹：3D 空戰傳奇
+            </h1>
+            <p class="title-font text-emerald-400/85 text-xs tracking-widest mb-5">
+                SKY FALCON: 3D ACE COMBAT
+            </p>
+
+            <!-- 1. 選擇戰機機型 (右側 3D 機庫會即時旋轉展示所選戰機) -->
+            <div class="mb-4">
+                <div class="text-xs font-bold text-emerald-300 mb-2">1. 選擇出擊戰機（右側可即時檢視 3D 機體）：</div>
+                <div class="grid grid-cols-3 gap-2" id="jet-selector">
+                    <button data-jet="f22" class="jet-btn active-jet bg-emerald-950/80 border-2 border-emerald-400 text-white p-2.5 rounded-xl text-left cursor-pointer transition">
+                        <div class="font-black text-xs sm:text-sm text-emerald-300">F-22 猛禽</div>
+                        <div class="text-[10px] text-slate-300">制空隱形戰機</div>
+                    </button>
+                    <button data-jet="su57" class="jet-btn bg-slate-900/80 border border-slate-700 text-slate-300 p-2.5 rounded-xl text-left cursor-pointer hover:border-cyan-400 transition">
+                        <div class="font-black text-xs sm:text-sm text-cyan-300">Su-57 惡棍</div>
+                        <div class="text-[10px] text-slate-400">超機動戰機</div>
+                    </button>
+                    <button data-jet="fa18" class="jet-btn bg-slate-900/80 border border-slate-700 text-slate-300 p-2.5 rounded-xl text-left cursor-pointer hover:border-amber-400 transition">
+                        <div class="font-black text-xs sm:text-sm text-amber-300">F/A-18 大黃蜂</div>
+                        <div class="text-[10px] text-slate-400">全天候攻擊機</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 戰機性能參數條 -->
+            <div class="bg-black/55 border border-emerald-500/25 rounded-2xl p-3.5 mb-4 space-y-2 text-xs">
+                <div id="jet-desc" class="text-emerald-100/90 text-[11px] mb-2 pb-1.5 border-b border-slate-800">
+                    【F-22 猛禽】具備卓越的高速巡航與均衡纏鬥性能，適合應對全方位空戰威脅。
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="w-20 text-slate-400 font-bold">極速性能</span>
+                    <div class="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
+                        <div id="stat-bar-speed" class="h-full bg-cyan-400 transition-all duration-300" style="width: 88%"></div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="w-20 text-slate-400 font-bold">機動迴轉</span>
+                    <div class="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
+                        <div id="stat-bar-agility" class="h-full bg-emerald-400 transition-all duration-300" style="width: 84%"></div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="w-20 text-slate-400 font-bold">裝甲與裝填</span>
+                    <div class="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
+                        <div id="stat-bar-armor" class="h-full bg-amber-400 transition-all duration-300" style="width: 78%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. 選擇任務難度 -->
+            <div class="mb-4">
+                <div class="text-xs font-bold text-cyan-300 mb-2">2. 選擇空戰難度等級：</div>
+                <div class="grid grid-cols-3 gap-2" id="diff-selector">
+                    <button data-diff="rookie" class="diff-btn bg-slate-900/80 border border-slate-700 text-slate-300 py-2 px-3 rounded-xl text-xs font-bold cursor-pointer hover:border-emerald-400 transition">
+                        新兵級<br><span class="text-[10px] font-normal text-slate-400">輕鬆鎖定目標</span>
+                    </button>
+                    <button data-diff="ace" class="diff-btn active-diff bg-cyan-950/80 border-2 border-cyan-400 text-white py-2 px-3 rounded-xl text-xs font-bold cursor-pointer transition">
+                        王牌級<br><span class="text-[10px] font-normal text-cyan-200/85">標準纏鬥空戰</span>
+                    </button>
+                    <button data-diff="legend" class="diff-btn bg-slate-900/80 border border-slate-700 text-slate-300 py-2 px-3 rounded-xl text-xs font-bold cursor-pointer hover:border-rose-400 transition">
+                        傳奇級<br><span class="text-[10px] font-normal text-slate-400">精英敵機編隊</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 操作指南摘要 -->
+            <div class="bg-slate-900/75 border border-slate-700/70 rounded-xl p-3 mb-5 text-[11px] text-slate-300 grid grid-cols-2 gap-1.5">
+                <div><span class="text-emerald-300 font-bold">滑鼠 / WASD</span>：俯仰與滾轉</div>
+                <div><span class="text-orange-300 font-bold">Shift / C</span>：後燃加速 / 減速</div>
+                <div><span class="text-amber-300 font-bold">左鍵 / Space</span>：火神機砲連射</div>
+                <div><span class="text-rose-400 font-bold">右鍵 / F</span>：鎖定發射追蹤飛彈</div>
+                <div><span class="text-sky-300 font-bold">X 鍵</span>：釋放反制熱誘彈</div>
+                <div><span class="text-slate-200 font-bold">V 鍵</span>：切換追尾／駕駛艙視角</div>
+            </div>
+
+            <button id="btn-launch" class="w-full py-3.5 px-6 bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-base sm:text-lg rounded-2xl shadow-[0_0_28px_rgba(16,185,129,0.55)] transition transform hover:scale-[1.01] active:scale-[0.99] cursor-pointer tracking-wider">
+                起飛出擊 (LAUNCH MISSION)
+            </button>
+        </div>
+    </div>
+
+    <!-- 暫停選單 (Pause Modal) -->
+    <div id="pause-modal" class="hidden absolute inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="max-w-sm w-full bg-slate-900 border-2 border-emerald-400/60 rounded-3xl p-6 text-center shadow-2xl">
+            <h2 class="text-2xl font-black text-emerald-300 mb-2">作戰暫停 (PAUSED)</h2>
+            <p class="text-xs text-slate-300 mb-6">空域戰術系統已待命，隨時可恢復飛行。</p>
+            <div class="space-y-3">
+                <button id="btn-resume" class="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl cursor-pointer transition">
+                    繼續作戰 (RESUME)
+                </button>
+                <button id="btn-abort-to-hangar" class="w-full py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold rounded-xl cursor-pointer transition">
+                    返回機庫 (HANGAR)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 戰果結算畫面 (Mission Summary / Game Over) -->
+    <div id="gameover-modal" class="hidden absolute inset-0 z-50 bg-slate-950/90 backdrop-blur-lg flex items-center justify-center p-4">
+        <div class="max-w-lg w-full bg-slate-900 border-2 border-cyan-400/70 rounded-3xl p-6 sm:p-8 text-center shadow-2xl">
+            <div class="inline-block px-3.5 py-1 bg-rose-950 border border-rose-500/50 rounded-full text-rose-300 text-xs font-bold tracking-widest mb-2">
+                MISSION DEBRIEF // 戰術作戰報告
+            </div>
+            <h2 class="text-3xl font-black text-white mb-1">戰機墜毀 · 任務結束</h2>
+            <p class="text-cyan-300 text-xs sm:text-sm mb-6">你在高強度空戰中展現了無畏的王牌飛行員精神！</p>
+
+            <div class="bg-black/60 border border-slate-700 rounded-2xl p-4 mb-6 text-left space-y-2.5 text-xs sm:text-sm">
+                <div class="flex justify-between border-b border-slate-800 pb-2">
+                    <span class="text-slate-400">最高抵達波次：</span>
+                    <span id="end-wave" class="title-font font-black text-emerald-400">WAVE 1</span>
+                </div>
+                <div class="flex justify-between border-b border-slate-800 pb-2">
+                    <span class="text-slate-400">累計擊墜敵機數：</span>
+                    <span id="end-kills" class="title-font font-black text-cyan-300">0 架</span>
+                </div>
+                <div class="flex justify-between border-b border-slate-800 pb-2">
+                    <span class="text-slate-400">機砲命中率：</span>
+                    <span id="end-accuracy" class="hud-font font-bold text-amber-300">0%</span>
+                </div>
+                <div class="flex justify-between border-b border-slate-800 pb-2">
+                    <span class="text-slate-400">總飛行作戰時間：</span>
+                    <span id="end-time" class="hud-font font-bold text-slate-200">00:00</span>
+                </div>
+                <div class="flex justify-between pt-1">
+                    <span class="text-slate-400">最終作戰積分：</span>
+                    <span id="end-score" class="title-font font-black text-xl text-amber-400">0</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button id="btn-end-hangar" class="py-3.5 px-4 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold text-sm rounded-2xl cursor-pointer transition">
+                    返回機庫換機
+                </button>
+                <button id="btn-instant-restart" class="py-3.5 px-4 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-sm rounded-2xl shadow-lg cursor-pointer transition">
+                    立即重新出擊
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * ============================================================================
+         * 《蒼穹獵鷹：3D 空戰傳奇 (SKY FALCON: 3D ACE COMBAT)》
+         * 單一 HTML 檔案完整實現：
+         * 1. 程序化 3D 現代噴射戰鬥機模型（後掠三角翼、雙垂直尾翼、透明氣泡座艙蓋、雙後燃器噴嘴與動態橘藍尾焰、翼尖凝結尾跡）
+         * 2. 3 款可選戰機（F-22 猛禽 / Su-57 惡棍 / F/A-18 大黃蜂）與互動旋轉 3D 機庫預覽
+         * 3. 6-DOF 街機擬真飛行物理（滑鼠虛擬搖桿 + WASD/QE 俯仰滾轉偏航、Shift 後燃加速、C 空氣煞車、V 雙視角切換）
+         * 4. 火神機砲前置量預判 + AIM-120 雷達鎖定追蹤飛彈 + X 熱誘彈反制 + 波次敵機編隊纏鬥 AI
+         * 5. 廣闊海洋、火山島嶼群、航空母艦編隊與立體雲層空域環境 + Web Audio API 動態引擎與空戰音效
+         * ============================================================================
+         */
+
+        // --- 3 款可選戰機配置參數 ---
+        const JET_CONFIGS = {
+            f22: {
+                code: 'F-22 RAPTOR',
+                name: 'F-22 猛禽',
+                desc: '【F-22 猛禽】第五代制空隱形戰機，具備極佳的高速巡航與均衡纏鬥性能。',
+                primaryHex: 0x475569,
+                secondaryHex: 0x334155,
+                accentHex: 0x34d399,
+                baseSpeed: 128,
+                maxSpeed: 215,
+                minSpeed: 68,
+                pitchRate: 1.55,
+                rollRate: 2.65,
+                maxHp: 110,
+                missileReloadTime: 3.4,
+                stats: { speed: 88, agility: 85, armor: 80 }
+            },
+            su57: {
+                code: 'SU-57 FELON',
+                name: 'Su-57 惡棍',
+                desc: '【Su-57 惡棍】搭載三維向量推力噴嘴，擁有無與倫比的極限迴轉與滾轉機動性。',
+                primaryHex: 0x3b82f6,
+                secondaryHex: 0xe2e8f0,
+                accentHex: 0x38bdf8,
+                baseSpeed: 124,
+                maxSpeed: 208,
+                minSpeed: 62,
+                pitchRate: 1.92,
+                rollRate: 3.25,
+                maxHp: 95,
+                missileReloadTime: 3.5,
+                stats: { speed: 82, agility: 98, armor: 72 }
+            },
+            fa18: {
+                code: 'F/A-18 HORNET',
+                name: 'F/A-18 大黃蜂',
+                desc: '【F/A-18 大黃蜂】艦載多用途重裝攻擊機，機體裝甲厚實且飛彈裝填速度極快。',
+                primaryHex: 0x64748b,
+                secondaryHex: 0xf59e0b,
+                accentHex: 0xfbbf24,
+                baseSpeed: 120,
+                maxSpeed: 198,
+                minSpeed: 64,
+                pitchRate: 1.48,
+                rollRate: 2.45,
+                maxHp: 145,
+                missileReloadTime: 2.3,
+                stats: { speed: 78, agility: 78, armor: 96 }
+            }
+        };
+
+        // --- 空戰難度配置 ---
+        const DIFF_CONFIGS = {
+            rookie: { enemySpeedMult: 0.85, enemyFireRate: 0.45, lockConeDeg: 18, enemyHp: 75 },
+            ace: { enemySpeedMult: 1.0, enemyFireRate: 0.85, lockConeDeg: 13, enemyHp: 100 },
+            legend: { enemySpeedMult: 1.15, enemyFireRate: 1.35, lockConeDeg: 10, enemyHp: 130 }
+        };
+
+        let selectedJetKey = 'f22';
+        let selectedDiffKey = 'ace';
+
+        // --- Three.js 與全域遊戲狀態 ---
+        let scene, camera, renderer, clock;
+        let gameState = 'hangar'; // 'hangar' | 'playing' | 'paused' | 'gameover'
+        let cameraMode = 0;       // 0 = 第三人稱追尾視角, 1 = 第一人稱駕駛艙視角
+        let isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+        // 玩家戰機狀態
+        const player = {
+            mesh: null,
+            flameL: null,
+            flameR: null,
+            position: new THREE.Vector3(0, 650, 0),
+            quaternion: new THREE.Quaternion(),
+            speed: 128,
+            throttle: 0.55,       // 0.0 ~ 1.0
+            afterburnerFuel: 100, // 0 ~ 100
+            isAfterburner: false,
+            hp: 110,
+            maxHp: 110,
+            missiles: 4,
+            maxMissiles: 4,
+            missileReloadTimer: 0,
+            flares: 3,
+            flareCooldown: 0,
+            gunCooldown: 0,
+            lockedEnemy: null,
+            lockProgress: 0,      // 0 ~ 1.0 (1.0 = LOCKED)
+            wingTrails: []
+        };
+
+        // 戰績與統計
+        let waveNumber = 1;
+        let killsCount = 0;
+        let scoreCount = 0;
+        let flightSeconds = 0;
+        let shotsFired = 0;
+        let shotsHit = 0;
+        let screenShake = 0;
+
+        // 動態實體陣列
+        const enemies = [];
+        const bullets = [];
+        const missiles = [];
+        const flares = [];
+        const explosions = [];
+        const clouds = [];
+
+        // 輸入狀態（鍵盤 + 滑鼠虛擬飛行搖桿 + 觸控）
+        const keys = {};
+        const mouseStick = { x: 0, y: 0, active: false };
+        let isFiringGun = false;
+
+        // ============================================================================
+        // 1. Web Audio API 全程式化空戰音效系統
+        // ============================================================================
+        const AeroAudio = {
+            ctx: null,
+            isMuted: false,
+            isReady: false,
+            jetNoiseGain: null,
+            jetFilter: null,
+            turbineOsc: null,
+            turbineGain: null,
+            lockToneTimer: 0,
+
+            init() {
+                if (this.isReady) return;
+                try {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioCtx();
+
+                    // 白噪音緩衝（噴射氣流 + 後燃器轟鳴）
+                    const bufSize = this.ctx.sampleRate * 2;
+                    const noiseBuf = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
+                    const out = noiseBuf.getChannelData(0);
+                    for (let i = 0; i < bufSize; i++) out[i] = Math.random() * 2 - 1;
+
+                    const jetSrc = this.ctx.createBufferSource();
+                    jetSrc.buffer = noiseBuf;
+                    jetSrc.loop = true;
+
+                    this.jetFilter = this.ctx.createBiquadFilter();
+                    this.jetFilter.type = 'lowpass';
+                    this.jetFilter.frequency.value = 320;
+
+                    this.jetNoiseGain = this.ctx.createGain();
+                    this.jetNoiseGain.gain.value = 0;
+
+                    jetSrc.connect(this.jetFilter);
+                    this.jetFilter.connect(this.jetNoiseGain);
+                    this.jetNoiseGain.connect(this.ctx.destination);
+                    jetSrc.start();
+
+                    // 高頻渦輪引擎嘯叫聲
+                    this.turbineOsc = this.ctx.createOscillator();
+                    this.turbineOsc.type = 'sine';
+                    this.turbineOsc.frequency.value = 260;
+                    this.turbineGain = this.ctx.createGain();
+                    this.turbineGain.gain.value = 0;
+                    this.turbineOsc.connect(this.turbineGain);
+                    this.turbineGain.connect(this.ctx.destination);
+                    this.turbineOsc.start();
+
+                    this.isReady = true;
+                } catch (e) {
+                    console.warn('Web Audio API 無法啟動:', e);
+                }
+            },
+
+            resume() {
+                if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+            },
+
+            toggleMute() {
+                this.isMuted = !this.isMuted;
+                if (this.isMuted && this.isReady) {
+                    this.jetNoiseGain.gain.value = 0;
+                    this.turbineGain.gain.value = 0;
+                }
+                return this.isMuted;
+            },
+
+            updateJetSound(throttle, isAfterburner, active) {
+                if (!this.isReady || this.isMuted || !active) {
+                    if (this.isReady) {
+                        this.jetNoiseGain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.08);
+                        this.turbineGain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.08);
+                    }
+                    return;
+                }
+                const now = this.ctx.currentTime;
+                const filterFreq = isAfterburner ? 980 : (240 + throttle * 460);
+                const noiseVol = isAfterburner ? 0.16 : (0.04 + throttle * 0.06);
+                const turbFreq = isAfterburner ? 520 : (210 + throttle * 220);
+
+                this.jetFilter.frequency.setTargetAtTime(filterFreq, now, 0.08);
+                this.jetNoiseGain.gain.setTargetAtTime(noiseVol, now, 0.08);
+                this.turbineOsc.frequency.setTargetAtTime(turbFreq, now, 0.08);
+                this.turbineGain.gain.setTargetAtTime(0.025 + throttle * 0.02, now, 0.08);
+            },
+
+            // 20mm 火神機砲射擊聲
+            playVulcanShot() {
+                if (!this.isReady || this.isMuted) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(190, now);
+                osc.frequency.exponentialRampToValueAtTime(48, now + 0.055);
+                gain.gain.setValueAtTime(0.11, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.058);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.06);
+            },
+
+            // 追蹤飛彈點火呼嘯聲
+            playMissileLaunch() {
+                if (!this.isReady || this.isMuted) return;
+                const now = this.ctx.currentTime;
+                const len = Math.floor(this.ctx.sampleRate * 0.45);
+                const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+                const data = buf.getChannelData(0);
+                for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (len * 0.45));
+
+                const src = this.ctx.createBufferSource();
+                src.buffer = buf;
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.setValueAtTime(600, now);
+                filter.frequency.exponentialRampToValueAtTime(2200, now + 0.4);
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.22, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+                src.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                src.start(now);
+            },
+
+            // 雷達鎖定提示音 / 飛彈來襲警報音
+            playBeep(freq = 1200, dur = 0.08, vol = 0.09) {
+                if (!this.isReady || this.isMuted) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now);
+                gain.gain.setValueAtTime(vol, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + dur + 0.01);
+            },
+
+            // 熱誘彈釋放爆音
+            playFlarePop() {
+                if (!this.isReady || this.isMuted) return;
+                this.playBeep(950, 0.07, 0.14);
+                setTimeout(() => this.playBeep(720, 0.09, 0.12), 65);
+            },
+
+            // 敵機空中解體爆炸聲
+            playExplosion() {
+                if (!this.isReady || this.isMuted) return;
+                const now = this.ctx.currentTime;
+                const len = Math.floor(this.ctx.sampleRate * 0.9);
+                const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+                const data = buf.getChannelData(0);
+                for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (len * 0.32));
+
+                const src = this.ctx.createBufferSource();
+                src.buffer = buf;
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(340, now);
+                filter.frequency.exponentialRampToValueAtTime(55, now + 0.85);
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.32, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+                src.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                src.start(now);
+            }
+        };
+
+        // ============================================================================
+        // 2. 程序化 3D 戰鬥機模型建構器 (玩家戰機 & 敵軍紅星戰機)
+        // ============================================================================
+        function createFighterJetMesh(primaryHex, secondaryHex, accentHex, isEnemy = false) {
+            const group = new THREE.Group();
+
+            const hullMat = new THREE.MeshStandardMaterial({
+                color: primaryHex,
+                roughness: 0.35,
+                metalness: 0.68
+            });
+            const trimMat = new THREE.MeshStandardMaterial({
+                color: secondaryHex,
+                roughness: 0.4,
+                metalness: 0.55
+            });
+            const canopyMat = new THREE.MeshStandardMaterial({
+                color: isEnemy ? 0x450a0a : 0x0c4a6e,
+                emissive: isEnemy ? 0x7f1d1d : 0x0284c7,
+                emissiveIntensity: 0.35,
+                roughness: 0.08,
+                metalness: 0.95
+            });
+            const nozzleMat = new THREE.MeshStandardMaterial({
+                color: 0x0f172a,
+                roughness: 0.3,
+                metalness: 0.85
+            });
+            const navLightMat = new THREE.MeshBasicMaterial({ color: accentHex });
+
+            // 1. 機身中段主體 (Fuselage)
+            const fuselage = new THREE.Mesh(new THREE.BoxGeometry(1.45, 0.62, 6.2), hullMat);
+            fuselage.position.set(0, 0, 0);
+            group.add(fuselage);
+
+            // 銳利雷達罩機鼻 (Radome Nose Cone，朝向 -Z 前方)
+            const nose = new THREE.Mesh(new THREE.ConeGeometry(0.68, 3.2, 6), trimMat);
+            nose.rotation.x = -Math.PI / 2;
+            nose.rotation.z = Math.PI / 6;
+            nose.position.set(0, -0.02, -4.65);
+            group.add(nose);
+
+            // 2. 氣泡式全視野座艙蓋 (Bubble Canopy)
+            const canopy = new THREE.Mesh(new THREE.SphereGeometry(0.55, 16, 12), canopyMat);
+            canopy.scale.set(0.85, 0.72, 2.35);
+            canopy.position.set(0, 0.44, -1.75);
+            group.add(canopy);
+
+            // 3. 後掠三角主翼 (Swept Delta Wings)
+            const wingShape = new THREE.Shape();
+            wingShape.moveTo(0, 0);
+            wingShape.lineTo(4.6, 2.1);
+            wingShape.lineTo(4.6, 2.85);
+            wingShape.lineTo(0, 2.4);
+            wingShape.closePath();
+
+            const wingExtrude = new THREE.ExtrudeGeometry(wingShape, { depth: 0.1, bevelEnabled: false });
+            wingExtrude.rotateX(Math.PI / 2);
+
+            const rightWing = new THREE.Mesh(wingExtrude, hullMat);
+            rightWing.position.set(0.65, 0.04, -0.5);
+            group.add(rightWing);
+
+            const leftWing = new THREE.Mesh(wingExtrude, hullMat);
+            leftWing.scale.x = -1;
+            leftWing.position.set(-0.65, 0.04, -0.5);
+            group.add(leftWing);
+
+            // 翼尖航行燈與飛彈掛架
+            const tipL = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.12, 1.4), navLightMat);
+            tipL.position.set(-5.25, 0.02, 2.0);
+            const tipR = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.12, 1.4), navLightMat);
+            tipR.position.set(5.25, 0.02, 2.0);
+            group.add(tipL, tipR);
+
+            // 4. 外傾雙垂直尾翼 (Twin Canted Vertical Stabilizers) 與水平尾翼
+            [-0.68, 0.68].forEach((vx, idx) => {
+                const vTail = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.45, 1.55), trimMat);
+                vTail.position.set(vx, 0.72, 2.35);
+                vTail.rotation.z = idx === 0 ? 0.28 : -0.28;
+                vTail.rotation.x = -0.25;
+                group.add(vTail);
+
+                const hStab = new THREE.Mesh(new THREE.BoxGeometry(1.75, 0.08, 1.1), hullMat);
+                hStab.position.set(vx * 2.1, -0.02, 2.65);
+                group.add(hStab);
+            });
+
+            // 5. 雙發動機向量噴嘴與動態橘藍後燃器尾焰 (Afterburner Cones)
+            const flameOuterMat = new THREE.MeshBasicMaterial({
+                color: isEnemy ? 0xf43f5e : 0xf97316,
+                transparent: true,
+                opacity: 0.88
+            });
+            const flameInnerMat = new THREE.MeshBasicMaterial({
+                color: isEnemy ? 0xfef08a : 0x38bdf8,
+                transparent: true,
+                opacity: 0.95
+            });
+
+            const flames = [];
+            [-0.38, 0.38].forEach(nx => {
+                const nozzle = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.34, 0.75, 12), nozzleMat);
+                nozzle.rotation.x = Math.PI / 2;
+                nozzle.position.set(nx, 0, 3.25);
+                group.add(nozzle);
+
+                const flameGroup = new THREE.Group();
+                flameGroup.position.set(nx, 0, 3.6);
+
+                const outerCone = new THREE.Mesh(new THREE.ConeGeometry(0.27, 2.8, 12), flameOuterMat);
+                outerCone.rotation.x = Math.PI / 2;
+                outerCone.position.z = 1.4;
+
+                const innerCone = new THREE.Mesh(new THREE.ConeGeometry(0.15, 1.6, 10), flameInnerMat);
+                innerCone.rotation.x = Math.PI / 2;
+                innerCone.position.z = 0.8;
+
+                flameGroup.add(outerCone, innerCone);
+                group.add(flameGroup);
+                flames.push(flameGroup);
+            });
+
+            return { group, flameL: flames[0], flameR: flames[1] };
+        }
+
+        // ============================================================================
+        // 3. 3D 海洋、群島地形、航空母艦編隊與立體雲海環境建構
+        // ============================================================================
+        function buildAerialEnvironment() {
+            // 1. 晴空漸層穹頂 (Sky Dome)
+            const skyCanvas = document.createElement('canvas');
+            skyCanvas.width = 64;
+            skyCanvas.height = 512;
+            const sCtx = skyCanvas.getContext('2d');
+            const skyGrad = sCtx.createLinearGradient(0, 0, 0, 512);
+            skyGrad.addColorStop(0.0, '#061a3a'); // 高空深邃湛藍
+            skyGrad.addColorStop(0.45, '#1d63b8'); // 中空亮藍
+            skyGrad.addColorStop(0.52, '#93c5fd'); // 地平線亮白藍光暈
+            skyGrad.addColorStop(1.0, '#041226');
+            sCtx.fillStyle = skyGrad;
+            sCtx.fillRect(0, 0, 64, 512);
+
+            const skyDome = new THREE.Mesh(
+                new THREE.SphereGeometry(7500, 32, 24),
+                new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(skyCanvas), side: THREE.BackSide, fog: false })
+            );
+            scene.add(skyDome);
+
+            // 太陽耀眼光源球
+            const sunSphere = new THREE.Mesh(
+                new THREE.SphereGeometry(140, 20, 20),
+                new THREE.MeshBasicMaterial({ color: 0xfffbeb, fog: false })
+            );
+            sunSphere.position.set(2200, 2400, -3200);
+            scene.add(sunSphere);
+
+            // 2. 無垠深海平面 (帶太陽高光反射)
+            const seaCanvas = document.createElement('canvas');
+            seaCanvas.width = 256;
+            seaCanvas.height = 256;
+            const wCtx = seaCanvas.getContext('2d');
+            wCtx.fillStyle = '#072a4e';
+            wCtx.fillRect(0, 0, 256, 256);
+            for (let i = 0; i < 4500; i++) {
+                wCtx.fillStyle = Math.random() > 0.5 ? 'rgba(56, 189, 248, 0.08)' : 'rgba(2, 12, 28, 0.18)';
+                wCtx.fillRect(Math.random() * 256, Math.random() * 256, 12, 2);
+            }
+            const seaTex = new THREE.CanvasTexture(seaCanvas);
+            seaTex.wrapS = THREE.RepeatWrapping;
+            seaTex.wrapT = THREE.RepeatWrapping;
+            seaTex.repeat.set(90, 90);
+
+            const ocean = new THREE.Mesh(
+                new THREE.PlaneGeometry(16000, 16000),
+                new THREE.MeshStandardMaterial({ map: seaTex, roughness: 0.28, metalness: 0.72 })
+            );
+            ocean.rotation.x = -Math.PI / 2;
+            ocean.position.y = 0;
+            scene.add(ocean);
+
+            // 3. 群島山脈地形（提供強烈的高空速度與空間參考點）
+            const rockMat = new THREE.MeshStandardMaterial({ color: 0x2b3a2e, roughness: 0.88 });
+            const peakMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.8 });
+            const beachMat = new THREE.MeshStandardMaterial({ color: 0xc2b280, roughness: 0.9 });
+
+            for (let i = 0; i < 36; i++) {
+                const angle = (i / 36) * Math.PI * 2 + Math.random() * 0.2;
+                const dist = 600 + Math.random() * 4400;
+                const ix = Math.cos(angle) * dist;
+                const iz = Math.sin(angle) * dist;
+                const baseR = 140 + Math.random() * 260;
+                const peakH = 120 + Math.random() * 360;
+
+                const islandGroup = new THREE.Group();
+                const beach = new THREE.Mesh(new THREE.CylinderGeometry(baseR * 0.95, baseR * 1.12, 12, 12), beachMat);
+                beach.position.y = 4;
+                const mountain = new THREE.Mesh(new THREE.ConeGeometry(baseR * 0.9, peakH, 9), rockMat);
+                mountain.position.y = peakH / 2 + 6;
+                const summit = new THREE.Mesh(new THREE.ConeGeometry(baseR * 0.35, peakH * 0.38, 7), peakMat);
+                summit.position.y = peakH * 0.82;
+
+                islandGroup.add(beach, mountain, summit);
+                islandGroup.position.set(ix, 0, iz);
+                scene.add(islandGroup);
+            }
+
+            // 4. 海上航空母艦打擊群 (艦隊座標參考點)
+            buildCarrierFleet();
+
+            // 5. 多層次立體積雲雲海（戰機可高速穿越雲層）
+            const cloudMat = new THREE.MeshLambertMaterial({
+                color: 0xf8fafc,
+                transparent: true,
+                opacity: 0.62
+            });
+            const cloudGeo = new THREE.DodecahedronGeometry(45, 1);
+
+            for (let c = 0; c < 65; c++) {
+                const cloudCluster = new THREE.Group();
+                const puffs = 3 + Math.floor(Math.random() * 4);
+                for (let p = 0; p < puffs; p++) {
+                    const puff = new THREE.Mesh(cloudGeo, cloudMat);
+                    puff.scale.set(1.4 + Math.random(), 0.55 + Math.random() * 0.3, 1.2 + Math.random());
+                    puff.position.set((Math.random() - 0.5) * 90, (Math.random() - 0.5) * 18, (Math.random() - 0.5) * 70);
+                    cloudCluster.add(puff);
+                }
+                cloudCluster.position.set(
+                    (Math.random() - 0.5) * 6500,
+                    380 + Math.random() * 750,
+                    (Math.random() - 0.5) * 6500
+                );
+                scene.add(cloudCluster);
+                clouds.push(cloudCluster);
+            }
+        }
+
+        function buildCarrierFleet() {
+            const fleetPositions = [
+                { x: 0, z: -450, isCarrier: true },
+                { x: -240, z: -320, isCarrier: false },
+                { x: 260, z: -380, isCarrier: false }
+            ];
+            const hullMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.6 });
+            const deckMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.7 });
+            const lineMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24 });
+
+            fleetPositions.forEach(fp => {
+                const ship = new THREE.Group();
+                if (fp.isCarrier) {
+                    const hull = new THREE.Mesh(new THREE.BoxGeometry(44, 18, 260), hullMat);
+                    hull.position.y = 9;
+                    const deck = new THREE.Mesh(new THREE.BoxGeometry(58, 3, 275), deckMat);
+                    deck.position.y = 19;
+                    const runwayLine = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 250), lineMat);
+                    runwayLine.rotation.x = -Math.PI / 2;
+                    runwayLine.position.set(-6, 20.6, 0);
+                    const tower = new THREE.Mesh(new THREE.BoxGeometry(10, 24, 28), hullMat);
+                    tower.position.set(20, 31, 25);
+                    ship.add(hull, deck, runwayLine, tower);
+                } else {
+                    const hull = new THREE.Mesh(new THREE.BoxGeometry(18, 12, 130), hullMat);
+                    hull.position.y = 6;
+                    const bridge = new THREE.Mesh(new THREE.BoxGeometry(12, 14, 24), deckMat);
+                    bridge.position.set(0, 16, -10);
+                    ship.add(hull, bridge);
+                }
+                ship.position.set(fp.x, 0, fp.z);
+                scene.add(ship);
+            });
+        }
+
+        // ============================================================================
+        // 4. 塔台無線電語音字幕通知
+        // ============================================================================
+        function showRadioChatter(callsign, msg, colorClass = 'text-emerald-300 border-emerald-400') {
+            const slot = document.getElementById('radio-banner-slot');
+            if (!slot) return;
+            slot.innerHTML = `<div class="radio-banner-anim bg-slate-950/85 border-l-4 ${colorClass} px-4 py-1.5 rounded-r-xl text-xs sm:text-sm shadow-xl backdrop-blur-md">
+                <span class="font-black mr-2">[${callsign}]</span>
+                <span class="text-white font-medium">${msg}</span>
+            </div>`;
+        }
+
+        // ============================================================================
+        // 5. 機庫戰機初始化、波次敵機生成與武器系統
+        // ============================================================================
+        function rebuildPlayerJetMesh() {
+            if (player.mesh) scene.remove(player.mesh);
+            const cfg = JET_CONFIGS[selectedJetKey];
+            const rig = createFighterJetMesh(cfg.primaryHex, cfg.secondaryHex, cfg.accentHex, false);
+            player.mesh = rig.group;
+            player.flameL = rig.flameL;
+            player.flameR = rig.flameR;
+            player.mesh.position.copy(player.position);
+            player.mesh.quaternion.copy(player.quaternion);
+            scene.add(player.mesh);
+        }
+
+        function spawnEnemyWave(wave) {
+            const diffCfg = DIFF_CONFIGS[selectedDiffKey];
+            const count = Math.min(7, 2 + wave); // 第1波3架，逐波增加
+
+            for (let i = 0; i < count; i++) {
+                const rig = createFighterJetMesh(0x1f2937, 0x991b1b, 0xf43f5e, true);
+                const angle = (i / count) * Math.PI * 2 + Math.random() * 0.5;
+                const dist = 950 + Math.random() * 550;
+                const spawnPos = new THREE.Vector3(
+                    player.position.x + Math.cos(angle) * dist,
+                    520 + Math.random() * 480,
+                    player.position.z + Math.sin(angle) * dist
+                );
+
+                rig.group.position.copy(spawnPos);
+                rig.group.lookAt(player.position);
+                scene.add(rig.group);
+
+                enemies.push({
+                    id: Math.random().toString(36).substr(2, 6),
+                    callsign: `紅星-${wave}0${i + 1}`,
+                    mesh: rig.group,
+                    flameL: rig.flameL,
+                    flameR: rig.flameR,
+                    position: spawnPos,
+                    quaternion: rig.group.quaternion.clone(),
+                    speed: (108 + wave * 4) * diffCfg.enemySpeedMult,
+                    hp: diffCfg.enemyHp,
+                    maxHp: diffCfg.enemyHp,
+                    aiPhase: Math.random() * Math.PI * 2,
+                    evadeTimer: 0,
+                    gunCooldown: 1 + Math.random() * 2,
+                    missileCooldown: 8 + Math.random() * 7
+                });
+            }
+
+            showRadioChatter('空管中心 AWACS', `第 ${wave} 波敵機編隊（共 ${count} 架）已進入雷達空域，准許自由交戰！`, 'text-cyan-300 border-cyan-400');
+        }
+
+        // 發射 20mm 火神機砲曳光彈
+        function fireVulcanCannon() {
+            if (player.gunCooldown > 0 || gameState !== 'playing') return;
+            player.gunCooldown = 0.085;
+            shotsFired += 2;
+            AeroAudio.playVulcanShot();
+
+            const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.quaternion);
+            const right = new THREE.Vector3(1, 0, 0).applyQuaternion(player.quaternion);
+            const up = new THREE.Vector3(0, 1, 0).applyQuaternion(player.quaternion);
+
+            [-0.95, 0.95].forEach(side => {
+                const muzzlePos = player.position.clone()
+                    .addScaledVector(right, side)
+                    .addScaledVector(up, -0.15)
+                    .addScaledVector(forward, 3.2);
+
+                const tracerMesh = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.11, 0.11, 5.5, 6),
+                    new THREE.MeshBasicMaterial({ color: 0xfef08a })
+                );
+                tracerMesh.quaternion.copy(player.quaternion);
+                tracerMesh.rotateX(Math.PI / 2);
+                tracerMesh.position.copy(muzzlePos);
+                scene.add(tracerMesh);
+
+                bullets.push({
+                    mesh: tracerMesh,
+                    position: muzzlePos,
+                    velocity: forward.clone().multiplyScalar(player.speed + 560),
+                    isPlayer: true,
+                    life: 1.65
+                });
+            });
+        }
+
+        // 發射 AIM-120 雷達導引追蹤飛彈
+        function fireHomingMissile() {
+            if (gameState !== 'playing') return;
+            if (player.missiles <= 0) {
+                AeroAudio.playBeep(320, 0.12, 0.1);
+                return;
+            }
+
+            player.missiles--;
+            AeroAudio.playMissileLaunch();
+
+            const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.quaternion);
+            const down = new THREE.Vector3(0, -1, 0).applyQuaternion(player.quaternion);
+            const launchPos = player.position.clone().addScaledVector(down, 0.6).addScaledVector(forward, 2.0);
+
+            const mGroup = new THREE.Group();
+            const body = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.14, 0.14, 2.8, 8),
+                new THREE.MeshBasicMaterial({ color: 0xf8fafc })
+            );
+            body.rotation.x = Math.PI / 2;
+            const flame = new THREE.Mesh(
+                new THREE.ConeGeometry(0.22, 1.4, 8),
+                new THREE.MeshBasicMaterial({ color: 0xf97316 })
+            );
+            flame.rotation.x = Math.PI / 2;
+            flame.position.z = 1.9;
+            mGroup.add(body, flame);
+
+            mGroup.position.copy(launchPos);
+            mGroup.quaternion.copy(player.quaternion);
+            scene.add(mGroup);
+
+            const hasSolidLock = player.lockedEnemy && player.lockProgress >= 1.0;
+            missiles.push({
+                mesh: mGroup,
+                position: launchPos,
+                quaternion: player.quaternion.clone(),
+                speed: player.speed + 235,
+                target: hasSolidLock ? player.lockedEnemy : null,
+                isPlayer: true,
+                life: 6.5,
+                smokeTimer: 0
+            });
+
+            if (hasSolidLock) {
+                showRadioChatter('獵鷹一號', `Fox-3！追蹤飛彈已發射，目標 ${player.lockedEnemy.callsign}！`, 'text-emerald-300 border-emerald-400');
+            }
+        }
+
+        // 釋放干擾熱誘彈 (Flares) 誘騙敵軍來襲飛彈
+        function deployFlares() {
+            if (gameState !== 'playing' || player.flares <= 0 || player.flareCooldown > 0) return;
+            player.flares--;
+            player.flareCooldown = 3.5;
+            AeroAudio.playFlarePop();
+
+            const back = new THREE.Vector3(0, 0, 1).applyQuaternion(player.quaternion);
+            const right = new THREE.Vector3(1, 0, 0).applyQuaternion(player.quaternion);
+            const down = new THREE.Vector3(0, -1, 0).applyQuaternion(player.quaternion);
+
+            for (let i = 0; i < 6; i++) {
+                const side = (i % 2 === 0 ? 1 : -1) * (1.5 + Math.random() * 2.5);
+                const flarePos = player.position.clone().addScaledVector(back, 3.0);
+                const flareMesh = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.55, 8, 8),
+                    new THREE.MeshBasicMaterial({ color: 0xfef08a })
+                );
+                flareMesh.position.copy(flarePos);
+                scene.add(flareMesh);
+
+                const vel = back.clone().multiplyScalar(25)
+                    .addScaledVector(right, side * 8)
+                    .addScaledVector(down, 8 + Math.random() * 6);
+
+                flares.push({ mesh: flareMesh, position: flarePos, velocity: vel, life: 2.6 });
+            }
+
+            // 使所有正在鎖定玩家的敵方飛彈轉向追逐熱誘彈而失效
+            let spoofed = 0;
+            missiles.forEach(m => {
+                if (!m.isPlayer && m.target === player) {
+                    m.target = null;
+                    spoofed++;
+                }
+            });
+            if (spoofed > 0) {
+                showRadioChatter('反制系統', '熱誘彈成功干擾並擺脫敵方追蹤飛彈！', 'text-amber-300 border-amber-400');
+            }
+        }
+
+        // 建立空中多層次火球爆炸特效
+        function spawnExplosion(pos, scale = 1.0) {
+            AeroAudio.playExplosion();
+            const expGroup = new THREE.Group();
+            expGroup.position.copy(pos);
+
+            const core = new THREE.Mesh(
+                new THREE.SphereGeometry(3.2 * scale, 14, 14),
+                new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.95 })
+            );
+            const fireball = new THREE.Mesh(
+                new THREE.SphereGeometry(5.5 * scale, 14, 14),
+                new THREE.MeshBasicMaterial({ color: 0xf97316, transparent: true, opacity: 0.85 })
+            );
+            const smoke = new THREE.Mesh(
+                new THREE.DodecahedronGeometry(7.2 * scale, 1),
+                new THREE.MeshBasicMaterial({ color: 0x1e293b, transparent: true, opacity: 0.75 })
+            );
+
+            expGroup.add(core, fireball, smoke);
+            scene.add(expGroup);
+            explosions.push({ group: expGroup, core, fireball, smoke, age: 0, maxAge: 1.15 });
+        }
+
+        // ============================================================================
+        // 6. 6-DOF 飛行物理更新、目標鎖定與敵機 AI 纏鬥邏輯
+        // ============================================================================
+        function updatePlayerFlight(dt, elapsed) {
+            const cfg = JET_CONFIGS[selectedJetKey];
+            flightSeconds += dt;
+
+            // 冷卻與自動補充計時器
+            if (player.gunCooldown > 0) player.gunCooldown -= dt;
+            if (player.flareCooldown > 0) player.flareCooldown -= dt;
+
+            if (player.missiles < player.maxMissiles) {
+                player.missileReloadTimer += dt;
+                if (player.missileReloadTimer >= cfg.missileReloadTime) {
+                    player.missileReloadTimer = 0;
+                    player.missiles++;
+                    AeroAudio.playBeep(1450, 0.06, 0.07);
+                }
+            }
+
+            // 1. 推力與後燃器控制
+            const wantsAB = (keys['ShiftLeft'] || keys['ShiftRight']) && player.afterburnerFuel > 2;
+            const wantsBrake = keys['KeyC'] || keys['ControlLeft'];
+
+            if (wantsAB) {
+                player.isAfterburner = true;
+                player.throttle = Math.min(1.0, player.throttle + 0.9 * dt);
+                player.afterburnerFuel = Math.max(0, player.afterburnerFuel - 24 * dt);
+            } else {
+                player.isAfterburner = false;
+                player.afterburnerFuel = Math.min(100, player.afterburnerFuel + 12 * dt);
+                if (wantsBrake) {
+                    player.throttle = Math.max(0.15, player.throttle - 0.85 * dt);
+                } else {
+                    player.throttle += (0.58 - player.throttle) * Math.min(1, 1.5 * dt);
+                }
+            }
+
+            const targetSpeed = player.isAfterburner
+                ? cfg.maxSpeed
+                : (cfg.minSpeed + (cfg.baseSpeed - cfg.minSpeed) * (player.throttle / 0.65));
+            player.speed += (targetSpeed - player.speed) * Math.min(1, 2.5 * dt);
+
+            // 2. 俯仰 (Pitch)、滾轉 (Roll) 與偏航 (Yaw) 操控輸入合成
+            let pitchInput = mouseStick.y;
+            let rollInput = -mouseStick.x;
+            let yawInput = 0;
+
+            if (keys['KeyW'] || keys['ArrowUp']) pitchInput -= 0.85;
+            if (keys['KeyS'] || keys['ArrowDown']) pitchInput += 0.85;
+            if (keys['KeyA'] || keys['ArrowLeft']) rollInput += 0.95;
+            if (keys['KeyD'] || keys['ArrowRight']) rollInput -= 0.95;
+            if (keys['KeyQ']) yawInput += 0.75;
+            if (keys['KeyE']) yawInput -= 0.75;
+
+            pitchInput = Math.max(-1, Math.min(1, pitchInput));
+            rollInput = Math.max(-1, Math.min(1, rollInput));
+
+            // 施加四元數局部軸旋轉（真實飛行姿態控制）
+            const qPitch = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitchInput * cfg.pitchRate * dt);
+            const qRoll = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), rollInput * cfg.rollRate * dt);
+            const qYaw = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yawInput * 0.75 * dt);
+
+            player.quaternion.multiply(qRoll).multiply(qPitch).multiply(qYaw).normalize();
+
+            // 3. 沿機頭方向推進位移
+            const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.quaternion);
+            player.position.addScaledVector(forward, player.speed * dt);
+
+            // 海面低空防墜保護與高度限制
+            if (player.position.y < 18) {
+                player.position.y = 18;
+                takePlayerDamage(35 * dt);
+            } else if (player.position.y > 3200) {
+                player.position.y = 3200;
+            }
+
+            // 更新戰機模型與雙後燃器尾焰大小
+            player.mesh.position.copy(player.position);
+            player.mesh.quaternion.copy(player.quaternion);
+
+            const flameScale = player.isAfterburner ? (1.4 + Math.random() * 0.45) : (0.45 + player.throttle * 0.55 + Math.random() * 0.12);
+            player.flameL.scale.set(1, 1, flameScale);
+            player.flameR.scale.set(1, 1, flameScale);
+
+            // 4. 持續射擊機砲
+            if (isFiringGun || keys['Space']) {
+                fireVulcanCannon();
+            }
+
+            // 5. 雷達前方目標自動鎖定系統
+            updateTargetLockOn(dt, elapsed);
+
+            // 6. 攝影機位置與視角更新
+            updateFlightCamera(dt);
+
+            // 7. 引擎聲浪調製
+            AeroAudio.updateJetSound(player.throttle, player.isAfterburner, true);
+        }
+
+        function updateTargetLockOn(dt, elapsed) {
+            const diffCfg = DIFF_CONFIGS[selectedDiffKey];
+            const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.quaternion);
+            const maxLockRad = THREE.MathUtils.degToRad(diffCfg.lockConeDeg);
+
+            let bestTarget = null;
+            let bestScore = Infinity;
+
+            for (const enemy of enemies) {
+                const toEnemy = enemy.position.clone().sub(player.position);
+                const dist = toEnemy.length();
+                if (dist > 2400) continue;
+
+                const angle = forward.angleTo(toEnemy.normalize());
+                if (angle < maxLockRad && dist < bestScore) {
+                    bestScore = dist;
+                    bestTarget = enemy;
+                }
+            }
+
+            if (bestTarget) {
+                if (player.lockedEnemy === bestTarget) {
+                    player.lockProgress = Math.min(1.0, player.lockProgress + dt * 0.85);
+                    if (player.lockProgress >= 1.0 && Math.floor(elapsed * 8) % 2 === 0) {
+                        AeroAudio.playBeep(1680, 0.05, 0.06);
+                    }
+                } else {
+                    player.lockedEnemy = bestTarget;
+                    player.lockProgress = 0.15;
+                    AeroAudio.playBeep(980, 0.06, 0.07);
+                }
+            } else {
+                player.lockedEnemy = null;
+                player.lockProgress = 0;
+            }
+        }
+
+        function updateFlightCamera(dt) {
+            const abOverlay = document.getElementById('afterburner-overlay');
+            const cockpitOverlay = document.getElementById('cockpit-overlay');
+
+            // 動態速度廣角 (FOV)
+            const targetFov = 65 + (player.speed / 215) * 16 + (player.isAfterburner ? 10 : 0);
+            camera.fov += (targetFov - camera.fov) * Math.min(1, 5 * dt);
+            camera.updateProjectionMatrix();
+
+            abOverlay.style.opacity = player.isAfterburner ? '1' : '0';
+
+            let shakeOffset = new THREE.Vector3();
+            if (screenShake > 0) {
+                shakeOffset.set(
+                    (Math.random() - 0.5) * screenShake,
+                    (Math.random() - 0.5) * screenShake,
+                    (Math.random() - 0.5) * screenShake
+                );
+                screenShake = Math.max(0, screenShake - dt * 2.5);
+            }
+
+            if (cameraMode === 0) {
+                // 第三人稱追尾視角
+                cockpitOverlay.classList.add('hidden');
+                player.mesh.visible = true;
+
+                const backOffset = new THREE.Vector3(0, 3.1, player.isAfterburner ? 14.5 : 13.0).applyQuaternion(player.quaternion);
+                const desiredCamPos = player.position.clone().add(backOffset).add(shakeOffset);
+                camera.position.lerp(desiredCamPos, Math.min(1, 14 * dt));
+
+                const lookTarget = player.position.clone().add(
+                    new THREE.Vector3(0, 0.8, -45).applyQuaternion(player.quaternion)
+                );
+                camera.up.set(0, 1, 0).applyQuaternion(player.quaternion);
+                camera.lookAt(lookTarget);
+            } else {
+                // 第一人稱駕駛艙視角
+                cockpitOverlay.classList.remove('hidden');
+                player.mesh.visible = false;
+
+                const eyePos = player.position.clone().add(
+                    new THREE.Vector3(0, 0.68, -1.75).applyQuaternion(player.quaternion)
+                ).add(shakeOffset);
+                camera.position.copy(eyePos);
+                camera.quaternion.copy(player.quaternion);
+            }
+        }
+
+        function updateEnemiesAndProjectiles(dt, elapsed) {
+            const diffCfg = DIFF_CONFIGS[selectedDiffKey];
+            let incomingMissile = false;
+
+            // 1. 更新敵機編隊纏鬥 AI
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                const e = enemies[i];
+                e.aiPhase += dt * 0.9;
+                e.gunCooldown -= dt;
+                e.missileCooldown -= dt;
+
+                const toPlayer = player.position.clone().sub(e.position);
+                const dist = toPlayer.length();
+
+                // 計算 AI 目標點：距離過近時執行拉升桶滾機動，否則切入玩家後方纏鬥
+                let desiredPoint = player.position.clone();
+                if (dist < 180) {
+                    desiredPoint.y += 220;
+                    desiredPoint.x += Math.cos(e.aiPhase * 2) * 320;
+                } else {
+                    desiredPoint.x += Math.sin(e.aiPhase) * 90;
+                    desiredPoint.y += Math.cos(e.aiPhase * 1.3) * 65;
+                }
+
+                const targetDir = desiredPoint.sub(e.position).normalize();
+                const targetQuat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), targetDir);
+                e.quaternion.slerp(targetQuat, Math.min(1, 1.45 * dt));
+
+                const eForward = new THREE.Vector3(0, 0, -1).applyQuaternion(e.quaternion);
+                e.position.addScaledVector(eForward, e.speed * dt);
+                if (e.position.y < 60) e.position.y = 60;
+
+                e.mesh.position.copy(e.position);
+                e.mesh.quaternion.copy(e.quaternion);
+                // 模擬敵機轉向傾斜姿態
+                e.mesh.rotateZ(Math.sin(e.aiPhase * 1.6) * 0.65);
+
+                const fScale = 0.8 + Math.random() * 0.35;
+                e.flameL.scale.set(1, 1, fScale);
+                e.flameR.scale.set(1, 1, fScale);
+
+                // 敵機開火判定
+                const aimAngle = eForward.angleTo(toPlayer.clone().normalize());
+                if (dist < 950 && aimAngle < 0.25 && e.gunCooldown <= 0) {
+                    e.gunCooldown = 0.32 / diffCfg.enemyFireRate;
+                    const bMesh = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.14, 0.14, 6.0, 6),
+                        new THREE.MeshBasicMaterial({ color: 0xf43f5e })
+                    );
+                    bMesh.quaternion.copy(e.quaternion);
+                    bMesh.rotateX(Math.PI / 2);
+                    bMesh.position.copy(e.position).addScaledVector(eForward, 4.5);
+                    scene.add(bMesh);
+
+                    bullets.push({
+                        mesh: bMesh,
+                        position: bMesh.position.clone(),
+                        velocity: eForward.clone().multiplyScalar(e.speed + 420),
+                        isPlayer: false,
+                        life: 2.0
+                    });
+                }
+
+                // 敵機發射追蹤飛彈判定
+                if (dist < 1450 && dist > 320 && aimAngle < 0.35 && e.missileCooldown <= 0) {
+                    e.missileCooldown = 14.0 / diffCfg.enemyFireRate;
+                    const mGroup = new THREE.Group();
+                    const mBody = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.18, 0.18, 3.2, 8),
+                        new THREE.MeshBasicMaterial({ color: 0xf43f5e })
+                    );
+                    mBody.rotation.x = Math.PI / 2;
+                    mGroup.add(mBody);
+                    mGroup.position.copy(e.position);
+                    mGroup.quaternion.copy(e.quaternion);
+                    scene.add(mGroup);
+
+                    missiles.push({
+                        mesh: mGroup,
+                        position: e.position.clone(),
+                        quaternion: e.quaternion.clone(),
+                        speed: e.speed + 165,
+                        target: player,
+                        isPlayer: false,
+                        life: 6.5,
+                        smokeTimer: 0
+                    });
+                }
+            }
+
+            // 2. 更新機砲曳光彈與碰撞檢測
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const b = bullets[i];
+                b.life -= dt;
+                b.position.addScaledVector(b.velocity, dt);
+                b.mesh.position.copy(b.position);
+
+                let hit = false;
+                if (b.isPlayer) {
+                    for (let j = enemies.length - 1; j >= 0; j--) {
+                        if (b.position.distanceTo(enemies[j].position) < 9.5) {
+                            hit = true;
+                            shotsHit++;
+                            damageEnemy(j, 14);
+                            break;
+                        }
+                    }
+                } else {
+                    if (b.position.distanceTo(player.position) < 5.5) {
+                        hit = true;
+                        takePlayerDamage(6);
+                    }
+                }
+
+                if (hit || b.life <= 0) {
+                    scene.remove(b.mesh);
+                    bullets.splice(i, 1);
+                }
+            }
+
+            // 3. 更新追蹤飛彈導引與碰撞
+            for (let i = missiles.length - 1; i >= 0; i--) {
+                const m = missiles[i];
+                m.life -= dt;
+
+                if (!m.isPlayer && m.target === player) {
+                    incomingMissile = true;
+                }
+
+                if (m.target) {
+                    const targetPos = m.target.position;
+                    // 若目標敵機已被摧毀則解除導引
+                    if (m.isPlayer && !enemies.includes(m.target)) {
+                        m.target = null;
+                    } else {
+                        const desiredDir = targetPos.clone().sub(m.position).normalize();
+                        const desiredQuat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), desiredDir);
+                        m.quaternion.slerp(desiredQuat, Math.min(1, (m.isPlayer ? 4.8 : 2.6) * dt));
+                    }
+                }
+
+                const mForward = new THREE.Vector3(0, 0, -1).applyQuaternion(m.quaternion);
+                m.position.addScaledVector(mForward, m.speed * dt);
+                m.mesh.position.copy(m.position);
+                m.mesh.quaternion.copy(m.quaternion);
+
+                let exploded = false;
+                if (m.isPlayer) {
+                    for (let j = enemies.length - 1; j >= 0; j--) {
+                        if (m.position.distanceTo(enemies[j].position) < 14.0) {
+                            exploded = true;
+                            damageEnemy(j, 85);
+                            break;
+                        }
+                    }
+                } else {
+                    if (m.position.distanceTo(player.position) < 8.5) {
+                        exploded = true;
+                        takePlayerDamage(28);
+                    }
+                }
+
+                if (exploded || m.life <= 0) {
+                    if (exploded) spawnExplosion(m.position, 0.7);
+                    scene.remove(m.mesh);
+                    missiles.splice(i, 1);
+                }
+            }
+
+            // 飛彈警告燈號與音效
+            const warnBanner = document.getElementById('missile-warning-banner');
+            if (incomingMissile) {
+                warnBanner.classList.remove('hidden');
+                if (Math.floor(elapsed * 5) % 2 === 0) AeroAudio.playBeep(880, 0.08, 0.08);
+            } else {
+                warnBanner.classList.add('hidden');
+            }
+
+            // 4. 更新熱誘彈與爆炸火球動畫
+            for (let i = flares.length - 1; i >= 0; i--) {
+                const f = flares[i];
+                f.life -= dt;
+                f.position.addScaledVector(f.velocity, dt);
+                f.mesh.position.copy(f.position);
+                f.mesh.scale.setScalar(Math.max(0.1, f.life * 0.6));
+                if (f.life <= 0) {
+                    scene.remove(f.mesh);
+                    flares.splice(i, 1);
+                }
+            }
+
+            for (let i = explosions.length - 1; i >= 0; i--) {
+                const ex = explosions[i];
+                ex.age += dt;
+                const progress = ex.age / ex.maxAge;
+                if (progress >= 1) {
+                    scene.remove(ex.group);
+                    explosions.splice(i, 1);
+                } else {
+                    const s = 1 + progress * 4.5;
+                    ex.core.scale.setScalar(s * 0.7);
+                    ex.fireball.scale.setScalar(s);
+                    ex.smoke.scale.setScalar(s * 1.25);
+                    ex.core.material.opacity = Math.max(0, 1 - progress * 1.8);
+                    ex.fireball.material.opacity = Math.max(0, 0.85 - progress);
+                    ex.smoke.material.opacity = Math.max(0, 0.75 - progress * 0.85);
+                }
+            }
+
+            // 5. 檢查是否清空當前波次敵機 -> 進入下一波
+            if (enemies.length === 0 && gameState === 'playing') {
+                waveNumber++;
+                player.hp = Math.min(player.maxHp, player.hp + 25);
+                player.flares = 3;
+                spawnEnemyWave(waveNumber);
+            }
+        }
+
+        function damageEnemy(index, amount) {
+            const e = enemies[index];
+            if (!e) return;
+            e.hp -= amount;
+            if (e.hp <= 0) {
+                spawnExplosion(e.position, 1.35);
+                scene.remove(e.mesh);
+                enemies.splice(index, 1);
+
+                killsCount++;
+                scoreCount += 500 * waveNumber;
+                screenShake = Math.max(screenShake, 0.45);
+                showRadioChatter('擊墜確認', `Splash One！目標 ${e.callsign} 已被擊落！(+${500 * waveNumber})`, 'text-emerald-300 border-emerald-400');
+            }
+        }
+
+        function takePlayerDamage(amount) {
+            if (gameState !== 'playing') return;
+            player.hp = Math.max(0, player.hp - amount);
+            screenShake = Math.max(screenShake, 0.55);
+
+            const dmgOverlay = document.getElementById('damage-overlay');
+            dmgOverlay.style.opacity = '0.85';
+            setTimeout(() => { dmgOverlay.style.opacity = '0'; }, 180);
+
+            if (player.hp <= 0) {
+                spawnExplosion(player.position, 1.8);
+                triggerGameOver();
+            }
+        }
+
+        // ============================================================================
+        // 7. 全息 HUD 投影目標框、戰術圓形雷達與儀表板更新
+        // ============================================================================
+        function updateHUDAndRadar() {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+
+            // 1. 基本航電數值
+            const knots = Math.round(player.speed * 3.8);
+            const feet = Math.round(player.position.y * 6.5);
+            document.getElementById('hud-speed').textContent = knots;
+            document.getElementById('hud-alt').textContent = feet.toLocaleString();
+            document.getElementById('hud-mob-spd').textContent = knots;
+            document.getElementById('hud-mob-alt').textContent = feet;
+
+            const thrPct = Math.round(player.throttle * 100);
+            document.getElementById('hud-thr-pct').textContent = `${thrPct}%`;
+            document.getElementById('hud-thr-bar').style.width = `${thrPct}%`;
+
+            const abPct = Math.round(player.afterburnerFuel);
+            document.getElementById('hud-ab-pct').textContent = `${abPct}%`;
+            document.getElementById('hud-ab-bar').style.width = `${abPct}%`;
+
+            // 航向羅盤 (000° ~ 359°)
+            const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(player.quaternion);
+            let hdg = Math.round((Math.atan2(fwd.x, -fwd.z) * 180 / Math.PI + 360) % 360);
+            document.getElementById('hud-heading').textContent = `${hdg.toString().padStart(3, '0')}°`;
+
+            // 機體裝甲條
+            const hpPct = Math.round((player.hp / player.maxHp) * 100);
+            document.getElementById('hud-hp-text').textContent = `${hpPct}%`;
+            const hpBar = document.getElementById('hud-hp-bar');
+            hpBar.style.width = `${hpPct}%`;
+            hpBar.className = hpPct < 30
+                ? 'h-full rounded-full bg-red-500 transition-all duration-150'
+                : 'h-full rounded-full bg-gradient-to-r from-emerald-500 to-cyan-400 transition-all duration-150';
+
+            // 武裝與反制熱誘彈
+            document.getElementById('hud-missile-count').textContent = `${player.missiles} / ${player.maxMissiles}`;
+            const pipsEl = document.getElementById('missile-pips');
+            if (pipsEl) {
+                let pipsHtml = '';
+                for (let i = 0; i < player.maxMissiles; i++) {
+                    pipsHtml += i < player.missiles
+                        ? '<div class="h-2 rounded bg-rose-500 shadow-[0_0_8px_#f43f5e]"></div>'
+                        : '<div class="h-2 rounded bg-slate-800 border border-slate-700"></div>';
+                }
+                pipsEl.innerHTML = pipsHtml;
+            }
+
+            const flareEl = document.getElementById('hud-flare-status');
+            if (player.flares <= 0) {
+                flareEl.textContent = 'DEPLETED (0)';
+                flareEl.className = 'hud-font font-bold text-slate-500';
+            } else if (player.flareCooldown > 0) {
+                flareEl.textContent = `RELOAD ${player.flareCooldown.toFixed(1)}s`;
+                flareEl.className = 'hud-font font-bold text-amber-400';
+            } else {
+                flareEl.textContent = `READY (${player.flares})`;
+                flareEl.className = 'hud-font font-bold text-emerald-300';
+            }
+
+            // 鎖定狀態文字
+            const lockEl = document.getElementById('hud-lock-status');
+            if (player.lockedEnemy && player.lockProgress >= 1.0) {
+                lockEl.textContent = 'LOCKED [FIRE]';
+                lockEl.className = 'hud-font text-xs font-black text-rose-400 animate-pulse';
+            } else if (player.lockedEnemy) {
+                lockEl.textContent = `LOCKING ${Math.round(player.lockProgress * 100)}%`;
+                lockEl.className = 'hud-font text-xs font-bold text-amber-300';
+            } else {
+                lockEl.textContent = 'SCANNING';
+                lockEl.className = 'hud-font text-xs font-bold text-emerald-300';
+            }
+
+            // 波次、擊墜、戰績與時間
+            document.getElementById('hud-wave').textContent = waveNumber.toString().padStart(2, '0');
+            document.getElementById('hud-kills').textContent = killsCount;
+            document.getElementById('hud-score').textContent = scoreCount.toLocaleString();
+            document.getElementById('hud-enemies-left').textContent = `空域敵機剩餘: ${enemies.length} 架`;
+
+            const mins = Math.floor(flightSeconds / 60).toString().padStart(2, '0');
+            const secs = Math.floor(flightSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('hud-time').textContent = `${mins}:${secs}`;
+
+            // 人工地平儀滾轉與俯仰連動
+            const euler = new THREE.Euler().setFromQuaternion(player.quaternion, 'YXZ');
+            const horizonEl = document.getElementById('horizon-ladder');
+            if (horizonEl) {
+                const pitchOffset = THREE.MathUtils.radToDeg(euler.x) * 2.2;
+                const rollDeg = -THREE.MathUtils.radToDeg(euler.z);
+                horizonEl.style.transform = `translateY(${pitchOffset}px) rotate(${rollDeg}deg)`;
+            }
+
+            // 虛擬飛行搖桿中心圓點位置
+            const stickDot = document.getElementById('virtual-stick-dot');
+            if (stickDot) {
+                stickDot.style.transform = `translate(${mouseStick.x * 68}px, ${mouseStick.y * 68}px)`;
+            }
+
+            // 2. 更新 3D -> 2D 敵機目標框與畫面外方位箭頭
+            const markersLayer = document.getElementById('target-markers-layer');
+            let markersHtml = '';
+
+            enemies.forEach(enemy => {
+                const dist = Math.round(player.position.distanceTo(enemy.position));
+                const proj = enemy.position.clone().project(camera);
+                const isBehind = proj.z > 1;
+                let sx = (proj.x * 0.5 + 0.5) * w;
+                let sy = (-proj.y * 0.5 + 0.5) * h;
+
+                if (isBehind) {
+                    sx = w - sx;
+                    sy = h - 36;
+                }
+
+                const isLocked = (player.lockedEnemy === enemy && player.lockProgress >= 1.0);
+                const isLocking = (player.lockedEnemy === enemy && player.lockProgress < 1.0);
+
+                if (!isBehind && sx >= 20 && sx <= w - 20 && sy >= 20 && sy <= h - 20) {
+                    const boxColor = isLocked ? 'border-rose-500 text-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.8)]'
+                        : (isLocking ? 'border-amber-400 text-amber-300' : 'border-emerald-400/80 text-emerald-300');
+                    const hpRatio = Math.max(0, Math.round((enemy.hp / enemy.maxHp) * 100));
+
+                    markersHtml += `
+                        <div style="left:${sx}px; top:${sy}px;" class="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
+                            <div class="text-[10px] hud-font font-bold mb-1 whitespace-nowrap drop-shadow">${enemy.callsign} [${dist}m]</div>
+                            <div class="w-11 h-11 border-2 ${boxColor} ${isLocking ? 'reticle-scanning' : ''} flex items-center justify-center">
+                                ${isLocked ? '<div class="w-2 h-2 bg-rose-500 rounded-full"></div>' : ''}
+                            </div>
+                            <div class="w-11 h-1 bg-slate-900 mt-1 overflow-hidden">
+                                <div class="h-full bg-rose-500" style="width:${hpRatio}%"></div>
+                            </div>
+                            ${isLocked ? '<div class="text-[10px] hud-font font-black text-rose-400 mt-0.5 tracking-widest">LOCKED</div>' : ''}
+                        </div>
+                    `;
+                } else {
+                    // 畫面外方向指示標記
+                    const clampedX = Math.max(36, Math.min(w - 36, sx));
+                    const clampedY = Math.max(48, Math.min(h - 48, sy));
+                    markersHtml += `
+                        <div style="left:${clampedX}px; top:${clampedY}px;" class="absolute -translate-x-1/2 -translate-y-1/2 text-rose-400 text-xs hud-font font-bold flex flex-col items-center opacity-85">
+                            <span>◆</span>
+                            <span class="text-[9px]">${dist}m</span>
+                        </div>
+                    `;
+                }
+            });
+            markersLayer.innerHTML = markersHtml;
+
+            // 3. 繪製右上角圓形戰術雷達
+            drawTacticalRadar();
+        }
+
+        function drawTacticalRadar() {
+            const canvas = document.getElementById('radar-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+            const cx = w / 2;
+            const cy = h / 2;
+            const r = cx - 4;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // 雷達同心圓與十字線
+            ctx.strokeStyle = 'rgba(52, 211, 153, 0.28)';
+            ctx.lineWidth = 1;
+            [0.33, 0.66, 1.0].forEach(scale => {
+                ctx.beginPath();
+                ctx.arc(cx, cy, r * scale, 0, Math.PI * 2);
+                ctx.stroke();
+            });
+            ctx.beginPath();
+            ctx.moveTo(cx, 4); ctx.lineTo(cx, h - 4);
+            ctx.moveTo(4, cy); ctx.lineTo(w - 4, cy);
+            ctx.stroke();
+
+            // 玩家機頭扇形掃描視錐
+            ctx.fillStyle = 'rgba(52, 211, 153, 0.14)';
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, r, -Math.PI / 2 - 0.35, -Math.PI / 2 + 0.35);
+            ctx.closePath();
+            ctx.fill();
+
+            // 玩家中心三角
+            ctx.fillStyle = '#34d399';
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - 5);
+            ctx.lineTo(cx - 4, cy + 4);
+            ctx.lineTo(cx + 4, cy + 4);
+            ctx.closePath();
+            ctx.fill();
+
+            // 轉換敵機與飛彈至玩家局部座標系
+            const invQuat = player.quaternion.clone().invert();
+            const radarRange = 2200;
+
+            enemies.forEach(enemy => {
+                const rel = enemy.position.clone().sub(player.position).applyQuaternion(invQuat);
+                const nx = Math.max(-1, Math.min(1, rel.x / radarRange));
+                const nz = Math.max(-1, Math.min(1, rel.z / radarRange));
+                ctx.fillStyle = '#f43f5e';
+                ctx.beginPath();
+                ctx.arc(cx + nx * (r - 6), cy + nz * (r - 6), 3.4, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            missiles.forEach(m => {
+                if (!m.isPlayer) {
+                    const rel = m.position.clone().sub(player.position).applyQuaternion(invQuat);
+                    const nx = Math.max(-1, Math.min(1, rel.x / radarRange));
+                    const nz = Math.max(-1, Math.min(1, rel.z / radarRange));
+                    ctx.fillStyle = '#facc15';
+                    ctx.fillRect(cx + nx * (r - 6) - 2, cy + nz * (r - 6) - 2, 4, 4);
+                }
+            });
+        }
+
+        // ============================================================================
+        // 8. 任務啟動、暫停、結算與事件綁定
+        // ============================================================================
+        function launchMission() {
+            AeroAudio.init();
+            AeroAudio.resume();
+
+            const cfg = JET_CONFIGS[selectedJetKey];
+            player.position.set(0, 680, 220);
+            player.quaternion.identity();
+            player.speed = cfg.baseSpeed;
+            player.throttle = 0.6;
+            player.afterburnerFuel = 100;
+            player.hp = cfg.maxHp;
+            player.maxHp = cfg.maxHp;
+            player.missiles = 4;
+            player.missileReloadTimer = 0;
+            player.flares = 3;
+            player.flareCooldown = 0;
+            player.lockedEnemy = null;
+            player.lockProgress = 0;
+
+            rebuildPlayerJetMesh();
+
+            // 清空舊敵機與投射物
+            enemies.forEach(e => scene.remove(e.mesh));
+            enemies.length = 0;
+            bullets.forEach(b => scene.remove(b.mesh));
+            bullets.length = 0;
+            missiles.forEach(m => scene.remove(m.mesh));
+            missiles.length = 0;
+            flares.forEach(f => scene.remove(f.mesh));
+            flares.length = 0;
+
+            waveNumber = 1;
+            killsCount = 0;
+            scoreCount = 0;
+            flightSeconds = 0;
+            shotsFired = 0;
+            shotsHit = 0;
+            mouseStick.x = 0;
+            mouseStick.y = 0;
+
+            document.getElementById('hud-jet-code').textContent = cfg.code;
+            document.getElementById('hangar-modal').classList.add('hidden');
+            document.getElementById('pause-modal').classList.add('hidden');
+            document.getElementById('gameover-modal').classList.add('hidden');
+            document.getElementById('hud').classList.remove('hidden');
+            if (isTouchDevice) document.getElementById('mobile-controls').classList.remove('hidden');
+
+            gameState = 'playing';
+            spawnEnemyWave(1);
+        }
+
+        function triggerGameOver() {
+            gameState = 'gameover';
+            AeroAudio.updateJetSound(0, false, false);
+            document.getElementById('hud').classList.add('hidden');
+            document.getElementById('mobile-controls').classList.add('hidden');
+            document.getElementById('cockpit-overlay').classList.add('hidden');
+            document.getElementById('afterburner-overlay').style.opacity = '0';
+
+            const acc = shotsFired > 0 ? Math.round((shotsHit / shotsFired) * 100) : 0;
+            const mins = Math.floor(flightSeconds / 60).toString().padStart(2, '0');
+            const secs = Math.floor(flightSeconds % 60).toString().padStart(2, '0');
+
+            document.getElementById('end-wave').textContent = `WAVE ${waveNumber}`;
+            document.getElementById('end-kills').textContent = `${killsCount} 架`;
+            document.getElementById('end-accuracy').textContent = `${acc}%`;
+            document.getElementById('end-time').textContent = `${mins}:${secs}`;
+            document.getElementById('end-score').textContent = scoreCount.toLocaleString();
+
+            document.getElementById('gameover-modal').classList.remove('hidden');
+        }
+
+        function returnToHangar() {
+            gameState = 'hangar';
+            AeroAudio.updateJetSound(0, false, false);
+            player.mesh.visible = true;
+            player.position.set(0, 680, 0);
+            player.quaternion.identity();
+            player.mesh.position.copy(player.position);
+            player.mesh.quaternion.copy(player.quaternion);
+
+            document.getElementById('hud').classList.add('hidden');
+            document.getElementById('pause-modal').classList.add('hidden');
+            document.getElementById('gameover-modal').classList.add('hidden');
+            document.getElementById('mobile-controls').classList.add('hidden');
+            document.getElementById('cockpit-overlay').classList.add('hidden');
+            document.getElementById('hangar-modal').classList.remove('hidden');
+        }
+
+        function initApp() {
+            const container = document.getElementById('game-container');
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x6ba5e7, 0.00018);
+
+            camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.5, 9500);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            // 高空陽光與海面漫射環境光
+            const hemiLight = new THREE.HemisphereLight(0xe0f2fe, 0x0c4a6e, 0.95);
+            const sunLight = new THREE.DirectionalLight(0xfffbeb, 1.25);
+            sunLight.position.set(2200, 2400, -3200);
+            scene.add(hemiLight, sunLight);
+
+            buildAerialEnvironment();
+            rebuildPlayerJetMesh();
+
+            clock = new THREE.Clock();
+            bindEvents();
+        }
+
+        function bindEvents() {
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            // 機庫戰機選擇與屬性條更新
+            document.querySelectorAll('.jet-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.jet-btn').forEach(b => {
+                        b.className = 'jet-btn bg-slate-900/80 border border-slate-700 text-slate-300 p-2.5 rounded-xl text-left cursor-pointer transition';
+                    });
+                    btn.className = 'jet-btn active-jet bg-emerald-950/80 border-2 border-emerald-400 text-white p-2.5 rounded-xl text-left cursor-pointer transition';
+                    selectedJetKey = btn.dataset.jet;
+
+                    const cfg = JET_CONFIGS[selectedJetKey];
+                    document.getElementById('jet-desc').textContent = cfg.desc;
+                    document.getElementById('stat-bar-speed').style.width = `${cfg.stats.speed}%`;
+                    document.getElementById('stat-bar-agility').style.width = `${cfg.stats.agility}%`;
+                    document.getElementById('stat-bar-armor').style.width = `${cfg.stats.armor}%`;
+
+                    rebuildPlayerJetMesh();
+                });
+            });
+
+            // 難度選擇
+            document.querySelectorAll('.diff-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.diff-btn').forEach(b => {
+                        b.className = 'diff-btn bg-slate-900/80 border border-slate-700 text-slate-300 py-2 px-3 rounded-xl text-xs font-bold cursor-pointer transition';
+                    });
+                    btn.className = 'diff-btn active-diff bg-cyan-950/80 border-2 border-cyan-400 text-white py-2 px-3 rounded-xl text-xs font-bold cursor-pointer transition';
+                    selectedDiffKey = btn.dataset.diff;
+                });
+            });
+
+            document.getElementById('btn-launch').addEventListener('click', launchMission);
+            document.getElementById('btn-instant-restart').addEventListener('click', launchMission);
+            document.getElementById('btn-end-hangar').addEventListener('click', returnToHangar);
+            document.getElementById('btn-abort-to-hangar').addEventListener('click', returnToHangar);
+
+            document.getElementById('btn-resume').addEventListener('click', () => {
+                if (gameState === 'paused') {
+                    gameState = 'playing';
+                    document.getElementById('pause-modal').classList.add('hidden');
+                }
+            });
+
+            // 滑鼠虛擬飛行搖桿控制
+            window.addEventListener('mousemove', (e) => {
+                if (gameState !== 'playing' || isTouchDevice) return;
+                const nx = (e.clientX / window.innerWidth) * 2 - 1;
+                const ny = (e.clientY / window.innerHeight) * 2 - 1;
+                // 中央 8% 死區防止微幅手抖
+                mouseStick.x = Math.abs(nx) < 0.08 ? 0 : nx;
+                mouseStick.y = Math.abs(ny) < 0.08 ? 0 : ny;
+            });
+
+            window.addEventListener('mousedown', (e) => {
+                if (gameState !== 'playing') return;
+                if (e.button === 0) isFiringGun = true;
+                if (e.button === 2) fireHomingMissile();
+            });
+            window.addEventListener('mouseup', (e) => {
+                if (e.button === 0) isFiringGun = false;
+            });
+            window.addEventListener('contextmenu', (e) => e.preventDefault());
+
+            // 鍵盤操作
+            window.addEventListener('keydown', (e) => {
+                keys[e.code] = true;
+                if (e.code === 'Space' && gameState === 'playing') e.preventDefault();
+
+                if (gameState === 'playing') {
+                    if (e.code === 'KeyF') fireHomingMissile();
+                    if (e.code === 'KeyX') deployFlares();
+                    if (e.code === 'KeyV') cameraMode = (cameraMode + 1) % 2;
+                    if (e.code === 'KeyP' || e.code === 'Escape') {
+                        gameState = 'paused';
+                        AeroAudio.updateJetSound(0, false, false);
+                        document.getElementById('pause-modal').classList.remove('hidden');
+                    }
+                } else if (gameState === 'paused' && (e.code === 'KeyP' || e.code === 'Escape')) {
+                    gameState = 'playing';
+                    document.getElementById('pause-modal').classList.add('hidden');
+                }
+
+                if (e.code === 'KeyM') {
+                    const muted = AeroAudio.toggleMute();
+                    document.getElementById('btn-hud-mute').textContent = muted ? '[M] 音效:關' : '[M] 音效:開';
+                }
+            });
+
+            window.addEventListener('keyup', (e) => {
+                keys[e.code] = false;
+            });
+
+            // HUD 按鈕
+            document.getElementById('btn-hud-view').addEventListener('click', () => {
+                cameraMode = (cameraMode + 1) % 2;
+            });
+            document.getElementById('btn-hud-mute').addEventListener('click', (e) => {
+                const muted = AeroAudio.toggleMute();
+                e.target.textContent = muted ? '[M] 音效:關' : '[M] 音效:開';
+            });
+            document.getElementById('btn-hud-pause').addEventListener('click', () => {
+                if (gameState === 'playing') {
+                    gameState = 'paused';
+                    AeroAudio.updateJetSound(0, false, false);
+                    document.getElementById('pause-modal').classList.remove('hidden');
+                }
+            });
+
+            // 行動裝置觸控虛擬搖桿與開火鈕
+            const stickZone = document.getElementById('mob-stick-zone');
+            const stickKnob = document.getElementById('mob-stick-knob');
+            stickZone.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const t = e.touches[0];
+                const rect = stickZone.getBoundingClientRect();
+                const dx = t.clientX - (rect.left + rect.width / 2);
+                const dy = t.clientY - (rect.top + rect.height / 2);
+                const maxR = rect.width / 2 - 14;
+                const d = Math.min(maxR, Math.hypot(dx, dy));
+                const ang = Math.atan2(dy, dx);
+                const kx = Math.cos(ang) * d;
+                const ky = Math.sin(ang) * d;
+                stickKnob.style.transform = `translate(${kx}px, ${ky}px)`;
+                mouseStick.x = kx / maxR;
+                mouseStick.y = ky / maxR;
+            }, { passive: false });
+
+            stickZone.addEventListener('touchend', () => {
+                stickKnob.style.transform = 'translate(0px, 0px)';
+                mouseStick.x = 0;
+                mouseStick.y = 0;
+            });
+
+            const mobGun = document.getElementById('mob-gun');
+            mobGun.addEventListener('touchstart', (e) => { e.preventDefault(); isFiringGun = true; });
+            mobGun.addEventListener('touchend', () => { isFiringGun = false; });
+
+            const mobBoost = document.getElementById('mob-boost');
+            mobBoost.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ShiftLeft'] = true; });
+            mobBoost.addEventListener('touchend', () => { keys['ShiftLeft'] = false; });
+
+            document.getElementById('mob-missile').addEventListener('click', fireHomingMissile);
+            document.getElementById('mob-flare').addEventListener('click', deployFlares);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const dt = Math.min(clock.getDelta(), 0.08);
+            const elapsed = clock.getElapsedTime();
+
+            if (gameState === 'hangar') {
+                // 機庫展示鏡頭：在右側清晰旋轉展示所選戰機
+                const angle = elapsed * 0.45;
+                camera.up.set(0, 1, 0);
+                camera.position.set(
+                    player.position.x + Math.cos(angle) * 14 - 3.5,
+                    player.position.y + 4.5,
+                    player.position.z + Math.sin(angle) * 14
+                );
+                camera.lookAt(player.position.x - 2.5, player.position.y + 0.5, player.position.z);
+                player.flameL.scale.set(1, 1, 0.7 + Math.sin(elapsed * 20) * 0.15);
+                player.flameR.scale.set(1, 1, 0.7 + Math.sin(elapsed * 20) * 0.15);
+            } else if (gameState === 'playing') {
+                updatePlayerFlight(dt, elapsed);
+                updateEnemiesAndProjectiles(dt, elapsed);
+                updateHUDAndRadar();
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        window.onload = function () {
+            initApp();
+            animate();
+        };
+    </script>
+</body>
+</html>
