@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>班級即時投票與長條圖統計器｜情境 A 互動範例</title>
+  <style>
+    :root {
+      --bg: #faf7f2;
+      --card: #ffffff;
+      --ink: #1e293b;
+      --muted: #52606d;
+      --primary: #0f766e;
+      --primary-soft: #f0fdfa;
+      --sky: #0369a1;
+      --accent: #d97706;
+      --accent-soft: #fffbeb;
+      --border: #e6dfd3;
+      --radius: 18px;
+      --shadow: 0 10px 28px rgba(30, 41, 59, 0.07);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      font-size: 17px;
+    }
+
+    .wrap {
+      max-width: 920px;
+      margin: 28px auto 32px;
+      padding: 0 18px;
+    }
+
+    .header {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 22px;
+      padding: 26px 28px;
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .header h1 {
+      margin: 4px 0 6px;
+      font-size: 1.75rem;
+      color: var(--ink);
+    }
+
+    .header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .total-badge {
+      background: linear-gradient(135deg, #0369a1 0%, #0f766e 100%);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 16px;
+      text-align: center;
+      min-width: 150px;
+    }
+
+    .total-badge span {
+      display: block;
+      font-size: 0.82rem;
+      opacity: 0.9;
+    }
+
+    .total-badge strong {
+      font-size: 1.6rem;
+    }
+
+    .card {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 26px;
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+    }
+
+    .vote-row {
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      background: #fffdf9;
+    }
+
+    .vote-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .opt-name {
+      font-weight: 800;
+      font-size: 1.08rem;
+    }
+
+    .vote-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .stat-txt {
+      font-weight: 700;
+      color: var(--muted);
+      font-size: 0.95rem;
+      min-width: 110px;
+      text-align: right;
+    }
+
+    .vote-btn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 8px 16px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.12s ease, background 0.2s ease;
+    }
+
+    .vote-btn:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .bar-track {
+      height: 18px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #0369a1, #0f766e);
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .btn-secondary {
+      background: var(--primary-soft);
+      color: var(--primary);
+      border: 1.5px solid #99f6e4;
+      border-radius: 10px;
+      padding: 9px 15px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-reset {
+      background: #fff;
+      color: var(--accent);
+      border: 1.5px solid #fde68a;
+      border-radius: 10px;
+      padding: 9px 15px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .custom-box {
+      display: none;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px dashed var(--border);
+    }
+
+    .custom-box.show {
+      display: block;
+    }
+
+    .custom-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 0.95rem;
+    }
+
+    .site-footer {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 24px 18px 56px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border);
+      line-height: 1.8;
+    }
+
+    .site-footer p {
+      margin: 4px 0;
+    }
+
+    .site-footer a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="header">
+      <div>
+        <div style="font-size:0.86rem; font-weight:700; color:var(--primary);">📊 情境 A · 課堂即時統計</div>
+        <h1 id="pollQuestion">本學期班級最想去的校外教學地點？</h1>
+        <p>點選右側「投一票」，觀察票數、比例與長條圖的即時變化！</p>
+      </div>
+      <div class="total-badge">
+        <span>目前總票數</span>
+        <strong id="totalVotes">0</strong>
+      </div>
+    </header>
+
+    <main class="card">
+      <div id="optionsContainer"></div>
+
+      <div class="toolbar">
+        <button class="btn-secondary" onclick="toggleCustomBox()">✏️ 自訂題目與選項</button>
+        <button class="btn-reset" onclick="resetVotes()">🔄 票數歸零重置</button>
+      </div>
+
+      <div class="custom-box" id="customBox">
+        <div style="margin-bottom:10px; font-weight:700;">設定新的投票題目與 4 個選項：</div>
+        <div class="custom-grid">
+          <input type="text" id="inQuestion" placeholder="投票題目" />
+          <input type="text" id="inOpt0" placeholder="選項 1" />
+          <input type="text" id="inOpt1" placeholder="選項 2" />
+          <input type="text" id="inOpt2" placeholder="選項 3" />
+          <input type="text" id="inOpt3" placeholder="選項 4" />
+        </div>
+        <button class="vote-btn" onclick="applyCustomPoll()">套用新題目並歸零</button>
+      </div>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <p>© 2026 CPAIZO STDUIO 版權所有</p>
+    <p>歡迎教師於課堂教學與非營利研習使用，請勿未經同意轉售或作商業用途；教學交流或問題回報請聯繫：<a href="mailto:cpaizo.email@gmail.com">cpaizo.email@gmail.com</a></p>
+  </footer>
+
+  <script>
+    let pollState = {
+      question: "本學期班級最想去的校外教學地點？",
+      options: [
+        { label: "科學教育館／科普探索", votes: 0 },
+        { label: "自然生態農場／戶外觀察", votes: 0 },
+        { label: "歷史博物館／文化老街", votes: 0 },
+        { label: "藝術創作中心／手作體驗", votes: 0 }
+      ]
+    };
+
+    function addVote(index) {
+      pollState.options[index].votes += 1;
+      renderPoll();
+    }
+
+    function resetVotes() {
+      pollState.options.forEach((opt) => (opt.votes = 0));
+      renderPoll();
+    }
+
+    function toggleCustomBox() {
+      const box = document.getElementById("customBox");
+      box.classList.toggle("show");
+      document.getElementById("inQuestion").value = pollState.question;
+      pollState.options.forEach((opt, i) => {
+        const el = document.getElementById(`inOpt${i}`);
+        if (el) el.value = opt.label;
+      });
+    }
+
+    function applyCustomPoll() {
+      const q = document.getElementById("inQuestion").value.trim();
+      const newLabels = [0, 1, 2, 3].map((i, idx) => {
+        const val = document.getElementById(`inOpt${i}`).value.trim();
+        return val || `選項 ${idx + 1}`;
+      });
+      if (q) pollState.question = q;
+      pollState.options = newLabels.map((label) => ({ label, votes: 0 }));
+      document.getElementById("customBox").classList.remove("show");
+      renderPoll();
+    }
+
+    function renderPoll() {
+      document.getElementById("pollQuestion").textContent = pollState.question;
+      const total = pollState.options.reduce((sum, item) => sum + item.votes, 0);
+      document.getElementById("totalVotes").textContent = total;
+
+      const container = document.getElementById("optionsContainer");
+      container.innerHTML = pollState.options
+        .map((opt, idx) => {
+          const pct = total > 0 ? Math.round((opt.votes / total) * 100) : 0;
+          return `
+            <div class="vote-row">
+              <div class="vote-top">
+                <span class="opt-name">${opt.label}</span>
+                <div class="vote-controls">
+                  <span class="stat-txt">${opt.votes} 票（${pct}%）</span>
+                  <button class="vote-btn" onclick="addVote(${idx})">+ 投一票</button>
+                </div>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill" style="width: ${pct}%;"></div>
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+    }
+
+    renderPoll();
+  </script>
+</body>
+</html>

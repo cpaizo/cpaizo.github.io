@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>每週閱讀與生活習慣分類統計器｜情境 B 互動範例</title>
+  <style>
+    :root {
+      --bg: #faf7f2;
+      --card: #ffffff;
+      --ink: #1e293b;
+      --muted: #52606d;
+      --primary: #0f766e;
+      --primary-soft: #f0fdfa;
+      --accent: #d97706;
+      --accent-soft: #fffbeb;
+      --border: #e6dfd3;
+      --radius: 18px;
+      --shadow: 0 10px 28px rgba(30, 41, 59, 0.07);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      font-size: 17px;
+    }
+
+    .wrap {
+      max-width: 940px;
+      margin: 28px auto 32px;
+      padding: 0 18px;
+    }
+
+    .header {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 22px;
+      padding: 26px 28px;
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      margin: 4px 0 8px;
+      font-size: 1.75rem;
+    }
+
+    .header p {
+      margin: 0 0 14px;
+      color: var(--muted);
+    }
+
+    .mode-switch {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .mode-btn {
+      border: 2px solid #cbd5e1;
+      background: #fff;
+      color: var(--ink);
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .mode-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .card {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 26px;
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+    }
+
+    .days-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .day-box {
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 10px;
+      text-align: center;
+      background: #fffdf9;
+    }
+
+    .day-name {
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+
+    .day-box input {
+      width: 100%;
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: 700;
+      padding: 6px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .stat-card {
+      background: var(--primary-soft);
+      border: 1px solid #99f6e4;
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+
+    .stat-card span {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .stat-card strong {
+      font-size: 1.4rem;
+      color: var(--ink);
+    }
+
+    .class-banner {
+      background: var(--accent-soft);
+      border: 1.5px solid #fde68a;
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-weight: 700;
+      color: #78350f;
+    }
+
+    .reset-btn {
+      margin-top: 14px;
+      background: #fff;
+      color: var(--muted);
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 8px 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .site-footer {
+      max-width: 940px;
+      margin: 0 auto;
+      padding: 24px 18px 56px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border);
+      line-height: 1.8;
+    }
+
+    .site-footer p {
+      margin: 4px 0;
+    }
+
+    .site-footer a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="header">
+      <div style="font-size:0.86rem; font-weight:700; color:var(--primary);">📈 情境 B · 分類統計互動頁</div>
+      <h1 id="mainTitle">每週閱讀時間分類統計器</h1>
+      <p id="mainDesc">輸入星期一到星期日的數據（可為 0 或正數），系統會自動算總數、平均並幫你分類！</p>
+      <div class="mode-switch">
+        <button class="mode-btn active" id="btnRead" onclick="switchMode('read')">📖 每週閱讀（分鐘）</button>
+        <button class="mode-btn" id="btnHabit" onclick="switchMode('habit')">🌱 每日好習慣（次數）</button>
+      </div>
+    </header>
+
+    <main class="card">
+      <div class="days-grid" id="daysGrid"></div>
+
+      <div class="summary-grid">
+        <div class="stat-card">
+          <span>本週總計</span>
+          <strong id="sumVal">0</strong>
+        </div>
+        <div class="stat-card">
+          <span>每日平均</span>
+          <strong id="avgVal">0</strong>
+        </div>
+        <div class="stat-card">
+          <span>最高紀錄日</span>
+          <strong id="maxVal">無</strong>
+        </div>
+      </div>
+
+      <div class="class-banner" id="classBanner"></div>
+      <button class="reset-btn" onclick="resetDays()">🔄 清空重填</button>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <p>© 2026 CPAIZO STDUIO 版權所有</p>
+    <p>歡迎教師於課堂教學與非營利研習使用，請勿未經同意轉售或作商業用途；教學交流或問題回報請聯繫：<a href="mailto:cpaizo.email@gmail.com">cpaizo.email@gmail.com</a></p>
+  </footer>
+
+  <script>
+    const DAYS = ["週一", "週二", "週三", "週四", "週五", "週六", "週日"];
+    const PRESETS = {
+      read: {
+        title: "每週閱讀時間分類統計器",
+        desc: "填入每天閱讀的分鐘數（建議每週目標 150 分鐘以上），看看自己落在哪個閱讀等級！",
+        unit: "分鐘",
+        values: [20, 25, 15, 30, 20, 40, 25],
+        goalTotal: 150
+      },
+      habit: {
+        title: "每日好習慣分類統計器",
+        desc: "填入每天完成好習慣的次數（例如喝水、運動、整理書包，每週目標 14 次以上）。",
+        unit: "次",
+        values: [2, 2, 1, 2, 2, 3, 2],
+        goalTotal: 14
+      }
+    };
+
+    let currentMode = "read";
+    let currentValues = [...PRESETS.read.values];
+
+    function switchMode(mode) {
+      currentMode = mode;
+      currentValues = [...PRESETS[mode].values];
+      document.getElementById("btnRead").classList.toggle("active", mode === "read");
+      document.getElementById("btnHabit").classList.toggle("active", mode === "habit");
+      document.getElementById("mainTitle").textContent = PRESETS[mode].title;
+      document.getElementById("mainDesc").textContent = PRESETS[mode].desc;
+      buildInputs();
+      recalc();
+    }
+
+    function buildInputs() {
+      const grid = document.getElementById("daysGrid");
+      grid.innerHTML = DAYS.map((d, i) => `
+        <div class="day-box">
+          <div class="day-name">${d}</div>
+          <input type="number" min="0" step="1" value="${currentValues[i]}" oninput="onInput(${i}, this.value)" />
+        </div>
+      `).join("");
+    }
+
+    function onInput(idx, raw) {
+      const num = Math.max(0, Number(raw) || 0);
+      currentValues[idx] = num;
+      recalc();
+    }
+
+    function resetDays() {
+      currentValues = [0, 0, 0, 0, 0, 0, 0];
+      buildInputs();
+      recalc();
+    }
+
+    function recalc() {
+      const preset = PRESETS[currentMode];
+      const total = currentValues.reduce((a, b) => a + b, 0);
+      const avg = (total / 7).toFixed(1);
+
+      let maxIdx = 0;
+      for (let i = 1; i < currentValues.length; i++) {
+        if (currentValues[i] > currentValues[maxIdx]) maxIdx = i;
+      }
+
+      document.getElementById("sumVal").textContent = `${total} ${preset.unit}`;
+      document.getElementById("avgVal").textContent = `${avg} ${preset.unit}`;
+      document.getElementById("maxVal").textContent = total > 0 ? `${DAYS[maxIdx]}（${currentValues[maxIdx]} ${preset.unit}）` : "尚未有紀錄";
+
+      let category = "";
+      if (total >= preset.goalTotal) {
+        category = `🏆 分類結果：穩定達標組（已達本週目標 ${preset.goalTotal} ${preset.unit}，表現很棒！）`;
+      } else if (total >= preset.goalTotal * 0.5) {
+        category = `🌱 分類結果：持續進步組（已完成一半以上目標，再加把勁就能達標！）`;
+      } else {
+        category = `✨ 分類結果：起步暖身組（先從每天固定做一點開始，慢慢累積就會看到變化！）`;
+      }
+      document.getElementById("classBanner").textContent = category;
+    }
+
+    buildInputs();
+    recalc();
+  </script>
+</body>
+</html>
