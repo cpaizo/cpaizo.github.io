@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>單元 02｜冰塊融化與水溫變化模擬器 × 變因提示詞設計手冊</title>
+  <style>
+    :root {
+      --bg: #f6f4ef;
+      --paper: #fffdf9;
+      --ink: #1f2933;
+      --muted: #52606d;
+      --primary: #0f766e;
+      --primary-soft: #f0fdfa;
+      --sky: #0369a1;
+      --sky-soft: #f0f9ff;
+      --warn: #b45309;
+      --warn-soft: #fffbeb;
+      --border: #e2ddd3;
+      --shadow: 0 8px 24px rgba(31, 41, 51, 0.06);
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(255, 253, 249, 0.92);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+
+    .badge {
+      background: var(--sky-soft);
+      color: var(--sky);
+      border: 1px solid #bae6fd;
+      font-size: 0.78rem;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 0.9rem;
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .nav-links a:hover {
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--ink);
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #115e59;
+    }
+
+    .container {
+      max-width: 1040px;
+      margin: 28px auto 32px;
+      padding: 0 20px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #0369a1 0%, #0f766e 100%);
+      color: #fff;
+      padding: 36px 32px;
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 28px;
+    }
+
+    .hero .kicker {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.18);
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      margin-bottom: 12px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: 1.88rem;
+      line-height: 1.35;
+    }
+
+    .hero p {
+      margin: 0 0 20px;
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 1.02rem;
+      max-width: 800px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .meta-item {
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+
+    .meta-item .label {
+      font-size: 0.78rem;
+      opacity: 0.85;
+      display: block;
+    }
+
+    .meta-item .val {
+      font-weight: 700;
+      font-size: 0.98rem;
+    }
+
+    section {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    section h2 {
+      margin: 0 0 18px;
+      font-size: 1.42rem;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--bg);
+    }
+
+    h3 {
+      margin: 20px 0 10px;
+      font-size: 1.12rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      background: #fff;
+    }
+
+    .card.sky {
+      background: var(--sky-soft);
+      border-color: #bae6fd;
+    }
+
+    .card.teal {
+      background: var(--primary-soft);
+      border-color: #ccfbf1;
+    }
+
+    .card.amber {
+      background: var(--warn-soft);
+      border-color: #fde68a;
+    }
+
+    .card-title {
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    ul, ol {
+      margin: 8px 0 14px;
+      padding-left: 22px;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 20px;
+      font-size: 0.94rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 11px 13px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f3f0e8;
+      font-weight: 700;
+    }
+
+    .prompt-box {
+      position: relative;
+      background: #18202c;
+      color: #f8fafc;
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin: 10px 0 14px;
+      font-size: 0.92rem;
+      line-height: 1.65;
+      white-space: pre-wrap;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.78rem;
+      cursor: pointer;
+    }
+
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .builder-panel {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 20px;
+      margin-top: 14px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+      color: #334155;
+    }
+
+    select, input[type="text"] {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .quote-tip {
+      background: var(--warn-soft);
+      border-left: 4px solid var(--warn);
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin: 12px 0;
+      font-size: 0.94rem;
+    }
+
+    .site-footer {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 24px 20px 56px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border);
+      line-height: 1.8;
+    }
+
+    .site-footer p {
+      margin: 4px 0;
+    }
+
+    .site-footer a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .site-footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media print {
+      .topbar, .btn, .copy-btn, .builder-panel {
+        display: none !important;
+      }
+      body {
+        background: #fff;
+      }
+      section, .hero, .site-footer {
+        box-shadow: none;
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <span>📘 教師教學手冊</span>
+      <span class="badge">單元 02 · 變因模擬器 × 提示詞實作</span>
+    </div>
+    <nav class="nav-links">
+      <a href="#sec1">一、課程核心與科學變因</a>
+      <a href="#sec2">二、示範提示詞與變因設計</a>
+      <a href="#sec3">三、帶師生寫提示詞</a>
+      <a href="#sec4">四、80 分鐘課堂流程</a>
+      <a href="#sec5">五、科學抓蟲與評量</a>
+    </nav>
+    <div>
+      <button class="btn btn-primary" onclick="window.print()">🖨️ 列印／存成 PDF</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="hero">
+      <div class="kicker">第 2 單元教案｜科普變因模擬器 × 師生自主寫提示詞 × 單檔 HTML</div>
+      <h1>《冰塊融化與水溫變化模擬器》：用提示詞做出會變化的實驗網頁</h1>
+      <p>
+        延續第 1 單元「先拆解、再下指令、最後抓蟲」的思維，本單元帶領老師與學生自己寫提示詞，
+        做出<strong>「冰塊融化與水溫變化模擬器」</strong>。透過調整環境溫度、水量與保溫條件，
+        讓學生在安全、可反覆驗證的互動畫面中，練習<strong>一次只改一個變因</strong>並檢查科學合理性。
+      </p>
+      <div class="meta-grid">
+        <div class="meta-item">
+          <span class="label">適用對象</span>
+          <span class="val">國小中高年級教師與學生</span>
+        </div>
+        <div class="meta-item">
+          <span class="label">建議節數</span>
+          <span class="val">2 節課（共 80 分鐘）</span>
+        </div>
+        <div class="meta-item">
+          <span class="label">示範主題</span>
+          <span class="val">冰塊融化與水溫變化</span>
+        </div>
+        <div class="meta-item">
+          <span class="label">實作方式</span>
+          <span class="val">師生自己寫提示詞產出單檔 HTML</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 一、核心知識點 -->
+    <section id="sec1">
+      <h2>一、 教學目標與核心知識點</h2>
+      <div class="grid-2">
+        <div class="card sky">
+          <div class="card-title">🧊 變因與熱變化觀察知識點</div>
+          <ul>
+            <li><strong>操縱變因 vs. 控制變因</strong>：想看「環境溫度」的影響時，只改變溫度，其他條件（例如冰塊大小、容器狀態）盡量維持相同。</li>
+            <li><strong>融化與溫度的連動</strong>：冰塊融化需要吸收熱量；在冰水共存階段，溫度往往先停留在接近 0°C 附近，待冰塊融化後再隨環境溫度逐步變化。</li>
+            <li><strong>預測先於觀察</strong>：先寫出「如果把條件改成＿＿，我覺得融化速度與水溫會＿＿」，再按模擬驗證。</li>
+          </ul>
+        </div>
+
+        <div class="card teal">
+          <div class="card-title">🤖 寫出「變因模擬器」的提示詞知識點</div>
+          <ul>
+            <li><strong>明確列出「可調變因」與「輸出結果」</strong>：告訴 AI 哪些條件可以讓使用者調整，以及調整後畫面要顯示哪些數據與狀態說明。</li>
+            <li><strong>避免一次塞太多複雜功能</strong>：先讓 2～3 個核心變因運作順暢，再做微調，成功率最高。</li>
+            <li><strong>科學常識抓蟲</strong>：檢查 AI 寫出來的變化是否符合生活與自然常識，不被花俏特效誤導。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 二、變因設計與示範提示詞 -->
+    <section id="sec2">
+      <h2>二、 變因設計思路與示範提示詞</h2>
+
+      <div class="quote-tip">
+        <strong>💡 帶師生做變因模擬器的關鍵提醒：</strong><br />
+        模擬器不是「真實物理引擎」，而是<strong>幫助思考的互動模型</strong>。重點不在寫出多高深的公式，而在於「條件改變 → 結果清楚呈現 → 學生能說出為什麼」。
+      </div>
+
+      <h3>（一） 冰塊融化與水溫變化可挑選的變因方向</h3>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 22%;">變因項目</th>
+            <th style="width: 30%;">常見選項／數值設計</th>
+            <th style="width: 48%;">課堂可引導的思考問題</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>環境溫度</strong></td>
+            <td>冷氣房（15°C）、一般室溫（25°C）、暖陽／熱區（35°C）</td>
+            <td>環境溫度越高，冰塊融化得越快嗎？相差 10°C 時，感受上有什麼差別？</td>
+          </tr>
+          <tr>
+            <td><strong>初始水量／冰量</strong></td>
+            <td>少水（50 mL）、中水（150 mL）、多水（300 mL）</td>
+            <td>水量變多時，水溫上升或下降的速度會比較慢嗎？為什麼？</td>
+          </tr>
+          <tr>
+            <td><strong>容器／隔熱狀態</strong></td>
+            <td>一般敞口杯、加蓋保溫杯、包覆隔熱層</td>
+            <td>加蓋或保溫後，是阻止熱傳入，還是把熱留住？不同情境結果一樣嗎？</td>
+          </tr>
+          <tr>
+            <td><strong>經過時間／推進步驟</strong></td>
+            <td>0 分鐘、10 分鐘、20 分鐘、30 分鐘（或「推進 5 分鐘」按鈕）</td>
+            <td>前 10 分鐘跟後 10 分鐘相比，冰塊剩多少？水溫變化一樣嗎？</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>（二） 老師與學生可直接參考的示範提示詞</h3>
+      <div class="card">
+        <div class="card-title">示範提示詞：《冰塊融化與水溫變化模擬器》</div>
+        <div class="prompt-box" id="promptIce"><button class="copy-btn" onclick="copyText('promptIce', this)">複製提示詞</button>請用繁體中文產生一個單一 HTML 檔案（HTML、CSS、JavaScript 都寫在同一個檔案中，不需要外部圖片或網路套件）。
+主題是國小自然課的「冰塊融化與水溫變化模擬器」。
+功能需求：
+1. 提供可調整的變因控制區：
+   - 環境溫度（例如：15°C 冷氣房、25°C 室溫、35°C 溫暖環境）
+   - 初始水量（例如：50 mL、150 mL、300 mL）
+   - 容器狀態（例如：一般杯子、加蓋保溫）
+2. 提供時間推進按鈕（例如：「經過 5 分鐘」、「經過 15 分鐘」、「重置實驗」），並顯示目前經過時間。
+3. 畫面清楚顯示：冰塊剩餘百分比進度條、目前水溫（°C）、狀態圖示與文字說明，以及「變因觀察紀錄」提示。
+4. 符合基本自然常識：環境溫度較高或接觸熱量較多時冰塊融化較快；版面清楚、字體適中，適合國小課堂操作。</div>
+      </div>
+    </section>
+
+    <!-- 三、引導寫提示詞與產生器 -->
+    <section id="sec3">
+      <h2>三、 怎麼帶老師與學生自己寫提示詞？</h2>
+
+      <div class="grid-2">
+        <div class="card amber">
+          <div class="card-title">Step 1：先寫「預測」，再寫「模擬器需求」</div>
+          <p>先請師生寫一句話：<em>「我覺得如果把＿＿調高，冰塊會＿＿、水溫會＿＿。」</em>這樣做出的網頁才不是亂按好玩，而是用來驗證想法。</p>
+        </div>
+        <div class="card amber">
+          <div class="card-title">Step 2：用「四句式變因提示詞骨架」</div>
+          <p><strong>① 實驗主題</strong>：做一個「冰塊融化與水溫變化」單檔 HTML 模擬器……<br />
+          <strong>② 可調變因</strong>：讓使用者可以調整＿＿與＿＿……<br />
+          <strong>③ 結果呈現</strong>：畫面要顯示冰塊融化進度、水溫與簡短說明……<br />
+          <strong>④ 單檔與合理性</strong>：全部寫在同一個 HTML 檔，不需外部套件，變化要符合自然常識。</p>
+        </div>
+      </div>
+
+      <h3>變因模擬器提示詞產生器（師生備課／課堂試作小工具）</h3>
+      <div class="builder-panel">
+        <div class="form-row">
+          <div>
+            <label for="var1Select">1. 主要變因</label>
+            <select id="var1Select" onchange="updateIcePrompt()">
+              <option value="環境溫度（15°C、25°C、35°C）">環境溫度（15°C、25°C、35°C）</option>
+              <option value="初始水量（50 mL、150 mL、300 mL）">初始水量（50 mL、150 mL、300 mL）</option>
+              <option value="容器狀態（一般杯子、加蓋保溫）">容器狀態（一般杯子、加蓋保溫）</option>
+            </select>
+          </div>
+          <div>
+            <label for="var2Select">2. 次要變因</label>
+            <select id="var2Select" onchange="updateIcePrompt()">
+              <option value="初始水量（50 mL、150 mL、300 mL）">初始水量（50 mL、150 mL、300 mL）</option>
+              <option value="容器狀態（一般杯子、加蓋保溫）">容器狀態（一般杯子、加蓋保溫）</option>
+              <option value="環境溫度（15°C、25°C、35°C）">環境溫度（15°C、25°C、35°C）</option>
+            </select>
+          </div>
+          <div>
+            <label for="noteInput">3. 額外想加的提示或特色（選填）</label>
+            <input id="noteInput" type="text" placeholder="例如：加上控制變因小提醒、顯示實驗紀錄" oninput="updateIcePrompt()" />
+          </div>
+        </div>
+
+        <label>產生的提示詞草稿：</label>
+        <div class="prompt-box" id="icePromptOut"><button class="copy-btn" onclick="copyText('icePromptOut', this)">複製草稿</button></div>
+      </div>
+    </section>
+
+    <!-- 四、80 分鐘教學流程 -->
+    <section id="sec4">
+      <h2>四、 80 分鐘（兩節課）教學流程建議</h2>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 16%;">節次／時間</th>
+            <th style="width: 24%;">教學環節</th>
+            <th style="width: 60%;">老師引導重點與師生活動</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>第一節<br />00–15 分</strong></td>
+            <td>生活提問與變因發想</td>
+            <td>提問：「夏天把冰塊放在桌上跟放在冷氣房，融化速度一樣嗎？如果水量不同呢？」帶出可觀察的變因。</td>
+          </tr>
+          <tr>
+            <td><strong>第一節<br />15–30 分</strong></td>
+            <td>體驗示範模擬器與猜測</td>
+            <td>開啟示範網頁（<code>a002_ex1.html</code>），請學生先預測「只改溫度」或「只改水量」會發生什麼事，再操作驗證。</td>
+          </tr>
+          <tr>
+            <td><strong>第一節<br />30–40 分</strong></td>
+            <td>撰寫自己的變因提示詞</td>
+            <td>老師與學生各自決定想保留哪些變因、怎麼呈現結果，寫出第一版單檔 HTML 提示詞。</td>
+          </tr>
+          <tr>
+            <td><strong>第二節<br />40–60 分</strong></td>
+            <td>AI 產出網頁與一次微調</td>
+            <td>將提示詞貼給 AI 產生 <code>.html</code> 檔，用 Sublime Text 存檔後在瀏覽器開檔測試；挑 1 個最想改的地方做微調。</td>
+          </tr>
+          <tr>
+            <td><strong>第二節<br />60–72 分</strong></td>
+            <td>變因測試與科學抓蟲</td>
+            <td>實際操作自己或同學做出的模擬器，測試「一次只改一個變因」是否合理、數據或說明有沒有矛盾。</td>
+          </tr>
+          <tr>
+            <td><strong>第二節<br />72–80 分</strong></td>
+            <td>分享發現與概念統整</td>
+            <td>分享「我改了哪一個變因、看到了什麼現象」以及「我幫 AI 抓到什麼小 bug」，統整控制變因與提示詞技巧。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 五、抓蟲與評量 -->
+    <section id="sec5">
+      <h2>五、 科學抓蟲清單與評量建議</h2>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">🐛 變因模擬器常見「蟲子」檢查</div>
+          <ul>
+            <li><strong>變因沒連動</strong>：按了溫度或水量按鈕，但冰塊進度或水溫完全沒變。</li>
+            <li><strong>邏輯顛倒</strong>：環境溫度調高了，冰塊卻反而更慢融化或水溫下降。</li>
+            <li><strong>一次改太多</strong>：學生做實驗時同時改了溫度和水量，卻說不出是哪一個造成的差異。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">✅ 課堂觀察評量重點</div>
+          <ul>
+            <li><strong>變因辨識能力</strong>：能否說出「我改變了什麼條件、固定了什麼條件」。</li>
+            <li><strong>提示詞精準度</strong>：是否清楚交代變因選項與結果顯示方式，並能產出可執行的單檔 HTML。</li>
+            <li><strong>驗證與除錯態度</strong>：能否透過測試發現不合理之處並請 AI 修正。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>© 2026 CPAIZO STDUIO 版權所有</p>
+    <p>歡迎教師於課堂教學與非營利研習使用，請勿未經同意轉售或作商業用途；教學交流或問題回報請聯繫：<a href="mailto:cpaizo.email@gmail.com">cpaizo.email@gmail.com</a></p>
+  </footer>
+
+  <script>
+    function updateIcePrompt() {
+      const v1 = document.getElementById("var1Select").value;
+      const v2 = document.getElementById("var2Select").value;
+      const note = document.getElementById("noteInput").value.trim();
+
+      let text = `請用繁體中文幫我產生一個單一 HTML 檔案（HTML、CSS、JavaScript 寫在同一個檔案中，不需要外部圖片或網路套件）。\n` +
+                 `主題是「冰塊融化與水溫變化模擬器」，適合國小課堂觀察變因變化。\n` +
+                 `1. 可調整的變因包含：${v1} 與 ${v2}。\n` +
+                 `2. 提供時間推進按鈕（例如推進 5 分鐘、15 分鐘）與重置按鈕。\n` +
+                 `3. 顯示冰塊剩餘百分比、目前水溫與簡短的現象說明，變化需符合基本自然常識。`;
+
+      if (note) {
+        text += `\n4. 額外需求：${note}。`;
+      }
+
+      const box = document.getElementById("icePromptOut");
+      const btn = box.querySelector(".copy-btn");
+      box.textContent = text;
+      box.appendChild(btn);
+    }
+
+    function copyText(elementId, btnEl) {
+      const box = document.getElementById(elementId);
+      const clone = box.cloneNode(true);
+      const b = clone.querySelector(".copy-btn");
+      if (b) b.remove();
+      navigator.clipboard.writeText(clone.textContent.trim()).then(() => {
+        const old = btnEl.textContent;
+        btnEl.textContent = "已複製！";
+        setTimeout(() => (btnEl.textContent = old), 1400);
+      });
+    }
+
+    updateIcePrompt();
+  </script>
+</body>
+</html>
