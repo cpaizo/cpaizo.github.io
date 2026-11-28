@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>個人網頁｜科小丁（國小五年級）</title>
+  <style>
+    :root {
+      --bg: #faf6f0;
+      --card: #ffffff;
+      --ink: #1e293b;
+      --muted: #52606d;
+      --primary: #d97706;
+      --primary-soft: #fffbeb;
+      --teal: #0f766e;
+      --teal-soft: #f0fdfa;
+      --border: #eadfce;
+      --radius: 22px;
+      --shadow: 0 12px 32px rgba(30, 41, 59, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: linear-gradient(180deg, #fdf8f2 0%, #f5efe6 100%);
+      color: var(--ink);
+      line-height: 1.75;
+    }
+
+    .wrap {
+      max-width: 900px;
+      margin: 32px auto 32px;
+      padding: 0 18px;
+    }
+
+    /* 個人名片主視覺 */
+    .profile-card {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 26px;
+      padding: 32px 28px;
+      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 28px;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .avatar-box {
+      text-align: center;
+    }
+
+    .avatar-frame {
+      width: 210px;
+      height: 210px;
+      margin: 0 auto;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 4px solid #fde68a;
+      background: var(--primary-soft);
+      box-shadow: 0 8px 20px rgba(217, 119, 6, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .avatar-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      cursor: zoom-in;
+      transition: transform 0.25s ease;
+    }
+
+    .avatar-frame img:hover {
+      transform: scale(1.04);
+    }
+
+    .photo-hint {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    .page-tag {
+      display: inline-block;
+      background: var(--primary-soft);
+      color: var(--primary);
+      border: 1px solid #fde68a;
+      font-size: 0.88rem;
+      font-weight: 800;
+      padding: 4px 14px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+    }
+
+    .student-name {
+      margin: 0 0 6px;
+      font-size: 2.1rem;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .student-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--teal-soft);
+      color: var(--teal);
+      border: 1px solid #99f6e4;
+      padding: 5px 14px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 14px;
+    }
+
+    .intro-text {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.02rem;
+    }
+
+    /* 雙欄內容區：最喜歡課程照片 + 最愛網站 */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 22px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .card h2 {
+      margin: 0 0 14px;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .course-photo-wrap {
+      border-radius: 16px;
+      overflow: hidden;
+      border: 2px solid #e2e8f0;
+      background: #f8fafc;
+      text-align: center;
+    }
+
+    .course-photo-wrap img {
+      width: 100%;
+      max-height: 300px;
+      object-fit: cover;
+      display: block;
+      cursor: zoom-in;
+      transition: transform 0.25s ease;
+    }
+
+    .course-photo-wrap img:hover {
+      transform: scale(1.02);
+    }
+
+    .fallback-msg {
+      padding: 24px 16px;
+      font-size: 0.9rem;
+      color: #b91c1c;
+      background: #fef2f2;
+      display: none;
+    }
+
+    .fav-site-box {
+      background: linear-gradient(135deg, #f0fdfa 0%, #fffbeb 100%);
+      border: 1.5px solid #99f6e4;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .fav-site-title {
+      font-weight: 800;
+      font-size: 1.12rem;
+      color: var(--teal);
+      margin-bottom: 6px;
+    }
+
+    .fav-site-url {
+      font-size: 0.85rem;
+      color: var(--muted);
+      word-break: break-all;
+      margin-bottom: 16px;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 6px 10px;
+      border-radius: 8px;
+    }
+
+    .visit-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      background: var(--teal);
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 1.05rem;
+      padding: 13px 18px;
+      border-radius: 14px;
+      transition: transform 0.18s ease, background 0.2s ease;
+      box-shadow: 0 6px 16px rgba(15, 118, 110, 0.22);
+    }
+
+    .visit-btn:hover {
+      background: #115e59;
+      transform: translateY(-2px);
+    }
+
+    .drive-raw-links {
+      margin-top: 12px;
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    .drive-raw-links a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .drive-raw-links a:hover {
+      text-decoration: underline;
+    }
+
+    /* 圖片放大燈箱 Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      padding: 36px 16px;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(15, 23, 42, 0.88);
+      cursor: zoom-out;
+    }
+
+    .modal-content {
+      margin: auto;
+      display: block;
+      max-width: 92%;
+      max-height: 84vh;
+      object-fit: contain;
+      border-radius: 12px;
+      box-shadow: 0 0 36px rgba(255, 255, 255, 0.2);
+    }
+
+    .modal-caption {
+      text-align: center;
+      color: #e2e8f0;
+      padding: 12px 0;
+      font-size: 0.98rem;
+    }
+
+    /* 頁尾版權說明 */
+    .site-footer {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px 18px 56px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border);
+      line-height: 1.8;
+    }
+
+    .site-footer p {
+      margin: 4px 0;
+    }
+
+    .site-footer a {
+      color: var(--teal);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .site-footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 720px) {
+      .profile-card {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding: 24px 20px;
+      }
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <!-- 1. 個人基本資料區 -->
+    <header class="profile-card">
+      <div class="avatar-box">
+        <div class="avatar-frame">
+          <img
+            id="personalImg"
+            alt="科小丁的個人照片"
+            onclick="openModal(this.src, '科小丁的個人照片')"
+          />
+          <div class="fallback-msg" id="personalImgErr">
+            ⚠️ 無法載入個人照片，請確認 Google 雲端硬碟已開啟「知道連結的人」檢視權限。
+          </div>
+        </div>
+        <div class="photo-hint">🔍 點擊照片可放大</div>
+      </div>
+
+      <div>
+        <div class="page-tag">✨ 個人網頁</div>
+        <h1 class="student-name">科小丁</h1>
+        <div class="student-meta">🎒 國小五年級 男生</div>
+        <p class="intro-text">
+          大家好！我是科小丁，目前就讀國小五年級。我喜歡動手做實驗、用 AI 設計好玩的互動網頁，也很喜歡把學習過程用照片記錄下來跟大家分享！
+        </p>
+        <div class="drive-raw-links">
+          ☁️ 雲端原始連結備查：
+          <a href="https://drive.google.com/file/d/1c9qWn2los854jpez6DKD1wSl_ScLp8TP/view?usp=drive_link" target="_blank" rel="noopener noreferrer">個人照片</a> ｜
+          <a href="https://drive.google.com/file/d/138ALxCsbY0Z31Ti1Oj-Goov0chVr3LnV/view?usp=drive_link" target="_blank" rel="noopener noreferrer">最喜歡的課程照片</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- 2. 最喜歡的課程照片 ＋ 我的最愛網站連結 -->
+    <section class="content-grid">
+      <article class="card">
+        <div>
+          <h2>📸 最喜歡的課程照片</h2>
+          <div class="course-photo-wrap">
+            <img
+              id="courseImg"
+              alt="科小丁最喜歡的課程照片"
+              onclick="openModal(this.src, '最喜歡的課程照片')"
+            />
+            <div class="fallback-msg" id="courseImgErr">
+              ⚠️ 無法載入課程照片，請確認 Google 雲端硬碟已開啟「知道連結的人」檢視權限。
+            </div>
+          </div>
+        </div>
+        <p style="margin: 12px 0 0; font-size: 0.92rem; color: var(--muted);">
+          這是我最喜歡的課程紀錄！點擊圖片可以放大看細節喔。
+        </p>
+      </article>
+
+      <article class="card">
+        <div>
+          <h2>🌐 我的最愛網站連結</h2>
+          <p style="margin: 0 0 14px; font-size: 0.95rem; color: var(--muted);">
+            這是我平常最常上去學習與看課程範例的網站，歡迎點下面的按鈕一起來逛逛！
+          </p>
+
+          <div class="fav-site-box">
+            <div class="fav-site-title">🚀 AI × HTML 互動教學課程網</div>
+            <div class="fav-site-url">https://cpaizo.github.io/Coding/index.html</div>
+            <a
+              class="visit-btn"
+              href="https://cpaizo.github.io/Coding/index.html"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              前往我的最愛網站 ↗
+            </a>
+          </div>
+        </div>
+
+        <div style="font-size: 0.86rem; color: var(--muted); background: #faf7f2; padding: 10px 12px; border-radius: 10px;">
+          💡 小提醒：點擊按鈕會開啟新分頁，不會離開原本的自我介紹網頁。
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>© 2026 CPAIZO STDUIO 版權所有</p>
+    <p>歡迎教師於課堂教學與非營利研習使用，請勿未經同意轉售或作商業用途；教學交流或問題回報請聯繫：<a href="mailto:cpaizo.email@gmail.com">cpaizo.email@gmail.com</a></p>
+  </footer>
+
+  <!-- 圖片放大燈箱 -->
+  <div id="imgModal" class="modal" onclick="closeModal()">
+    <span style="position:absolute; top:14px; right:30px; color:#fff; font-size:38px; font-weight:bold; cursor:pointer;">&times;</span>
+    <img class="modal-content" id="modalImg" alt="放大預覽" />
+    <div class="modal-caption" id="modalCaption"></div>
+  </div>
+
+  <script>
+    // 學生貼上的 Google 雲端硬碟原始分享連結
+    const PERSONAL_DRIVE_URL = "https://drive.google.com/file/d/1c9qWn2los854jpez6DKD1wSl_ScLp8TP/view?usp=drive_link";
+    const COURSE_DRIVE_URL = "https://drive.google.com/file/d/138ALxCsbY0Z31Ti1Oj-Goov0chVr3LnV/view?usp=drive_link";
+
+    // 自動擷取 Google Drive 檔案 ID，並轉換為可直接顯示的圖片網址
+    function extractDriveId(url) {
+      const match = String(url).match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || String(url).match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      return match ? match[1] : null;
+    }
+
+    function bindDriveImage(imgId, errId, shareUrl) {
+      const imgEl = document.getElementById(imgId);
+      const errEl = document.getElementById(errId);
+      const fileId = extractDriveId(shareUrl);
+
+      if (!fileId) {
+        imgEl.src = shareUrl;
+        return;
+      }
+
+      // 第一順位直連網址與第二順位縮圖備援網址
+      const primarySrc = `https://lh3.googleusercontent.com/d/${fileId}`;
+      const backupSrc = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
+      let triedBackup = false;
+
+      imgEl.onerror = function () {
+        if (!triedBackup) {
+          triedBackup = true;
+          imgEl.src = backupSrc;
+        } else {
+          imgEl.style.display = "none";
+          errEl.style.display = "block";
+        }
+      };
+
+      imgEl.src = primarySrc;
+    }
+
+    bindDriveImage("personalImg", "personalImgErr", PERSONAL_DRIVE_URL);
+    bindDriveImage("courseImg", "courseImgErr", COURSE_DRIVE_URL);
+
+    // 燈箱功能
+    function openModal(src, caption) {
+      if (!src) return;
+      document.getElementById("imgModal").style.display = "block";
+      document.getElementById("modalImg").src = src;
+      document.getElementById("modalCaption").textContent = caption + "（點擊任意處關閉）";
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeModal() {
+      document.getElementById("imgModal").style.display = "none";
+      document.body.style.overflow = "";
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeModal();
+    });
+  </script>
+</body>
+</html>

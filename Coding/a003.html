@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>單元 03｜學生個人自我介紹網頁 × Google 雲端圖片分享與連結應用</title>
+  <style>
+    :root {
+      --bg: #faf7f2;
+      --paper: #ffffff;
+      --ink: #1e293b;
+      --muted: #52606d;
+      --primary: #0f766e;
+      --primary-hover: #115e59;
+      --primary-soft: #f0fdfa;
+      --accent: #d97706;
+      --accent-soft: #fffbeb;
+      --danger: #b91c1c;
+      --danger-soft: #fef2f2;
+      --border: #e6dfd3;
+      --shadow: 0 8px 24px rgba(30, 41, 59, 0.06);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.75;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+
+    .badge {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid #fde68a;
+      font-size: 0.78rem;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 0.9rem;
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .nav-links a:hover {
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+
+    .btn-print {
+      background: var(--primary);
+      border: none;
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-print:hover {
+      background: var(--primary-hover);
+    }
+
+    .container {
+      max-width: 1020px;
+      margin: 28px auto 32px;
+      padding: 0 20px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #0369a1 0%, #0f766e 100%);
+      color: #fff;
+      padding: 36px 32px;
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      margin-bottom: 28px;
+    }
+
+    .hero .kicker {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      margin-bottom: 12px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: 1.88rem;
+      line-height: 1.35;
+    }
+
+    .hero p {
+      margin: 0 0 20px;
+      color: rgba(255, 255, 255, 0.94);
+      font-size: 1.02rem;
+      max-width: 820px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .meta-item {
+      background: rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+
+    .meta-item .label {
+      font-size: 0.78rem;
+      opacity: 0.88;
+      display: block;
+    }
+
+    .meta-item .val {
+      font-weight: 700;
+      font-size: 0.96rem;
+    }
+
+    section {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    section h2 {
+      margin: 0 0 18px;
+      font-size: 1.42rem;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--bg);
+    }
+
+    h3 {
+      margin: 20px 0 10px;
+      font-size: 1.12rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      background: #fffdf9;
+    }
+
+    .card.teal {
+      background: var(--primary-soft);
+      border-color: #ccfbf1;
+    }
+
+    .card.amber {
+      background: var(--accent-soft);
+      border-color: #fde68a;
+    }
+
+    .card.danger {
+      background: var(--danger-soft);
+      border-color: #fecaca;
+    }
+
+    .card-title {
+      font-weight: 700;
+      font-size: 1.02rem;
+      margin-bottom: 8px;
+    }
+
+    ul, ol {
+      margin: 8px 0 14px;
+      padding-left: 22px;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    .quote-tip {
+      background: var(--accent-soft);
+      border-left: 4px solid var(--accent);
+      padding: 14px 16px;
+      border-radius: 8px;
+      margin: 14px 0;
+      font-size: 0.95rem;
+    }
+
+    .danger-tip {
+      background: var(--danger-soft);
+      border-left: 4px solid var(--danger);
+      padding: 14px 16px;
+      border-radius: 8px;
+      margin: 14px 0;
+      font-size: 0.95rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 20px;
+      font-size: 0.94rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 11px 13px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f3efe6;
+      font-weight: 700;
+    }
+
+    .prompt-box {
+      position: relative;
+      background: #18202c;
+      color: #f8fafc;
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin: 10px 0 14px;
+      font-size: 0.92rem;
+      line-height: 1.65;
+      white-space: pre-wrap;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 255, 255, 0.16);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.78rem;
+      cursor: pointer;
+    }
+
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    .builder-panel {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 20px;
+      margin-top: 14px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+      color: #334155;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .site-footer {
+      max-width: 1020px;
+      margin: 0 auto;
+      padding: 24px 20px 56px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border);
+      line-height: 1.8;
+    }
+
+    .site-footer p {
+      margin: 4px 0;
+    }
+
+    .site-footer a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .site-footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media print {
+      .topbar, .btn-print, .copy-btn, .builder-panel {
+        display: none !important;
+      }
+      body {
+        background: #fff;
+      }
+      section, .hero, .site-footer {
+        box-shadow: none;
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <span>📘 教師教學手冊</span>
+      <span class="badge">單元 03 · 個人自我介紹網頁 × 雲端圖片與連結</span>
+    </div>
+    <nav class="nav-links">
+      <a href="#sec1">一、學習目標與數位素養</a>
+      <a href="#sec2">二、雲端資料夾與圖片分享</a>
+      <a href="#sec3">三、老師示範與提示詞產生器</a>
+      <a href="#sec4">四、80 分鐘課堂流程</a>
+      <a href="#sec5">五、常見破圖抓蟲</a>
+    </nav>
+    <div>
+      <button class="btn-print" onclick="window.print()">🖨️ 列印／存成 PDF</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="hero">
+      <div class="kicker">第 3 單元教案｜Google 雲端硬碟檔案管理 × 權限分享 × 個人網頁設計</div>
+      <h1>打造專屬《個人自我介紹網頁》：把雲端照片與最愛網站放進網頁裡</h1>
+      <p>
+        本單元帶領國小五年級學生結合<strong>雲端檔案管理</strong>與<strong>AI 網頁設計</strong>：
+        學生先在 Google 雲端硬碟建立專屬資料夾、上傳「個人照片」與「最喜歡的課程照片」，
+        學會正確設定「知道連結的人均可檢視」並複製連結，最後寫出提示詞將照片與「最愛網站連結」整合成自己的單檔 HTML 自我介紹網頁。
+      </p>
+      <div class="meta-grid">
+        <div class="meta-item">
+          <span class="label">適用年級</span>
+          <span class="val">國小五年級（需具備教育雲／Google 帳號）</span>
+        </div>
+        <div class="meta-item">
+          <span class="label">建議節數</span>
+          <span class="val">2 節課（共 80 分鐘）</span>
+        </div>
+        <div class="meta-item">
+          <span class="label">雲端實作技能</span>
+          <span class="val">建資料夾、傳圖片、改共用權限、複製連結</span>
+        </div>
+        <div class="meta-item">
+          <span class="label">網頁整合元素</span>
+          <span class="val">基本資料＋2 張雲端照片＋1 個外部連結</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 一、學習目標與數位素養 -->
+    <section id="sec1">
+      <h2>一、 教學目標與核心知識點</h2>
+      <div class="grid-2">
+        <div class="card teal">
+          <div class="card-title">☁️ 雲端硬碟與連結管理知識點</div>
+          <ul>
+            <li><strong>資料夾分類習慣</strong>：不在雲端根目錄亂放檔案，先建立專屬資料夾（例如 <code>五年甲班_座號姓名_自我介紹</code>）再上傳照片。</li>
+            <li><strong>權限觀念（受限制 vs. 知道連結的人）</strong>：理解預設的「受限制」只有自己看得到；要放進網頁讓別人看到，必須改成<strong>「知道連結的人 → 檢視者」</strong>。</li>
+            <li><strong>超連結與圖片嵌入的差別</strong>：學會區分「點擊跳轉到最愛網站（<code>&lt;a href&gt;</code>）」與「直接在網頁顯示圖片（<code>&lt;img src&gt;</code>）」。</li>
+          </ul>
+        </div>
+
+        <div class="card amber">
+          <div class="card-title">🛡️ 網路安全與數位素養提醒</div>
+          <ul>
+            <li><strong>個資保護三原則</strong>：自我介紹網頁只放「暱稱或名字、年級性別、興趣與最愛課程」，<strong>不放身分證字號、住家地址、電話或家長資訊</strong>。</li>
+            <li><strong>照片選擇禮儀</strong>：若「最喜歡的課程照片」有拍到其他同學，應先徵得同學同意，或挑選作品特寫、個人獨照。</li>
+            <li><strong>連結安全檢查</strong>：分享最愛的網站連結時，選擇健康、正向、適合小學生的學習或興趣網站。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 二、雲端資料夾與圖片分享步驟 -->
+    <section id="sec2">
+      <h2>二、 帶學生操作：雲端建立資料夾、分享圖片與複製連結</h2>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">📁 步驟 A：建立資料夾與上傳兩張圖片</div>
+          <ol>
+            <li>登入 Google 雲端硬碟，點左上角 <strong>「＋新增」→「新增資料夾」</strong>。</li>
+            <li>命名資料夾為：<strong><code>自我介紹網頁圖片</code></strong>（或 <code>座號姓名_個人網頁</code>）。</li>
+            <li>點進該資料夾，上傳兩張圖片並重新命名方便辨識：
+              <ul>
+                <li><strong>圖片 1</strong>：個人照片（頭像或生活照）</li>
+                <li><strong>圖片 2</strong>：最喜歡的課程照片（作品或上課紀錄）</li>
+              </ul>
+            </li>
+          </ol>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🔗 步驟 B：設定共用權限並複製連結</div>
+          <ol>
+            <li>對圖片點右鍵（或點右側「⋮」）→ 選擇 <strong>「共用」→「共用」</strong>。</li>
+            <li>在「一般存取權」下方，將「受限制」改為 <strong>「知道連結的人」</strong>（右側角色保持 <strong>「檢視者」</strong>，勿選編輯者以免被刪改）。</li>
+            <li>點擊左下角 <strong>「複製連結」</strong>，先貼到記事本或學習單暫存，兩張圖片都要各做一次！</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="danger-tip">
+        <strong>🚨 老師必知的技術小地雷（本單元已幫您自動解決）：</strong><br />
+        學生從 Google 雲端硬碟複製的連結長這樣：<code>https://drive.google.com/file/d/檔案ID/view?usp=drive_link</code>。<br />
+        這個網址其實是「Google 預覽網頁」，直接塞進一般 HTML 的 <code>&lt;img&gt;</code> 標籤常常會無法顯示！<br />
+        <strong>教學解方</strong>：在給 AI 的提示詞中加上一句<strong>「請在網頁裡自動把 Google Drive 的 file/d/ID/view 分享連結轉換成可顯示的圖片網址」</strong>（就像我們在 <code>a003_ex1.html</code> 範例中做的一樣），學生就可以直接貼上原本複製的連結，完全不用自己手動改網址！
+      </div>
+    </section>
+
+    <!-- 三、老師示範範例與提示詞產生器 -->
+    <section id="sec3">
+      <h2>三、 老師示範資料與提示詞產生器</h2>
+
+      <div class="card teal">
+        <div class="card-title">🧑‍🎓 老師課堂示範範例資料（科小丁）</div>
+        <ul>
+          <li><strong>網頁標題</strong>：個人網頁</li>
+          <li><strong>基本資料</strong>：科小丁｜國小五年級 男生</li>
+          <li><strong>個人照片連結</strong>：<code>https://drive.google.com/file/d/1c9qWn2los854jpez6DKD1wSl_ScLp8TP/view?usp=drive_link</code></li>
+          <li><strong>最喜歡的課程照片連結</strong>：<code>https://drive.google.com/file/d/138ALxCsbY0Z31Ti1Oj-Goov0chVr3LnV/view?usp=drive_link</code></li>
+          <li><strong>我的最愛網站連結</strong>：<code>https://cpaizo.github.io/Coding/index.html</code></li>
+        </ul>
+      </div>
+
+      <h3>（一） 老師可直接複製的示範提示詞</h3>
+      <div class="prompt-box" id="demoPrompt"><button class="copy-btn" onclick="copyText('demoPrompt', this)">複製提示詞</button>請用繁體中文產生一個單一 HTML 檔案（HTML、CSS、JavaScript 全部寫在同一個檔案中，不依賴外部套件）。
+主題是國小五年級學生的「個人自我介紹網頁」。
+請放入以下內容：
+1. 標題：個人網頁
+2. 姓名與年級：科小丁（國小五年級 男生）
+3. 個人照片（Google 雲端硬碟連結）：https://drive.google.com/file/d/1c9qWn2los854jpez6DKD1wSl_ScLp8TP/view?usp=drive_link
+4. 最喜歡的課程照片（Google 雲端硬碟連結）：https://drive.google.com/file/d/138ALxCsbY0Z31Ti1Oj-Goov0chVr3LnV/view?usp=drive_link
+5. 我的最愛網站連結：https://cpaizo.github.io/Coding/index.html（點擊後可另開新分頁前往）
+
+重要技術要求：
+- 請用 JavaScript 自動把 Google Drive 的 `file/d/檔案ID/view` 分享連結轉換為可直接顯示的圖片連結（例如 `https://lh3.googleusercontent.com/d/檔案ID` 或 `https://drive.google.com/thumbnail?id=檔案ID&sz=w1000`），確保圖片能在網頁上直接呈現。
+- 介面活潑溫暖、適合國小五年級學生，卡片排版清楚，點擊照片可以放大觀看。</div>
+
+      <h3>（二） 學生自我介紹提示詞產生器（填入自己的連結直接產生）</h3>
+      <div class="builder-panel">
+        <div class="form-row">
+          <div>
+            <label for="stuName">1. 名字或暱稱</label>
+            <input id="stuName" type="text" value="科小丁" oninput="updateSelfIntroPrompt()" />
+          </div>
+          <div>
+            <label for="stuGrade">2. 年級與性別／小簡介</label>
+            <input id="stuGrade" type="text" value="國小五年級 男生" oninput="updateSelfIntroPrompt()" />
+          </div>
+          <div>
+            <label for="stuFavSite">3. 我的最愛網站連結</label>
+            <input id="stuFavSite" type="text" value="https://cpaizo.github.io/Coding/index.html" oninput="updateSelfIntroPrompt()" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label for="stuPhoto1">4. 個人照片（雲端硬碟分享連結）</label>
+            <input id="stuPhoto1" type="text" value="https://drive.google.com/file/d/1c9qWn2los854jpez6DKD1wSl_ScLp8TP/view?usp=drive_link" oninput="updateSelfIntroPrompt()" />
+          </div>
+          <div>
+            <label for="stuPhoto2">5. 最喜歡的課程照片（雲端硬碟分享連結）</label>
+            <input id="stuPhoto2" type="text" value="https://drive.google.com/file/d/138ALxCsbY0Z31Ti1Oj-Goov0chVr3LnV/view?usp=drive_link" oninput="updateSelfIntroPrompt()" />
+          </div>
+          <div>
+            <label for="stuStyle">6. 想要的風格或補充一句話（選填）</label>
+            <input id="stuStyle" type="text" placeholder="例如：可愛奶茶色系、喜歡寫程式與打球" oninput="updateSelfIntroPrompt()" />
+          </div>
+        </div>
+
+        <label>產生的學生提示詞（複製後貼給 AI 即可生成網頁）：</label>
+        <div class="prompt-box" id="studentSelfPrompt"><button class="copy-btn" onclick="copyText('studentSelfPrompt', this)">複製提示詞</button></div>
+      </div>
+    </section>
+
+    <!-- 四、80 分鐘課堂流程 -->
+    <section id="sec4">
+      <h2>四、 80 分鐘（兩節課）教學流程建議</h2>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 16%;">節次／時間</th>
+            <th style="width: 24%;">教學環節</th>
+            <th style="width: 60%;">老師引導重點與學生活動</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>第一節<br />00–15 分</strong></td>
+            <td>欣賞範例與規劃個人資料</td>
+            <td>展示老師範例《科小丁個人網頁》（<code>a003_ex1.html</code>），引導學生討論：自我介紹網頁要放哪些資訊？哪些個資不能公開？</td>
+          </tr>
+          <tr>
+            <td><strong>第一節<br />15–32 分</strong></td>
+            <td>雲端建資料夾與傳照片</td>
+            <td>學生登入 Google 雲端硬碟建立「自我介紹網頁圖片」資料夾，上傳「個人照片」與「最喜歡的課程照片」。</td>
+          </tr>
+          <tr>
+            <td><strong>第一節<br />32–40 分</strong></td>
+            <td>設定「知道連結的人」並複製連結</td>
+            <td>全班同步檢查：把兩張圖片的共用權限改成「知道連結的人（檢視者）」，將兩個圖片連結與最愛網站連結貼到暫存文件。</td>
+          </tr>
+          <tr>
+            <td><strong>第二節<br />40–58 分</strong></td>
+            <td>撰寫提示詞與產出 HTML</td>
+            <td>使用提示詞骨架（或本頁產生器）填入自己的資料與三個連結，請 AI 產出單檔 HTML，存成 <code>my_page.html</code>。</td>
+          </tr>
+          <tr>
+            <td><strong>第二節<br />58–70 分</strong></td>
+            <td>互換測試與「無痕視窗」抓蟲</td>
+            <td>用「無痕視窗」或請隔壁同學打開自己的網頁（或檢查連結），確認照片不會因為沒權限而破圖、最愛網站連結點得開。</td>
+          </tr>
+          <tr>
+            <td><strong>第二節<br />70–80 分</strong></td>
+            <td>微調美化與作品分享</td>
+            <td>請 AI 調整喜歡的背景顏色或加上興趣介紹卡片，邀請 3～4 位同學上台介紹自己的網頁與最愛課程。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 五、常見破圖抓蟲 -->
+    <section id="sec5">
+      <h2>五、 常見狀況排除與抓蟲清單</h2>
+      <div class="grid-2">
+        <div class="card danger">
+          <div class="card-title">🐛 狀況 1：自己看得到照片，同學看卻破圖？</div>
+          <p><strong>原因</strong>：圖片在 Google 雲端硬碟的權限還是「受限制」，因為你自己有登入帳號所以看得到，別人沒權限就看不到。<br />
+          <strong>解法</strong>：回到雲端硬碟把該圖片的共用設定改成「知道連結的人 → 檢視者」，重新整理網頁即可。</p>
+        </div>
+        <div class="card amber">
+          <div class="card-title">🐛 狀況 2：點「我的最愛網站」沒反應或打錯字？</div>
+          <p><strong>原因</strong>：貼上網址時漏掉開頭的 <code>https://</code>，或不小心多貼了空白鍵與中文字。<br />
+          <strong>解法</strong>：用 Sublime Text 打開 <code>.html</code> 檔，搜尋 <code>href=</code> 檢查引號內的網址是否完整正確，存檔後按 F5 重整。</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>© 2026 CPAIZO STDUIO 版權所有</p>
+    <p>歡迎教師於課堂教學與非營利研習使用，請勿未經同意轉售或作商業用途；教學交流或問題回報請聯繫：<a href="mailto:cpaizo.email@gmail.com">cpaizo.email@gmail.com</a></p>
+  </footer>
+
+  <script>
+    function updateSelfIntroPrompt() {
+      const name = document.getElementById("stuName").value.trim() || "科小丁";
+      const grade = document.getElementById("stuGrade").value.trim() || "國小五年級 男生";
+      const favSite = document.getElementById("stuFavSite").value.trim() || "https://cpaizo.github.io/Coding/index.html";
+      const p1 = document.getElementById("stuPhoto1").value.trim();
+      const p2 = document.getElementById("stuPhoto2").value.trim();
+      const style = document.getElementById("stuStyle").value.trim();
+
+      let text = `請用繁體中文產生一個單一 HTML 檔案（HTML、CSS、JavaScript 全部寫在同一個檔案中，不依賴外部套件）。\n` +
+                 `主題是國小五年級學生的「個人自我介紹網頁」。\n` +
+                 `請放入以下內容：\n` +
+                 `1. 標題：個人網頁\n` +
+                 `2. 姓名與年級：${name}（${grade}）\n` +
+                 `3. 個人照片（Google 雲端硬碟連結）：${p1}\n` +
+                 `4. 最喜歡的課程照片（Google 雲端硬碟連結）：${p2}\n` +
+                 `5. 我的最愛網站連結：${favSite}（點擊後可另開新分頁前往）\n\n` +
+                 `重要技術要求：\n` +
+                 `- 請用 JavaScript 自動把 Google Drive 的 file/d/檔案ID/view 分享連結轉換為可直接顯示的圖片連結（例如 https://lh3.googleusercontent.com/d/檔案ID 或 https://drive.google.com/thumbnail?id=檔案ID&sz=w1000），確保圖片能在網頁上直接呈現。\n` +
+                 `- 卡片排版清楚美觀，點擊照片可以放大觀看。`;
+
+      if (style) {
+        text += `\n- 風格與個人補充：${style}。`;
+      }
+
+      const box = document.getElementById("studentSelfPrompt");
+      const btn = box.querySelector(".copy-btn");
+      box.textContent = text;
+      box.appendChild(btn);
+    }
+
+    function copyText(elementId, btnEl) {
+      const box = document.getElementById(elementId);
+      const clone = box.cloneNode(true);
+      const b = clone.querySelector(".copy-btn");
+      if (b) b.remove();
+      navigator.clipboard.writeText(clone.textContent.trim()).then(() => {
+        const old = btnEl.textContent;
+        btnEl.textContent = "已複製！";
+        setTimeout(() => (btnEl.textContent = old), 1400);
+      });
+    }
+
+    updateSelfIntroPrompt();
+  </script>
+</body>
+</html>
