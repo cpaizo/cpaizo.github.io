@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>單元 05｜生活與永續情境「有限資源選擇模擬器」× 提示詞設計手冊</title>
+  <style>
+    :root {
+      --bg: #faf7f2;
+      --paper: #ffffff;
+      --ink: #1e293b;
+      --muted: #52606d;
+      --primary: #0f766e;
+      --primary-hover: #115e59;
+      --primary-soft: #f0fdfa;
+      --accent: #d97706;
+      --accent-soft: #fffbeb;
+      --border: #e6dfd3;
+      --shadow: 0 8px 24px rgba(30, 41, 59, 0.06);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.75;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+
+    .badge {
+      background: var(--primary-soft);
+      color: var(--primary);
+      border: 1px solid #99f6e4;
+      font-size: 0.78rem;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 0.9rem;
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .nav-links a:hover {
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+
+    .btn-print {
+      background: linear-gradient(135deg, #0369a1 0%, #0f766e 100%);
+      border: none;
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .container {
+      max-width: 1020px;
+      margin: 28px auto 32px;
+      padding: 0 20px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #0369a1 0%, #0f766e 100%);
+      color: #fff;
+      padding: 36px 32px;
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      margin-bottom: 28px;
+    }
+
+    .hero .kicker {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      margin-bottom: 12px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: 1.88rem;
+      line-height: 1.35;
+    }
+
+    .hero p {
+      margin: 0 0 20px;
+      color: rgba(255, 255, 255, 0.94);
+      font-size: 1.02rem;
+      max-width: 820px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .meta-item {
+      background: rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+
+    .meta-item .label {
+      font-size: 0.78rem;
+      opacity: 0.88;
+      display: block;
+    }
+
+    .meta-item .val {
+      font-weight: 700;
+      font-size: 0.96rem;
+    }
+
+    section {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    section h2 {
+      margin: 0 0 18px;
+      font-size: 1.42rem;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--bg);
+    }
+
+    h3 {
+      margin: 20px 0 10px;
+      font-size: 1.12rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      background: #fffdf9;
+    }
+
+    .card.teal {
+      background: var(--primary-soft);
+      border-color: #ccfbf1;
+    }
+
+    .card.amber {
+      background: var(--accent-soft);
+      border-color: #fde68a;
+    }
+
+    .card-title {
+      font-weight: 700;
+      font-size: 1.02rem;
+      margin-bottom: 8px;
+    }
+
+    ul, ol {
+      margin: 8px 0 14px;
+      padding-left: 22px;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 20px;
+      font-size: 0.94rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 11px 13px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f3efe6;
+      font-weight: 700;
+    }
+
+    .prompt-box {
+      position: relative;
+      background: #18202c;
+      color: #f8fafc;
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin: 10px 0 14px;
+      font-size: 0.92rem;
+      line-height: 1.65;
+      white-space: pre-wrap;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 255, 255, 0.16);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.78rem;
+      cursor: pointer;
+    }
+
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    .builder-panel {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 20px;
+      margin-top: 14px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+      color: #334155;
+    }
+
+    select, input[type="text"] {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .site-footer {
+      max-width: 1020px;
+      margin: 0 auto;
+      padding: 24px 20px 56px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border);
+      line-height: 1.8;
+    }
+
+    .site-footer p {
+      margin: 4px 0;
+    }
+
+    .site-footer a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    @media print {
+      .topbar, .btn-print, .copy-btn, .builder-panel {
+        display: none !important;
+      }
+      body {
+        background: #fff;
+      }
+      section, .hero, .site-footer {
+        box-shadow: none;
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <span>📘 教師教學手冊</span>
+      <span class="badge">單元 05 · 有限資源選擇模擬器</span>
+    </div>
+    <nav class="nav-links">
+      <a href="#sec1">一、學習目標</a>
+      <a href="#sec2">二、永續取捨情境</a>
+      <a href="#sec3">三、提示詞產生器</a>
+      <a href="#sec4">四、80 分鐘流程</a>
+      <a href="#sec5">五、抓蟲與評量</a>
+    </nav>
+    <div>
+      <button class="btn-print" onclick="window.print()">🖨️ 列印／存成 PDF</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="hero">
+      <div class="kicker">第 5 單元教案｜生活與永續情境 × 有限資源取捨 × 單檔 HTML 互動網頁</div>
+      <h1>不能「全都要」怎麼辦？用提示詞打造《有限資源選擇模擬器》</h1>
+      <p>
+        在真實生活與永續行動中，預算、時間或資源永遠有限。本單元帶領老師與學生設計<strong>「有限資源選擇模擬器」</strong>，
+        讓學生在設定好的點數或預算上限下挑選行動方案，即時看到剩餘資源與影響變化，並練習說出自己的取捨理由。
+      </p>
+      <div class="meta-grid">
+        <div class="meta-item">
+          <span class="label">適用年級</span>
+          <span class="val">國小中～高年級</span>
+        </div>
+        <div class="meta-item">
+          <span class="label">建議節數</span>
+          <span class="val">2 節課（共 80 分鐘）</span>
+        </div>
+        <div class="meta-item">
+          <span class="label">核心素養</span>
+          <span class="val">資源取捨、永續思辨、理由表達</span>
+        </div>
+        <div class="meta-item">
+          <span class="label">產出形式</span>
+          <span class="val">單檔 HTML 選擇模擬器</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 一、學習目標 -->
+    <section id="sec1">
+      <h2>一、 教學目標與核心知識點</h2>
+      <div class="grid-2">
+        <div class="card teal">
+          <div class="card-title">🌱 永續與資源取捨知識點</div>
+          <ul>
+            <li><strong>有限資源與機會成本</strong>：總點數或預算有限時，選了高成本方案就代表要放棄其他選項，學會排出「優先順序」。</li>
+            <li><strong>多面向影響觀察</strong>：一個選擇不只影響花費，也可能同時影響「永續／環保成效」與「生活便利度」。</li>
+            <li><strong>沒有唯一標準答案</strong>：不同人看重的重點不同，重點在於能不能提出清楚、合乎情境的理由。</li>
+          </ul>
+        </div>
+
+        <div class="card amber">
+          <div class="card-title">🤖 選擇模擬器的提示詞重點</div>
+          <ul>
+            <li><strong>定義「總資源上限」與「各選項消耗／效益」</strong>：清楚告訴 AI 總點數是多少、每個選項花幾點、會帶來什麼效果。</li>
+            <li><strong>設定「超出上限」的互動規則</strong>：點數不夠時，是提醒「點數不足」或禁用按鈕，避免出現負數點數卻沒提示。</li>
+            <li><strong>加入「一鍵重置」與摘要回饋</strong>：讓學生能反覆嘗試不同組合，並查看自己選了哪些項目。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 二、永續取捨情境 -->
+    <section id="sec2">
+      <h2>二、 有限資源選擇模擬器：課堂情境設計</h2>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 22%;">情境主題</th>
+            <th style="width: 26%;">有限資源設定</th>
+            <th style="width: 52%;">可引導的課堂討論焦點</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>班級永續行動方案</strong><br />（本單元示範 <code>a005_ex1.html</code>）</td>
+            <td>每組有 <strong>12 點永續預算</strong>，從多個行動方案中挑選</td>
+            <td>「自備環保杯／餐具」、「班級垃圾分類宣導」、「節能關燈提醒」、「減少一次性用品」——有限點數下，哪幾項最有影響力？</td>
+          </tr>
+          <tr>
+            <td><strong>一日減廢生活挑戰</strong></td>
+            <td>一天有 <strong>10 點生活能量／預算</strong>，安排吃、行、用品</td>
+            <td>外食是否自帶容器？短程移動用走路或搭車？如何在便利與減廢之間取得平衡？</td>
+          </tr>
+          <tr>
+            <td><strong>校園防災與物資準備</strong></td>
+            <td>背包容量或預算上限為 <strong>15 點</strong>，挑選必備物品</td>
+            <td>飲用水、手電筒、哨子、點心、玩具——緊急時刻哪些是「必要」？哪些是「想要」？</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>示範提示詞：《班級永續行動選擇模擬器》</h3>
+      <div class="prompt-box" id="promptSim"><button class="copy-btn" onclick="copyText('promptSim', this)">複製提示詞</button>請用繁體中文產生一個單一 HTML 檔案（HTML、CSS、JavaScript 寫在同一個檔案中，不需要外部圖片或網路套件）。
+主題是國小中高年級的「班級永續行動：有限資源選擇模擬器」。
+功能需求：
+1. 設定總預算為 12 點，提供至少 6 個可勾選或點擊切換的永續行動方案，每個方案各有「消耗點數」、「永續成效分數」與「便利度分數」。
+2. 即時顯示「已用點數」、「剩餘點數」、「累計永續成效」與「累計便利度」；若剩餘點數不足，給予清楚提醒且不讓剩餘點數變成負數。
+3. 顯示目前勾選的行動清單與簡短建議，並附上「重置選擇」按鈕。</div>
+    </section>
+
+    <!-- 三、提示詞產生器 -->
+    <section id="sec3">
+      <h2>三、 有限資源選擇模擬器提示詞產生器</h2>
+      <div class="builder-panel">
+        <div class="form-row">
+          <div>
+            <label for="simThemeInput">1. 選擇情境主題</label>
+            <input id="simThemeInput" type="text" value="班級永續行動選擇模擬器" oninput="updateSimPrompt()" />
+          </div>
+          <div>
+            <label for="budgetSelect">2. 有限資源上限</label>
+            <select id="budgetSelect" onchange="updateSimPrompt()">
+              <option value="10 點預算">10 點預算</option>
+              <option value="12 點永續預算" selected>12 點永續預算</option>
+              <option value="15 點資源上限">15 點資源上限</option>
+            </select>
+          </div>
+          <div>
+            <label for="extraSimInput">3. 額外想加的巧思（選填）</label>
+            <input id="extraSimInput" type="text" placeholder="例如：加上「我的選擇理由」輸入框、顯示評語" oninput="updateSimPrompt()" />
+          </div>
+        </div>
+
+        <label>產生的提示詞草稿：</label>
+        <div class="prompt-box" id="simPromptOut"><button class="copy-btn" onclick="copyText('simPromptOut', this)">複製草稿</button></div>
+      </div>
+    </section>
+
+    <!-- 四、80 分鐘課堂流程 -->
+    <section id="sec4">
+      <h2>四、 80 分鐘（兩節課）教學流程建議</h2>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 16%;">節次／時間</th>
+            <th style="width: 24%;">教學環節</th>
+            <th style="width: 60%;">老師引導重點與師生活動</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>第一節<br />00–15 分</strong></td>
+            <td>「全都要」的兩難提問</td>
+            <td>提問：「如果班上只有 12 點永續預算，每個好點子都想做，怎麼決定先做哪幾個？」引導理解資源有限與取捨。</td>
+          </tr>
+          <tr>
+            <td><strong>第一節<br />15–28 分</strong></td>
+            <td>操作範例與討論選擇理由</td>
+            <td>開啟 <code>a005_ex1.html</code> 示範點選方案，請同學分享「我選了這幾組，因為……」。</td>
+          </tr>
+          <tr>
+            <td><strong>第一節<br />28–40 分</strong></td>
+            <td>設計自己的情境與提示詞</td>
+            <td>決定想要的生活／永續情境、總點數與選項，寫出第一版單檔 HTML 提示詞。</td>
+          </tr>
+          <tr>
+            <td><strong>第二節<br />40–62 分</strong></td>
+            <td>AI 產出網頁與點數規則測試</td>
+            <td>產出 <code>.html</code> 檔並開檔測試：點選超過總點數時有沒有擋住？總分計算對不對？</td>
+          </tr>
+          <tr>
+            <td><strong>第二節<br />62–80 分</strong></td>
+            <td>抓蟲微調與取捨發表</td>
+            <td>修正點數計算或顯示問題，最後讓各組展示自己的組合並說明「為什麼放棄了某個選項」。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 五、抓蟲與評量 -->
+    <section id="sec5">
+      <h2>五、 常見抓蟲與評量建議</h2>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">🐛 選擇模擬器常見抓蟲點</div>
+          <ul>
+            <li><strong>剩餘點數變成負數</strong>：點數已經不夠還被選進去，導致剩餘點數出現 <code>-2</code>。</li>
+            <li><strong>取消勾選沒扣回分數</strong>：取消原本選的項目後，已用點數或成效分數沒有同步扣掉。</li>
+            <li><strong>重置後狀態沒清乾淨</strong>：按重置後，選項按鈕看起來還停留在已選狀態。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">✅ 課堂觀察評量重點</div>
+          <ul>
+            <li><strong>取捨與理由表達</strong>：能否清楚說明選擇的理由與放棄的考量？</li>
+            <li><strong>規則與提示詞完整性</strong>：提示詞是否交代總點數、選項數值與超限處理？</li>
+            <li><strong>測試與修正能力</strong>：能否透過實際點選測試找出邏輯漏洞並請 AI 修正？</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>© 2026 CPAIZO STDUIO 版權所有</p>
+    <p>歡迎教師於課堂教學與非營利研習使用，請勿未經同意轉售或作商業用途；教學交流或問題回報請聯繫：<a href="mailto:cpaizo.email@gmail.com">cpaizo.email@gmail.com</a></p>
+  </footer>
+
+  <script>
+    function updateSimPrompt() {
+      const theme = document.getElementById("simThemeInput").value.trim() || "有限資源選擇模擬器";
+      const budget = document.getElementById("budgetSelect").value;
+      const extra = document.getElementById("extraSimInput").value.trim();
+
+      let text = `請用繁體中文產生一個單一 HTML 檔案（HTML、CSS、JavaScript 寫在同一個檔案中，不需要外部圖片或網路套件）。\n` +
+                 `主題是國小中高年級的「${theme}」，總資源上限為「${budget}」。\n` +
+                 `1. 提供至少 6 個可切換選擇的方案，每個方案列出消耗點數與影響分數。\n` +
+                 `2. 即時顯示已用點數、剩餘點數與累計成效；點數不足時給予清楚提醒，不讓剩餘點數變為負數。\n` +
+                 `3. 顯示目前已選項目摘要與「重置選擇」按鈕。`;
+
+      if (extra) {
+        text += `\n4. 額外需求：${extra}。`;
+      }
+
+      const box = document.getElementById("simPromptOut");
+      const btn = box.querySelector(".copy-btn");
+      box.textContent = text;
+      box.appendChild(btn);
+    }
+
+    function copyText(elementId, btnEl) {
+      const box = document.getElementById(elementId);
+      const clone = box.cloneNode(true);
+      const b = clone.querySelector(".copy-btn");
+      if (b) b.remove();
+      navigator.clipboard.writeText(clone.textContent.trim()).then(() => {
+        const old = btnEl.textContent;
+        btnEl.textContent = "已複製！";
+        setTimeout(() => (btnEl.textContent = old), 1400);
+      });
+    }
+
+    updateSimPrompt();
+  </script>
+</body>
+</html>
